@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS tp;
 CREATE DATABASE tp;
 USE tp;
 -- MySQL dump 9.11
@@ -49,6 +50,7 @@ CREATE TABLE `component` (
   `id` bigint(20) NOT NULL auto_increment,
   `base` bigint(20) default NULL,
   `name` tinytext NOT NULL,
+  `desc` text NOT NULL,
   `language` tinyblob,
   PRIMARY KEY  (`id`)
 ) TYPE=MyISAM;
@@ -57,7 +59,7 @@ CREATE TABLE `component` (
 -- Dumping data for table `component`
 --
 
-INSERT INTO `component` VALUES (1,0,'Generic Component',NULL);
+INSERT INTO `component` VALUES (1,0,'Generic Component','A very generic component that can be used anywhere for anything.', NULL);
 
 --
 -- Table structure for table `component_category`
