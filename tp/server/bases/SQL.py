@@ -159,7 +159,8 @@ class SQLWithAttrBase(SQLBase):
 		# Now for the type specific attributes
 		for attribute in self.attributes:
 			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
-			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+			if len(value) == 1:
+				setattr(self, attribute['name'], pickle.loads(value[0]['value']))
 
 	def save(self):
 		"""\

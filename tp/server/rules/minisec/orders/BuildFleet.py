@@ -44,9 +44,15 @@ class BuildFleet(Order):
 		message.insert()
 
 	def turns(self, turns=0):
-		return self.number + turns
+		return 4 + turns
 
 	def resources(self):
 		return []
+
+	def get_ships(self):
+		return [(0, "Scout", -1), (1, "Frigate", -1), (2, "Battleship", -1)], self.__dict__['ships']
+	def set_ships(self, arguments):
+		self.__dict__['ships'] = arguments[1]
+	ships = property(get_ships, set_ships)
 
 Order.types[2] = BuildFleet
