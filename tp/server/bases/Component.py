@@ -60,7 +60,7 @@ class Component(SQLBase):
 	next = staticmethod(next)
 
 	def to_packet(self, sequence):
-		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, Component.contains(self.id), self.language)
+		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)
 
 	def __str__(self):
 		return "<Component id=%s>" % (self.id,)
