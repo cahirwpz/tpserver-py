@@ -23,7 +23,7 @@ Build a new star ship fleet."""
 			print "Could not do a build order because it was on an unownable object."
 			self.remove()
 		
-		if self.turns() >= 1:
+		if self.turns() > 1:
 			# Add another year to worked...
 			self.worked += 1
 			self.save()

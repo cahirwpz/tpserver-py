@@ -36,7 +36,7 @@ Move to a point in space.
 
 		if obj.velx != 0 or obj.vely != 0 or obj.velz != 0:
 			# Move the object
-			obj.posx, obj.poxy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+			obj.posx, obj.posy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
 
 			# Just to make sure we don't get a division by zero error
 			def div(a, b):
