@@ -27,6 +27,7 @@ Split some ships into a new fleet.
 		# Create the new fleet
 		fleet2 = copy.deepcopy(fleet1)
 		fleet2.name = self.call
+		fleet2.ships = {}
 
 		# Add the ships to the new fleet
 		for type, number in self.ships:
