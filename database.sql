@@ -138,7 +138,7 @@ CREATE TABLE `object` (
 -- Dumping data for table `object`
 --
 
-INSERT INTO `object` VALUES (-1,'sobject.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.');
+INSERT INTO `object` VALUES (-1,'sobjects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.');
 INSERT INTO `object` VALUES (1,'sobjects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,'(dp0\n.');
 
 --
