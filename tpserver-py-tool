@@ -58,7 +58,8 @@ def adduser(game, username, password):
 	if User.realid(fullusername) != -1:
 		print "User already exists!"
 		return
-	
+
+	print "Adding user %s %s" % (fullusername, password)
 	# Add a new user
 	user = User()
 	user.username = fullusername

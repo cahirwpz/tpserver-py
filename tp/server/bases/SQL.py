@@ -223,6 +223,7 @@ Extra attributes this type defines.
 		Loads a thing from the database.
 		"""
 		SQLBase.load(self, id)
+		print "----------->", self.extra
 		self.extra = pickle.loads(self.extra)
 
 		self.__upgrade__(self.type)

@@ -2,6 +2,7 @@
 
 import MySQLdb
 import time
+from array import ArrayType
 
 connection = None
 def connect(config):
@@ -30,9 +31,13 @@ def query(query, kw1=None, **kw2):
 	returns = []
 	while True:
 		row = result.fetch_row(how=1)
+
 		if len(row) == 0:
 			break
 		else:
+			for k,i in row[0].items():
+				if type(i) is ArrayType:				
+					row[0][k] = i.tostring()
 			returns.append(row[0])
 	return returns
 
