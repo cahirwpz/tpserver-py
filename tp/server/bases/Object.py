@@ -10,7 +10,7 @@ class Object(SQLTypedBase):
 
 	orderclasses = {}
 
-	def bypos(pos, size=0, limit=-1):
+	def bypos(cls, pos, size=0, limit=-1):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
 
@@ -19,9 +19,15 @@ class Object(SQLTypedBase):
 		"""
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
 		
-		# FIXME: This is a square...
 		sql = """\
-SELECT * FROM %%(tablename)s WHERE \
+SELECT id, time FROM %%(tablename)s WHERE \
+	(pow(posx-%s, 2) + pow(posy-%s, 2) + pow(posz-%s, 2)) =< pow(size, 2) \
+ORDER BY size \
+		""" % pos
+		
+		# FIXME: This is a square???
+		sql = """\
+SELECT id, time FROM %%(tablename)s WHERE \
       (%s <= posx+size AND %s >= posx-size) AND \
       (%s <= posy+size AND %s >= posy-size) AND \
       (%s <= posz+size AND %s >= posz-size) \
@@ -31,11 +37,8 @@ ORDER BY size
 			sql += "LIMIT %s" % limit
 
 		result = db.query(sql, tablename=Object.tablename)
-		r = []
-		for id in result:
-			r.append(Object(id=id['id']))
-		return r
-	bypos = staticmethod(bypos)
+		return [(x['id'], x['time']) for x in result]
+	bypos = classmethod(bypos)
 
 	def realid(oid, pid):
 		return oid

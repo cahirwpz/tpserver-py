@@ -38,7 +38,7 @@ class FullConnection(netlib.ServerConnection):
 			packet.ids	- The ids to be gotten
 					
 		type - The class used in processing, it must have the following
-			type.realid(id, user)		 		 - Get the real id for this object
+			type.realid(id, userid)		 		 - Get the real id for this object
 			type(realid)						 - Creates the object
 			typeinstance.allowed(user)			 - Is the user allowed to see this object
 			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
@@ -76,13 +76,13 @@ class FullConnection(netlib.ServerConnection):
 		packet - Get packet to be processes, it must have the following
 			packet.key	  - The last modified time
 			packet.start  - Index to start from
-			packet.length - The number of items to get
+			packet.amount - The number of items to get
 					
 		type - The class used in processing, it must have the following
-			type.realid(id, user)		 		 - Get the real id for this object
-			type(realid)						 - Creates the object
-			typeinstance.allowed(user)			 - Is the user allowed to see this object
-			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
+			type.modified()						- Get the latest modified time for that type
+			type.amount()						- Get the number of this that exist
+			type.ids(start, amount)				- Get the ids
+			type.ids_packet()					- Get the packet type for sending a list of ids
 		"""
 		if self.user == None:
 			return False
@@ -116,7 +116,6 @@ class FullConnection(netlib.ServerConnection):
 			packet.slots	- The slots to be gotten
 					
 		type - The class used in processing, it must have the following
-			type.all(realid)					 - Gets all the ids for this object type
 			type(realid, slot)					 - Creates the object
 			typeinstance.allowed(user)			 - Is the user allowed to see this object
 			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
@@ -131,10 +130,6 @@ class FullConnection(netlib.ServerConnection):
 		
 		# Get the real id
 		id = container.realid(packet.id, self.user.id)
-		
-		# Empty list means we get all
-		if len(packet.slots) == 0:
-			packet.slots = type.all(id)
 		
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 		for slot in packet.slots:
@@ -169,37 +164,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnObject_GetById(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.ids)))
-
-		for id in packet.ids:
-			try:
-				object = Object(id)
-				
-				p = Object(id).to_packet(packet.sequence)
-				
-				# Protect the order_number
-				if not allowed(self.user, object):
-					p.order_number = 0
-
-				self._send(p)
-				
-			except NoSuch:
-				print "No such object", id
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
-
-		return True
+		# FIXME: This should show the correct number of orders for a certain person
+		return self.OnGetWithID(packet, Object)
 		
 	def OnObject_GetID(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
 		return self.OnGetID(packet, Object)	
 
 	def OnObject_GetID_ByPos(self, packet):
@@ -239,7 +207,6 @@ class FullConnection(netlib.ServerConnection):
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
 		return True
-
 	OnOrder = OnOrder_Insert
 
 	def OnOrderDesc_Get(self, packet):

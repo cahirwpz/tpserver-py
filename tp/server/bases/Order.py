@@ -7,62 +7,58 @@ class Order(SQLTypedBase):
 	tablename = "`order`"
 	types = {}
 
-	def realid(oid, slot):
+	def realid(cls, oid, slot):
 		"""\
 		Order.realid(objectid, slot) -> id
 		
 		Returns the database id for the order found on object at slot.
 		"""
-		result = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s and slot=%(slot)s""", tablename=Order.tablename, oid=oid, slot=slot)
+		result = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s and slot=%(slot)s""", tablename=cls.tablename, oid=oid, slot=slot)
 		if len(result) != 1:
 			return -1
 		else:
 			return result[0]['id']
-	realid = staticmethod(realid)
+	realid = classmethod(realid)
 
-	def all(oid):
-		results = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s""", tablename=Order.tablename, oid=oid)
-		return [x['id'] for x in results]
-	all = staticmethod(all)
-
-	def number(oid):
+	def number(cls, oid):
 		"""\
 		Order.number(objectid) -> number
 
 		Returns the number of orders on an object.
 		"""
-		return db.query("""SELECT count(id) FROM %(tablename)s WHERE oid=%(oid)s""", tablename=Order.tablename, oid=oid)[0]['count(id)']
-	number = staticmethod(number)
+		return db.query("""SELECT count(id) FROM %(tablename)s WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)[0]['count(id)']
+	number = classmethod(number)
 
-	def desc_packet(sequence, typeno):
+	def desc_packet(cls, sequence, typeno):
 		"""\
 		Order.desc_packet(sequence, typeno)
 
 		Builds an order description packet for the specified order type.
 		"""
 		# Pull out the arguments
-		if not Order.types.has_key(typeno):
+		if not cls.types.has_key(typeno):
 			raise NoSuch("No such order type.")
 
-		order = Order(typeno=typeno)
+		order = cls(typeno=typeno)
 		
 		arguments = []
 		for attribute in order.attributes.values():
 			if attribute.level != 'private':
 				arguments.append((attribute.name, attribute.type, attribute.desc))
+
 		# FIXME: This should send a correct last modified time
 		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments, 0)
-	desc_packet = staticmethod(desc_packet)
+	desc_packet = classmethod(desc_packet)
 	
-	def load_all():
+	def load_all(cls):
 		"""\
 		Order.load_all()
 
 		Loads all the possible order types from the database.
 		"""
-		for id in Order.types.keys():
-			Order.desc_packet(0, id).register()
-	load_all = staticmethod(load_all)
+		for id in cls.types.keys():
+			cls.desc_packet(0, id).register()
+	load_all = classmethod(load_all)
 
 	def __init__(self, oid=None, slot=None, packet=None, type=None, typeno=None, id=None):
 		if oid != None and slot != None:

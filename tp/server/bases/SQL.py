@@ -63,6 +63,13 @@ class SQLBase(object):
 		return db.query("SELECT count(*) FROM %(tablename)s", tablename=cls.tablename)[0]['count(*)']
 	amount = classmethod(amount)
 
+	def realid(cls, id, pid):
+		"""\
+		Get the real id for an object.
+		"""
+		return id
+	realid = classmethod(realid)
+
 	def __init__(self, id=None, packet=None):
 		"""\
 		SQLObject(id)

@@ -18,11 +18,6 @@ class Message(SQLBase):
 		return db.query("""SELECT COUNT(id) FROM %(tablename)s WHERE bid=%(bid)s""", tablename=Message.tablename, bid=bid)[0]['COUNT(id)']
 	number = staticmethod(number)
 
-	def all(bid):
-		results = db.query("""SELECT id FROM %(tablename)s WHERE bid=%(bid)s""", tablename=Message.tablename, bid=bid)
-		return [x['id'] for x in results]
-	all = staticmethod(all)
-
 	def __init__(self, id=None, slot=None, packet=None):
 		SQLBase.__init__(self)
 

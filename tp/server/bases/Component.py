@@ -60,19 +60,6 @@ class Component(SQLBase):
 		return id
 	realid = staticmethod(realid)
 
-	def all():
-		results = db.query("""SELECT id FROM %(tablename)s""", tablename=Component.tablename)
-		return [x['id'] for x in results]
-	all = staticmethod(all)
-
-	def next(id):
-		result = db.query("""SELECT id FROM %(tablename)s WHERE id > %(id)s LIMIT 1""", tablename=Component.tablename, id=id)
-		if len(results) > 0:
-			return result[0]['id']
-		else:
-			raise NoSuch("No component after given...")
-	next = staticmethod(next)
-
 	def to_packet(self, sequence):
 		print "Language:", self.language
 		print "Args:", (sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)

@@ -1,3 +1,4 @@
+DROP DATABASE IF EXISTS tp;
 CREATE DATABASE tp;
 USE tp;
 -- MySQL dump 10.9
@@ -186,5 +187,37 @@ CREATE TABLE `user` (
 --
 
 INSERT INTO `user` VALUES (1,'admin@tp','adminpassword', 0);
+
+
+--
+-- Table structure for table `resource`
+--
+
+DROP TABLE IF EXISTS `resource`;
+CREATE TABLE `resource` (
+  `id` bigint(20) NOT NULL auto_increment,
+  `namesingular` tinytext NOT NULL,
+  `nameplural` tinytext NOT NULL,
+  `unitsingular` tinytext NOT NULL,
+  `unitplural` tinytext NOT NULL,
+  `desc` text,
+  `weight` bigint(20) NOT NULL default '0',
+  `size` bigint(20) NOT NULL default '0',
+  `time` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+--
+-- Table structure for table `permission`
+--
+
+-- DROP TABLE IF EXISTS `permission`;
+-- CREATE TABLE `permission` (
+--   `id` bigint(20) NOT NULL auto_increment,
+--   `name` tinyblob NOT NULL,
+--   PRIMARY KEY  (`id`)
+-- ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 
 UPDATE object SET id = 0 WHERE name='The Universe';

@@ -25,22 +25,6 @@ class Board(SQLBase):
 			return bid * -1
 	mangleid = staticmethod(mangleid)
 
-	def all():
-		results = db.query("""SELECT id FROM %(tablename)s WHERE id < 0""", tablename=Board.tablename)
-		return [0,]+[-1*x['id'] for x in results]
-	all = staticmethod(all)
-
-	def next(id):
-		if results == -1:
-			return 0
-		else:
-			result = db.query("""SELECT id FROM %(tablename)s WHERE id > %(id)s LIMIT 1""", tablename=Message.tablename, id=id)
-			if len(results) > 0:
-				return result[0]['id']
-			else:
-				raise NoSuch("No board after given...")
-	next = staticmethod(next)
-
 	def to_packet(self, sequence):
 		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id))
 
