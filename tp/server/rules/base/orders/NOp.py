@@ -8,7 +8,7 @@ Wait around and do nothing...
 """
 
 	attributes = {\
-		'wait': Order.Attribute("wait", 0, 'public', type=netlib.objects.Constants.ARG_TIME, 
+		'wait': Order.Attribute("wait", 0, 'public', type=netlib.objects.constants.ARG_TIME, 
 				desc="How long to wait for.")
 	}
 	

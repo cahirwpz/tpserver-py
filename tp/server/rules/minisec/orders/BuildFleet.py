@@ -12,7 +12,7 @@ class BuildFleet(Order):
 Build a new star ship fleet."""
 
 	attributes = {\
-		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
+		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
 				desc="Ships to build and launch.")
 	}
 	

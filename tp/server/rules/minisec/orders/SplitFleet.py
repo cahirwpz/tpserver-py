@@ -14,9 +14,9 @@ Split some ships into a new fleet.
 """
 
 	attributes = {\
-		'call': Order.Attribute("call", "New Fleet", 'protected', type=netlib.objects.Constants.ARG_STRING, 
+		'call': Order.Attribute("call", "New Fleet", 'protected', type=netlib.objects.constants.ARG_STRING, 
 				desc="What to call the new fleet."),
-		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
+		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
 				desc="Ships to move into new fleet.")
 	}
 	

@@ -15,7 +15,7 @@ Merge two fleets together.
 """
 
 	attributes = {\
-		'fleet': Order.Attribute("fleet", {}, 'protected', type=netlib.objects.Constants.ARG_OBJECT, 
+		'fleet': Order.Attribute("fleet", {}, 'protected', type=netlib.objects.constants.ARG_OBJECT, 
 				desc="Fleet to merge with.")
 	}
 	
