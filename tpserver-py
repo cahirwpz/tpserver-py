@@ -2,8 +2,8 @@
 import sys
 sys.path.append("../")
 
-import pickle
 import copy
+import pickle
 
 import db
 
@@ -28,7 +28,6 @@ class SQLBase:
 		Create an empty object.
 		"""
 		self.tablename = self.tablename
-		self.fieldname = self.fieldname
 		
 		if id != None:
 			self.load(id)
@@ -110,6 +109,11 @@ class SQLBase:
 		pass
 	
 class SQLWithAttrBase(SQLBase):
+	def __init__(self, id=None, packet=None):
+		self.fieldname = self.fieldname
+
+		SQLBase.__init__(self, id, packet)
+
 	def attributes(self):
 		"""\
 		*Internal*
@@ -241,7 +245,7 @@ class Order(SQLWithAttrBase):
 	realid = staticmethod(realid)
 
 	def number(oid):
-		return db.query("""SELECT count(oid) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(oid)']
+		return db.query("""SELECT count(id) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(id)']
 	number = staticmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
@@ -307,8 +311,82 @@ class Order(SQLWithAttrBase):
 
 class Message(SQLBase):
 	tablename = "tp.message"
-	fieldname = "message"
-	pass
+
+	def realid(bid, slot):
+		result = db.query("""SELECT id FROM tp.message WHERE bid=%(bid)s and slot=%(slot)s""", bid=bid, slot=slot)
+		if len(result) != 1:
+			return -1
+		else:
+			return result[0]['id']
+	realid = staticmethod(realid)
+
+	def number(bid):
+		return db.query("""SELECT count(id) FROM tp.message WHERE bid=%(bid)s""", bid=bid)[0]['count(id)']
+	number = staticmethod(number)
+
+	def __init__(self, id=None, slot=None, packet=None):
+		SQLBase.__init__(self)
+
+		if id != None and slot != None:
+			self.load(id, slot)
+		if packet != None:
+			self.from_packet(packet)
+
+	def load(self, bid, slot):
+		id = self.realid(bid, slot)
+		if id == -1:
+			raise NoSuch("Order %s %s does not exists" % (bid, slot))
+			
+		SQLBase.load(self, id)
+
+	def insert(self):
+		number = self.number(self.bid)
+		if self.slot == -1:
+			self.slot = number
+		elif self.slot < number:
+			# Need to move all the other orders down
+			db.query("""UPDATE tp.message SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""" % self.todict())
+		else:
+			raise NoSuch("Cannot insert to that slot number.")
+		
+		self.save()
+
+	def save(self):
+		if not hasattr(self, 'id'):
+			id = self.realid(self.bid, self.slot)
+			if id != -1:
+				self.id = id
+			
+		SQLBase.save(self)
+
+	def remove(self):
+		# Move the other orders down
+		db.query("""UPDATE tp.message SET slot=slot-1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
+
+		SQLBase.remove(self)
+
+	def to_packet(self, sequence):
+		# Preset arguments
+		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body)
+
+	def from_packet(self, packet):
+		self.__dict__.update(packet.__dict__)
+		self.bid = self.id
+		del self.id
+
+	def __str__(self):
+		return "<Message id=%s bid=%s slot=%s>" % (self.type, self.id, self.bid, self.slot)
+
+	__repr__ = __str__
+
+class Board(SQLBase):
+	tablename = "tp.board"
+
+	def to_packet(self, sequence):
+		return netlib.objects.Board(sequence, self.id, self.name, self.desc, Message.number(self.id))
+
+	def __str__(self):
+		return "<Board id=%s>" % (self.type, self.id)
 
 class FullConnection(netlib.ServerConnection):
 	def OnLogin(self, packet):
@@ -379,11 +457,51 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
+	def OnBoard_Get(self, packet):
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+
+		for id in packet.ids:
+			try:
+				self._send(Board(id).to_packet(packet.sequence))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
+
+		return True
+	
+	def OnMessage_Get(self, packet):
+		self._send(Sequence(packet.sequence, len(packet.slots)))
+
+		for slot in packet.slots:
+			try:
+				message = Message(packet.id, slot)
+				self._send(message.to_packet(packet.sequence))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
+
+		return True
+
+	def OnMessage_Insert(self, packet):
+		try:
+			message = Message(packet=packet)
+			message.insert()
+			self._send(OK(packet.sequence, "Message added."))
+		except NoSuch:
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Message adding failed."))
+
+		return True
+
+	OnMessage = OnMessage_Insert
+	
 class FullServer(netlib.Server):
 	handler = FullConnection
 
 	def __init__(self, host, port="6923"):
 		netlib.Server.__init__(self, host, port)
+
+	def endofturn(self, sig, frame):
+		packet = netlib.objects.TimeRemaining(0, 0)
+		for connection in self.connections:
+			connection._send(packet)
 
 def main():
 	# Connect to the database
@@ -398,6 +516,13 @@ def main():
 			print "This port in use...", port
 			port += 1
 			continue
+		try:
+			import signal
+
+			signal.signal(signal.SIGUSR1, s.endofturn)
+		except ImportError:
+			pass
+			
 		s.serve_forever()
 
 if __name__ == "__main__":

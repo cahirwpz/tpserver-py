@@ -30,6 +30,11 @@ def Move(order):
 	# We are going to have to modify the object so lets load it
 	obj = Object(order.oid)
 
+	if not hasattr(obj, "owner"):
+		# Ekk we can't build an object if we don't have an owner...
+		print "Could not do a move order because it was on an unownable object."
+		order.remove()
+	
 	# Is this the first time we are moving?
 	if (obj.velx, obj.vely, obj.velz) == (0,0,0):
 		# Set the velocity
@@ -61,10 +66,14 @@ def Move(order):
 		obj.velx = obj.vely = obj.velz = 0
 		order.remove()
 
+		# Send a message to the owner that the object has arrived...
 		message = Message()
+		message.bid = obj.owner
+		message.slot = Message.number()
 		message.subject = "%s arrived" % object.name
 		message.body = """%s has arrive at it's destination.""" % object.name
-		message.save()
+		message.insert()
+
 	else:
 		obj.save()
 
@@ -101,10 +110,11 @@ def BuildFleet(order):
 	object.save()
 
 	message = Message()
+	message.bid = obj.owner
+	message.slot = Message.number()
 	message.subject = "%s built" % object.new
 	message.body = """%s has arrive at it's destination.""" % object.new
-	message.save()
-
+	message.insert()
 
 process_order = [1, 0]
 def main():
