@@ -1,12 +1,10 @@
+CREATE DATABASE tp;
+USE tp;
 -- MySQL dump 9.11
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.0.20-log
-
-DROP DATABASE tp;
-CREATE DATABASE tp;
-USE tp;
+-- Server version	4.0.21-log
 
 --
 -- Table structure for table `board`
@@ -25,6 +23,24 @@ CREATE TABLE `board` (
 --
 
 --
+-- Table structure for table `category`
+--
+
+DROP TABLE IF EXISTS `category`;
+CREATE TABLE `category` (
+  `id` bigint(20) NOT NULL auto_increment,
+  `name` tinytext NOT NULL,
+  `desc` text,
+  PRIMARY KEY  (`id`)
+) TYPE=InnoDB;
+
+--
+-- Dumping data for table `category`
+--
+
+INSERT INTO `category` VALUES (1,'Misc','Things which don\'t fit into any specific category.');
+
+--
 -- Table structure for table `message`
 --
 
@@ -41,7 +57,6 @@ CREATE TABLE `message` (
 --
 -- Dumping data for table `message`
 --
-
 
 --
 -- Table structure for table `object`
@@ -68,7 +83,7 @@ CREATE TABLE `object` (
 -- Dumping data for table `object`
 --
 
-INSERT INTO `object` VALUES (-1,'sobjects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.');
+INSERT INTO `object` VALUES (-1,'sobject.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.');
 INSERT INTO `object` VALUES (1,'sobjects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,'(dp0\n.');
 
 --
@@ -89,6 +104,7 @@ CREATE TABLE `order` (
 --
 -- Dumping data for table `order`
 --
+
 
 --
 -- Table structure for table `user`

@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 
 import copy
 import pickle
@@ -12,12 +13,13 @@ Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
 # Base objects
-from sbases.SQL     import NoSuch
-from sbases.Board   import Board
-from sbases.Message import Message
-from sbases.Object  import Object
-from sbases.Order   import Order
-from sbases.User    import User
+from sbases.SQL      import NoSuch
+from sbases.Board    import Board
+from sbases.Category import Category
+from sbases.Message  import Message
+from sbases.Object   import Object
+from sbases.Order    import Order
+from sbases.User     import User
 
 def allowed(user, obj):
 	return (user.id in config.admin) or (hasattr(obj, "owner") and obj.owner == user.id)
@@ -240,6 +242,27 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
+	def OnCategory_Get(self, packet):
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+
+		for id in packet.ids:
+			try:
+				object = Category(id)
+				
+				p = Category(id).to_packet(packet.sequence)
+				self._send(p)
+				
+			except NoSuch:
+				print "No such category", id
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such category."))
+
+		return True
+		
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)
 		return netlib.ServerConnection._send(self, packet)
