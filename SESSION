@@ -1,7 +1,0 @@
-
-[get, no target] -> SERVER
-CLIENT <- [info, server stats]
-[login, account name, password] -> SERVER
-CLIENT <- [error, can't login], [info, account]
-[get, target "ROOT"] -> SERVER
-CLIENT <- [all "operations" etc]
