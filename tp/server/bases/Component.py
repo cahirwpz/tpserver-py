@@ -1,0 +1,50 @@
+
+from config import db, netlib
+
+from SQL import *
+from Order import Order
+
+class Component(SQLBase):
+	tablename = "`component`"
+	types = {}
+
+	def used(id):
+		"""\
+		Component.used(id) -> integer
+
+		Returns the number of places this component is used.
+		"""
+		sql = """SELECT COUNT(id) FROM %%(tablename)s WHERE base = %s ORDER BY id""" % (id)
+		result = db.query(sql, tablename=Component.tablename)
+		print result
+		return result[0]["COUNT(id)"]
+	used = staticmethod(used)
+
+	def category(id):
+		"""\
+		Component.category(id) -> [1, 3]
+
+		Returns the categories this component is a part of.
+		"""
+		sql = """SELECT category FROM component_category WHERE component = %s ORDER BY category""" % (id)
+		result = db.query(sql, tablename=Component.tablename + "_component")
+		return [x['category'] for x in result]
+	category = staticmethod(category)
+
+	def contains(id):
+		"""\
+		Component.contains(id) -> [1, 3]
+
+		Returns the components contains by this component.
+		"""
+		sql = """SELECT * FROM component_component WHERE container = %s ORDER BY component""" % (id)
+		result = db.query(sql, tablename=Component.tablename + "_component")
+		return [(x['container'], x['component']) for x in result]
+	contains = staticmethod(contains)
+
+	def to_packet(self, sequence):
+		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, Component.contains(self.id), self.language)
+
+	def __str__(self):
+		return "<Component id=%s>" % (self.id,)
+
