@@ -3,11 +3,13 @@
 import MySQLdb
 import time
 
+import config
+
 connection = None
 def connect():
 	global connection
 	
-	connection = MySQLdb.connect("localhost", "tp", "tp-password", "tp")
+	connection = MySQLdb.connect(config.host, config.user, config.password, config.database)
 
 def query(query, kw1=None, **kw2):
 	global connection
