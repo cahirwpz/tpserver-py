@@ -1,4 +1,6 @@
 
+from types import TupleType, ListType
+
 from sbases.Object import Object
 
 class Fleet(Object):
@@ -27,58 +29,61 @@ class Fleet(Object):
 	
 	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
 	ship_hp = {0: 2, 1:4, 2:6}
-	ship_damage = {0:(0, 0), 1:(0, 2), 2:(1,3)}
+	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
 
 	def damage_do(self, amount):
 		"""\
 		Damages a fleet. Can be called with either a single
 		integer or a tuple of integers.
 		"""
-		if type(amount) == TupleType:
+		if type(amount) in (TupleType, ListType):
 			for a in amount:
-				self.do_damage(a)
+				self.damage_do(a)
 			return
 
 		# Run a consistancy check
 		# Check the ships actually exist
-		for type, number in self.ships:
+		for t, number in self.ships.items():
 			if number < 1:
-				del self.ships[type]
+				del self.ships[t]
 
 		# Check the damage goes to the right place
-		for type, damage in self.damage:
-			if not type in self.ships.keys():
-				del self.damage[type]
+		for t, damage in self.damage.items():
+			if not t in self.ships.keys():
+				del self.damage[t]
 
 		# Find the largest ship type.
 		s = self.ships.keys()
 		s.sort()
 		s.reverse()
-		type = s[0]
-		damage = self.damage[type]
+		t = s[0]
+	
+		if not self.damage.has_key(t):
+			self.damage[t] = []
+		damage = self.damage[t]
 
 		# Condense the damage
-		if len(damage)+1 > self.ships[type]:
+		if len(damage)+1 > self.ships[t]:
 			damage.sort()
-			if damage[0] + amount > self.ship_hp[type]:
+			if damage[0] + amount >= self.ship_hp[t]:
 				damage[-1] += amount
 			else:
 				damage[0] += amount
 		else:
 			damage.append(amount)
 		
-		if damage[-1] > self.ship_hp[type]:
-			self.ships[type] -= 1
-			if self.ships[type] < 1:
-				del self.ships[type]
+		if damage[-1] >= self.ship_hp[t]:
+			self.ships[t] -= 1
+			if self.ships[t] < 1:
+				del self.ships[t]
 			del damage[-1]
 
-	def damage_get(self, fail=True):
+	def damage_get(self, fail=False):
 		"""\
 		Returns the amount of damage this fleet can do.
 		"""
 		r = []
-		for type, no in self.ships:
+		for type, no in self.ships.items():
 			r.extend([self.ship_damage[type][fail]] * no)
 		return r
 

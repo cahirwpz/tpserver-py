@@ -3,20 +3,14 @@ import copy
 import pickle
 import time
 
-try:
-	from tp import netlib
-except ImportError:
-	import sys
-	sys.path.append("../")
-	import netlib
+import config
+db = config.db
+netlib = config.netlib
 
 OK = netlib.objects.OK
 Fail = netlib.objects.Fail
 Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
-
-import config
-db = config.db
 
 # Base objects
 from sbases.SQL     import NoSuch
@@ -61,6 +55,7 @@ class FullConnection(netlib.ServerConnection):
 				self._send(p)
 				
 			except NoSuch:
+				print "No such object", id
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
 
 		return True
@@ -89,12 +84,11 @@ class FullConnection(netlib.ServerConnection):
 				# Are we allowed to access this?
 				if order.object.owner != self.pid:
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
-					print order.object.owner, self.pid
 					print packet.id, slot, "No Permission"
 				else:	
 					self._send(order.to_packet(packet.sequence))
 			except NoSuch:
-				print packet.id, slot, "Failed"
+				print packet.id, slot, "No such order."
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
 		return True
@@ -109,10 +103,12 @@ class FullConnection(netlib.ServerConnection):
 			# Are we allowed to do this?
 			if order.object.owner != self.pid:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+				print packet.id, slot, "No Permission"
 			else:	
 				order.insert()
 				self._send(OK(packet.sequence, "Order added."))
 		except NoSuch:
+			print packet.id, slot, "Adding failed."
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
 		return True
@@ -146,10 +142,12 @@ class FullConnection(netlib.ServerConnection):
 				# Are we allowed to do this?
 				if order.object.owner != self.pid:
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+					print packet.id, slot, "No Permission"
 				else:	
 					order.remove()
 					self._send(OK(packet.sequence, "Order removed."))
 			except NoSuch:
+				print packet.id, slot, "No such order."
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
 		return True

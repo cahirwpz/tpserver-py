@@ -162,6 +162,9 @@ Extra attributes this type defines.
 
 	
 	def __init__(self, id=None, packet=None, type=None, typeno=None):
+		if hasattr(self, "typeno"):
+			typeno = self.typeno
+	
 		if id == None and packet == None and type == None and typeno == None:
 			raise ValueError("Can not create an object without type.")
 

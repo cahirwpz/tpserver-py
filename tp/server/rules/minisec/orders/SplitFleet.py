@@ -14,7 +14,7 @@ Split some ships into a new fleet.
 """
 
 	attributes = {\
-		'call': Order.Attribute("call", "", 'protected', type=netlib.objects.Constants.ARG_STRING, 
+		'call': Order.Attribute("call", "New Fleet", 'protected', type=netlib.objects.Constants.ARG_STRING, 
 				desc="What to call the new fleet."),
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
 				desc="Ships to move into new fleet.")
@@ -56,7 +56,7 @@ Split some ships into a new fleet.
 		if value == None:
 			return [0, self.call]
 		else:
-			self.call = value[0]
+			self.call = value[1]
 
 	def fn_ships(self, value=None):
 		max = self.object.ships
@@ -68,15 +68,14 @@ Split some ships into a new fleet.
 			return returns, self.ships.items()
 		else:
 			ships = {}
-
 			try:
 				for type, number in value[1]:
-					if not type in Fleet.ships.keys():
+					if not type in Fleet.ship_types.keys():
 						raise ValueError("Invalid type selected")
 					if number > max[type]:
 						raise ValueError("Number to big")
 					ships[type] = number
-			except:
+			except ValueError:
 				pass
 
 			self.ships = ships

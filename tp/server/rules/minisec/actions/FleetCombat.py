@@ -30,7 +30,62 @@ class Choice:
 
 
 if __name__ == "__main__":
-	pass
+	import config 
+	from sobjects.Fleet import Fleet
 
-# Figure out which people are in combat
+	red = Fleet()
+	red.ships[0] = 1
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 1 damage..."
+	red.damage_do(1)
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+
+	red = Fleet()
+	red.ships[0] = 1
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 2 damage..."
+	red.damage_do(2)
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+
+	red = Fleet()
+	red.ships[0] = 2
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 2 damage..."
+	red.damage_do(2)
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+
+	red = Fleet()
+	red.ships[0] = 2
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 4 damage..."
+	red.damage_do(4)
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+
+	red = Fleet()
+	red.ships[0] = 2
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 2,2 damage..."
+	red.damage_do((2,2))
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+
+	red = Fleet()
+	red.ships[0] = 1
+	red.ships[1] = 1
+	print "Fleet:", red.ships
+	print "Fleet will do", red.damage_get()
+	print "Doing 2,2 damage..."
+	red.damage_do((2,2))
+	print "Remaining Ships:", red.ships
+	print "Remaining Damage:", red.damage
+	# Figure out which people are in combat
 	# Planets? Multiple Fleets of same owner?

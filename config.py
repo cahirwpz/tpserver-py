@@ -1,4 +1,11 @@
 
+try:
+	from tp import netlib
+except ImportError:
+	import sys
+	sys.path.append("../")
+	import netlib
+
 class config:
 	pass
 

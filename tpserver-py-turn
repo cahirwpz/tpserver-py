@@ -3,15 +3,9 @@ import math
 import sys
 import traceback
 
-try:
-	from tp import netlib
-except ImportError:
-	import sys
-	sys.path.append("../")
-	import netlib
-
 import config
 db = config.db
+netlib = config.netlib
 
 from sbases.Object import Object
 from sbases.Order import Order
@@ -46,8 +40,6 @@ def OrderGet(top, d={}):
 
 	WalkUniverse(top, o)
 
-
-
 def main():
 	# Connect to the database
 	db.query("BEGIN")
@@ -60,6 +52,7 @@ def main():
 		OrderGet(Object(0), d)
 
 		for type in d.keys():
+			print type
 			if not d.has_key(type):
 				continue
 
