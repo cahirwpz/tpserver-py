@@ -38,6 +38,8 @@ def query(query, kw1=None, **kw2):
 			for k,i in row[0].items():
 				if type(i) is ArrayType:				
 					row[0][k] = i.tostring()
+				elif i is None:
+					row[0][k] = ''
 			returns.append(row[0])
 	return returns
 

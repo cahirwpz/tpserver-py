@@ -41,6 +41,59 @@ CREATE TABLE `category` (
 INSERT INTO `category` VALUES (1,'Misc','Things which don\'t fit into any specific category.');
 
 --
+-- Table structure for table `component`
+--
+
+DROP TABLE IF EXISTS `component`;
+CREATE TABLE `component` (
+  `id` bigint(20) NOT NULL auto_increment,
+  `base` bigint(20) default NULL,
+  `name` tinytext NOT NULL,
+  `language` tinyblob,
+  PRIMARY KEY  (`id`)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `component`
+--
+
+INSERT INTO `component` VALUES (1,0,'Generic Component',NULL);
+
+--
+-- Table structure for table `component_category`
+--
+
+DROP TABLE IF EXISTS `component_category`;
+CREATE TABLE `component_category` (
+  `component` bigint(20) NOT NULL default '0',
+  `category` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`component`,`category`)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `component_category`
+--
+
+INSERT INTO `component_category` VALUES (1,1);
+
+--
+-- Table structure for table `component_component`
+--
+
+DROP TABLE IF EXISTS `component_component`;
+CREATE TABLE `component_component` (
+  `container` bigint(20) NOT NULL default '0',
+  `component` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`container`,`component`)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `component_component`
+--
+
+INSERT INTO `component_component` VALUES (1,1);
+
+--
 -- Table structure for table `message`
 --
 
