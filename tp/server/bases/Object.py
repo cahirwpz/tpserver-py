@@ -70,7 +70,6 @@ ORDER BY size
 			args.append(value)
 
 		packet = netlib.objects.Object(*args)
-		print packet.length
 		return packet
 
 	def __str__(self):

@@ -1,6 +1,9 @@
 
 import copy
 import pickle
+import time
+
+import config
 
 try:
 	from tp import netlib
@@ -189,6 +192,10 @@ class FullConnection(netlib.ServerConnection):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
 
 		return True
+
+	def _send(self, packet):
+		time.sleep(config.lag/1000.0)
+		return netlib.ServerConnection._send(self, packet)
 
 class FullServer(netlib.Server):
 	handler = FullConnection

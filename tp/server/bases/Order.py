@@ -64,27 +64,24 @@ class Order(SQLWithAttrBase):
 			Order.desc_packet(0, result['id']).register()
 	load_all = staticmethod(load_all)
 	
-	def __init__(self, id=None, slot=None, packet=None):
-		SQLWithAttrBase.__init__(self)
-
-		if id != None and slot != None:
-			self.load(id, slot)
-		if packet != None:
-			self.from_packet(packet)
-
-	def load(self, oid, slot):
-		id = self.realid(oid, slot)
-		if id == -1:
-			raise NoSuch("Order %s %s does not exists" % (oid, slot))
+	def __init__(self, oid=None, slot=None, packet=None, type=None, id=None):
+	
+		if oid != None and slot != None:
+			id = self.realid(oid, slot)
+		else:
+			id = None
 			
+		SQLWithAttrBase.__init__(self, id, packet, type)
+
+	def load(self, id):
+
 		SQLWithAttrBase.load(self, id)
+		
 		if self.types.has_key(self.type):
 			self.__class__ = self.types[self.type]
 
 	def insert(self):
-		"""\
-		Insert this Order into the database.
-		"""
+	
 		number = self.number(self.oid)
 		if self.slot == -1:
 			self.slot = number
@@ -97,9 +94,7 @@ class Order(SQLWithAttrBase):
 		self.save()
 
 	def save(self):
-		"""\
-		Save this Order into the database.
-		"""
+
 		if not hasattr(self, 'id'):
 			id = self.realid(self.oid, self.slot)
 			if id != -1:
@@ -107,18 +102,14 @@ class Order(SQLWithAttrBase):
 		SQLWithAttrBase.save(self)
 
 	def remove(self):
-		"""\
-		Remove this Order from the database.
-		"""
+
 		# Move the other orders down
 		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 
 		SQLWithAttrBase.remove(self)
 
 	def to_packet(self, sequence):
-		"""\
-		Make a network order packet from this object.
-		"""
+
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
 
@@ -129,15 +120,14 @@ class Order(SQLWithAttrBase):
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
-		"""\
-		Build this object from a network order packet.
-		"""
-		for key, value in packet.__dict__.items():
-			if key == 'id':
-				self.oid = value
-			else:
-				setattr(self, key, value)
+
+		SQLWithAttrBase.from_packet(self, packet)
+
+		self.oid = self.id
 		del self.id
+
+		if self.types.has_key(self.type):
+			self.__class__ = self.types[self.type]
 
 	def __str__(self):
 		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)

@@ -12,6 +12,7 @@ class NOp(Order):
 			order.save()
 
 	def turns(self, turns=0):
+		print "Wait:", self.wait
 		return self.wait + turns
 
 	def resources(self):

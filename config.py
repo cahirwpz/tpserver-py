@@ -6,4 +6,4 @@ password = "tp-password"
 database = "tp"
 
 # Introduce artifical lag
-lag = 400
+lag = 0

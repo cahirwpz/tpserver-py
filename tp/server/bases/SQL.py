@@ -110,7 +110,8 @@ class SQLBase(object):
 
 		Makes an object out of a Thousand Parsec packet.
 		"""
-		pass
+		self.__dict__.update(packet.__dict__)
+
 	
 class SQLWithAttrBase(SQLBase):
 	def attributes(self):
@@ -130,11 +131,19 @@ class SQLWithAttrBase(SQLBase):
 		if id == None and packet == None and type == None:
 			raise ValueError("Can not create an object without type.")
 
+		if type != None:
+			self.type = type
+			self.defaults()
+
 		SQLBase.__init__(self, id, packet)
 
-		if type != None:
-			# Set the default attributes
-			for attribute in self.attributes:
+	def defaults(self):
+		"""\
+		Sets all the attributes to there default values.
+		"""
+		# Set the default attributes
+		for attribute in self.attributes:
+			if not hasattr(self, attribute['name']):
 				setattr(self, attribute['name'], pickle.loads(attribute['default']))
 
 	def load(self, id):
@@ -144,6 +153,8 @@ class SQLWithAttrBase(SQLBase):
 		Loads a thing from the database.
 		"""
 		SQLBase.load(self, id)
+
+		self.defaults()
 
 		# Now for the type specific attributes
 		for attribute in self.attributes:
@@ -174,3 +185,15 @@ class SQLWithAttrBase(SQLBase):
 
 		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
 
+	def from_packet(self, packet):
+		"""\
+		from_packet(packet)
+
+		Makes an object out of a Thousand Parsec packet.
+		"""
+		self.type = packet.type
+
+		self.defaults()
+		
+		SQLBase.from_packet(self, packet)
+		

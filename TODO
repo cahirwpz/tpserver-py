@@ -15,6 +15,9 @@ Supports the following:
 			Move order works (Reparenting needs testing)
 			NOp order works
 			
+        Orders report how long they'll take
+        Orders reports the resources used
+
 		Add player tool
 			- Adds username/password record
 			- Adds a private message board
@@ -34,12 +37,13 @@ Still need to be done:
 			- Renames/Reowners the homesystem/homeplanet
 			- Removes any fleets
 
-        Orders report how long they'll take
-        Orders reports the resources used
  
         OrderDesc_Get
         ObjectDesc_Get
 		
 		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.
+		
+		Database dumping program. 
+		
 		Figure out how to support multiple orders happening in 1 turn.
 		Figure out how to get rid of dummy orders which do nothing.
