@@ -4,7 +4,7 @@ from config import db, netlib
 from SQL import *
 
 class Order(SQLTypedBase):
-	tablename = "tp.order"
+	tablename = "`order`"
 	types = {}
 
 	def realid(oid, slot):
@@ -13,7 +13,7 @@ class Order(SQLTypedBase):
 		
 		Returns the database id for the order found on object at slot.
 		"""
-		result = db.query("""SELECT id FROM tp.order WHERE oid=%(oid)s and slot=%(slot)s""", oid=oid, slot=slot)
+		result = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s and slot=%(slot)s""", tablename=Order.tablename, oid=oid, slot=slot)
 		if len(result) != 1:
 			return -1
 		else:
@@ -26,7 +26,7 @@ class Order(SQLTypedBase):
 
 		Returns the number of orders on an object.
 		"""
-		return db.query("""SELECT count(id) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(id)']
+		return db.query("""SELECT count(id) FROM %(tablename)s WHERE oid=%(oid)s""", tablename=Order.tablename, oid=oid)[0]['count(id)']
 	number = staticmethod(number)
 
 	def desc_packet(sequence, typeno):
@@ -83,7 +83,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				print self.todict()
-				db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
+				db.query("""UPDATE %(tablename)s SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
@@ -107,7 +107,7 @@ class Order(SQLTypedBase):
 			db.query("BEGIN")
 			
 			# Move the other orders down
-			db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
+			db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 			SQLTypedBase.remove(self)
 
 		except Exception, e:

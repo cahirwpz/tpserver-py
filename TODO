@@ -41,7 +41,6 @@ Still need to be done:
 			- Renames/Reowners the homesystem/homeplanet
 			- Removes any fleets
 
-        OrderDesc_Get
         ObjectDesc_Get
 		
 		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.

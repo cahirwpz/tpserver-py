@@ -93,6 +93,9 @@ def main():
 	db.query("BEGIN")
 
 	try:
+		# Use the corret database
+		db.query("USE %(database)s", database=sys.argv[1])
+		
 		# Clean up any phoney orders
 
 		# Get all the orders

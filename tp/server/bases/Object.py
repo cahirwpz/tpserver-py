@@ -5,7 +5,7 @@ from SQL import *
 from Order import Order
 
 class Object(SQLTypedBase):
-	tablename = "tp.object"
+	tablename = "`object`"
 	types = {}
 
 	orderclasses = {}
@@ -21,7 +21,7 @@ class Object(SQLTypedBase):
 		
 		# FIXME: This is a square...
 		sql = """\
-SELECT * FROM tp.object WHERE \
+SELECT * FROM %%(tablename)s WHERE \
       (%s <= posx+size AND %s >= posx-size) AND \
       (%s <= posy+size AND %s >= posy-size) AND \
       (%s <= posz+size AND %s >= posz-size) \
@@ -30,7 +30,7 @@ ORDER BY size
 		if limit != -1:
 			sql += "LIMIT %s" % limit
 
-		result = db.query(sql)
+		result = db.query(sql, tablename=Object.tablename)
 		r = []
 		for id in result:
 			r.append(Object(id=id['id']))
@@ -38,9 +38,10 @@ ORDER BY size
 	bypos = staticmethod(bypos)
 
 	def remove(self):
+		# FIXME: Need to remove associated orders in a better way
+		db.query("""DELETE FROM %(tablename)s WHERE oid=%(id)s""", tablename=Order.tablename, id=self.id)
 		# Remove any parenting on this object.
-		db.query("""UPDATE tp.object SET parent=0 WHERE parent=%(id)s""", id=self.id)
-	
+		db.query("""UPDATE %(tablename)s SET parent=0 WHERE parent=%(id)s""", self.todict())
 		SQLTypedBase.remove(self)
 	
 	def orders(self):
@@ -70,7 +71,7 @@ ORDER BY size
 
 		Returns the objects this object contains.
 		"""
-		results = db.query("""SELECT id FROM tp.object WHERE parent=%(id)s""", id=self.id)
+		results = db.query("""SELECT id FROM %(tablename)s WHERE parent=%(id)s""", self.todict())
 		return [x['id'] for x in results]
 
 	def to_packet(self, sequence):

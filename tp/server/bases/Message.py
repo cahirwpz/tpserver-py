@@ -4,10 +4,10 @@ from config import db, netlib
 from SQL import *
 
 class Message(SQLBase):
-	tablename = "tp.message"
+	tablename = "`message`"
 
 	def realid(bid, slot):
-		result = db.query("""SELECT id FROM tp.message WHERE bid=%(bid)s and slot=%(slot)s""", bid=bid, slot=slot)
+		result = db.query("""SELECT id FROM %(tablename)s WHERE bid=%(bid)s and slot=%(slot)s""", tablename=Message.tablename, bid=bid, slot=slot)
 		if len(result) != 1:
 			return -1
 		else:
@@ -15,7 +15,7 @@ class Message(SQLBase):
 	realid = staticmethod(realid)
 
 	def number(bid):
-		return db.query("""SELECT count(id) FROM tp.message WHERE bid=%(bid)s""", bid=bid)[0]['count(id)']
+		return db.query("""SELECT count(id) FROM %(tablename)s WHERE bid=%(bid)s""", tablename=Message.tablename, bid=bid)[0]['count(id)']
 	number = staticmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
@@ -39,7 +39,7 @@ class Message(SQLBase):
 			self.slot = number
 		elif self.slot <= number:
 			# Need to move all the other orders down
-			db.query("""UPDATE tp.message SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""" % self.todict())
+			db.query("""UPDATE %(tablename)s SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
 		
@@ -55,7 +55,7 @@ class Message(SQLBase):
 
 	def remove(self):
 		# Move the other orders down
-		db.query("""UPDATE tp.message SET slot=slot-1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
+		db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
 
 		SQLBase.remove(self)
 

@@ -5,7 +5,7 @@ from SQL import *
 from Message import Message
 
 class Board(SQLBase):
-	tablename = "tp.board"
+	tablename = "`board`"
 
 	def realid(bid, pid):
 		# Board ID Zero gets map to player id

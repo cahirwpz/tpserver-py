@@ -23,22 +23,27 @@ from sbases.User    import User
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
 		netlib.ServerConnection.__init__(self, *args, **kw)
-		self.pid = 0
+		self.user = None
 
 	def OnLogin(self, packet):
+		db.query("USE tp")
+
 		# We need username and password
-		self.pid = User.realid(packet.username, packet.password)
+		pid = User.realid(packet.username, packet.password)
 	
-		if self.pid == -1:
-			self.pid = 0
+		if pid == -1:
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
 		else:
+			self.user = User(id=pid)
 			self._send(OK(packet.sequence, "Login Ok!"))
-			return True
+			
+		return True
 
 	def OnObject_GetById(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
@@ -49,7 +54,7 @@ class FullConnection(netlib.ServerConnection):
 				p = Object(id).to_packet(packet.sequence)
 				
 				# Protect the order_number
-				if hasattr(object, "owner") and object.owner != self.pid:
+				if hasattr(object, "owner") and object.owner != self.user.id:
 					p.order_number = 0
 
 				self._send(p)
@@ -61,8 +66,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 		
 	def OnObject_GetByPos(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		objects = Object.bypos(packet.pos, packet.size)
 
@@ -72,8 +79,10 @@ class FullConnection(netlib.ServerConnection):
 			self._send(object.to_packet(packet.sequence))
 
 	def OnOrder_Get(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -82,7 +91,7 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 
 				# Are we allowed to access this?
-				if order.object.owner != self.pid:
+				if order.object.owner != self.user.id:
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 					print packet.id, slot, "No Permission"
 				else:	
@@ -94,14 +103,16 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnOrder_Insert(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		try:
 			order = Order(packet=packet)
 			
 			# Are we allowed to do this?
-			if order.object.owner != self.pid:
+			if order.object.owner != self.user.id:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
 				print packet.id, slot, "No Permission"
 			else:	
@@ -116,8 +127,10 @@ class FullConnection(netlib.ServerConnection):
 	OnOrder = OnOrder_Insert
 
 	def OnOrderDesc_Get(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
@@ -130,8 +143,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnOrder_Remove(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -140,7 +155,7 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 				
 				# Are we allowed to do this?
-				if order.object.owner != self.pid:
+				if order.object.owner != self.user.id:
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 					print packet.id, slot, "No Permission"
 				else:	
@@ -153,28 +168,32 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnBoard_Get(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
 		for id in packet.ids:
 			try:
-				self._send(Board(Board.realid(id, self.pid)).to_packet(packet.sequence))
+				self._send(Board(Board.realid(id, self.user.id)).to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such board."))
 
 		return True
 	
 	def OnMessage_Get(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
 		for slot in packet.slots:
 			try:
-				message = Message(Board.realid(packet.id, self.pid), slot)
+				message = Message(Board.realid(packet.id, self.user.id), slot)
 				self._send(message.to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
@@ -182,12 +201,14 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnMessage_Insert(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		try:
 			# Mangle the board id
-			packet.id = Board.realid(packet.id, self.pid)
+			packet.id = Board.realid(packet.id, self.user.id)
 
 			message = Message(packet=packet)
 			message.insert()
@@ -200,14 +221,16 @@ class FullConnection(netlib.ServerConnection):
 	OnMessage = OnMessage_Insert
 
 	def OnMessage_Remove(self, packet):
-		if not self.pid:
+		if self.user == None:
 			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
 		for slot in packet.slots:
 			try:
-				message = Message(Board.realid(packet.id, self.pid), slot)
+				message = Message(Board.realid(packet.id, self.user.id), slot)
 				message.remove()
 				self._send(OK(packet.sequence, "Message removed."))
 			except NoSuch:
