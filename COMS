@@ -1,17 +1,7 @@
 
 
-To stop the client from cheating it is not trusted to do any processing of the data.
-The server is the only thing that allows processing of data.
-
-
-The client prepares a map for the server, this maps contains all the client's objects.
-
-The server takes this map and compares it with the main map, any inconsistacies are discarded.
-The server then copies across new orders to the main map from the clients maps.
-
-The server then processes all the orders on the main map regardless of who produced them.
-Orders produce "results", results are recorded to a results file dependent on the client.
-Each orders are processed in the following way:
+Order movement
+	All the orders are moved around space, some posibily reaching there destination.
 
 COMBAT: Combat 1/Bombing
 	Combat orders are executed, first round
@@ -25,7 +15,7 @@ MOVE: Move 1
 TRACKING: Tracking 1
 	All tracking orders recalculate course for new position of ships
 
-MISC: Mine Laying/Anchor Creation/Misc/Colinisation
+MISC: Mine Laying/Anchor Creation/Misc/Colinisation/Remote mining
 	Colinasation happens
 	Misc stuff
 
@@ -54,7 +44,8 @@ COMBAT: Combat 2
 	Combat orders are executed again, second round
 
 
+Result are moved around
+	All results are moved around space, some posiblily reaching there destination. 
 
-A new map is built for each client
-The new map and results file are returned to the client
+
 
