@@ -1,11 +1,14 @@
 
-import sys
-sys.path.append("../")
+import random
 
-import math
+try:
+	from tp import netlib
+except ImportError:
+	import sys
+	sys.path.append("../")
+	import netlib
 
 import db
-
 from sobjects.Board   import Board
 from sobjects.Message import Message
 from sobjects.Object  import Object
@@ -49,7 +52,6 @@ Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
 	print "First message has the id:", message.id
 
 	# Generate a position for the homeworld...
-	import random
 	SIZE = 10000000000
 	pos = random.randint(SIZE*-1, SIZE), random.randint(SIZE*-1, SIZE), random.randint(SIZE*-1, SIZE)
 	print "Putting homeworld at", pos

@@ -1,18 +1,20 @@
 
-import sys
-sys.path.append("../")
-
 import copy
 import pickle
 
-import db
+try:
+	from tp import netlib
+except ImportError:
+	import sys
+	sys.path.append("../")
+	import netlib
 
-import netlib
 OK = netlib.objects.OK
 Fail = netlib.objects.Fail
 Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
+import db
 from sobjects.SQL     import NoSuch
 from sobjects.Board   import Board
 from sobjects.Message import Message
@@ -91,6 +93,20 @@ class FullConnection(netlib.ServerConnection):
 
 	OnOrder = OnOrder_Insert
 
+	def OnOrderDesc_Get(self, packet):
+		if not self.pid:
+			return False
+
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+
+		for id in packet.ids:
+			try:
+				self._send(Order.desc_packet(packet.sequence, id))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
+
+		return True
+
 	def OnOrder_Remove(self, packet):
 		if not self.pid:
 			return False
@@ -129,7 +145,7 @@ class FullConnection(netlib.ServerConnection):
 
 		for slot in packet.slots:
 			try:
-				message = Message(Board.realid(packet.bid, self.pid), slot)
+				message = Message(Board.realid(packet.id, self.pid), slot)
 				self._send(message.to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
@@ -200,7 +216,11 @@ def main():
 			signal.signal(signal.SIGUSR1, s.endofturn)
 		except ImportError:
 			pass
-			
+
+		# Import all the order_desc from the database
+		Order.load_all()
+		print netlib.objects.OrderDescs()
+
 		s.serve_forever()
 
 if __name__ == "__main__":

@@ -9,28 +9,30 @@ class Object(SQLWithAttrBase):
 	tablename = "tp.object"
 	fieldname = "object"
 
-	def bypos(pos, size):
+	def bypos(pos, size=0, limit=-1):
 		"""\
-		Object.bypos([x, y, z], raidus) -> [Object, ...]
+		Object.bypos([x, y, z], size) -> [Object, ...]
 
 		Return all objects which are centered inside a sphere centerd on
 		size and radius of size.
 		"""
-		result = db.query("""\
-			SELECT id FROM tp.object WHERE
-				posx+size >= %i AND posx-size =< %i AND
-				posy+size >= %i AND posy-size =< %i AND
-				posz+size >= %i AND posz-size =< %i
-			ORDER BY DECREASING size
-		""" % (pos[0]-size, pos[1]+size, pos[1]-size, pos[1]+size, pos[2]-size, pos[2]+size))
-	
-		if len(result) != 1:
-			return []
-		else:
-			r = []
-			for id in result:
-				r.append(Object(id=id['id']))
-			return r
+		pos = long(pos[0]), long(pos[1]), long(pos[2])
+		
+		sql = """\
+SELECT * FROM tp.object WHERE \
+      (%s <= posx+size AND %s >= posx-size) AND \
+      (%s <= posy+size AND %s >= posy-size) AND \
+      (%s <= posz+size AND %s >= posz-size) \
+ORDER BY size
+		""" % (pos[0]-size, pos[0]+size, pos[1]-size, pos[1]+size, pos[2]-size, pos[2]+size)
+		if limit != -1:
+			sql += "LIMIT %s" % limit
+
+		result = db.query(sql)
+		r = []
+		for id in result:
+			r.append(Object(id=id['id']))
+		return r
 	bypos = staticmethod(bypos)
 	
 	def orders(self):

@@ -20,7 +20,7 @@ def query(query, kw1=None, **kw2):
 
 	connection.ping()
 	sql = query % kw2
-#	print sql
+	print sql
 	connection.query(sql)
 	
 	result = connection.use_result()

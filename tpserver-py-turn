@@ -1,8 +1,14 @@
 
 import math
 
-import db
+try:
+	from tp import netlib
+except ImportError:
+	import sys
+	sys.path.append("../")
+	import netlib
 
+import db
 from sobjects.Board   import Board
 from sobjects.Message import Message
 from sobjects.Object  import Object
@@ -46,24 +52,36 @@ def Move(order):
 		obj.vely = math.ceil((order.pos[1] - obj.posy) / 2)
 		obj.velz = math.ceil((order.pos[2] - obj.posz) / 2)
 
-	# Move the object
-	obj.posx, obj.poxy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+	if obj.velx != 0 or obj.vely != 0 or obj.velz != 0:
+		# Move the object
+		obj.posx, obj.poxy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+
+		# Just to make sure we don't get a division by zero error
+		def div(a, b):
+			try:
+				return a/b
+			except ZeroDivisionError:
+				return 0
+
+		# Make sure that we haven't missed the object
+		if div(order.pos[0] - obj.posx, obj.velx) < 0 or \
+			div(order.pos[1] - obj.posy, obj.vely) < 0 or \
+			div(order.pos[2] - obj.posz, obj.velz) < 0:
+			obj.posx, obj.posy, obj.posz = order.pos
 	
 	# Reparent the object
-	parents = Object.bypos([obj.posx, obj.posy, obj.posz], radius=0)
+	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, limit=2)
+	print "New object parents", parents
 	obj.parent = obj.id
 	while obj.parent == obj.id:
 		if len(parents) > 0:
 			obj.parent = parents.pop(-1).id
 			continue
 		else:
-			obj.parent = -1
+			print "Matched no parents, using Universe!?"
+			obj.parent = 0
 
-	# Make sure that we haven't missed the object
-	if (order.pos[0] - obj.posx) / obj.velx < 0 or \
-		(order.pos[1] - obj.posy) / obj.vely < 0 or \
-		(order.pos[2] - obj.posz) / obj.velz < 0:
-		obj.posx, obj.posy, obj.posz = order.pos
+	print "New object parent is", obj.parent
 
 	pos = obj.posx, obj.posy, obj.posz
 	if order.pos == pos:
@@ -73,13 +91,12 @@ def Move(order):
 		# Send a message to the owner that the object has arrived...
 		message = Message()
 		message.bid = obj.owner
-		message.slot = Message.number()
-		message.subject = "%s arrived" % object.name
-		message.body = """%s has arrive at it's destination.""" % object.name
+		message.slot = Message.number(message.bid)
+		message.subject = "%s arrived" % obj.name
+		message.body = """%s has arrive at it's destination.""" % obj.name
 		message.insert()
 
-	else:
-		obj.save()
+	obj.save()
 
 def BuildFleet(order):
 	# We need information from the builder...
@@ -115,7 +132,7 @@ def BuildFleet(order):
 
 	message = Message()
 	message.bid = obj.owner
-	message.slot = Message.number()
+	message.slot = Message.number(message.bid)
 	message.subject = "%s built" % object.new
 	message.body = """%s has arrive at it's destination.""" % object.new
 	message.insert()

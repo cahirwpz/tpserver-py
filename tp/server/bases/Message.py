@@ -38,7 +38,7 @@ class Message(SQLBase):
 		number = self.number(self.bid)
 		if self.slot == -1:
 			self.slot = number
-		elif self.slot < number:
+		elif self.slot <= number:
 			# Need to move all the other orders down
 			db.query("""UPDATE tp.message SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""" % self.todict())
 		else:
