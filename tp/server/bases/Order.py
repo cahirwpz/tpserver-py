@@ -111,7 +111,6 @@ class Order(SQLWithAttrBase):
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
 		SQLWithAttrBase.to_packet(self, sequence, args)
-		print args
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):

@@ -25,6 +25,10 @@ class BuildFleet(Order):
 		fleet.posx = builder.posx
 		fleet.posy = builder.posy
 		fleet.posz = builder.posz
+		fleet.velx = 0
+		fleet.vely = 0
+		fleet.velz = 0
+		fleet.size = 1
 		fleet.owner = builder.owner
 		fleet.ships = self.ships
 		fleet.save()
@@ -39,7 +43,11 @@ A new fleet has been built and is orbiting %s.
 It consists of:
 """
 		for type, number in fleet.ships.items():
-			message.body += "%s %s" % (number, )
+			if number > 1:
+				message.body += "%ss %s" % (number, Fleet.ships[type])
+			else:
+				message.body += "%s %s" % (number, Fleet.ships[type])
+
 		message.insert()
 
 		self.remove()

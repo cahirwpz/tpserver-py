@@ -9,15 +9,19 @@ except ImportError:
 	import netlib
 
 import db
+db.connect()
+
 from sbases.Board    import Board
 from sbases.Message  import Message
 from sbases.Object   import Object
 from sbases.Order    import Order
 from sbases.User     import User
 
+from sobjects.Fleet     import Fleet
 from sorders.NOp        import NOp
 from sorders.Move       import Move
 from sorders.BuildFleet import BuildFleet
+from sorders.SplitFleet import SplitFleet
 
 def OrderGet(top, d={}):
 	if top.orders() > 0:
@@ -39,26 +43,33 @@ def OrderGet(top, d={}):
 	for id in top.contains():
 		OrderGet(Object(id), d)
 
-process_order = [1, 0]
 def main():
 	# Connect to the database
-	db.connect()
+	db.query("BEGIN")
 
-	# Clean up any phoney orders
+	try:
+		# Clean up any phoney orders
 
-	# Get all the orders
-	d = {}
-	OrderGet(Object(0), d)
+		# Get all the orders
+		d = {}
+		OrderGet(Object(0), d)
 
-	for type in process_order:
-		if not d.has_key(type):
-			continue
+		for type in d.keys():
+			if not d.has_key(type):
+				continue
 
-		# Import the order processor
-		for order in d[type]:
-			print order
-			order.do()
-			
+			# Import the order processor
+			for order in d[type]:
+				print order
+				order.do()
+		
+		# Resolve combat
+	except Exception, e:
+		db.query("ROLLBACK")
+		raise e
+	else:
+		db.query("COMMIT")
+	
 if __name__ == "__main__":
 	main()
 

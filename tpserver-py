@@ -85,7 +85,12 @@ class FullConnection(netlib.ServerConnection):
 		for slot in packet.slots:
 			try:
 				order = Order(packet.id, slot)
-				self._send(order.to_packet(packet.sequence))
+
+				# Are we allowed to access this?
+				if order.object.owner != self.pid:
+					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+				else:	
+					self._send(order.to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
@@ -97,8 +102,13 @@ class FullConnection(netlib.ServerConnection):
 
 		try:
 			order = Order(packet=packet)
-			order.insert()
-			self._send(OK(packet.sequence, "Order added."))
+			
+			# Are we allowed to do this?
+			if order.object.owner != self.pid:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+			else:	
+				order.insert()
+				self._send(OK(packet.sequence, "Order added."))
 		except NoSuch:
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
@@ -129,8 +139,13 @@ class FullConnection(netlib.ServerConnection):
 		for slot in packet.slots:
 			try:
 				order = Order(packet.id, slot)
-				order.remove()
-				self._send(OK(packet.sequence, "Order removed."))
+				
+				# Are we allowed to do this?
+				if order.object.owner != self.pid:
+					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+				else:	
+					order.remove()
+					self._send(OK(packet.sequence, "Order removed."))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 

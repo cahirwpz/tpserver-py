@@ -4,12 +4,12 @@ from sbases.Order import Order
 class NOp(Order):
 
 	def do(self):
-		order.wait -= 1
+		self.wait -= 1
 
-		if order.wait <= 0:
-			order.remove()
+		if self.wait <= 0:
+			self.remove()
 		else:
-			order.save()
+			self.save()
 
 	def turns(self, turns=0):
 		return self.wait + turns
