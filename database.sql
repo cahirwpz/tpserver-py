@@ -5,6 +5,42 @@
 -- Server version	4.0.20-log
 
 --
+-- Table structure for table `board`
+--
+
+DROP TABLE IF EXISTS board;
+CREATE TABLE board (
+  id bigint(20) NOT NULL default '0',
+  name tinyblob NOT NULL,
+  desc blob NOT NULL,
+  PRIMARY KEY  (id)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `board`
+--
+
+
+--
+-- Table structure for table `message`
+--
+
+DROP TABLE IF EXISTS message;
+CREATE TABLE message (
+  id bigint(20) NOT NULL auto_increment,
+  bid bigint(20) NOT NULL default '0',
+  slot bigint(20) NOT NULL default '0',
+  subject tinyblob NOT NULL,
+  body blob NOT NULL,
+  PRIMARY KEY  (id)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `message`
+--
+
+
+--
 -- Table structure for table `object`
 --
 
@@ -33,7 +69,6 @@ INSERT INTO object VALUES (25,1,'The Milky Way',10000000000,0,0,-6000,0,0,1000,0
 INSERT INTO object VALUES (26,2,'The Sol Terra System',1400000,3000000000,2000000000,0,-1500000,1500000,0,25);
 INSERT INTO object VALUES (27,2,'The Alpha Centauri System',800000,-1500000000,1500000000,0,-1000000,-1000000,0,25);
 INSERT INTO object VALUES (28,2,'Sirius System',2000000,-250000000,-4000000000,0,2300000,0,0,25);
-INSERT INTO object VALUES (29,2,'Unknown Star System',2000000,-1524967296,-434967296,-1170000000,0,0,0,25);
 
 --
 -- Table structure for table `object_attr`
@@ -127,9 +162,6 @@ CREATE TABLE order (
 -- Dumping data for table `order`
 --
 
-INSERT INTO order VALUES (20,0,1,0);
-INSERT INTO order VALUES (21,0,2,0);
-INSERT INTO order VALUES (22,0,0,0);
 
 --
 -- Table structure for table `order_attr`
@@ -147,9 +179,6 @@ CREATE TABLE order_attr (
 -- Dumping data for table `order_attr`
 --
 
-INSERT INTO order_attr VALUES (20,1,'L2L\n.');
-INSERT INTO order_attr VALUES (21,1,'L1L\n.');
-INSERT INTO order_attr VALUES (22,1,'L12L\n.');
 
 --
 -- Table structure for table `order_type`
@@ -230,6 +259,4 @@ CREATE TABLE user (
 -- Dumping data for table `user`
 --
 
-INSERT INTO user VALUES (1,'mithro','password');
-INSERT INTO user VALUES (2,'lee','lee-password');
 

@@ -6,20 +6,39 @@ Supports the following:
         Order_Get
         Order_Insert
         Order_Remove
-		
+		Board_Get
+		Message_Get
+		Message_Remove
+		Message_Insert
+
         Orders actually do stuff
 			Move order works (Reparenting needs testing)
 			NOp order works
 			
- 
+		Add player tool
+			- Adds username/password record
+			- Adds a private message board
+			- Adds a homesystem
+			- Adds a homeplanet
+			- Adds random number of extra planets <- These shouldn't all have the same coordinates
+			- Adds inital fleet
+
+		Add clean tool
+			- Removes all extra stuff added
+
 Still need to be done:
+
+		Remove Player tool
+			- Remove the username/password record
+			- Removes the private message board
+			- Renames/Reowners the homesystem/homeplanet
+			- Removes any fleets
+
         Orders report how long they'll take
         Orders reports the resources used
  
         OrderDesc_Get
         ObjectDesc_Get
- 
-        Message board stuff
 		
 		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.
 		Figure out how to support multiple orders happening in 1 turn.

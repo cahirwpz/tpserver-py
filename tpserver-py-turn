@@ -3,7 +3,11 @@ import math
 
 import db
 
-from server import Order, Object
+from sobjects.Board   import Board
+from sobjects.Message import Message
+from sobjects.Object  import Object
+from sobjects.Order   import Order
+from sobjects.User    import User
 
 def OrderGet(top, d={}):
 	if top.orders() > 0:
@@ -120,6 +124,8 @@ process_order = [1, 0]
 def main():
 	# Connect to the database
 	db.connect()
+
+	# Clean up any phoney orders
 
 	# Get all the orders
 	d = {}

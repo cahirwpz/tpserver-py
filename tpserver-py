@@ -13,395 +13,33 @@ Fail = netlib.objects.Fail
 Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
-class NoSuch(Exception):
-	pass
-
-class SQLBase:
-	def __init__(self, id=None, packet=None):
-		"""\
-		SQLObject(id)
-		SQLObject(packet)
-		SQLObject()
-
-		Create an object from the database using id.
-		Create an object from a network packet.
-		Create an empty object.
-		"""
-		self.tablename = self.tablename
-		
-		if id != None:
-			self.load(id)
-		if packet != None:
-			self.from_packet(packet)
-
-	def todict(self):
-		return self.__dict__
-
-	def load(self, id):
-		"""\
-		load(id)
-
-		Loads a thing from the database.
-		"""
-		self.id = id
-		
-		result = db.query("""SELECT * FROM %(tablename)s WHERE id=%(id)s""", self.todict())
-		if len(result) != 1:
-			raise NoSuch("%s does not exists" % id)
-
-		self.__dict__.update(result[0])
-
-	def save(self):
-		"""\
-		save()
-
-		Saves a thing to the database.
-		"""
-		# Build SQL query, there must be a better way to do this...
-		if hasattr(self, 'id') and self.id == 0:
-			SQL = """UPDATE %(tablename)s SET """
-		else:
-			SQL = """REPLACE %(tablename)s SET """
-
-		for finfo in db.query("DESCRIBE %(tablename)s", tablename=self.tablename):
-			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
-				continue
-			
-			SQL += """%(Field)s = "%%(%(Field)s)s", """ % finfo
-		SQL = SQL[:-2]
-
-		db.query(SQL, self.todict())
-
-		if not hasattr(self, 'id'):
-			self.id = db.connection.insert_id()
-
-	def remove(self):
-		"""\
-		remove()
-
-		Removes an object from the database.
-		"""
-		# Remove the common attribute
-		db.query("""DELETE FROM %(tablename)s WHERE id=%(id)s""", self.todict())
-
-	def insert(self):
-		"""\
-		insert()
-
-		Inserts an object into the database.
-		"""
-		self.save()
-
-	def to_packet(self, sequence):
-		"""\
-		to_packet(sequence) -> netlib.Packet
-
-		Returns a Thousand Parsec network packet using the sequence number.
-		"""
-		pass
-
-	def from_packet(self, packet):
-		"""\
-		from_packet(packet)
-
-		Makes an object out of a Thousand Parsec packet.
-		"""
-		pass
-	
-class SQLWithAttrBase(SQLBase):
-	def __init__(self, id=None, packet=None):
-		self.fieldname = self.fieldname
-
-		SQLBase.__init__(self, id, packet)
-
-	def attributes(self):
-		"""\
-		*Internal*
-
-		Get a list of attributes this object type has.
-		"""
-		if not hasattr(self, "_attributes"):
-			self._attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
-
-		return self._attributes
-
-	def load(self, id):
-		"""\
-		load(id)
-
-		Loads a thing from the database.
-		"""
-		SQLBase.load(self, id)
-
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
-			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
-
-	def save(self):
-		"""\
-		save()
-
-		Saves a thing to the database.
-		"""
-		SQLBase.save(self)
-
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = pickle.dumps(getattr(self, attribute['name']))
-			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
-
-	def remove(self):
-		"""\
-		remove()
-
-		Removes an object from the database.
-		"""
-		# Remove the common attribute
-		SQLBase.remove(self)
-
-		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
-
-class Object(SQLWithAttrBase):
-	tablename = "tp.object"
-	fieldname = "object"
-
-	def bypos(pos, size):
-		"""\
-		Object.bypos([x, y, z], raidus) -> [Object, ...]
-
-		Return all objects which are centered inside a sphere centerd on
-		size and radius of size.
-		"""
-		result = db.query("""\
-			SELECT id FROM tp.object WHERE
-				posx+size >= %i AND posx-size =< %i AND
-				posy+size >= %i AND posy-size =< %i AND
-				posz+size >= %i AND posz-size =< %i
-			ORDER BY DECREASING size
-		""" % (pos[0]-size, pos[1]+size, pos[1]-size, pos[1]+size, pos[2]-size, pos[2]+size))
-	
-		if len(result) != 1:
-			return []
-		else:
-			r = []
-			for id in result:
-				r.append(Object(id=id['id']))
-			return r
-	bypos = staticmethod(bypos)
-	
-	def orders(self):
-		"""\
-		orders()
-
-		Returns the number of orders this object has.
-		"""
-		return Order.number(self.id)
-
-	def ordertypes(self):
-		"""\
-		ordertypes()
-
-		Returns the valid order types for this object.
-		"""
-		results = db.query("""SELECT order_type_id FROM tp.object_order_type WHERE object_id=%(id)s""", id=self.id)
-		return [x['order_type_id'] for x in results]
-
-	def contains(self):
-		"""\
-		contains()
-
-		Returns the objects this object contains.
-		"""
-		results = db.query("""SELECT id FROM tp.object WHERE parent=%(id)s""", id=self.id)
-		return [x['id'] for x in results]
-
-	def to_packet(self, sequence):
-		# Preset arguments
-		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), [], self.orders()]
-		for attribute in self.attributes():
-			value = getattr(self, attribute['name'])
-			args.append(value)
-
-		packet = netlib.objects.Object(*args)
-		print packet.length
-		return packet
-
-	def __str__(self):
-		return "<Object type=%s id=%s>" % (self.type, self.id)
-
-	__repr__ = __str__
-
-class Order(SQLWithAttrBase):
-	tablename = "tp.order"
-	fieldname = "order"
-	
-	def realid(oid, slot):
-		result = db.query("""SELECT id FROM tp.order WHERE oid=%(oid)s and slot=%(slot)s""", oid=oid, slot=slot)
-		if len(result) != 1:
-			return -1
-		else:
-			return result[0]['id']
-	realid = staticmethod(realid)
-
-	def number(oid):
-		return db.query("""SELECT count(id) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(id)']
-	number = staticmethod(number)
-
-	def __init__(self, id=None, slot=None, packet=None):
-		SQLWithAttrBase.__init__(self)
-
-		if id != None and slot != None:
-			self.load(id, slot)
-		if packet != None:
-			self.from_packet(packet)
-
-	def load(self, oid, slot):
-		id = self.realid(oid, slot)
-		if id == -1:
-			raise NoSuch("Order %s %s does not exists" % (oid, slot))
-			
-		SQLWithAttrBase.load(self, id)
-
-	def insert(self):
-		number = self.number(self.oid)
-		if self.slot == -1:
-			self.slot = number
-		elif self.slot < number:
-			# Need to move all the other orders down
-			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
-		else:
-			raise NoSuch("Cannot insert to that slot number.")
-		
-		self.save()
-
-	def save(self):
-		if not hasattr(self, 'id'):
-			id = self.realid(self.oid, self.slot)
-			if id != -1:
-				self.id = id
-			
-		SQLWithAttrBase.save(self)
-
-	def remove(self):
-		# Move the other orders down
-		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
-
-		SQLWithAttrBase.remove(self)
-
-	def to_packet(self, sequence):
-		# Preset arguments
-		args = [sequence, self.oid, self.slot, self.type, 0, []]
-
-		for attribute in self.attributes():
-			value = getattr(self, attribute['name'])
-			args.append(value)
-
-		return netlib.objects.Order(*args)
-
-	def from_packet(self, packet):
-		self.__dict__.update(packet.__dict__)
-		self.oid = self.id
-		del self.id
-
-	def __str__(self):
-		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
-
-	__repr__ = __str__
-
-class Message(SQLBase):
-	tablename = "tp.message"
-
-	def realid(bid, slot):
-		result = db.query("""SELECT id FROM tp.message WHERE bid=%(bid)s and slot=%(slot)s""", bid=bid, slot=slot)
-		if len(result) != 1:
-			return -1
-		else:
-			return result[0]['id']
-	realid = staticmethod(realid)
-
-	def number(bid):
-		return db.query("""SELECT count(id) FROM tp.message WHERE bid=%(bid)s""", bid=bid)[0]['count(id)']
-	number = staticmethod(number)
-
-	def __init__(self, id=None, slot=None, packet=None):
-		SQLBase.__init__(self)
-
-		if id != None and slot != None:
-			self.load(id, slot)
-		if packet != None:
-			self.from_packet(packet)
-
-	def load(self, bid, slot):
-		id = self.realid(bid, slot)
-		if id == -1:
-			raise NoSuch("Order %s %s does not exists" % (bid, slot))
-			
-		SQLBase.load(self, id)
-
-	def insert(self):
-		number = self.number(self.bid)
-		if self.slot == -1:
-			self.slot = number
-		elif self.slot < number:
-			# Need to move all the other orders down
-			db.query("""UPDATE tp.message SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""" % self.todict())
-		else:
-			raise NoSuch("Cannot insert to that slot number.")
-		
-		self.save()
-
-	def save(self):
-		if not hasattr(self, 'id'):
-			id = self.realid(self.bid, self.slot)
-			if id != -1:
-				self.id = id
-			
-		SQLBase.save(self)
-
-	def remove(self):
-		# Move the other orders down
-		db.query("""UPDATE tp.message SET slot=slot-1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
-
-		SQLBase.remove(self)
-
-	def to_packet(self, sequence):
-		# Preset arguments
-		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body)
-
-	def from_packet(self, packet):
-		self.__dict__.update(packet.__dict__)
-		self.bid = self.id
-		del self.id
-
-	def __str__(self):
-		return "<Message id=%s bid=%s slot=%s>" % (self.type, self.id, self.bid, self.slot)
-
-	__repr__ = __str__
-
-class Board(SQLBase):
-	tablename = "tp.board"
-
-	def to_packet(self, sequence):
-		return netlib.objects.Board(sequence, self.id, self.name, self.desc, Message.number(self.id))
-
-	def __str__(self):
-		return "<Board id=%s>" % (self.type, self.id)
+from sobjects.SQL     import NoSuch
+from sobjects.Board   import Board
+from sobjects.Message import Message
+from sobjects.Object  import Object
+from sobjects.Order   import Order
+from sobjects.User    import User
 
 class FullConnection(netlib.ServerConnection):
+	def __init__(self, *args, **kw):
+		netlib.ServerConnection.__init__(self, *args, **kw)
+		self.pid = 0
+
 	def OnLogin(self, packet):
 		# We need username and password
-
-		args = {'username': packet.username, 'password': packet.password}
-		result = db.query("""SELECT * FROM tp.user WHERE username="%(username)s" AND password="%(password)s" """, args)
-		if len(result) == 1:
-				self._send(OK(packet.sequence, "Login Ok!"))
+		self.pid = User.realid(packet.username, packet.password)
+	
+		if self.pid == -1:
+			self.pid = 0
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
 		else:
-				print "Found %s rows" % len(result)
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
-		return True
+			self._send(OK(packet.sequence, "Login Ok!"))
+			return True
 
 	def OnObject_GetById(self, packet):
+		if not self.pid:
+			return False
+
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
 		for id in packet.ids:
@@ -413,6 +51,9 @@ class FullConnection(netlib.ServerConnection):
 		return True
 		
 	def OnObject_GetByPos(self, packet):
+		if not self.pid:
+			return False
+
 		objects = Object.bypos(packet.pos, packet.size)
 
 		self._send(Sequence(packet.sequence, len(objects)))
@@ -421,6 +62,9 @@ class FullConnection(netlib.ServerConnection):
 			self._send(object.to_packet(packet.sequence))
 
 	def OnOrder_Get(self, packet):
+		if not self.pid:
+			return False
+
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
 		for slot in packet.slots:
@@ -433,6 +77,9 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnOrder_Insert(self, packet):
+		if not self.pid:
+			return False
+
 		try:
 			order = Order(packet=packet)
 			order.insert()
@@ -445,6 +92,9 @@ class FullConnection(netlib.ServerConnection):
 	OnOrder = OnOrder_Insert
 
 	def OnOrder_Remove(self, packet):
+		if not self.pid:
+			return False
+
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
 		for slot in packet.slots:
@@ -458,22 +108,28 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnBoard_Get(self, packet):
+		if not self.pid:
+			return False
+
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
 		for id in packet.ids:
 			try:
-				self._send(Board(id).to_packet(packet.sequence))
+				self._send(Board(Board.realid(id, self.pid)).to_packet(packet.sequence))
 			except NoSuch:
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such board."))
 
 		return True
 	
 	def OnMessage_Get(self, packet):
+		if not self.pid:
+			return False
+
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
 		for slot in packet.slots:
 			try:
-				message = Message(packet.id, slot)
+				message = Message(Board.realid(packet.bid, self.pid), slot)
 				self._send(message.to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
@@ -481,7 +137,13 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnMessage_Insert(self, packet):
+		if not self.pid:
+			return False
+
 		try:
+			# Mangle the board id
+			packet.id = Board.realid(packet.id, self.pid)
+
 			message = Message(packet=packet)
 			message.insert()
 			self._send(OK(packet.sequence, "Message added."))
@@ -491,7 +153,23 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	OnMessage = OnMessage_Insert
-	
+
+	def OnMessage_Remove(self, packet):
+		if not self.pid:
+			return False
+
+		self._send(Sequence(packet.sequence, len(packet.slots)))
+
+		for slot in packet.slots:
+			try:
+				message = Message(Board.realid(packet.id, self.pid), slot)
+				message.remove()
+				self._send(OK(packet.sequence, "Message removed."))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
+
+		return True
+
 class FullServer(netlib.Server):
 	handler = FullConnection
 

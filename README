@@ -1,2 +1,6 @@
 This is a quick example server which doesn't to much. If you want
 a real server try cpp-server.
+
+server.py - The server that clients connect to
+turn.py   - Executes one turn, will SIGUSR1 the server if it's running
+add.py    - Adds a new user to the game
