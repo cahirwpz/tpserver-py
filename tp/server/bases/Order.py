@@ -4,10 +4,8 @@ import netlib
 
 from SQL import *
 
-class Order(SQLWithAttrBase):
+class Order(SQLTypedBase):
 	tablename = "tp.order"
-	fieldname = "order"
-
 	types = {}
 
 	def realid(oid, slot):
@@ -32,26 +30,20 @@ class Order(SQLWithAttrBase):
 		return db.query("""SELECT count(id) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(id)']
 	number = staticmethod(number)
 
-	def desc_packet(sequence, type):
+	def desc_packet(sequence, typeno):
 		"""\
-		Order.desc_packet(sequence, type)
+		Order.desc_packet(sequence, typeno)
 
 		Builds an order description packet for the specified order type.
 		"""
 		# Pull out the arguments
-		order = Order(type=type)
+		order = Order(typeno=typeno)
 		
 		arguments = []
 		for attribute in order.attributes.values():
 			if attribute.level != 'private':
 				arguments.append((attribute.name, attribute.type, attribute.desc))
-
-		results = db.query("""SELECT * FROM order_type WHERE id=%s""" % type)
-		if len(results) != 1:
-			raise NoSuch("No such type of order.")
-		result = results[0]
-		
-		return netlib.objects.OrderDesc(sequence, type, result['name'], result['desc'], arguments)
+		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments)
 	desc_packet = staticmethod(desc_packet)
 	
 	def load_all():
@@ -60,26 +52,25 @@ class Order(SQLWithAttrBase):
 
 		Loads all the possible order types from the database.
 		"""
-		results = db.query("""SELECT id FROM order_type WHERE id >= 0""")
-		for result in results:
-			Order.desc_packet(0, result['id']).register()
+		for id in Order.types.keys():
+			Order.desc_packet(0, id).register()
 	load_all = staticmethod(load_all)
 
-	def object(self):
-		if not hasattr(self, "_object"):
-			from Object import Object
-			self._object = Object(self.oid)
-		return self._object
-	object = property(object)
-
-	def __init__(self, oid=None, slot=None, packet=None, type=None, id=None):
+	def __init__(self, oid=None, slot=None, packet=None, type=None, typeno=None, id=None):
 	
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
 		else:
 			id = None
 			
-		SQLWithAttrBase.__init__(self, id, packet, type)
+		SQLTypedBase.__init__(self, id, packet, type, typeno)
+	
+	def object(self):
+		if not hasattr(self, "_object"):
+			from Object import Object
+			self._object = Object(self.oid)
+		return self._object
+	object = property(object)
 
 	def insert(self):
 		number = self.number(self.oid)
@@ -99,28 +90,27 @@ class Order(SQLWithAttrBase):
 			id = self.realid(self.oid, self.slot)
 			if id != -1:
 				self.id = id
-		SQLWithAttrBase.save(self)
+		SQLTypedBase.save(self)
 
 	def remove(self):
 		# Move the other orders down
 		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
-
-		SQLWithAttrBase.remove(self)
+		SQLTypedBase.remove(self)
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
-		SQLWithAttrBase.to_packet(self, sequence, args)
+		args = [sequence, self.oid, self.slot, self.typeno, self.turns(), self.resources()]
+		SQLTypedBase.to_packet(self, sequence, args)
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
-		SQLWithAttrBase.from_packet(self, packet)
+		SQLTypedBase.from_packet(self, packet)
 
 		self.oid = self.id
 		del self.id
 
 	def __str__(self):
-		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
+		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.typeno, self.id, self.oid, self.slot)
 
 	def turns(self, turns=0):
 		"""\
@@ -134,8 +124,3 @@ class Order(SQLWithAttrBase):
 		"""
 		return []
 		
-# Figure out the types
-class OrderTypes:
-	pass
-for row in db.query("""SELECT name, id FROM tp.order_type"""):
-	setattr(OrderTypes, row['name'], row['id'])

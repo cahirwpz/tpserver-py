@@ -3,8 +3,6 @@ import copy
 import pickle
 import time
 
-import config
-
 try:
 	from tp import netlib
 except ImportError:
@@ -17,6 +15,7 @@ Fail = netlib.objects.Fail
 Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
+import config
 import db
 # Connect to the database
 db.connect()
@@ -28,12 +27,6 @@ from sbases.Message import Message
 from sbases.Object  import Object
 from sbases.Order   import Order
 from sbases.User    import User
-
-from sobjects.Fleet		import Fleet
-from sorders.NOp        import NOp
-from sorders.Move       import Move
-from sorders.BuildFleet import BuildFleet
-from sorders.SplitFleet import SplitFleet
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):

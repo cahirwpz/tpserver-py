@@ -6,6 +6,9 @@ from sbases.Object import Object
 from sbases.Message import Message
 
 class Move(Order):
+	attributes = { \
+		'pos': Order.Attribute('pos', (0,0,0), 'public'),
+	}
 
 	def do(self):
 		# We are going to have to modify the object so lets load it
@@ -75,4 +78,5 @@ class Move(Order):
 	def resources(self):
 		return []
 
-Order.types[1] = Move
+Move.typeno = 1
+Order.types[Move.typeno] = Move

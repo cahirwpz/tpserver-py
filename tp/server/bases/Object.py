@@ -5,10 +5,8 @@ import netlib
 from SQL import *
 from Order import Order
 
-class Object(SQLWithAttrBase):
+class Object(SQLTypedBase):
 	tablename = "tp.object"
-	fieldname = "object"
-
 	types = {}
 
 	def bypos(pos, size=0, limit=-1):
@@ -52,9 +50,7 @@ ORDER BY size
 
 		Returns the valid order types for this object.
 		"""
-		results1 = db.query("""SELECT order_type_id FROM tp.object_order_type WHERE object_id=%(id)s""", id=self.id)
-		results2 = db.query("""SELECT order_type_id FROM tp.object_type_order_type WHERE object_type_id=%(type)s""", type=self.type)
-		return [x['order_type_id'] for x in results1] + [x['order_type_id'] for x in results2]
+		return []
 
 	def contains(self):
 		"""\
@@ -67,18 +63,9 @@ ORDER BY size
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
-		SQLWithAttrBase.to_packet(self, sequence, args)
+		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
+		SQLTypedBase.to_packet(self, sequence, args)
 		return netlib.objects.Object(*args)
 
 	def __str__(self):
-		return "<Object type=%s id=%s>" % (self.type, self.id)
-
-# Figure out the types
-class ObjectTypes:
-	pass
-for row in db.query("""SELECT name, id FROM tp.object_type"""):
-	setattr(ObjectTypes, row['name'], row['id'])
-
-# Import all the extra Object modules
-
+		return "<Object type=%s id=%s>" % (self.typeno, self.id)

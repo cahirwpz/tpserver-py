@@ -10,6 +10,9 @@ class NoSuch(Exception):
 	pass
 
 class SQLBase(object):
+	"""\
+	A class which stores it's data in a SQL database.
+	"""
 	def description(self):
 		"""\
 		*Internal*
@@ -127,42 +130,65 @@ class SQLBase(object):
 	def __repr__(self):
 		return self.__str__
 
-class SQLWithAttrBase(SQLBase):
+_marker = []
+class SQLTypedBase(SQLBase):
+	"""\
+	A class which stores it's data in a SQL database.
+	It also has a subclass associated with it which stores extra data.
+	"""
 	types = {}
 
-	def attributes(self):
-		"""\
-		*Internal*
+	attributes = {}
+	attributes__doc__ = """\
+Extra attributes this type defines.
 
-		Get a list of attributes this object type has.
-		"""
-		if not hasattr(self, "_attributes"):
-			attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
+{"<name>": Attribute(<name>, <default>, <level>)}
+"""
+	class Attribute:
+		def __init__(self, name, default, level, type=-1, desc=""):
+			if level not in ('public', 'protected', 'private'):
+				raise ValueError("Invalid access level for attribute.")
 
-			class Attribute:
-				def __init__(self, dict):
-					self.__dict__.update(dict)
-					self.default = pickle.loads(self.default)
+			self.name = name
+			self.default = default
+			self.level = level
+			self.type = type
+			self.desc = desc
 
-			self._attributes = {}
-			for attribute in attributes:
-				self._attributes[attribute['name']] = Attribute(attribute)
-		
-		return self._attributes
-	attributes = property(attributes)
-
-	def __init__(self, id=None, packet=None, type=None):
-		self.tablename = self.tablename
-		self.fieldname = self.fieldname
-
-		if id == None and packet == None and type == None:
+	
+	def __init__(self, id=None, packet=None, type=None, typeno=None):
+		if id == None and packet == None and type == None and typeno == None:
 			raise ValueError("Can not create an object without type.")
 
-		if type != None:
-			self.type = type
-			self.defaults()
-
 		SQLBase.__init__(self, id, packet)
+
+		if typeno != None:
+			type = self.types[typeno].__module__
+
+		if type != None:
+			print "Type:", type
+			self.type = type
+
+			# FIXME: Duplicate code
+			c = getattr(__import__(self.type, globals(), locals(), self.type.split(".")[-1]), self.type.split(".")[-1])
+			self.__class__ = c
+
+	def __getattr__(self, key, default=_marker):
+		if hasattr(self, 'extra') and self.extra.has_key(key):
+			# Return the extra value
+			return self.extra[key]
+		elif self.attributes.has_key(key):
+			# Return the default
+			return self.attributes[key].default
+		elif not default is _marker:
+			return default
+		raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, key))
+
+	def __setattr__(self, key, value):
+		if self.attributes.has_key(key):
+			self.extra[key] = value
+		else:
+			SQLBase.__setattr__(self, key, value)
 
 	def defaults(self):
 		"""\
@@ -180,18 +206,10 @@ class SQLWithAttrBase(SQLBase):
 		Loads a thing from the database.
 		"""
 		SQLBase.load(self, id)
+		self.extra = pickle.loads(self.extra)
 
-		# Load the default attributes
-		self.defaults()
-
-		# Now for the type specific attributes
-		for attribute in self.attributes.values():
-			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute.id)
-			if len(value) == 1:
-				setattr(self, attribute.name, pickle.loads(value[0]['value']))
-
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
+		c = getattr(__import__(self.type, globals(), locals(), self.type.split(".")[-1]), self.type.split(".")[-1])
+		self.__class__ = c
 
 	def save(self):
 		"""\
@@ -199,23 +217,8 @@ class SQLWithAttrBase(SQLBase):
 
 		Saves a thing to the database.
 		"""
+		self.extra = pickle.loads(self.extra)
 		SQLBase.save(self)
-
-		# Now for the type specific attributes
-		for attribute in self.attributes.values():
-			value = pickle.dumps(getattr(self, attribute.name))
-			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute.id, value=value)
-
-	def remove(self):
-		"""\
-		remove()
-
-		Removes an object from the database.
-		"""
-		# Remove the common attribute
-		SQLBase.remove(self)
-
-		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
 
 	def from_packet(self, packet):
 		"""\
@@ -228,9 +231,6 @@ class SQLWithAttrBase(SQLBase):
 		# Upgrade the class
 		if self.types.has_key(self.type):
 			self.__class__ = self.types[self.type]
-		
-		# Set the defaults
-		self.defaults()
 		
 		for key, value in packet.__dict__.items():
 			# Ignore special attributes

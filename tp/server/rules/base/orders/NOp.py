@@ -1,8 +1,17 @@
 
+import netlib
 from sbases.Order import Order
 
 class NOp(Order):
+	"""\
+Wait around and do nothing...
+"""
 
+	attributes = {\
+		'wait': Order.Attribute("wait", 0, 'public', type=netlib.objects.Constants.ARG_TIME, 
+				desc="How long to wait for.")
+	}
+	
 	def do(self):
 		self.wait -= 1
 
@@ -17,5 +26,5 @@ class NOp(Order):
 	def resources(self):
 		return []
 
-Order.types[0] = NOp
-
+NOp.typeno = 0
+Order.types[NOp.typeno] = NOp

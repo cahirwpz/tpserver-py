@@ -2,7 +2,11 @@
 from sbases.Object import Object
 
 class Fleet(Object):
-	type = 4
+	attributes = { \
+		'owner': Object.Attribute('owner', -1, 'public'),
+		'ships': Object.Attribute('ships', {}, 'protected'),
+		'damage': Object.Attribute('damage', {}, 'protected'),
+	}
 
 	def fn_ships(self, value=None):
 		if value == None:
@@ -17,6 +21,7 @@ class Fleet(Object):
 			
 			return totaldamage
 	
-	ships = {0: "Scout", 1:"Frigate", 2:"Battleship"}
+	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
 
-Object.types[4] = Fleet
+Fleet.typeno = 4
+Object.types[Fleet.typeno] = Fleet
