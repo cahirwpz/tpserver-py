@@ -1,8 +1,8 @@
 -- MySQL dump 9.08
 --
 -- Host: localhost    Database: tp
----------------------------------------------------------
--- Server version	4.0.13-log
+-- ------------------------------------------------------
+-- Server version	4.0.20-log
 
 --
 -- Table structure for table 'board'
@@ -143,6 +143,7 @@ CREATE TABLE `object_type_attr` (
   `object_type_id` bigint(20) NOT NULL default '0',
   `name` tinyblob NOT NULL,
   `default` blob NOT NULL,
+  `level` enum('public','protected','private') NOT NULL default 'public',
   PRIMARY KEY  (`id`)
 ) TYPE=MyISAM;
 
@@ -150,11 +151,11 @@ CREATE TABLE `object_type_attr` (
 -- Dumping data for table 'object_type_attr'
 --
 
-INSERT INTO `object_type_attr` VALUES (1,0,'turn','I0\n.');
-INSERT INTO `object_type_attr` VALUES (2,3,'owner','I-1\n.');
-INSERT INTO `object_type_attr` VALUES (3,4,'owner','I-1\n.');
-INSERT INTO `object_type_attr` VALUES (4,4,'ships','(dp0\n.');
-INSERT INTO `object_type_attr` VALUES (5,4,'damage','(dp0\n.');
+INSERT INTO `object_type_attr` VALUES (1,0,'turn','I0\n.','public');
+INSERT INTO `object_type_attr` VALUES (2,3,'owner','I-1\n.','public');
+INSERT INTO `object_type_attr` VALUES (3,4,'owner','I-1\n.','public');
+INSERT INTO `object_type_attr` VALUES (4,4,'ships','(dp0\n.','protected');
+INSERT INTO `object_type_attr` VALUES (5,4,'damage','(dp0\n.','protected');
 
 --
 -- Table structure for table 'object_type_order_type'
