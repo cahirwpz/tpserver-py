@@ -9,6 +9,8 @@ class Object(SQLWithAttrBase):
 	tablename = "tp.object"
 	fieldname = "object"
 
+	types = {}
+
 	def bypos(pos, size=0, limit=-1):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
@@ -34,7 +36,13 @@ ORDER BY size
 			r.append(Object(id=id['id']))
 		return r
 	bypos = staticmethod(bypos)
-	
+
+	def load(self, id):
+		SQLWithAttrBase.load(self, id)
+		
+		if self.types.has_key(self.type):
+			self.__class__ = self.types[self.type]
+
 	def orders(self):
 		"""\
 		orders()

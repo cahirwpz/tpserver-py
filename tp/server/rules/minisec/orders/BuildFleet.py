@@ -44,15 +44,30 @@ class BuildFleet(Order):
 		message.insert()
 
 	def turns(self, turns=0):
-		return 4 + turns
+		time = {0:1, 1:2, 2:4}
+	
+		for type, number in self._ships:
+			turns += time[type] * number
+
+		return turns
 
 	def resources(self):
 		return []
 
 	def get_ships(self):
 		return [(0, "Scout", -1), (1, "Frigate", -1), (2, "Battleship", -1)], self._ships
+
 	def set_ships(self, arguments):
+		ship = arguments[1]
+
+		try:
+			for type, number in arguments[1]:
+				if not type in [0, 1, 2]:
+					raise ValueError("Invalid type selected")
+		except:
+			arguments[1] = []
 		self._ships = arguments[1]
+		
 	ships = property(get_ships, set_ships)
 
 Order.types[2] = BuildFleet
