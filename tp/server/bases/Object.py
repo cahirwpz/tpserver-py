@@ -37,6 +37,19 @@ ORDER BY size
 		return r
 	bypos = staticmethod(bypos)
 
+	def __init__(self, id=None, packet=None, type=None, typeno=None):
+		self.name = "Unknown object"
+		self.size = 0
+		self.posx = 0
+		self.posy = 0
+		self.posz = 0
+		self.velx = 0
+		self.vely = 0
+		self.velz = 0
+		self.parent = 0
+
+		SQLTypedBase.__init__(self, id, packet, type, typeno)
+	
 	def remove(self):
 		# FIXME: Need to remove associated orders in a better way
 		db.query("""DELETE FROM %(tablename)s WHERE oid=%(id)s""", tablename=Order.tablename, id=self.id)

@@ -2,6 +2,8 @@
 import math
 from config import netlib
 
+from turn import ReparentOne
+
 from sbases.Order import Order
 from sbases.Object import Object
 from sbases.Message import Message
@@ -50,17 +52,7 @@ Move to a point in space.
 				obj.posx, obj.posy, obj.posz = self.pos
 		
 		# Reparent the object
-		parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, limit=2)
-		print "New object parents", parents
-		obj.parent = obj.id
-		while obj.parent == obj.id:
-			if len(parents) > 0:
-				obj.parent = parents.pop(-1).id
-				continue
-			else:
-				print "Matched no parents, using Universe!?"
-				obj.parent = 0
-
+		ReparentOne(obj)
 		print "New object parent is", obj.parent
 
 		pos = obj.posx, obj.posy, obj.posz

@@ -4,8 +4,7 @@ import pickle
 import time
 
 import config
-db = config.db
-netlib = config.netlib
+from config import db, netlib
 
 OK = netlib.objects.OK
 Fail = netlib.objects.Fail
@@ -19,6 +18,9 @@ from sbases.Message import Message
 from sbases.Object  import Object
 from sbases.Order   import Order
 from sbases.User    import User
+
+def allowed(user, obj):
+	return (user.id in config.admin) or (hasattr(obj, "owner") and obj.owner == user.id)
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
@@ -54,7 +56,7 @@ class FullConnection(netlib.ServerConnection):
 				p = Object(id).to_packet(packet.sequence)
 				
 				# Protect the order_number
-				if hasattr(object, "owner") and object.owner != self.user.id:
+				if not allowed(self.user, object):
 					p.order_number = 0
 
 				self._send(p)
@@ -91,7 +93,7 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 
 				# Are we allowed to access this?
-				if order.object.owner != self.user.id:
+				if not allowed(self.user, order.object):
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 					print packet.id, slot, "No Permission"
 				else:	
@@ -112,7 +114,7 @@ class FullConnection(netlib.ServerConnection):
 			order = Order(packet=packet)
 			
 			# Are we allowed to do this?
-			if order.object.owner != self.user.id:
+			if not allowed(self.user, order.object):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
 				print packet.id, slot, "No Permission"
 			else:	
@@ -155,7 +157,7 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 				
 				# Are we allowed to do this?
-				if order.object.owner != self.user.id:
+				if not allowed(self.user, order.object.owner):
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 					print packet.id, slot, "No Permission"
 				else:	

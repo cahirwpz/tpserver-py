@@ -4,8 +4,7 @@ import sys
 import traceback
 
 import config
-db = config.db
-netlib = config.netlib
+from config import db, netlib
 
 from sbases.Object import Object
 from sbases.Order import Order
@@ -60,6 +59,24 @@ def Clean(top):
 
 	WalkUniverse(top, "after", c)
 
+def ReparentOne(obj):
+	# Reparent the object
+	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0)
+	print "Possible parents", parents
+	obj.parent = obj.id
+	while obj.parent == obj.id:
+		if len(parents) > 0:
+			parent = parents.pop(0)
+			
+			# Make sure we don't parent to the same type
+			if parent.type != obj.type:
+				obj.parent = parent.id
+		else:
+			print "No parents left! Using universe."
+			obj.parent = 0
+	print "New Parent", obj.parent
+
+	
 ##def Reparent(top):
 ##	# FIXME: Borked
 ##	# FIXME: Cant walk the tree in this case as need to start from top every time.
@@ -119,7 +136,7 @@ def main():
 
 		# Reparent the universe
 		
-	except Exception, e:
+	except:
 		db.query("ROLLBACK")
 		raise
 	else:

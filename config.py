@@ -27,6 +27,9 @@ db.connect(dbconfig)
 # Introduce artifical lag
 lag = 0
 
+# Admin users
+admin = (1,)
+
 # Add ruleset imports below here
 import sobjects.Universe
 import sobjects.Galaxy

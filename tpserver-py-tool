@@ -1,0 +1,218 @@
+"""
+tool <game> <action> [<arguments>]
+
+This tool lets you do admin type stuff to your server database.
+
+<game>
+	Name of the "game" (which is also equal to the database used by this game).
+
+<action>
+	Action to preform.
+
+	Possible actions include,
+
+	--create
+		Create a new game.
+
+	--delete
+		Delete a game.
+
+	--generate <key> <max number> <min number>
+		Generates a universe for the game. 
+		Will use the key in the random number generator, use -1 to use the 
+		current unix timestamp.
+
+		Will use the max/min numbers as a guide to how many objects to create
+		per system.
+
+		If called with the same key, max, min number the universe should be 
+		exactly the same.
+
+	--adduser <username> <password>
+		Adds a new user to the game.
+	
+	--deluser <username>
+		Removes a user from the game.
+"""
+
+import sys
+import random
+
+import config
+from config import netlib, db
+
+from turn import ReparentOne
+
+from sbases.User import User
+from sbases.Board import Board
+from sbases.Message import Message
+from sbases.Object import Object
+
+SIZE = 10000000
+	
+def adduser(game, username, password):
+
+	fullusername = "%s@%s" % (username, game)
+
+	# Check the user doesn't already exist
+	if User.realid(fullusername) != -1:
+		print "User already exists!"
+		return
+	
+	# Add a new user
+	user = User()
+	user.username = fullusername
+	user.password = password
+	user.insert()
+	print "User has the id:", user.id
+			
+	db.query("USE %(database)s", database=game)
+
+	# Add private message board
+	board = Board()
+	board.id = user.id
+	board.name = "Private message board for %s" % username
+	board.desc = """\
+This board is used so that stuff you own (such as fleets and planets) \
+can inform you of what is happening in the universe. \
+"""
+	board.save()
+	print "Board has the id:", board.id
+
+	# Add the first message
+	message = Message()
+	message.bid = board.id
+	message.slot = -1
+	message.subject = "Welcome to the Universe!"
+	message.body = """\
+Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
+You are currently in the game %s.
+""" % (username, game)
+	message.insert()
+	print "First message has the id:", message.id
+
+	# Generate a position for the homeworld...
+	pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+	print "Putting homeworld at", pos
+
+	# Add homesystem
+	homesystem = Object(type='sobjects.System')
+	homesystem.name = "%s's System" % username
+	homesystem.size = random.randint(800000, 2000000)
+	homesystem.parent = 0
+	homesystem.posx = pos[0]
+	homesystem.posy = pos[1]
+	homesystem.posz = pos[2]
+	homesystem.insert()
+	ReparentOne(homesystem)
+	homesystem.save()
+	print "Homeworld has the id:", homesystem.id
+	
+	# Add homeworld
+	homeworld = Object(type='sobjects.Planet')
+	homeworld.name = "%s's Homeworld" % username
+	homeworld.size = 1000
+	homeworld.parent = homesystem.id
+	homeworld.posx = pos[0]+random.randint(1,100)*1000
+	homeworld.posy = pos[1]+random.randint(1,100)*1000
+	homeworld.posz = pos[2]+random.randint(1,100)*1000
+	homeworld.owner = user.id
+	homeworld.insert()
+	print "Homeworld has the id:", homeworld.id
+
+	# Add some other planets just for fun!
+	extraplanets = random.randint(0, 5)
+	print "Adding %s planet's for fun!" % extraplanets
+
+	for planet in range(0, extraplanets):
+		extra = Object(type='sobjects.Planet')
+		extra.name = "Planet %s %s" % (username, planet)
+		extra.size = random.randint(1000, 10000)
+		extra.parent = homesystem.id
+		extra.posx = pos[0]+random.randint(1,100)*1000
+		extra.posy = pos[1]+random.randint(1,100)*1000
+		extra.posz = pos[2]+random.randint(1,100)*1000
+		extra.insert()
+		print "Extra planet has the id:", extra.id
+
+	# Add inital fleet
+	fleet = Object(type='sobjects.Fleet')
+	fleet.name = "First Fleet"
+	fleet.size = 1
+	fleet.parent = homeworld.id
+	fleet.posx = homeworld.posx
+	fleet.posy = homeworld.posy
+	fleet.posz = homeworld.posz
+	fleet.owner = user.id
+	fleet.ships = {0:1}
+	fleet.insert()
+	print "Fleet has the id:", fleet.id
+
+def generate(game, key=-1, min=0, max=12):
+	db.query("USE %(database)s", database=game)
+	
+	# FIXME: Assuming that the Universe and the Galaxy exist.
+
+	# Create this many systems
+	for i in range(0, random.randint(int(max/2),max)):
+		pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+		
+		# Add system
+		system = Object(type='sobjects.System')
+		system.name = "System %s" % i
+		system.size = random.randint(800000, 2000000)
+		system.posx = pos[0]
+		system.posy = pos[1]
+		system.posz = pos[2]
+		system.insert()
+		ReparentOne(system)
+		system.save()
+		print "Created system (%s) with the id: %i" % (system.name, system.id)
+		
+		# In each system create a number of planets
+		for j in range(0, random.randint(min, max)):
+			planet = Object(type='sobjects.Planet')
+			planet.name = "Planet %i" % (i*max + j)
+			planet.size = random.randint(1000, 10000)
+			planet.parent = system.id
+			planet.posx = pos[0]+random.randint(1,100)*1000
+			planet.posy = pos[1]+random.randint(1,100)*1000
+			planet.posz = pos[2]+random.randint(1,100)*1000
+			planet.insert()
+			print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
+def main():
+	# Connect to the database
+	if len(sys.argv) <= 1:
+		print __doc__
+		return
+
+	db.query("BEGIN")
+	db.query("USE tp")
+	
+	try:
+		game = sys.argv[1]
+
+		if sys.argv[2] == "--create":
+			create(game)
+		elif sys.argv[2] == "--delete":
+			delete(game)
+		elif sys.argv[2] == "--generate":
+			generate(game, key=int(sys.argv[3]), min=int(sys.argv[4]), max=int(sys.argv[5]))
+		elif sys.argv[2] == "--adduser":
+			adduser(game, sys.argv[3], sys.argv[4])
+		elif sys.argv[2] == "--deluser":
+			deluser(game, sys.argv[3])
+		else:
+			print "Unknown operation."
+
+	except:
+		db.query("ROLLBACK")
+		raise
+	else:
+		db.query("COMMIT")
+	
+if __name__ == "__main__":
+	main()
+
+

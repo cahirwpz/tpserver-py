@@ -180,7 +180,8 @@ Extra attributes this type defines.
 			self.type = type
 
 			self.__class__ = quickimport(self.type)
-
+		
+		self.defaults()
 
 	def __getattr__(self, key, default=_marker):
 		if hasattr(self, 'extra') and self.extra.has_key(key):
@@ -244,8 +245,6 @@ Extra attributes this type defines.
 		Makes an object out of a Thousand Parsec packet.
 		"""
 		self.__upgrade__(typeno=packet.type)
-
-		self.defaults()
 
 		for key, value in packet.__dict__.items():
 		
