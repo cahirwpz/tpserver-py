@@ -39,11 +39,12 @@ class Order(SQLWithAttrBase):
 		Builds an order description packet for the specified order type.
 		"""
 		# Pull out the arguments
+		order = Order(type=type)
+		
 		arguments = []
-		# FIXME: This does the same as self.attributes()
-		results = db.query("""SELECT * FROM order_type_attr WHERE order_type_id=%s ORDER BY id""" % type)
-		for result in results:
-			arguments.append((result['name'], result['type'], result['desc']))
+		for attribute in order.attributes.values():
+			if attribute.level != 'private':
+				arguments.append((attribute.name, attribute.type, attribute.desc))
 
 		results = db.query("""SELECT * FROM order_type WHERE id=%s""" % type)
 		if len(results) != 1:
@@ -109,14 +110,8 @@ class Order(SQLWithAttrBase):
 	def to_packet(self, sequence):
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
-
-		for attribute in self.attributes:
-			if hasattr(self, "fn_"+attribute['name']):
-				value = getattr(self, "fn_"+attribute['name'])()
-			else:
-				value = getattr(self, attribute['name'])
-			args.append(value)
-
+		SQLWithAttrBase.to_packet(self, sequence, args)
+		print args
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):

@@ -29,7 +29,11 @@ Supports the following:
 		Add clean tool
 			- Removes all extra stuff added
 
+		Database dumping program. 
+		
 Still need to be done:
+
+		Make reparenting use a circle
 
 		Remove Player tool
 			- Remove the username/password record
@@ -37,13 +41,10 @@ Still need to be done:
 			- Renames/Reowners the homesystem/homeplanet
 			- Removes any fleets
 
- 
         OrderDesc_Get
         ObjectDesc_Get
 		
 		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.
-		
-		Database dumping program. 
 		
 		Figure out how to support multiple orders happening in 1 turn.
 		Figure out how to get rid of dummy orders which do nothing.

@@ -1,7 +1,7 @@
 
 # Dump the database
 # We need to rewrite Universe and NOp to -1
-mysqldump -h mithro.dyndns.org -u tp -p tp --add-drop-table -Q \
+mysqldump -h localhost -u tp -p tp --add-drop-table -Q \
 	| sed -e"s/(0,0,'The Universe/(-1,0,'The Universe/" \
 		  -e"s/(0,'Universe/(-1,'Universe/" \
 		  -e"s/(0,'NOp/(-1,'NOp/" > database.sql

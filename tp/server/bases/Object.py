@@ -68,15 +68,8 @@ ORDER BY size
 	def to_packet(self, sequence):
 		# Preset arguments
 		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
-		for attribute in self.attributes:
-			if hasattr(self, "fn_"+attribute['name']):
-				value = getattr(self, "fn_"+attribute['name'])()
-			else:
-				value = getattr(self, attribute['name'])
-			args.append(value)
-
-		packet = netlib.objects.Object(*args)
-		return packet
+		SQLWithAttrBase.to_packet(self, sequence, args)
+		return netlib.objects.Object(*args)
 
 	def __str__(self):
 		return "<Object type=%s id=%s>" % (self.type, self.id)
