@@ -63,7 +63,14 @@ class Order(SQLWithAttrBase):
 		for result in results:
 			Order.desc_packet(0, result['id']).register()
 	load_all = staticmethod(load_all)
-	
+
+	def object(self):
+		if not hasattr(self, "_object"):
+			from Object import Object
+			self._object = Object(self.oid)
+		return self._object
+	object = property(object)
+
 	def __init__(self, oid=None, slot=None, packet=None, type=None, id=None):
 	
 		if oid != None and slot != None:
@@ -73,14 +80,7 @@ class Order(SQLWithAttrBase):
 			
 		SQLWithAttrBase.__init__(self, id, packet, type)
 
-	def load(self, id):
-		SQLWithAttrBase.load(self, id)
-		
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
-
 	def insert(self):
-	
 		number = self.number(self.oid)
 		if self.slot == -1:
 			self.slot = number
@@ -94,7 +94,6 @@ class Order(SQLWithAttrBase):
 		self.save()
 
 	def save(self):
-
 		if not hasattr(self, 'id'):
 			id = self.realid(self.oid, self.slot)
 			if id != -1:
@@ -102,30 +101,25 @@ class Order(SQLWithAttrBase):
 		SQLWithAttrBase.save(self)
 
 	def remove(self):
-
 		# Move the other orders down
 		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 
 		SQLWithAttrBase.remove(self)
 
 	def to_packet(self, sequence):
-
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
 
 		for attribute in self.attributes:
-			value = getattr(self, attribute['name'])
+			if hasattr(self, "fn_"+attribute['name']):
+				value = getattr(self, "fn_"+attribute['name'])()
+			else:
+				value = getattr(self, attribute['name'])
 			args.append(value)
 
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
-		self.type = packet.type
-
-		# Upgrade the class
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
-
 		SQLWithAttrBase.from_packet(self, packet)
 
 		self.oid = self.id
@@ -133,8 +127,6 @@ class Order(SQLWithAttrBase):
 
 	def __str__(self):
 		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
-
-	__repr__ = __str__
 
 	def turns(self, turns=0):
 		"""\
@@ -147,3 +139,9 @@ class Order(SQLWithAttrBase):
 		The resources this order will consume/use. (Negative for producing).
 		"""
 		return []
+		
+# Figure out the types
+class OrderTypes:
+	pass
+for row in db.query("""SELECT name, id FROM tp.order_type"""):
+	setattr(OrderTypes, row['name'], row['id'])

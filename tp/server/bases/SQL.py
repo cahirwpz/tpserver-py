@@ -39,6 +39,11 @@ class SQLBase(object):
 			self.from_packet(packet)
 
 	def todict(self):
+		"""\
+		todict()
+
+		Turns this object into a dictionary.
+		"""
 		return self.__dict__
 
 	def load(self, id):
@@ -94,6 +99,8 @@ class SQLBase(object):
 
 		Inserts an object into the database.
 		"""
+		if hasattr(self, id):
+			del self.id
 		self.save()
 
 	def to_packet(self, sequence):
@@ -102,7 +109,7 @@ class SQLBase(object):
 
 		Returns a Thousand Parsec network packet using the sequence number.
 		"""
-		pass
+		raise NotImplimented("This method has not been implimented.")
 
 	def from_packet(self, packet):
 		"""\
@@ -110,10 +117,21 @@ class SQLBase(object):
 
 		Makes an object out of a Thousand Parsec packet.
 		"""
-		self.__dict__.update(packet.__dict__)
+		for key, value in packet.__dict__.items():
+			if key.startswith("_"):
+				continue
 
-	
+			if hasattr(self, "fn_"+key):
+				getattr(self, "fn_"+key)(value)
+			else:
+				setattr(self, key, value)
+
+	def __repr__(self):
+		return self.__str__
+
 class SQLWithAttrBase(SQLBase):
+	types = {}
+
 	def attributes(self):
 		"""\
 		*Internal*
@@ -144,7 +162,7 @@ class SQLWithAttrBase(SQLBase):
 		# Set the default attributes
 		for attribute in self.attributes:
 			if not hasattr(self, attribute['name']):
-				setattr(self, '_'+attribute['name'], pickle.loads(attribute['default']))
+				setattr(self, attribute['name'], pickle.loads(attribute['default']))
 
 	def load(self, id):
 		"""\
@@ -154,13 +172,17 @@ class SQLWithAttrBase(SQLBase):
 		"""
 		SQLBase.load(self, id)
 
+		# Load the default attributes
 		self.defaults()
 
 		# Now for the type specific attributes
 		for attribute in self.attributes:
 			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
 			if len(value) == 1:
-				setattr(self, '_'+attribute['name'], pickle.loads(value[0]['value']))
+				setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+
+		if self.types.has_key(self.type):
+			self.__class__ = self.types[self.type]
 
 	def save(self):
 		"""\
@@ -172,7 +194,7 @@ class SQLWithAttrBase(SQLBase):
 
 		# Now for the type specific attributes
 		for attribute in self.attributes:
-			value = pickle.dumps(getattr(self, '_'+attribute['name']))
+			value = pickle.dumps(getattr(self, attribute['name']))
 			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
 
 	def remove(self):
@@ -193,22 +215,13 @@ class SQLWithAttrBase(SQLBase):
 		Makes an object out of a Thousand Parsec packet.
 		"""
 		self.type = packet.type
+		
+		# Upgrade the class
+		if self.types.has_key(self.type):
+			self.__class__ = self.types[self.type]
+		
+		# Set the defaults
 		self.defaults()
 		
-		# Need to do the normal and other attributes seperately...
-		for name in packet.__dict__.keys():
-			if hasattr(self, '_'+name) and not hasattr(self, name):
-				setattr(self, '_'+name, getattr(packet, name))
-			else:
-				setattr(self, name, getattr(packet, name))
+		SQLBase.from_packet(self, packet)
 
-	def __getattr__(self, name):
-		"""\
-		Default if no property can be found.
-		"""
-		if not name.startswith('_'):
-			print "Fall through...", name
-			return getattr(self, '_'+name)
-		else:
-			raise KeyError("No such attribute")
-	

@@ -20,6 +20,7 @@ class Object(SQLWithAttrBase):
 		"""
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
 		
+		# FIXME: This is a square...
 		sql = """\
 SELECT * FROM tp.object WHERE \
       (%s <= posx+size AND %s >= posx-size) AND \
@@ -36,12 +37,6 @@ ORDER BY size
 			r.append(Object(id=id['id']))
 		return r
 	bypos = staticmethod(bypos)
-
-	def load(self, id):
-		SQLWithAttrBase.load(self, id)
-		
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
 
 	def orders(self):
 		"""\
@@ -74,7 +69,10 @@ ORDER BY size
 		# Preset arguments
 		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
 		for attribute in self.attributes:
-			value = getattr(self, attribute['name'])
+			if hasattr(self, "fn_"+attribute['name']):
+				value = getattr(self, "fn_"+attribute['name'])()
+			else:
+				value = getattr(self, attribute['name'])
 			args.append(value)
 
 		packet = netlib.objects.Object(*args)
@@ -83,5 +81,11 @@ ORDER BY size
 	def __str__(self):
 		return "<Object type=%s id=%s>" % (self.type, self.id)
 
-	__repr__ = __str__
+# Figure out the types
+class ObjectTypes:
+	pass
+for row in db.query("""SELECT name, id FROM tp.object_type"""):
+	setattr(ObjectTypes, row['name'], row['id'])
+
+# Import all the extra Object modules
 

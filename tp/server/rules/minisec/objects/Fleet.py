@@ -2,18 +2,21 @@
 from sbases.Object import Object
 
 class Fleet(Object):
+	type = 4
 
-	def get_ships(self):
-		return self._ships.items()
-	ships = property(get_ships)
+	def fn_ships(self, value=None):
+		if value == None:
+			return self.ships.items()
 
-	def get_damage(self):
-		totaldamage = 0
+	def fn_damage(self, value=None):
+		if value == None:
+			totaldamage = 0
 
-		for type, damage in self._damage:
-			totaldamage += damage
+			for type, damage in self.damage:
+				totaldamage += damage
 			
-		return totaldamage
-	damage = property(get_damage)
+			return totaldamage
+	
+	ships = {0: "Scout", 1:"Frigate", 2:"Battleship"}
 
 Object.types[4] = Fleet

@@ -18,6 +18,10 @@ Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
 import db
+# Connect to the database
+db.connect()
+
+# Base objects
 from sbases.SQL     import NoSuch
 from sbases.Board   import Board
 from sbases.Message import Message
@@ -29,6 +33,7 @@ from sobjects.Fleet		import Fleet
 from sorders.NOp        import NOp
 from sorders.Move       import Move
 from sorders.BuildFleet import BuildFleet
+from sorders.SplitFleet import SplitFleet
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):

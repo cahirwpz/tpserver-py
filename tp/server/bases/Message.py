@@ -65,12 +65,10 @@ class Message(SQLBase):
 		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body)
 
 	def from_packet(self, packet):
-		self.__dict__.update(packet.__dict__)
+		SQLBase.from_packet(self, packet)
 		self.bid = self.id
 		del self.id
 
 	def __str__(self):
 		return "<Message id=%s bid=%s slot=%s>" % (self.id, self.bid, self.slot)
-
-	__repr__ = __str__
 
