@@ -1,11 +1,12 @@
 
-import db
+from config import db
 from SQL import *
 
 class User(SQLBase):
 	tablename = "tp.user"
 
 	def realid(username, password=None):
+		print db
 		if password != None:
 			result = db.query("""SELECT id FROM tp.user WHERE username="%(username)s" and password="%(password)s" """, username=username, password=password)
 		else:

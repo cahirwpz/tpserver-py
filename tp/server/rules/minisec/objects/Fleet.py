@@ -7,6 +7,7 @@ class Fleet(Object):
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
+	orderclasses = ('sorders.NOp', 'sorders.Move', 'sorders.SplitFleet')
 
 	def fn_ships(self, value=None):
 		if value == None:
@@ -22,6 +23,6 @@ class Fleet(Object):
 			return totaldamage
 	
 	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
-
+	
 Fleet.typeno = 4
 Object.types[Fleet.typeno] = Fleet

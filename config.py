@@ -1,9 +1,16 @@
 
+class config:
+	pass
+
 # Database config
-host = "localhost"
-user = "tp"
-password = "tp-password"
-database = "tp"
+import db.MySQL as db
+db = db
+dbconfig = config()
+dbconfig.host = "localhost"
+dbconfig.user = "tp"
+dbconfig.password = "tp-password"
+dbconfig.database = "tp"
+db.connect(dbconfig)
 
 # Introduce artifical lag
 lag = 0
@@ -16,7 +23,7 @@ import sobjects.Planet
 import sobjects.Fleet
 
 import sorders.NOp
-#import sorders.Move
-#import sorders.BuildFleet
-#import sorders.SplitFleet
+import sorders.Move
+import sorders.BuildFleet
+import sorders.SplitFleet
 #import sorders.MergeFleet

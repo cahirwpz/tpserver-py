@@ -1,14 +1,25 @@
 
 import copy
+import netlib
 
-from sbases.Object import Object, ObjectTypes
+from sbases.Object import Object
 from sbases.Order import Order
 from sbases.Message import Message
 
 from sobjects import Fleet
 
 class SplitFleet(Order):
+	"""\
+Split some ships into a new fleet.
+"""
 
+	attributes = {\
+		'call': Order.Attribute("call", "", 'public', type=netlib.objects.Constants.ARG_STRING, 
+				desc="What to call the new fleet."),
+		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
+				desc="Ships to move into new fleet.")
+	}
+	
 	def do(self):
 		# We need the original fleet
 		fleet1 = Object(self.oid)
@@ -59,4 +70,5 @@ class SplitFleet(Order):
 
 			self.ships = ships
 
-Order.types[3] = SplitFleet
+SplitFleet.typeno = 3
+Order.types[SplitFleet.typeno] = SplitFleet

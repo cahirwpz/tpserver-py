@@ -1,12 +1,21 @@
 
-from sbases.Object import Object, ObjectTypes
+import netlib
+
+from sbases.Object import Object
 from sbases.Order import Order
 from sbases.Message import Message
 
 from sobjects.Fleet import Fleet
 
 class BuildFleet(Order):
+	"""\
+Build a new star ship fleet."""
 
+	attributes = {\
+		'wait': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
+				desc="Ships to build and launch.")
+	}
+	
 	def do(self):
 		builder = Object(self.oid)
 
@@ -17,7 +26,7 @@ class BuildFleet(Order):
 		# FIXME: Need to see if we have waited long enough...
 	
 		# Build new fleet object
-		fleet = Object(type=ObjectTypes.Fleet)
+		fleet = Object(type='sobjects.Fleet')
 
 		# Type Fleet
 		fleet.name = "New fleet"
@@ -82,4 +91,5 @@ It consists of:
 
 			self.ships = ships
 
-Order.types[2] = BuildFleet
+BuildFleet.typeno = 2
+Order.types[BuildFleet.typeno] = BuildFleet

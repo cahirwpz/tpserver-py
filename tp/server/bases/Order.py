@@ -1,6 +1,6 @@
 
-import db
 import netlib
+from config import db
 
 from SQL import *
 
@@ -37,6 +37,9 @@ class Order(SQLTypedBase):
 		Builds an order description packet for the specified order type.
 		"""
 		# Pull out the arguments
+		if not Order.types.has_key(typeno):
+			raise NoSuch("No such order type.")
+
 		order = Order(typeno=typeno)
 		
 		arguments = []
@@ -57,7 +60,6 @@ class Order(SQLTypedBase):
 	load_all = staticmethod(load_all)
 
 	def __init__(self, oid=None, slot=None, packet=None, type=None, typeno=None, id=None):
-	
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
 		else:
@@ -73,17 +75,29 @@ class Order(SQLTypedBase):
 	object = property(object)
 
 	def insert(self):
-		number = self.number(self.oid)
-		if self.slot == -1:
-			self.slot = number
-		elif self.slot <= number:
-			# Need to move all the other orders down
-			print self.todict()
-			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
-		else:
-			raise NoSuch("Cannot insert to that slot number.")
+		try:
+			db.query("begin")
 		
-		self.save()
+			number = self.number(self.oid)
+			if self.slot == -1:
+				self.slot = number
+			elif self.slot <= number:
+				# Need to move all the other orders down
+				print self.todict()
+				db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
+			else:
+				raise NoSuch("Cannot insert to that slot number.")
+			
+			self.save()
+
+		except Exception, e:
+			try:
+				db.query("rollback")
+			except:
+				pass
+			raise e
+		else:
+			db.query("commit")
 
 	def save(self):
 		if not hasattr(self, 'id'):
@@ -93,9 +107,20 @@ class Order(SQLTypedBase):
 		SQLTypedBase.save(self)
 
 	def remove(self):
-		# Move the other orders down
-		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
-		SQLTypedBase.remove(self)
+		try:
+			db.query("begin")
+			
+			# Move the other orders down
+			db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
+			SQLTypedBase.remove(self)
+
+		except Exception, e:
+			try:
+				db.query("rollback")
+			except:
+				pass
+		else:
+			db.query("commit")
 
 	def to_packet(self, sequence):
 		# Preset arguments
@@ -104,6 +129,7 @@ class Order(SQLTypedBase):
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
+		self.worked = 0
 		SQLTypedBase.from_packet(self, packet)
 
 		self.oid = self.id

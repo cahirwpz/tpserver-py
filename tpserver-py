@@ -16,9 +16,7 @@ Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
 import config
-import db
-# Connect to the database
-db.connect()
+db = config.db
 
 # Base objects
 from sbases.SQL     import NoSuch
@@ -223,9 +221,6 @@ class FullServer(netlib.Server):
 			connection._send(packet)
 
 def main():
-	# Connect to the database
-	db.connect()
-
 	port = 6923
 	while True:
 		try:
@@ -244,7 +239,9 @@ def main():
 
 		# Import all the order_desc from the database
 		Order.load_all()
-		print netlib.objects.OrderDescs()
+		for key, value in  netlib.objects.OrderDescs().items():
+			print key, value
+			print value.names
 
 		s.serve_forever()
 

@@ -1,6 +1,6 @@
 
-import db
 import netlib
+from config import db
 
 from SQL import *
 from Order import Order
@@ -8,6 +8,8 @@ from Order import Order
 class Object(SQLTypedBase):
 	tablename = "tp.object"
 	types = {}
+
+	orderclasses = {}
 
 	def bypos(pos, size=0, limit=-1):
 		"""\
@@ -50,7 +52,12 @@ ORDER BY size
 
 		Returns the valid order types for this object.
 		"""
-		return []
+		if not hasattr(self, "_ordertypes"):
+			self._ordertypes = []
+			for type in self.orderclasses:
+				self._ordertypes.append(quickimport(type).typeno)
+		
+		return self._ordertypes
 
 	def contains(self):
 		"""\

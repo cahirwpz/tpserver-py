@@ -3,10 +3,8 @@
 import MySQLdb
 import time
 
-import config
-
 connection = None
-def connect():
+def connect(config):
 	global connection
 	
 	connection = MySQLdb.connect(config.host, config.user, config.password, config.database)

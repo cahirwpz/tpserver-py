@@ -1,15 +1,21 @@
 
 import math
+import netlib
 
 from sbases.Order import Order
 from sbases.Object import Object
 from sbases.Message import Message
 
 class Move(Order):
-	attributes = { \
-		'pos': Order.Attribute('pos', (0,0,0), 'public'),
-	}
+	"""\
+Move to a point in space.
+"""
 
+	attributes = {\
+		'wait': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.Constants.ARG_ABS_COORD, 
+				desc="Where to go.")
+	}
+	
 	def do(self):
 		# We are going to have to modify the object so lets load it
 		obj = Object(self.oid)

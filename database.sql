@@ -48,7 +48,7 @@ CREATE TABLE `message` (
 DROP TABLE IF EXISTS `object`;
 CREATE TABLE `object` (
   `id` bigint(20) NOT NULL auto_increment,
-  `type` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL default '',
   `name` tinyblob NOT NULL,
   `size` bigint(20) NOT NULL default '0',
   `posx` bigint(20) NOT NULL default '0',
@@ -83,10 +83,10 @@ INSERT INTO `object` VALUES (55,'sobjects.Fleet','First Fleet',1,2147483647,-214
 DROP TABLE IF EXISTS `order`;
 CREATE TABLE `order` (
   `id` bigint(20) NOT NULL auto_increment,
-  `type` varchar(255) NOT NULL,
+  `type` varchar(255) NOT NULL default '',
   `oid` bigint(20) NOT NULL default '0',
   `slot` bigint(20) NOT NULL default '0',
-  `turns` bigint(20) NOT NULL default '0',
+  `worked` bigint(20) NOT NULL default '0',
   `extra` blob NOT NULL,
   PRIMARY KEY  (`id`)
 ) TYPE=MyISAM;
@@ -95,7 +95,7 @@ CREATE TABLE `order` (
 -- Dumping data for table `order`
 --
 
-
+INSERT INTO `order` VALUES (1,'sorders.NOp',55,0,0,'(dp0\nS\'wait\'\np1\nI10\ns.');
 
 --
 -- Table structure for table `user`

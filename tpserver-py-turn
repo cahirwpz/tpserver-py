@@ -8,20 +8,7 @@ except ImportError:
 	sys.path.append("../")
 	import netlib
 
-import db
-db.connect()
-
-from sbases.Board    import Board
-from sbases.Message  import Message
-from sbases.Object   import Object
-from sbases.Order    import Order
-from sbases.User     import User
-
-from sobjects.Fleet     import Fleet
-from sorders.NOp        import NOp
-from sorders.Move       import Move
-from sorders.BuildFleet import BuildFleet
-from sorders.SplitFleet import SplitFleet
+import config
 
 def OrderGet(top, d={}):
 	if top.orders() > 0:

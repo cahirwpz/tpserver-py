@@ -3,8 +3,12 @@ try:
 	import cPickle as pickle
 except ImportError:
 	import pickle
+import copy
 
-import db
+from config import db
+
+def quickimport(s):
+	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
 
 class NoSuch(Exception):
 	pass
@@ -47,7 +51,7 @@ class SQLBase(object):
 
 		Turns this object into a dictionary.
 		"""
-		return self.__dict__
+		return copy.copy(self.__dict__)
 
 	def load(self, id):
 		"""\
@@ -75,6 +79,7 @@ class SQLBase(object):
 		else:
 			SQL = """REPLACE %(tablename)s SET """
 
+		# FIXME: This is MySQL specific....
 		for finfo in self.description:
 			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
 				continue
@@ -128,7 +133,7 @@ class SQLBase(object):
 			setattr(self, key, value)
 
 	def __repr__(self):
-		return self.__str__
+		return self.__str__()
 
 _marker = []
 class SQLTypedBase(SQLBase):
@@ -162,16 +167,16 @@ Extra attributes this type defines.
 
 		SQLBase.__init__(self, id, packet)
 
+		self.__upgrade__(type, typeno)
+
+	def __upgrade__(self, type=None, typeno=None):
 		if typeno != None:
 			type = self.types[typeno].__module__
 
 		if type != None:
-			print "Type:", type
 			self.type = type
 
-			# FIXME: Duplicate code
-			c = getattr(__import__(self.type, globals(), locals(), self.type.split(".")[-1]), self.type.split(".")[-1])
-			self.__class__ = c
+			self.__class__ = quickimport(self.type)
 
 	def __getattr__(self, key, default=_marker):
 		if hasattr(self, 'extra') and self.extra.has_key(key):
@@ -186,7 +191,11 @@ Extra attributes this type defines.
 
 	def __setattr__(self, key, value):
 		if self.attributes.has_key(key):
-			self.extra[key] = value
+			try:
+				self.extra[key] = value
+			except AttributeError:
+				self.extra = {}
+				self.extra[key] = value
 		else:
 			SQLBase.__setattr__(self, key, value)
 
@@ -208,8 +217,7 @@ Extra attributes this type defines.
 		SQLBase.load(self, id)
 		self.extra = pickle.loads(self.extra)
 
-		c = getattr(__import__(self.type, globals(), locals(), self.type.split(".")[-1]), self.type.split(".")[-1])
-		self.__class__ = c
+		self.__upgrade__(self.type)
 
 	def save(self):
 		"""\
@@ -217,7 +225,7 @@ Extra attributes this type defines.
 
 		Saves a thing to the database.
 		"""
-		self.extra = pickle.loads(self.extra)
+		self.extra = pickle.dumps(self.extra)
 		SQLBase.save(self)
 
 	def from_packet(self, packet):
@@ -226,15 +234,13 @@ Extra attributes this type defines.
 
 		Makes an object out of a Thousand Parsec packet.
 		"""
-		self.type = packet.type
-		
-		# Upgrade the class
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
-		
+		self.__upgrade__(typeno=packet.type)
+
+		self.defaults()
+
 		for key, value in packet.__dict__.items():
 			# Ignore special attributes
-			if key.startswith("_"):
+			if key.startswith("_") or key == "extra" or key == "type":
 				continue
 
 			if self.attributes.has_key(key):

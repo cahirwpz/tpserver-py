@@ -8,12 +8,7 @@ except ImportError:
 	sys.path.append("../")
 	import netlib
 
-import db
-from sobjects.Board   import Board
-from sobjects.Message import Message
-from sobjects.Object  import Object
-from sobjects.Order   import Order
-from sobjects.User    import User
+import config
 
 def add(username, password):
 
