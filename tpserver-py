@@ -27,13 +27,16 @@ class SQLThing:
 		Create an object from a network packet.
 		Create an empty object.
 		"""
+		self.tablename = self.tablename
+		self.fieldname = self.fieldname
+		
 		if id != None:
 			self.load(id)
 		if packet != None:
 			self.from_packet(packet)
 
 	def todict(self):
-		return dict(zip(dir(self),map(lambda s: getattr(self,s),(dir(self)))))
+		return self.__dict__
 
 	def attributes(self):
 		"""\
@@ -72,7 +75,11 @@ class SQLThing:
 		Saves a thing to the database.
 		"""
 		# Build SQL query, there must be a better way to do this...
-		SQL = """REPLACE INTO %(tablename)s SET """
+		if hasattr(self, 'id') and self.id == 0:
+			SQL = """UPDATE %(tablename)s SET """
+		else:
+			SQL = """REPLACE %(tablename)s SET """
+
 		for finfo in db.query("DESCRIBE %(tablename)s", tablename=self.tablename):
 			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
 				continue
@@ -88,7 +95,7 @@ class SQLThing:
 		# Now for the type specific attributes
 		for attribute in self.attributes():
 			value = pickle.dumps(getattr(self, attribute['name']))
-			db.query("""REPLACE INTO %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
+			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
 
 	def remove(self):
 		"""\
@@ -142,7 +149,7 @@ class Object(SQLThing):
 
 		Returns the valid order types for this object.
 		"""
-		results = db.query("""SELECT order_type_id FROM object_order_type WHERE object_id=%(id)s""", id=self.id)
+		results = db.query("""SELECT order_type_id FROM tp.object_order_type WHERE object_id=%(id)s""", id=self.id)
 		return [x['order_type_id'] for x in results]
 
 	def contains(self):
@@ -151,7 +158,7 @@ class Object(SQLThing):
 
 		Returns the objects this object contains.
 		"""
-		results = db.query("""SELECT id FROM object WHERE parent=%(id)s""", id=self.id)
+		results = db.query("""SELECT id FROM tp.object WHERE parent=%(id)s""", id=self.id)
 		return [x['id'] for x in results]
 
 	def to_packet(self, sequence):
@@ -162,6 +169,11 @@ class Object(SQLThing):
 			args.append(value)
 
 		return netlib.objects.Object(*args)
+
+	def __str__(self):
+		return "<Object type=%s id=%s>" % (self.type, self.id)
+
+	__repr__ = __str__
 
 class Order(SQLThing):
 	tablename = "tp.order"
@@ -180,6 +192,8 @@ class Order(SQLThing):
 	number = staticmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
+		SQLThing.__init__(self)
+
 		if id != None and slot != None:
 			self.load(id, slot)
 		if packet != None:
@@ -233,12 +247,18 @@ class Order(SQLThing):
 		self.oid = self.id
 		del self.id
 
+	def __str__(self):
+		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
+
+	__repr__ = __str__
+
+		
 class FullConnection(netlib.ServerConnection):
 	def OnLogin(self, packet):
 		# We need username and password
 
 		args = {'username': packet.username, 'password': packet.password}
-		result = db.query("""SELECT * FROM user WHERE username="%(username)s" AND password="%(password)s" """, args)
+		result = db.query("""SELECT * FROM tp.user WHERE username="%(username)s" AND password="%(password)s" """, args)
 		if len(result) == 1:
 				self._send(OK(packet.sequence, "Login Ok!"))
 		else:

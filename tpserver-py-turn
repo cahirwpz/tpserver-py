@@ -1,0 +1,82 @@
+
+import math
+
+import db
+
+from server import Order, Object
+
+def OrderGet(top, d={}):
+	if top.orders() > 0:
+		order = Order(top.id, 0)
+
+		if not d.has_key(order.type):
+			d[order.type] = []
+
+		d[order.type].append(order)
+
+	# Walk around the universe and build a global order list
+	for id in top.contains():
+		OrderGet(Object(id), d)
+
+def NOp(order):
+	order.wait -= 1
+
+	if order.wait <= 0:
+		order.remove()
+	else:
+		order.save()
+
+def Move(order):
+	# We are going to have to modify the object so lets load it
+	obj = Object(order.oid)
+
+	# Is this the first time we are moving?
+	if (obj.velx, obj.vely, obj.velz) == (0,0,0):
+		# Set the velocity
+		obj.velx = math.ceil((order.pos[0] - obj.posx) / 2)
+		obj.vely = math.ceil((order.pos[1] - obj.posy) / 2)
+		obj.velz = math.ceil((order.pos[2] - obj.posz) / 2)
+
+	# Move the object
+	obj.posx, obj.poxy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+
+	# Make sure that we haven't missed the object
+	if (order.pos[0] - obj.posx) / obj.velx < 0 or \
+		(order.pos[1] - obj.posy) / obj.vely < 0 or \
+		(order.pos[2] - obj.posz) / obj.velz < 0:
+		obj.posx, obj.posy, obj.posz = order.pos
+
+	pos = obj.posx, obj.posy, obj.posz
+	if order.pos == pos:
+		obj.velx = obj.vely = obj.velz = 0
+		order.remove()
+	else:
+		obj.save()
+
+process_order = [1, 0]
+def main():
+	# Connect to the database
+	db.connect()
+
+	# Get all the orders
+	d = {}
+	OrderGet(Object(0), d)
+
+	for type in process_order:
+		if not d.has_key(type):
+			continue
+
+		if type == 1:
+			function = Move
+		else:
+			function = NOp
+
+		# Import the order processor
+		for order in d[type]:
+			print order
+			function(order)
+			
+if __name__ == "__main__":
+	main()
+
+
