@@ -4,6 +4,7 @@ try:
 except ImportError:
 	import pickle
 import copy
+import time
 
 from config import db
 
@@ -17,16 +18,50 @@ class SQLBase(object):
 	"""\
 	A class which stores it's data in a SQL database.
 	"""
-	def description(self):
+	def _description(cls):
 		"""\
 		*Internal*
 
 		Get a description of the object.
 		"""
-		if not hasattr(self, "_description"):
-			self._description = db.query("DESCRIBE %(tablename)s", tablename=self.tablename)
-		return self._description
-	description = property(description)
+		if not hasattr(cls, "__description"):
+			cls.__description = db.query("DESCRIBE %(tablename)s", tablename=cls.tablename)
+		return cls.__description
+	_description = classmethod(_description)
+	description = property(_description)
+
+	def modified(cls):
+		"""\
+		Gets the last modified time for the whole table.
+		"""
+		result = db.query("SELECT time FROM %(tablename)s ORDER BY time DESC LIMIT 1", tablename=cls.tablename)
+		return result[0]['time']
+	modified = classmethod(modified)
+
+	def ids(cls, start, amount):
+		"""\
+		Get the last ids for this.
+		"""
+		if amount == -1:
+			amount = 2**64
+		
+		result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(amount)s OFFSET %(start)s", tablename=cls.tablename, start=start, amount=amount)
+		return [(x['id'], x['time']) for x in result] 
+#		if "ids" in cls._description():
+#			if "time" in cls._description():
+#				result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(length)i OFFSET %(start)i ", tablename=cls.tablename, start=start, length=length)
+#			else:
+#				result = db.query("SELECT id FROM %(tablename)s LIMIT %(length)i OFFSET %(start)i", tablename=cls.tablename, start=start, length=length)
+#			return [(x['id'], x['time']) for x in result] 
+#		raise ValueError("Can not use this method for this table.")
+	ids = classmethod(ids)
+
+	def amount(cls):
+		"""\
+		Get the number of records in this table.
+		"""
+		return db.query("SELECT count(*) FROM %(tablename)s", tablename=cls.tablename)[0]['count(*)']
+	amount = classmethod(amount)
 
 	def __init__(self, id=None, packet=None):
 		"""\
@@ -73,6 +108,8 @@ class SQLBase(object):
 
 		Saves a thing to the database.
 		"""
+		self.time = time.time()
+		
 		# Build SQL query, there must be a better way to do this...
 		if hasattr(self, 'id') and self.id == 0:
 			SQL = """UPDATE %(tablename)s SET """

@@ -93,9 +93,13 @@ ORDER BY size
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
+		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders(), self.time]
 		SQLTypedBase.to_packet(self, sequence, args)
 		return netlib.objects.Object(*args)
+
+	def id_packet(cls):
+		return netlib.objects.Object_IDSequence
+	id_packet = classmethod(id_packet)
 
 	def __str__(self):
 		return "<Object type=%s id=%s>" % (self.typeno, self.id)

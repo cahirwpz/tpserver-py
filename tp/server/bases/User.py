@@ -23,3 +23,4 @@ class User(SQLBase):
 
 	def domain(self):
 		return self.username.split("@")[1]
+

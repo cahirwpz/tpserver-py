@@ -50,7 +50,8 @@ class Order(SQLTypedBase):
 		for attribute in order.attributes.values():
 			if attribute.level != 'private':
 				arguments.append((attribute.name, attribute.type, attribute.desc))
-		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments)
+		# FIXME: This should send a correct last modified time
+		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments, 0)
 	desc_packet = staticmethod(desc_packet)
 	
 	def load_all():
@@ -101,11 +102,19 @@ class Order(SQLTypedBase):
 			db.query("COMMIT")
 
 	def save(self):
-		if not hasattr(self, 'id'):
-			id = self.realid(self.oid, self.slot)
-			if id != -1:
-				self.id = id
-		SQLTypedBase.save(self)
+		try:
+			db.query("BEGIN")
+			
+			self.object.save()	
+			if not hasattr(self, 'id'):
+				id = self.realid(self.oid, self.slot)
+				if id != -1:
+					self.id = id
+			SQLTypedBase.save(self)
+		except Exception, e:
+			db.query("ROLLBACK")
+		else:
+			db.query("COMMIT")
 
 	def remove(self):
 		try:
@@ -113,6 +122,8 @@ class Order(SQLTypedBase):
 			
 			# Move the other orders down
 			db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
+			
+			self.object.save()
 			SQLTypedBase.remove(self)
 
 		except Exception, e:

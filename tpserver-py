@@ -30,17 +30,15 @@ class FullConnection(netlib.ServerConnection):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
 
-	def OnGet(self, packet, type):
+	def OnGetWithID(self, packet, type):
 		"""\
-		OnGet(packet, type) -> [True | False]
+		OnGetWithID(packet, type) -> [True | False]
 
 		packet - Get packet to be processes, it must have the following
 			packet.ids	- The ids to be gotten
 					
 		type - The class used in processing, it must have the following
 			type.realid(id, user)		 		 - Get the real id for this object
-			type.all()							 - Gets all the ids for this object type
-			type.next(previousid)				 - Gets all the next id for this object type
 			type(realid)						 - Creates the object
 			typeinstance.allowed(user)			 - Is the user allowed to see this object
 			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
@@ -49,22 +47,6 @@ class FullConnection(netlib.ServerConnection):
 			return False
 		else:
 			db.query("USE %(db)s", db=self.user.domain())
-		
-		# Empty list means we get all
-		if len(packet.ids) == 0:
-			packet.ids = type.all()
-		
-		# Replace the -1 with the "next" object
-		while -1 in packet.ids:
-			index = packet.ids.index(-1)
-
-			if index == 0:
-				packet.ids[index] = type.next(-1)
-			else:
-				try:
-					packet.ids[index] = type.next(packet.ids[index-1])
-				except NoSuch:
-					break
 		
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 		for id in packet.ids:
@@ -86,10 +68,48 @@ class FullConnection(netlib.ServerConnection):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
 
 		return True
-		
-	def OnGetSlot(self, packet, type, container):
+	
+	def OnGetID(self, packet, type):
 		"""\
-		OnGetSlot(packet, type, container) -> [True | False]
+		OnGethID(packet, type) -> [True | False]
+
+		packet - Get packet to be processes, it must have the following
+			packet.key	  - The last modified time
+			packet.start  - Index to start from
+			packet.length - The number of items to get
+					
+		type - The class used in processing, it must have the following
+			type.realid(id, user)		 		 - Get the real id for this object
+			type(realid)						 - Creates the object
+			typeinstance.allowed(user)			 - Is the user allowed to see this object
+			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
+		"""
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+		
+		key = type.modified()
+		total = type.amount()
+		
+		if packet.start+packet.amount > total:
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Requested to many IDs. (Requested %s, Actually %s." % (packet.start+packet.length, total)))
+			return True
+
+		if packet.amount == -1:
+			left = 0
+		else:
+			left = total - (packet.start+packet.amount)
+			packet.amount = total - packet.start
+		
+		ids = type.ids(packet.start, packet.amount)
+		self._send(type.id_packet()(packet.sequence, key, left, ids))
+
+		return True
+	
+	def OnGetWithIDandSlot(self, packet, type, container):
+		"""\
+		OnGetWithIDandSlot(packet, type, container) -> [True | False]
 
 		packet - Get packet to be processes, it must have the following
 			packet.id		- The id of the container
@@ -115,18 +135,6 @@ class FullConnection(netlib.ServerConnection):
 		# Empty list means we get all
 		if len(packet.slots) == 0:
 			packet.slots = type.all(id)
-		
-		# Replace the -1 with the "next" slot
-		while -1 in packet.slots:
-			index = packet.slots.index(-1)
-
-			if index == 0:
-				packet.slots[index] = 0
-			else:
-				try:
-					packet.slots[index] = packet.slots[index-1]+1
-				except NoSuch:
-					break
 		
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 		for slot in packet.slots:
@@ -186,7 +194,15 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 		
-	def OnObject_GetByPos(self, packet):
+	def OnObject_GetID(self, packet):
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+
+		return self.OnGetID(packet, Object)	
+
+	def OnObject_GetID_ByPos(self, packet):
 		if self.user == None:
 			return False
 		else:
@@ -199,9 +215,8 @@ class FullConnection(netlib.ServerConnection):
 		for object in objects:
 			self._send(object.to_packet(packet.sequence))
 
-		
 	def OnOrder_Get(self, packet):
-		return self.OnGetSlot(packet, Order, Object)
+		return self.OnGetWithIDandSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
 		if self.user == None:
@@ -269,10 +284,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnBoard_Get(self, packet):
-		return self.OnGet(packet, Board)
+		return self.OnGetWithID(packet, Board)
 	
 	def OnMessage_Get(self, packet):
-		return self.OnGetSlot(packet, Message, Board)
+		return self.OnGetWithIDandSlot(packet, Message, Board)
 
 	def OnMessage_Insert(self, packet):
 		if self.user == None:
@@ -313,10 +328,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnCategory_Get(self, packet):
-		return self.OnGet(packet, Category)
+		return self.OnGetWithID(packet, Category)
 	
 	def OnComponent_Get(self, packet):
-		return self.OnGet(packet, Component)
+		return self.OnGetWithID(packet, Component)
 		
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)
