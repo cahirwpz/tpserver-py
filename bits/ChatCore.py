@@ -32,19 +32,13 @@ class ChatCore:
 	def remove(self, player):
 
 		for room in self.rooms.contains:
-			
-			i = 0
-			while i < len(room.contains):
-				if room.contains[i] == player:
-					del room.contains[i]
+			room.contains.remove(player)
 
 		# Remove person from the player list
-		i = 0		
-		while i < len(self.people.contains):
-			if self.people.contains[i] == player:
-				del self.people.contains[i]
+		self.people.contains.remove(player)
 
 		# remove the player
+		del self.root[player]
 
 	def get(self, id):
 		return self.root.get(id)

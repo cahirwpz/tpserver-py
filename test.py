@@ -66,6 +66,10 @@ class Client(TcpClient):
 			time.sleep(0.1)
 			self.process_communication()
 
+		obj = atlas.Object(id="demo")
+		logout = atlas.Operation("logout", obj)
+		self.send_operation(logout)
+
 if __name__=="__main__":
 	s = Client("Thousand Parsec Test Client", args2address(sys.argv))
 	s.connect_and_negotiate()

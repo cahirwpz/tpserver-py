@@ -183,6 +183,7 @@ class AuthenticatedClient(server.TcpClient, AnonymousClient):
 
 	def logout_op(self, op):
 		# Downgrade our selves to AnonymousClient
+		print "Logging out"
 		self.__downgrade_init__()
 		self.__class__ = AnonymousClient
 
