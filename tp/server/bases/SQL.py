@@ -45,7 +45,7 @@ class SQLBase(object):
 		if amount == -1:
 			amount = 2**64
 		
-		result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(amount)s OFFSET %(start)s", tablename=cls.tablename, start=start, amount=amount)
+		result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(amount)s OFFSET %(start)s ORDER BY time DESC", tablename=cls.tablename, start=start, amount=amount)
 		return [(x['id'], x['time']) for x in result] 
 #		if "ids" in cls._description():
 #			if "time" in cls._description():

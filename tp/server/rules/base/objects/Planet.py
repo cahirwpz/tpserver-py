@@ -4,9 +4,10 @@ from sbases.Combattant import Combattant
 
 class Planet(Object, Combattant):
 	attributes = { \
-		'owner': Object.Attribute('owner', -1, 'public')
+		'owner': Object.Attribute('owner', -1, 'public'),
+		'resources': Object.Attribute('resources', -1, 'public'),
 	}
-	orderclasses = ('sorders.NOp', 'sorders.BuildFleet')
+	orderclasses = ('sorders.NOp', 'sorders.BuildFleet', 'sorders.Mine')
 
 	def ghost(self):
 		"""\
@@ -25,7 +26,7 @@ class Planet(Object, Combattant):
 		"""
 		return self.damage > 12
 	
-	def damage_get(self, damage):
+	def damage_set(self, damage):
 		if type(amount) in (TupleType, ListType):
 			for a in amount:
 				self.damage_do(a)
@@ -35,6 +36,9 @@ class Planet(Object, Combattant):
 
 	def damage_get(self, fail=False):
 		return (6, 2)[fail]
+
+	def resources_get(self):
+		return []	
 
 Planet.typeno = 3
 Object.types[Planet.typeno] = Planet
