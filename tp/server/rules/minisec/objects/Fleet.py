@@ -23,8 +23,9 @@ class Fleet(Object, Combattant):
 
 	def fn_damage(self, value=None):
 		if value == None:
-			totaldamage = 0
+			return sum(map(sum, self.damage.values()))
 
+			totaldamage = 0
 			for type, damage in self.damage:
 				if type in self.ships.keys():
 					for d in damage:

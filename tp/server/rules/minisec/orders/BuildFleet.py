@@ -23,7 +23,7 @@ Build a new star ship fleet."""
 			print "Could not do a build order because it was on an unownable object."
 			self.remove()
 		
-		if self.turns() != 0:
+		if self.turns() >= 1:
 			# Add another year to worked...
 			self.worked += 1
 			self.save()
@@ -33,17 +33,15 @@ Build a new star ship fleet."""
 		fleet = Object(type='sobjects.Fleet')
 
 		# Type Fleet
-		fleet.name = "New fleet"
-		fleet.parent = builder.parent
+		fleet.parent = builder.id
 		fleet.posx = builder.posx
 		fleet.posy = builder.posy
 		fleet.posz = builder.posz
-		fleet.velx = 0
-		fleet.vely = 0
-		fleet.velz = 0
 		fleet.size = 1
 		fleet.owner = builder.owner
 		fleet.ships = self.ships
+		fleet.insert()
+		fleet.name = "Fleet %i" % fleet.id
 		fleet.save()
 
 		message = Message()
@@ -52,9 +50,9 @@ Build a new star ship fleet."""
 		message.subject = "Fleet built"
 		
 		message.body = """\
-A new fleet has been built and is orbiting %s.
+A new fleet (%s) has been built and is orbiting %s.
 It consists of:
-""" % builder.name
+""" % (fleet.name, builder.name)
 
 		for type, number in fleet.ships.items():
 			if number > 1:
