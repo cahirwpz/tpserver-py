@@ -65,7 +65,7 @@ ORDER BY size
 	def to_packet(self, sequence):
 		# Preset arguments
 		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
-		for attribute in self.attributes():
+		for attribute in self.attributes:
 			value = getattr(self, attribute['name'])
 			args.append(value)
 

@@ -9,19 +9,26 @@ except ImportError:
 	import netlib
 
 import db
-from sobjects.Board    import Board
-from sobjects.Message  import Message
-from sobjects.Object   import Object
-from sobjects.Order    import Order
-from sobjects.User     import User
+from sbases.Board    import Board
+from sbases.Message  import Message
+from sbases.Object   import Object
+from sbases.Order    import Order
+from sbases.User     import User
 
-from sorder.NOp        import NOp
-from sorder.Move       import Move
-from sorder.BuildFleet import BuildFleet
+from sorders.NOp        import NOp
+from sorders.Move       import Move
+from sorders.BuildFleet import BuildFleet
 
 def OrderGet(top, d={}):
 	if top.orders() > 0:
-		order = Order(top.id, 0)
+		# Find the first valid order on this object
+		while True:
+			order = Order(top.id, 0)
+
+			if False:
+				order = None
+			else:
+				break
 
 		if not d.has_key(order.type):
 			d[order.type] = []
@@ -47,17 +54,10 @@ def main():
 		if not d.has_key(type):
 			continue
 
-		if type == 0:
-			function = NOp
-		elif type == 1:
-			function = Move
-		elif type == 2:
-			function = BuildFleet
-
 		# Import the order processor
 		for order in d[type]:
 			print order
-			function(order)
+			order.do()
 			
 if __name__ == "__main__":
 	main()

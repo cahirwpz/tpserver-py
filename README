@@ -1,6 +1,27 @@
 This is a quick example server which doesn't to much. If you want
 a real server try cpp-server.
 
+README    - This file
+TODO      - Things which need to be done
+API       - How to create new rulesets/orders/objects
+
+database.sql - Database structure
+
 server.py - The server that clients connect to
+config.py - Server config file
+
 turn.py   - Executes one turn, will SIGUSR1 the server if it's running
-add.py    - Adds a new user to the game
+
+sobjects  - Generic Objects (ie ruleset independent)
+sorders   - Generic Orders (ie ruleset independent)
+sbases    - Base files
+
+rules     - Rules for different types of games
+utils     - Useful programs to maintaining and reporting on the server
+
+rules/minisec - Rules for Thousand Parsec's first game
+rules/minisec/start.py - Sets up the database for a new MiniSec game
+rules/minisec/add.py   - Adds a new user to a MiniSec game
+rules/minisec/sobjects - MiniSec specific objects
+rules/minisec/sorders  - MiniSec specific orders
+

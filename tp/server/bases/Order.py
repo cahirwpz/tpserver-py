@@ -122,7 +122,7 @@ class Order(SQLWithAttrBase):
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.type, self.turns(), self.resources()]
 
-		for attribute in self.attributes():
+		for attribute in self.attributes:
 			value = getattr(self, attribute['name'])
 			args.append(value)
 

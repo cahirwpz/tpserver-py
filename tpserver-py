@@ -15,15 +15,15 @@ Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
 import db
-from sobjects.SQL     import NoSuch
-from sobjects.Board   import Board
-from sobjects.Message import Message
-from sobjects.Object  import Object
-from sobjects.Order   import Order
-from sobjects.User    import User
+from sbases.SQL     import NoSuch
+from sbases.Board   import Board
+from sbases.Message import Message
+from sbases.Object  import Object
+from sbases.Order   import Order
+from sbases.User    import User
 
-from sorders.NOp import NOp
-from sorders.Move import Move
+from sorders.NOp        import NOp
+from sorders.Move       import Move
 from sorders.BuildFleet import BuildFleet
 
 class FullConnection(netlib.ServerConnection):

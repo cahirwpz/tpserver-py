@@ -10,6 +10,17 @@ class NoSuch(Exception):
 	pass
 
 class SQLBase(object):
+	def description(self):
+		"""\
+		*Internal*
+
+		Get a description of the object.
+		"""
+		if not hasattr(self, "_description"):
+			self._description = db.query("DESCRIBE %(tablename)s", tablename=self.tablename)
+		return self._description
+	description = property(description)
+
 	def __init__(self, id=None, packet=None):
 		"""\
 		SQLObject(id)
@@ -56,7 +67,7 @@ class SQLBase(object):
 		else:
 			SQL = """REPLACE %(tablename)s SET """
 
-		for finfo in db.query("DESCRIBE %(tablename)s", tablename=self.tablename):
+		for finfo in self.description:
 			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
 				continue
 			
@@ -102,11 +113,6 @@ class SQLBase(object):
 		pass
 	
 class SQLWithAttrBase(SQLBase):
-	def __init__(self, id=None, packet=None):
-		self.fieldname = self.fieldname
-
-		SQLBase.__init__(self, id, packet)
-
 	def attributes(self):
 		"""\
 		*Internal*
@@ -115,8 +121,21 @@ class SQLWithAttrBase(SQLBase):
 		"""
 		if not hasattr(self, "_attributes"):
 			self._attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
-
 		return self._attributes
+	attributes = property(attributes)
+
+	def __init__(self, id=None, packet=None, type=None):
+		self.fieldname = self.fieldname
+
+		if id == None and packet == None and type == None:
+			raise ValueError("Can not create an object without type.")
+
+		SQLBase.__init__(self, id, packet)
+
+		if type != None:
+			# Set the default attributes
+			for attribute in self.attributes:
+				setattr(self, attribute['name'], pickle.loads(attribute['default']))
 
 	def load(self, id):
 		"""\
@@ -127,7 +146,7 @@ class SQLWithAttrBase(SQLBase):
 		SQLBase.load(self, id)
 
 		# Now for the type specific attributes
-		for attribute in self.attributes():
+		for attribute in self.attributes:
 			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
 			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
 
@@ -140,7 +159,7 @@ class SQLWithAttrBase(SQLBase):
 		SQLBase.save(self)
 
 		# Now for the type specific attributes
-		for attribute in self.attributes():
+		for attribute in self.attributes:
 			value = pickle.dumps(getattr(self, attribute['name']))
 			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
 
