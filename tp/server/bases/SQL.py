@@ -107,7 +107,7 @@ class SQLBase(object):
 
 		Inserts an object into the database.
 		"""
-		if hasattr(self, id):
+		if hasattr(self, "id"):
 			del self.id
 		self.save()
 
@@ -178,6 +178,7 @@ Extra attributes this type defines.
 
 			self.__class__ = quickimport(self.type)
 
+
 	def __getattr__(self, key, default=_marker):
 		if hasattr(self, 'extra') and self.extra.has_key(key):
 			# Return the extra value
@@ -204,6 +205,9 @@ Extra attributes this type defines.
 		Sets all the attributes to there default values.
 		"""
 		# Set the default attributes
+		if not hasattr(self, "extra"):
+			self.extra = {}
+		
 		for attribute in self.attributes.values():
 			if not hasattr(self, attribute.name):
 				setattr(self, attribute.name, attribute.default)

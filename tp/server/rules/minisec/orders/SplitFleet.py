@@ -36,13 +36,17 @@ Split some ships into a new fleet.
 			else:
 				fleet2.ships[type] = fleet1.ships[type]
 				fleet1.ships[type] = 0
+
+		fleet1.save()
+		fleet2.insert()
+
 		self.remove()
 
 	def simulate(self):
 		pass
 
 	def turns(self, turns=0):
-		return self.turns+1
+		return turns+1
 
 	def resources(self):
 		return []

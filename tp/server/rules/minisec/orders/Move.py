@@ -12,7 +12,7 @@ Move to a point in space.
 """
 
 	attributes = {\
-		'wait': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.Constants.ARG_ABS_COORD, 
+		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.Constants.ARG_ABS_COORD, 
 				desc="Where to go.")
 	}
 	

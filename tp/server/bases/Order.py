@@ -92,7 +92,7 @@ class Order(SQLTypedBase):
 
 		except Exception, e:
 			db.query("ROLLBACK")
-			raise e
+			raise
 		else:
 			db.query("COMMIT")
 

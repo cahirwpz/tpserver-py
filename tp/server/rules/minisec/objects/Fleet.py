@@ -7,7 +7,8 @@ class Fleet(Object):
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
-	orderclasses = ('sorders.NOp', 'sorders.Move', 'sorders.SplitFleet')
+	orderclasses = ('sorders.NOp', 'sorders.Move', 'sorders.SplitFleet', 'sorders.MergeFleet',
+					'sorders.Colonise',)
 
 	def fn_ships(self, value=None):
 		if value == None:

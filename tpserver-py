@@ -50,7 +50,16 @@ class FullConnection(netlib.ServerConnection):
 
 		for id in packet.ids:
 			try:
-				self._send(Object(id).to_packet(packet.sequence))
+				object = Object(id)
+				
+				p = Object(id).to_packet(packet.sequence)
+				
+				# Protect the order_number
+				if hasattr(object, "owner") and object.owner != self.pid:
+					p.order_number = 0
+
+				self._send(p)
+				
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
 
@@ -80,9 +89,12 @@ class FullConnection(netlib.ServerConnection):
 				# Are we allowed to access this?
 				if order.object.owner != self.pid:
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+					print order.object.owner, self.pid
+					print packet.id, slot, "No Permission"
 				else:	
 					self._send(order.to_packet(packet.sequence))
 			except NoSuch:
+				print packet.id, slot, "Failed"
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
 		return True
