@@ -1,34 +1,45 @@
 import sys
 import time
+import os
+import copy
 
 import config
 
 from atlas.transport.TCP import server
 import atlas
-#from atlas.transport.connection import args2address
 
 # This is the "Global" bit, all clients talk through this main server.
 class CoreServer(server.SocketServer):
 	def setup(self):
-		self.start_time = time.time()
+		from atlas.transport.file import read_and_analyse
+
+		self.definitions = read_and_analyse(os.path.join("data", "tp.bach"))
+		self.startTime = time.time()
 
 		# Load the accounts names into memory
-		self.Players = []
+		self.players = []
+
+		from bits.ChatCore import ChatCore
+		self.chatCore = ChatCore()
+
+		print "Server ready"
 	
 	def idle(self):
 		pass
 
 	def authenticate(self, account, password):
-		print len(self.Players), config.MaxPlayers
-		if len(self.Players) < config.MaxPlayers:
-			if account not in self.Players:
-				self.Players.append(account)
+		print len(self.players), config.maxPlayers
+		if len(self.players) < config.maxPlayers:
+			if account not in self.players:
+				self.players.append(account)
+				self.chatCore.add(account)
 				return 1
 		
 		return 0
 
 	def deauthenticate(self, account):
-		self.Players.remove(account)
+		self.chatCore.remove(account)
+		self.players.remove(account)
 
 
 # These exist for each client
@@ -52,11 +63,11 @@ class AnonymousClient(server.TcpClient):
 			print (str(self.__class__) + ", %s") % "Returning Server stats"
 			try:
 				server_info = atlas.Object()
-				server_info.Players = len(self.server.Players)
-				server_info.MaxPlayers = config.MaxPlayers
-				server_info.Uptime = time.time() - self.server.start_time
-				server_info.Version = config.Version
-				server_info.AdminContact = config.AdminContact
+				server_info.Players = len(self.server.players)
+				server_info.MaxPlayers = config.maxPlayers
+				server_info.Uptime = time.time() - self.server.startTime
+				server_info.Version = config.version
+				server_info.AdminContact = config.adminContact
 				
 				self.reply_operation(op, atlas.Operation("info", server_info))
 			except:
@@ -114,17 +125,57 @@ class AuthenticatedClient(server.TcpClient, AnonymousClient):
 		self.__downgrade_init__()
 	
 	def get_op(self, op):
-		# Check if it's an anonymous "get"
 		if hasattr(op, "arg"):
+			
 			if not hasattr(op.arg, "id"):
-				# Anonymous....
+				# Untargeted Get
 				print (str(self.__class__) + ", %s") % "Anonymous get"	
 				AnonymousClient.get_op(self, op)
-				pass
+				
 			else:
-				# Targeted...
-				print (str(self.__class__) + ", %s") % "Targeted get"
-				pass
+				id = op.arg.id
+
+				if id == "root":
+					# root is a special case, it should exist in all of the objects
+					#
+					# Because of this we return our own root which is combinded from
+					# all the other roots.
+					print (str(self.__class__) + ", %s") % "Getting the root object."
+					
+					root_obj = atlas.Object(id="root")
+
+					# The children should come only from definitions
+					root_obj.children = copy.deepcopy(self.server.definitions.get("root").children)
+
+					# The root should contain all the stuff from the other roots
+					#root_obj.contains = copy.deepcopy(self.server.definitions.get(""))
+
+					self.reply_operation(op, atlas.Operation("info", root_obj))
+					
+				else:
+
+					obj = None
+
+					# Check definitions first
+					if not obj:
+						obj = self.server.definitions.get(id)
+						
+					# Then the chat server
+					if not obj:
+						obj = self.server.chatCore.get(id)
+
+					# Then the players known Universe
+					
+					# Then the players designed
+					
+					# Then the players messages
+
+					if obj:
+						self.reply_operation(op, atlas.Operation("info", obj))
+					else:
+						self.send_error(op, "no object with id " + id)
+
+				print (str(self.__class__) + ", %s") % "Targeted get " + id
 
 	def logout_op(self, op):
 		# Downgrade our selves to AnonymousClient

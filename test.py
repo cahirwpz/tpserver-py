@@ -1,21 +1,4 @@
 #!/usr/bin/env python
-#exanple code to fetch whole inheritance hierarchy
-
-#Copyright 2001 by Aloril
-
-#This library is free software; you can redistribute it and/or
-#modify it under the terms of the GNU Lesser General Public
-#License as published by the Free Software Foundation; either
-#version 2.1 of the License, or (at your option) any later version.
-
-#This library is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#Lesser General Public License for more details.
-
-#You should have received a copy of the GNU Lesser General Public
-#License along with this library; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 import sys, time
 sys.path.append("Atlas-Python")
@@ -25,7 +8,8 @@ import atlas
 
 class Client(TcpClient):
 	def setup(self):
-		self.waiting = {1:1}
+		self.waiting = {}
+		self.mode = "children"
 
 	def ask(self, id):
 		op = atlas.Operation("get", atlas.Object(id=id))
@@ -36,10 +20,26 @@ class Client(TcpClient):
 		print op
 		ent = op.arg
 		if hasattr(ent, "id"):
-			del self.waiting[ent.id]
-			if hasattr(ent, "children"):
-				for id in ent.children:
+			try:
+				del self.waiting[ent.id]
+			except:
+				pass
+			if hasattr(ent, self.mode):
+				print ent.id, "---->",
+				for id in getattr(ent, self.mode):
+					print id,
 					self.ask(id)
+				print
+				print "Still waiting on", self.waiting
+
+	def error_op(self, op):
+		ent = op.arg_op.arg
+		if hasattr(ent, "id"):
+			print "Removing", ent.id
+			try:
+				del self.waiting[ent.id]
+			except:
+				pass
 
 	def loop(self):
 		get = atlas.Operation("get")
@@ -52,13 +52,19 @@ class Client(TcpClient):
 
 		get = atlas.Operation("get")
 		self.send_operation(get)
-		
+
+		self.ask("non_existant_id")
 		self.ask("root")
+
+		# Okay now ask for the base of the universe
+		self.mode = "children"
+		
 		while self.waiting:
 			time.sleep(0.1)
 			self.process_communication()
 
 if __name__=="__main__":
-	s = Client("Inheritance hierarchy fetch client", args2address(sys.argv))
+	s = Client("Thousand Parsec Test Client", args2address(sys.argv))
 	s.connect_and_negotiate()
 	s.loop()
+	

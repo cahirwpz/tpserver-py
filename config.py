@@ -1,8 +1,8 @@
 
-Version = "0.0.1-alpha"
+version = "0.0.1-alpha"
 
-Name = "The small test Universe"
+name = "The small test Universe"
 
-AdminContact = "mithro@mithis.com"
-MaxPlayers = 10
+adminContact = "mithro@mithis.com"
+maxPlayers = 10
 
