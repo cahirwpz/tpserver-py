@@ -1,54 +1,45 @@
 
+How objects work
+==================================================
+See the sobjects directory for examples.
+
 How orders work
 ==================================================
+Orders are given to an object by a player. They take some time and
+preform some action. An example would be Move. See sorders directory
+for examples.
 
-class Order:
+
+class ABC(Order):
+	"""\
+A doc string must exist otherwise the order won't work.
+"""
+	attributes = {\
+		<name>: Order.Attribute(<name>, <default>, <'public' || 'protected' || 'private'>, 
+				type=netlib.objects.Constants.ARG_<type>, desc=<description>)
+	}
+
 	do(self):
-
 		Does the actual order
 
 	turns(self, turns=0):
-
 		Returns the number of turns taken to complete the order
 
 	resources(self):
-		
 		Returns the number and type of resources used by the order
 
-	get_<name>(self, name):
+	fn_<name>(self, value=None):
+		Returns and sets the data for a "protected" order. 
 
-		Returns the data for that order. 
-		If this function doesn't exist then it'll return the raw database value
-	<name> = property(get_<name>)
+"Features"
+--------------------------------------------------
+The __init__ will most probably never get called so don't bother using one.
+Any public or protected attribute MUST have a type and a description.
+Only non-default attributes listed in the attribute dictionary will be saved.
 
-
-Orders are defined in the database in the following way.
-
-order_type
-+-------+------------+------+-----+---------+----------------+
-| Field | Type       | Null | Key | Default | Extra          |
-+-------+------------+------+-----+---------+----------------+
-| id    | bigint(20) |      | PRI | NULL    | auto_increment |
-| name  | tinyblob   |      |     |         |                |
-| desc  | blob       |      |     |         |                |
-+-------+------------+------+-----+---------+----------------+
- 
-order_type_attr
-+---------------+------------+------+-----+---------+----------------+
-| Field         | Type       | Null | Key | Default | Extra          |
-+---------------+------------+------+-----+---------+----------------+
-| id            | bigint(20) |      | PRI | NULL    | auto_increment |
-| order_type_id | bigint(20) |      |     | 0       |                |
-| name          | tinyblob   |      |     |         |                |
-| type          | tinyint(4) |      |     | 0       |                |
-| desc          | blob       |      |     |         |                |
-+---------------+------------+------+-----+---------+----------------+
-
-The following types for attributes are
-
-	0, Absolute Coordinate
-	1, Number of Turns
-	2, Object ID
-	3, Player ID
-	4, Number Range
+How actions work
+==================================================
+Actions occur without player interaction. An example would be combat which
+occurs whenever the two ships of opposing sides are at the same position.
+See sactions for examples.
 
