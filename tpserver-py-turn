@@ -39,6 +39,16 @@ def Move(order):
 
 	# Move the object
 	obj.posx, obj.poxy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+	
+	# Reparent the object
+	parents = Object.bypos([obj.posx, obj.posy, obj.posz], radius=0)
+	obj.parent = obj.id
+	while obj.parent == obj.id:
+		if len(parents) > 0:
+			obj.parent = parents.pop(-1).id
+			continue
+		else:
+			obj.parent = -1
 
 	# Make sure that we haven't missed the object
 	if (order.pos[0] - obj.posx) / obj.velx < 0 or \
@@ -50,8 +60,51 @@ def Move(order):
 	if order.pos == pos:
 		obj.velx = obj.vely = obj.velz = 0
 		order.remove()
+
+		message = Message()
+		message.subject = "%s arrived" % object.name
+		message.body = """%s has arrive at it's destination.""" % object.name
+		message.save()
 	else:
 		obj.save()
+
+def BuildFleet(order):
+	# We need information from the builder...
+	builder = Object(order.oid)
+
+	if not hasattr(builder, "owner"):
+		# Ekk we can't build an object if we don't have an owner...
+		print "Could not do a build order because it was on an unownable object."
+		order.remove()
+	
+	object = Object()
+
+	# Type Fleet
+	object.type = 4
+	object.name = "New fleet"
+	object.size = 1
+
+	# Parent the object
+	object.parent = builder.parent
+	
+	# Put it at the position
+	object.posx = builder.posx
+	object.posy = builder.posy
+	object.posz = builder.posz
+
+	object.velx = 0
+	object.vely = 0
+	object.velz = 0
+
+	object.owner = builder.owner
+
+	object.save()
+
+	message = Message()
+	message.subject = "%s built" % object.new
+	message.body = """%s has arrive at it's destination.""" % object.new
+	message.save()
+
 
 process_order = [1, 0]
 def main():
@@ -66,10 +119,12 @@ def main():
 		if not d.has_key(type):
 			continue
 
-		if type == 1:
-			function = Move
-		else:
+		if type == 0:
 			function = NOp
+		elif type == 1:
+			function = Move
+		elif type == 2:
+			function = BuildFleet
 
 		# Import the order processor
 		for order in d[type]:

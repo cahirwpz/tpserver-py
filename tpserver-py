@@ -16,7 +16,7 @@ constants = netlib.objects.constants
 class NoSuch(Exception):
 	pass
 
-class SQLThing:
+class SQLBase:
 	def __init__(self, id=None, packet=None):
 		"""\
 		SQLObject(id)
@@ -38,17 +38,6 @@ class SQLThing:
 	def todict(self):
 		return self.__dict__
 
-	def attributes(self):
-		"""\
-		*Internal*
-
-		Get a list of attributes this object type has.
-		"""
-		if not hasattr(self, "_attributes"):
-			self._attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
-
-		return self._attributes
-
 	def load(self, id):
 		"""\
 		load(id)
@@ -62,11 +51,6 @@ class SQLThing:
 			raise NoSuch("%s does not exists" % id)
 
 		self.__dict__.update(result[0])
-
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
-			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
 
 	def save(self):
 		"""\
@@ -92,11 +76,6 @@ class SQLThing:
 		if not hasattr(self, 'id'):
 			self.id = db.connection.insert_id()
 
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = pickle.dumps(getattr(self, attribute['name']))
-			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
-
 	def remove(self):
 		"""\
 		remove()
@@ -105,7 +84,6 @@ class SQLThing:
 		"""
 		# Remove the common attribute
 		db.query("""DELETE FROM %(tablename)s WHERE id=%(id)s""", self.todict())
-		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
 
 	def insert(self):
 		"""\
@@ -131,10 +109,83 @@ class SQLThing:
 		"""
 		pass
 	
-class Object(SQLThing):
+class SQLWithAttrBase(SQLBase):
+	def attributes(self):
+		"""\
+		*Internal*
+
+		Get a list of attributes this object type has.
+		"""
+		if not hasattr(self, "_attributes"):
+			self._attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
+
+		return self._attributes
+
+	def load(self, id):
+		"""\
+		load(id)
+
+		Loads a thing from the database.
+		"""
+		SQLBase.load(self, id)
+
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
+			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+
+	def save(self):
+		"""\
+		save()
+
+		Saves a thing to the database.
+		"""
+		SQLBase.save(self)
+
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = pickle.dumps(getattr(self, attribute['name']))
+			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
+
+	def remove(self):
+		"""\
+		remove()
+
+		Removes an object from the database.
+		"""
+		# Remove the common attribute
+		SQLBase.remove(self)
+
+		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
+
+class Object(SQLWithAttrBase):
 	tablename = "tp.object"
 	fieldname = "object"
 
+	def bypos(pos, size):
+		"""\
+		Object.bypos([x, y, z], raidus) -> [Object, ...]
+
+		Return all objects which are centered inside a sphere centerd on
+		size and radius of size.
+		"""
+		result = db.query("""\
+			SELECT id FROM tp.object WHERE
+				posx+size >= %i AND posx-size =< %i AND
+				posy+size >= %i AND posy-size =< %i AND
+				posz+size >= %i AND posz-size =< %i
+			ORDER BY DECREASING size
+		""" % (pos[0]-size, pos[1]+size, pos[1]-size, pos[1]+size, pos[2]-size, pos[2]+size))
+	
+		if len(result) != 1:
+			return []
+		else:
+			r = []
+			for id in result:
+				r.append(Object(id=id['id']))
+			return r
+	bypos = staticmethod(bypos)
+	
 	def orders(self):
 		"""\
 		orders()
@@ -163,19 +214,21 @@ class Object(SQLThing):
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, [], [], self.orders()]
+		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), [], self.orders()]
 		for attribute in self.attributes():
 			value = getattr(self, attribute['name'])
 			args.append(value)
 
-		return netlib.objects.Object(*args)
+		packet = netlib.objects.Object(*args)
+		print packet.length
+		return packet
 
 	def __str__(self):
 		return "<Object type=%s id=%s>" % (self.type, self.id)
 
 	__repr__ = __str__
 
-class Order(SQLThing):
+class Order(SQLWithAttrBase):
 	tablename = "tp.order"
 	fieldname = "order"
 	
@@ -192,7 +245,7 @@ class Order(SQLThing):
 	number = staticmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
-		SQLThing.__init__(self)
+		SQLWithAttrBase.__init__(self)
 
 		if id != None and slot != None:
 			self.load(id, slot)
@@ -204,7 +257,7 @@ class Order(SQLThing):
 		if id == -1:
 			raise NoSuch("Order %s %s does not exists" % (oid, slot))
 			
-		SQLThing.load(self, id)
+		SQLWithAttrBase.load(self, id)
 
 	def insert(self):
 		number = self.number(self.oid)
@@ -224,13 +277,13 @@ class Order(SQLThing):
 			if id != -1:
 				self.id = id
 			
-		SQLThing.save(self)
+		SQLWithAttrBase.save(self)
 
 	def remove(self):
 		# Move the other orders down
 		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 
-		SQLThing.remove(self)
+		SQLWithAttrBase.remove(self)
 
 	def to_packet(self, sequence):
 		# Preset arguments
@@ -252,7 +305,11 @@ class Order(SQLThing):
 
 	__repr__ = __str__
 
-		
+class Message(SQLBase):
+	tablename = "tp.message"
+	fieldname = "message"
+	pass
+
 class FullConnection(netlib.ServerConnection):
 	def OnLogin(self, packet):
 		# We need username and password
@@ -262,6 +319,7 @@ class FullConnection(netlib.ServerConnection):
 		if len(result) == 1:
 				self._send(OK(packet.sequence, "Login Ok!"))
 		else:
+				print "Found %s rows" % len(result)
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
 		return True
 
@@ -275,6 +333,14 @@ class FullConnection(netlib.ServerConnection):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
 
 		return True
+		
+	def OnObject_GetByPos(self, packet):
+		objects = Object.bypos(packet.pos, packet.size)
+
+		self._send(Sequence(packet.sequence, len(objects)))
+
+		for object in objects:
+			self._send(object.to_packet(packet.sequence))
 
 	def OnOrder_Get(self, packet):
 		self._send(Sequence(packet.sequence, len(packet.slots)))
