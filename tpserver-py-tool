@@ -102,7 +102,6 @@ You are currently in the game %s.
 	homesystem.parent = 0
 	homesystem.posx = pos[0]
 	homesystem.posy = pos[1]
-	homesystem.posz = pos[2]
 	homesystem.insert()
 	ReparentOne(homesystem)
 	homesystem.save()
@@ -115,7 +114,6 @@ You are currently in the game %s.
 	homeworld.parent = homesystem.id
 	homeworld.posx = pos[0]+random.randint(1,100)*1000
 	homeworld.posy = pos[1]+random.randint(1,100)*1000
-	homeworld.posz = pos[2]+random.randint(1,100)*1000
 	homeworld.owner = user.id
 	homeworld.insert()
 	print "Homeworld has the id:", homeworld.id
@@ -131,7 +129,6 @@ You are currently in the game %s.
 		extra.parent = homesystem.id
 		extra.posx = pos[0]+random.randint(1,100)*1000
 		extra.posy = pos[1]+random.randint(1,100)*1000
-		extra.posz = pos[2]+random.randint(1,100)*1000
 		extra.insert()
 		print "Extra planet has the id:", extra.id
 
@@ -142,7 +139,6 @@ You are currently in the game %s.
 	fleet.parent = homeworld.id
 	fleet.posx = homeworld.posx
 	fleet.posy = homeworld.posy
-	fleet.posz = homeworld.posz
 	fleet.owner = user.id
 	fleet.ships = {0:1}
 	fleet.insert()
@@ -163,7 +159,6 @@ def generate(game, key=-1, min=0, max=12):
 		system.size = random.randint(800000, 2000000)
 		system.posx = pos[0]
 		system.posy = pos[1]
-		system.posz = pos[2]
 		system.insert()
 		ReparentOne(system)
 		system.save()
@@ -177,7 +172,6 @@ def generate(game, key=-1, min=0, max=12):
 			planet.parent = system.id
 			planet.posx = pos[0]+random.randint(1,100)*1000
 			planet.posy = pos[1]+random.randint(1,100)*1000
-			planet.posz = pos[2]+random.randint(1,100)*1000
 			planet.insert()
 			print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
