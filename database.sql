@@ -1,11 +1,11 @@
--- MySQL dump 9.11
+-- MySQL dump 9.08
 --
--- Host: mithro.dyndns.org    Database: tp
--- ------------------------------------------------------
+-- Host: localhost    Database: tp
+---------------------------------------------------------
 -- Server version	4.0.13-log
 
 --
--- Table structure for table `board`
+-- Table structure for table 'board'
 --
 
 DROP TABLE IF EXISTS `board`;
@@ -17,13 +17,13 @@ CREATE TABLE `board` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `board`
+-- Dumping data for table 'board'
 --
 
 INSERT INTO `board` VALUES (11,'Private message board for t','This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe. ');
 
 --
--- Table structure for table `message`
+-- Table structure for table 'message'
 --
 
 DROP TABLE IF EXISTS `message`;
@@ -37,12 +37,12 @@ CREATE TABLE `message` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `message`
+-- Dumping data for table 'message'
 --
 
 
 --
--- Table structure for table `object`
+-- Table structure for table 'object'
 --
 
 DROP TABLE IF EXISTS `object`;
@@ -62,10 +62,10 @@ CREATE TABLE `object` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object`
+-- Dumping data for table 'object'
 --
 
-INSERT INTO `object` VALUES (0,0,'The Universe',100000000000,0,0,0,0,0,0,-1);
+INSERT INTO `object` VALUES (-1,0,'The Universe',100000000000,0,0,0,0,0,0,-1);
 INSERT INTO `object` VALUES (25,1,'The Milky Way',10000000000,0,0,-6000,0,0,1000,0);
 INSERT INTO `object` VALUES (26,2,'The Sol Terra System',1400000,3000000000,2000000000,0,-1500000,1500000,0,25);
 INSERT INTO `object` VALUES (27,2,'The Alpha Centauri System',800000,-1500000000,1500000000,0,-1000000,-1000000,0,25);
@@ -76,7 +76,7 @@ INSERT INTO `object` VALUES (53,3,'t\'s Homeworld',1000,67203857,-9289417568,-76
 INSERT INTO `object` VALUES (52,2,'t\'s System',1630922,67203857,-9289417568,-7649254180,0,0,0,0);
 
 --
--- Table structure for table `object_attr`
+-- Table structure for table 'object_attr'
 --
 
 DROP TABLE IF EXISTS `object_attr`;
@@ -88,7 +88,7 @@ CREATE TABLE `object_attr` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object_attr`
+-- Dumping data for table 'object_attr'
 --
 
 INSERT INTO `object_attr` VALUES (0,1,'I0\n.');
@@ -97,7 +97,7 @@ INSERT INTO `object_attr` VALUES (54,2,'I0\n.');
 INSERT INTO `object_attr` VALUES (53,2,'L11L\n.');
 
 --
--- Table structure for table `object_order_type`
+-- Table structure for table 'object_order_type'
 --
 
 DROP TABLE IF EXISTS `object_order_type`;
@@ -108,12 +108,12 @@ CREATE TABLE `object_order_type` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object_order_type`
+-- Dumping data for table 'object_order_type'
 --
 
 
 --
--- Table structure for table `object_type`
+-- Table structure for table 'object_type'
 --
 
 DROP TABLE IF EXISTS `object_type`;
@@ -124,17 +124,17 @@ CREATE TABLE `object_type` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object_type`
+-- Dumping data for table 'object_type'
 --
 
-INSERT INTO `object_type` VALUES (0,'Universe');
+INSERT INTO `object_type` VALUES (-1,'Universe');
 INSERT INTO `object_type` VALUES (1,'Galaxy');
 INSERT INTO `object_type` VALUES (2,'Star System');
 INSERT INTO `object_type` VALUES (3,'Planet');
 INSERT INTO `object_type` VALUES (4,'Fleet');
 
 --
--- Table structure for table `object_type_attr`
+-- Table structure for table 'object_type_attr'
 --
 
 DROP TABLE IF EXISTS `object_type_attr`;
@@ -147,7 +147,7 @@ CREATE TABLE `object_type_attr` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object_type_attr`
+-- Dumping data for table 'object_type_attr'
 --
 
 INSERT INTO `object_type_attr` VALUES (1,0,'turn','I0\n.');
@@ -157,7 +157,7 @@ INSERT INTO `object_type_attr` VALUES (4,4,'ships','(dp0\n.');
 INSERT INTO `object_type_attr` VALUES (5,4,'damage','(dp0\n.');
 
 --
--- Table structure for table `object_type_order_type`
+-- Table structure for table 'object_type_order_type'
 --
 
 DROP TABLE IF EXISTS `object_type_order_type`;
@@ -168,7 +168,7 @@ CREATE TABLE `object_type_order_type` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `object_type_order_type`
+-- Dumping data for table 'object_type_order_type'
 --
 
 INSERT INTO `object_type_order_type` VALUES (3,0);
@@ -178,7 +178,7 @@ INSERT INTO `object_type_order_type` VALUES (4,1);
 INSERT INTO `object_type_order_type` VALUES (4,3);
 
 --
--- Table structure for table `order`
+-- Table structure for table 'order'
 --
 
 DROP TABLE IF EXISTS `order`;
@@ -191,7 +191,7 @@ CREATE TABLE `order` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `order`
+-- Dumping data for table 'order'
 --
 
 INSERT INTO `order` VALUES (75,55,1,1);
@@ -201,7 +201,7 @@ INSERT INTO `order` VALUES (87,54,0,2);
 INSERT INTO `order` VALUES (89,55,2,3);
 
 --
--- Table structure for table `order_attr`
+-- Table structure for table 'order_attr'
 --
 
 DROP TABLE IF EXISTS `order_attr`;
@@ -213,7 +213,7 @@ CREATE TABLE `order_attr` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `order_attr`
+-- Dumping data for table 'order_attr'
 --
 
 INSERT INTO `order_attr` VALUES (75,2,'(L0L\nL1000L\nL10L\ntp1\n.');
@@ -224,7 +224,7 @@ INSERT INTO `order_attr` VALUES (89,4,'S\'New fleet\'\np1\n.');
 INSERT INTO `order_attr` VALUES (89,5,'(dp0\n.');
 
 --
--- Table structure for table `order_type`
+-- Table structure for table 'order_type'
 --
 
 DROP TABLE IF EXISTS `order_type`;
@@ -236,16 +236,16 @@ CREATE TABLE `order_type` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `order_type`
+-- Dumping data for table 'order_type'
 --
 
-INSERT INTO `order_type` VALUES (0,'NOp','Do nothing for a period.');
+INSERT INTO `order_type` VALUES (-1,'NOp','Do nothing for a period.');
 INSERT INTO `order_type` VALUES (1,'Move','Move to a location.');
 INSERT INTO `order_type` VALUES (2,'Build Fleet','Build some new ships!');
 INSERT INTO `order_type` VALUES (3,'Split Fleet','Split a fleet in two.');
 
 --
--- Table structure for table `order_type_attr`
+-- Table structure for table 'order_type_attr'
 --
 
 DROP TABLE IF EXISTS `order_type_attr`;
@@ -260,7 +260,7 @@ CREATE TABLE `order_type_attr` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `order_type_attr`
+-- Dumping data for table 'order_type_attr'
 --
 
 INSERT INTO `order_type_attr` VALUES (1,0,'wait',1,'Wait this long.','I0\n.');
@@ -270,7 +270,7 @@ INSERT INTO `order_type_attr` VALUES (5,3,'ships',6,'List of ships to move into 
 INSERT INTO `order_type_attr` VALUES (4,3,'name_',7,'Name of the new fleet.','S\'New fleet\'\np0\n.');
 
 --
--- Table structure for table `resource`
+-- Table structure for table 'resource'
 --
 
 DROP TABLE IF EXISTS `resource`;
@@ -287,12 +287,12 @@ CREATE TABLE `resource` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `resource`
+-- Dumping data for table 'resource'
 --
 
 
 --
--- Table structure for table `user`
+-- Table structure for table 'user'
 --
 
 DROP TABLE IF EXISTS `user`;
@@ -304,8 +304,11 @@ CREATE TABLE `user` (
 ) TYPE=MyISAM;
 
 --
--- Dumping data for table `user`
+-- Dumping data for table 'user'
 --
 
 INSERT INTO `user` VALUES (11,'t','t');
 
+UPDATE object SET id = 0 WHERE name='The Universe';
+UPDATE object_type SET id = 0 WHERE name = 'Universe';
+UPDATE order_type SET id = 0 WHERE name = 'NOp';
