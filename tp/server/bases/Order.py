@@ -90,15 +90,14 @@ class Order(SQLWithAttrBase):
 			value = getattr(self, attribute['name'])
 			args.append(value)
 
-		print args
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
-		print packet.__dict__
-		print str(packet)
-		
-		self.__dict__.update(packet.__dict__)
-		self.oid = self.id
+		for key, value in packet.__dict__.items():
+			if key == 'id':
+				self.oid = value
+			else:
+				setattr(self, key, value)
 		del self.id
 
 	def __str__(self):

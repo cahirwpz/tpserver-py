@@ -1,0 +1,58 @@
+
+How orders work
+==================================================
+
+class Order:
+	do(self):
+
+		Does the actual order
+
+	turns(self, turns=0):
+
+		Returns the number of turns taken to complete the order
+
+	resources(self):
+		
+		Returns the number and type of resources used by the order
+
+	get_<name>(self, name):
+
+		Returns the data for that order. 
+		If this function doesn't exist then it'll return the raw database value
+	<name> = property(get_<name>)
+
+
+Orders are defined in the database in the following way.
+
+order_type
++-------+------------+------+-----+---------+----------------+
+| Field | Type       | Null | Key | Default | Extra          |
++-------+------------+------+-----+---------+----------------+
+| id    | bigint(20) |      | PRI | NULL    | auto_increment |
+| name  | tinyblob   |      |     |         |                |
+| desc  | blob       |      |     |         |                |
++-------+------------+------+-----+---------+----------------+
+ 
+order_type_attr
++---------------+------------+------+-----+---------+----------------+
+| Field         | Type       | Null | Key | Default | Extra          |
++---------------+------------+------+-----+---------+----------------+
+| id            | bigint(20) |      | PRI | NULL    | auto_increment |
+| order_type_id | bigint(20) |      |     | 0       |                |
+| name          | tinyblob   |      |     |         |                |
+| type          | tinyint(4) |      |     | 0       |                |
+| desc          | blob       |      |     |         |                |
++---------------+------------+------+-----+---------+----------------+
+
+The following types for attributes are
+
+	0, Absolute Coordinate
+	1, Number of Turns
+	2, Object ID
+	3, Player ID
+	4, Number Range
+
+	-(type) Python Function Generated
+	
+	
+

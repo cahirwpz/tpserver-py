@@ -9,7 +9,7 @@ import db
 class NoSuch(Exception):
 	pass
 
-class SQLBase:
+class SQLBase(object):
 	def __init__(self, id=None, packet=None):
 		"""\
 		SQLObject(id)
