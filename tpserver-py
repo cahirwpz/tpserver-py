@@ -157,9 +157,9 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 				
 				# Are we allowed to do this?
-				if not allowed(self.user, order.object.owner):
+				if not allowed(self.user, order.object):
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
-					print packet.id, slot, "No Permission"
+					print self.user.id, packet.id, slot, "No Permission"
 				else:	
 					order.remove()
 					self._send(OK(packet.sequence, "Order removed."))
