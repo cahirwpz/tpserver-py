@@ -12,7 +12,7 @@ DROP TABLE IF EXISTS board;
 CREATE TABLE board (
   id bigint(20) NOT NULL default '0',
   name tinyblob NOT NULL,
-  desc blob NOT NULL,
+  `desc` blob NOT NULL,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -48,9 +48,9 @@ CREATE TABLE message (
 DROP TABLE IF EXISTS object;
 CREATE TABLE object (
   id bigint(20) NOT NULL auto_increment,
-  type bigint(20) NOT NULL default '0',
+  `type` bigint(20) NOT NULL default '0',
   name tinyblob NOT NULL,
-  size bigint(20) NOT NULL default '0',
+  `size` bigint(20) NOT NULL default '0',
   posx bigint(20) NOT NULL default '0',
   posy bigint(20) NOT NULL default '0',
   posz bigint(20) NOT NULL default '0',
@@ -65,7 +65,7 @@ CREATE TABLE object (
 -- Dumping data for table `object`
 --
 
-INSERT INTO object VALUES (0,0,'The Universe',100000000000,0,0,0,0,0,0,-1);
+INSERT INTO object VALUES (-1,0,'The Universe',100000000000,0,0,0,0,0,0,-1);
 INSERT INTO object VALUES (25,1,'The Milky Way',10000000000,0,0,-6000,0,0,1000,0);
 INSERT INTO object VALUES (26,2,'The Sol Terra System',1400000,3000000000,2000000000,0,-1500000,1500000,0,25);
 INSERT INTO object VALUES (27,2,'The Alpha Centauri System',800000,-1500000000,1500000000,0,-1000000,-1000000,0,25);
@@ -127,7 +127,7 @@ CREATE TABLE object_type (
 -- Dumping data for table `object_type`
 --
 
-INSERT INTO object_type VALUES (0,'Universe');
+INSERT INTO object_type VALUES (-1,'Universe');
 INSERT INTO object_type VALUES (1,'Galaxy');
 INSERT INTO object_type VALUES (2,'Star System');
 INSERT INTO object_type VALUES (3,'Planet');
@@ -177,12 +177,12 @@ INSERT INTO object_type_order_type VALUES (4,1);
 -- Table structure for table `order`
 --
 
-DROP TABLE IF EXISTS order;
-CREATE TABLE order (
+DROP TABLE IF EXISTS `order`;
+CREATE TABLE `order` (
   id bigint(20) NOT NULL auto_increment,
   oid bigint(20) NOT NULL default '0',
   slot bigint(20) NOT NULL default '0',
-  type bigint(20) NOT NULL default '0',
+  `type` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -190,7 +190,7 @@ CREATE TABLE order (
 -- Dumping data for table `order`
 --
 
-INSERT INTO order VALUES (51,55,0,1);
+INSERT INTO `order` VALUES (51,55,0,1);
 
 --
 -- Table structure for table `order_attr`
@@ -218,7 +218,7 @@ DROP TABLE IF EXISTS order_type;
 CREATE TABLE order_type (
   id bigint(20) NOT NULL auto_increment,
   name tinyblob NOT NULL,
-  desc blob,
+  `desc` blob,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -226,7 +226,7 @@ CREATE TABLE order_type (
 -- Dumping data for table `order_type`
 --
 
-INSERT INTO order_type VALUES (0,'NOp','Do nothing for a period.');
+INSERT INTO order_type VALUES (-1,'NOp','Do nothing for a period.');
 INSERT INTO order_type VALUES (1,'Move','Move to a location.');
 INSERT INTO order_type VALUES (2,'Build Fleet','Build some new ships!');
 
@@ -239,8 +239,8 @@ CREATE TABLE order_type_attr (
   id bigint(20) NOT NULL auto_increment,
   order_type_id bigint(20) NOT NULL default '0',
   name tinyblob NOT NULL,
-  type tinyint(4) NOT NULL default '0',
-  desc blob,
+  `type` tinyint(4) NOT NULL default '0',
+  `desc` blob,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -265,7 +265,7 @@ CREATE TABLE resource (
   unit_plural tinyblob NOT NULL,
   description blob NOT NULL,
   weight bigint(20) NOT NULL default '0',
-  size bigint(20) NOT NULL default '0',
+  `size` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
