@@ -49,8 +49,9 @@ ORDER BY size
 
 		Returns the valid order types for this object.
 		"""
-		results = db.query("""SELECT order_type_id FROM tp.object_order_type WHERE object_id=%(id)s""", id=self.id)
-		return [x['order_type_id'] for x in results]
+		results1 = db.query("""SELECT order_type_id FROM tp.object_order_type WHERE object_id=%(id)s""", id=self.id)
+		results2 = db.query("""SELECT order_type_id FROM tp.object_type_order_type WHERE object_type_id=%(type)s""", type=self.type)
+		return [x['order_type_id'] for x in results1] + [x['order_type_id'] for x in results2]
 
 	def contains(self):
 		"""\
@@ -63,7 +64,7 @@ ORDER BY size
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), [], self.orders()]
+		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders()]
 		for attribute in self.attributes():
 			value = getattr(self, attribute['name'])
 			args.append(value)

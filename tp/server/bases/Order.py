@@ -39,7 +39,7 @@ class Order(SQLWithAttrBase):
 	def load_all():
 		results = db.query("""SELECT id FROM order_type WHERE id >= 0""")
 		for result in results:
-			Order.desc_packet(0, result['id'])
+			Order.desc_packet(0, result['id']).register()
 	load_all = staticmethod(load_all)
 	
 	def __init__(self, id=None, slot=None, packet=None):

@@ -204,7 +204,7 @@ def main():
 	port = 6923
 	while True:
 		try:
-			s = FullServer("127.0.0.1", port=port)
+			s = FullServer("", port=port)
 			print "Used port", port
 		except:
 			print "This port in use...", port

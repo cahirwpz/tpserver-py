@@ -20,6 +20,7 @@ CREATE TABLE board (
 -- Dumping data for table `board`
 --
 
+INSERT INTO board VALUES (11,'Private message board for t','This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe. ');
 
 --
 -- Table structure for table `message`
@@ -69,6 +70,10 @@ INSERT INTO object VALUES (25,1,'The Milky Way',10000000000,0,0,-6000,0,0,1000,0
 INSERT INTO object VALUES (26,2,'The Sol Terra System',1400000,3000000000,2000000000,0,-1500000,1500000,0,25);
 INSERT INTO object VALUES (27,2,'The Alpha Centauri System',800000,-1500000000,1500000000,0,-1000000,-1000000,0,25);
 INSERT INTO object VALUES (28,2,'Sirius System',2000000,-250000000,-4000000000,0,2300000,0,0,25);
+INSERT INTO object VALUES (55,4,'First Fleet',1,67203857,-9289417568,-7649254180,0,0,0,54);
+INSERT INTO object VALUES (54,3,'Unknown planet',7207,67203857,-9289417568,-7649254180,0,0,0,52);
+INSERT INTO object VALUES (53,3,'t\'s Homeworld',1000,67203857,-9289417568,-7649254180,0,0,0,52);
+INSERT INTO object VALUES (52,2,'t\'s System',1630922,67203857,-9289417568,-7649254180,0,0,0,0);
 
 --
 -- Table structure for table `object_attr`
@@ -87,6 +92,9 @@ CREATE TABLE object_attr (
 --
 
 INSERT INTO object_attr VALUES (0,1,'I0\n.');
+INSERT INTO object_attr VALUES (55,3,'L11L\n.');
+INSERT INTO object_attr VALUES (54,2,'I0\n.');
+INSERT INTO object_attr VALUES (53,2,'L11L\n.');
 
 --
 -- Table structure for table `object_order_type`
@@ -146,6 +154,26 @@ INSERT INTO object_type_attr VALUES (2,3,'owner');
 INSERT INTO object_type_attr VALUES (3,4,'owner');
 
 --
+-- Table structure for table `object_type_order_type`
+--
+
+DROP TABLE IF EXISTS object_type_order_type;
+CREATE TABLE object_type_order_type (
+  object_type_id bigint(20) NOT NULL default '0',
+  order_type_id bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (object_type_id,order_type_id)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `object_type_order_type`
+--
+
+INSERT INTO object_type_order_type VALUES (3,0);
+INSERT INTO object_type_order_type VALUES (3,2);
+INSERT INTO object_type_order_type VALUES (4,0);
+INSERT INTO object_type_order_type VALUES (4,1);
+
+--
 -- Table structure for table `order`
 --
 
@@ -162,6 +190,7 @@ CREATE TABLE order (
 -- Dumping data for table `order`
 --
 
+INSERT INTO order VALUES (51,55,0,1);
 
 --
 -- Table structure for table `order_attr`
@@ -179,6 +208,7 @@ CREATE TABLE order_attr (
 -- Dumping data for table `order_attr`
 --
 
+INSERT INTO order_attr VALUES (51,2,'(L67203857L\nL-9289417568L\nL-7649254180L\ntp1\n.');
 
 --
 -- Table structure for table `order_type`
@@ -188,6 +218,7 @@ DROP TABLE IF EXISTS order_type;
 CREATE TABLE order_type (
   id bigint(20) NOT NULL auto_increment,
   name tinyblob NOT NULL,
+  desc blob,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -195,9 +226,9 @@ CREATE TABLE order_type (
 -- Dumping data for table `order_type`
 --
 
-INSERT INTO order_type VALUES (0,'NOp');
-INSERT INTO order_type VALUES (1,'Move');
-INSERT INTO order_type VALUES (2,'Build Fleet');
+INSERT INTO order_type VALUES (0,'NOp','Do nothing for a period.');
+INSERT INTO order_type VALUES (1,'Move','Move to a location.');
+INSERT INTO order_type VALUES (2,'Build Fleet','Build some new ships!');
 
 --
 -- Table structure for table `order_type_attr`
@@ -209,7 +240,7 @@ CREATE TABLE order_type_attr (
   order_type_id bigint(20) NOT NULL default '0',
   name tinyblob NOT NULL,
   type tinyint(4) NOT NULL default '0',
-  description blob,
+  desc blob,
   PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
@@ -217,9 +248,9 @@ CREATE TABLE order_type_attr (
 -- Dumping data for table `order_type_attr`
 --
 
-INSERT INTO order_type_attr VALUES (1,0,'wait',0,'Wait this long.');
-INSERT INTO order_type_attr VALUES (2,1,'pos',1,'Move to position.');
-INSERT INTO order_type_attr VALUES (3,2,'ships',5,'Number of ships to build in this fleet.');
+INSERT INTO order_type_attr VALUES (1,0,'wait',1,'Wait this long.');
+INSERT INTO order_type_attr VALUES (2,1,'pos',0,'Move to position.');
+INSERT INTO order_type_attr VALUES (3,2,'ships',4,'Number of ships to build in this fleet.');
 
 --
 -- Table structure for table `resource`
@@ -259,4 +290,5 @@ CREATE TABLE user (
 -- Dumping data for table `user`
 --
 
+INSERT INTO user VALUES (11,'t','t');
 
