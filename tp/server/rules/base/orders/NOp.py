@@ -17,3 +17,5 @@ class NOp(Order):
 	def resources(self):
 		return []
 
+Order.types[0] = NOp
+

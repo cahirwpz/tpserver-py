@@ -71,4 +71,4 @@ class Move(Order):
 	def resources(self):
 		return []
 
-
+Order.types[1] = Move

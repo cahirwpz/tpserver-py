@@ -47,3 +47,5 @@ class BuildFleet(Order):
 
 	def resources(self):
 		return []
+
+Order.types[2] = BuildFleet

@@ -22,6 +22,10 @@ from sobjects.Object  import Object
 from sobjects.Order   import Order
 from sobjects.User    import User
 
+from sorders.NOp import NOp
+from sorders.Move import Move
+from sorders.BuildFleet import BuildFleet
+
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
 		netlib.ServerConnection.__init__(self, *args, **kw)
