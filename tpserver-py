@@ -1,0 +1,238 @@
+
+import sys
+sys.path.append("../")
+
+import pickle
+import copy
+
+import db
+
+import netlib
+OK = netlib.objects.OK
+Fail = netlib.objects.Fail
+Sequence = netlib.objects.Sequence
+constants = netlib.objects.constants
+
+class NoSuch(Exception):
+	pass
+
+class Object:
+	def __init__(self, id=None):
+		if id != None:
+			self.load(id)
+
+	def attributes(self):
+		if not hasattr(self, "_attributes"):
+			self._attributes = db.query("""SELECT * FROM object_type_attr WHERE object_type_id=%(type)s ORDER BY id""", type=self.type)
+
+		return self._attributes
+
+	def load(self, id):
+		result = db.query("""SELECT * FROM object WHERE id=%(id)s""", id=id)
+		if len(result) != 1:
+			raise NoSuch("Object %s does not exists" % id)
+		self.__dict__.update(result[0])
+
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = db.query("""SELECT value FROM object_attr WHERE object_id=%(id)s and object_type_attr_id=%(aid)s""", id=self.id, aid=attribute['id'])
+			if len(value) != 1:
+				continue
+				
+			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+
+	def save(self):
+		# Save the common attributes
+		db.query("""REPLACE INTO object VALUES (%(id)s, %(type)s, "%(name)s", %(size)s, %(posx)s, %(posy)s, %(posz)s, %(velx)s, %(vely)s, %(velz)s)""", self.__dict__)
+	
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = pickle.dumps(getattr(self, attribute['name']))
+			db.query("""REPLACE INTO object_attr WHERE (%(id)s, %(aid)s, "%(value)s")""", id=self.id, aid=attribute['id'], value=value)
+
+	def orders(self):
+		result = db.query("""SELECT count(id) FROM tp.order WHERE id=%(id)s""", id=self.id)
+		return result[0]['count(id)']
+
+	def to_packet(self, sequence):
+		# Preset arguments
+		args = [sequence, self.id, self.type, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, [], [], self.orders()]
+		for attribute in self.attributes():
+			value = getattr(self, attribute['name'])
+			args.append(value)
+
+		return netlib.objects.Object(*args)
+
+def OrderMax(id):
+	return db.query("""SELECT count(id) FROM tp.order WHERE id=%(id)s""", id=id)[0]['count(id)']
+
+class Order:
+	def __init__(self, id=None, slot=None):
+		if id != None and slot != None:
+			self.load(id, slot)
+
+	def attributes(self):
+		if not hasattr(self, "_attributes"):
+			self._attributes = db.query("""SELECT * FROM order_type_attr WHERE order_type_id=%(type)s ORDER BY id""", type=self.type)
+
+		return self._attributes
+
+	def _id(self):
+		result = db.query("""SELECT _id FROM tp.order WHERE id=%(id)s and slot=%(slot)s""", id=self.id, slot=self.slot)
+		if len(result) != 1:
+			return -1
+		else:
+			return result[0]['_id']
+
+	def load(self, id, slot):
+		result = db.query("""SELECT * FROM tp.order WHERE id=%(id)s AND slot=%(slot)s""", id=id, slot=slot)
+		if len(result) != 1:
+			raise NoSuch("Order %s does not exists" % id)
+			
+		_id = result[0]['_id']
+		del result[0]['_id']
+
+		self.__dict__.update(result[0])
+
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = db.query("""SELECT value FROM order_attr WHERE order_id=%(id)s and order_type_attr_id=%(aid)s""", id=_id, aid=attribute['id'])
+			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+
+	def save(self):
+		# Need to pull out the id
+		_id = self._id()
+		if _id == -1:
+			# New order
+			db.query("""REPLACE INTO tp.order SET id=%(id)s, slot=%(slot)s, type=%(type)s""", id=self.id, slot=self.slot, type=self.type)
+			_id = db.connection.insert_id()
+		else:
+			# Previous order
+			db.query("""REPLACE INTO tp.order VALUES (%(_id)s, %(id)s, %(slot)s, %(type)s)""", _id=_id, id=self.id, slot=self.slot, type=self.type)
+
+		# Now for the type specific attributes
+		for attribute in self.attributes():
+			value = pickle.dumps(getattr(self, attribute['name']))
+			db.query("""REPLACE INTO order_attr VALUES (%(_id)s, %(aid)s, "%(value)s")""", _id=_id, aid=attribute['id'], value=value)
+
+	def remove(self):
+		_id = self._id()
+		if _id == -1:
+			raise NoSuch("No such order.")
+
+		# Reduce the other orders
+		max = OrderMax(self.id)
+
+		# Remove the
+		db.query("""UPDATE tp.order SET slot=slot-1 WHERE id=%(id)s > %(max)s""", id=self.id, max=max)
+
+		# Remove the common attribute
+		db.query("""DELETE FROM tp.order WHERE _id=%(_id)s""", _id=_id)
+		db.query("""DELETE FROM tp.order_attr WHERE order_id=%(_id)s""", _id=_id)
+
+	def to_packet(self, sequence):
+		# Preset arguments
+		args = [sequence, self.id, self.slot, self.type, 0, []]
+
+		for attribute in self.attributes():
+			value = getattr(self, attribute['name'])
+			args.append(value)
+
+		return netlib.objects.Order(*args)
+
+	def from_packet(self, packet):
+		self.__dict__.update(packet.__dict__)
+
+class FullConnection(netlib.ServerConnection):
+	def OnLogin(self, packet):
+		# We need username and password
+
+		args = {'username': packet.username, 'password': packet.password}
+		result = db.query("""SELECT * FROM user WHERE username="%(username)s" AND password="%(password)s" """, args)
+		if len(result) == 1:
+				self._send(OK(packet.sequence, "Login Ok!"))
+		else:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
+		return True
+
+	def OnObject_GetById(self, packet):
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+
+		for id in packet.ids:
+			try:
+				self._send(Object(id).to_packet(packet.sequence))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such object."))
+
+		return True
+
+	def OnOrder_Get(self, packet):
+		self._send(Sequence(packet.sequence, len(packet.slots)))
+
+		for slot in packet.slots:
+			try:
+				self._send(Order(packet.id, slot).to_packet(packet.sequence))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+
+		return True
+
+	def OnOrder_Insert(self, packet):
+		max = OrderMax(packet.id)
+		if packet.slot != -1:
+			if packet.slot > max:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Cannot add order to that slot."))
+				return True
+			
+			# Need to move all the other orders down
+			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND id=%(id)s""" % packet.__dict__)
+		else:
+			packet.slot = max
+
+		try:
+			order = Order()
+			order.from_packet(packet)
+			order.save()
+		
+			self._send(OK(packet.sequence, "Order added."))
+		except NoSuch:
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
+
+		return True
+
+	OnOrder = OnOrder_Insert
+
+	def OnOrder_Remove(self, packet):
+		self._send(Sequence(packet.sequence, len(packet.slots)))
+
+		for slot in packet.slots:
+			try:
+				order = Order(packet.id, slot)
+				order.remove()
+				self._send(OK(packet.sequence, "Order removed."))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+
+		return True
+
+class FullServer(netlib.Server):
+	handler = FullConnection
+
+	def __init__(self, host, port="6923"):
+		netlib.Server.__init__(self, host, port)
+	
+if __name__ == "__main__":
+	# Connect to the database
+	db.connect()
+
+	port = 6923
+	while True:
+		try:
+			s = FullServer("127.0.0.1", port=port)
+			print "Used port", port
+		except:
+			print "This port in use...", port
+			port += 1
+			continue
+		s.serve_forever()
+
