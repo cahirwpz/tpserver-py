@@ -1,3 +1,5 @@
+#! /usr/bin/python
+
 import sys
 
 # Have to add atlas to the path

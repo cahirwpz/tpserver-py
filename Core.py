@@ -32,6 +32,7 @@ class CoreServer(server.SocketServer):
 		if len(self.players) < config.maxPlayers:
 			if account not in self.players:
 				self.players.append(account)
+
 				self.chatCore.add(account)
 				return 1
 		
@@ -142,12 +143,15 @@ class AuthenticatedClient(server.TcpClient, AnonymousClient):
 					# all the other roots.
 					print (str(self.__class__) + ", %s") % "Getting the root object."
 					
-					root_obj = atlas.Object(id="root")
+					# Copy the base from the root definition
+					root_obj = copy.deepcopy(self.server.definitions.get("root"))
 
-					# The children should come only from definitions
-					root_obj.children = copy.deepcopy(self.server.definitions.get("root").children)
+					root_obj.contains = []
 
 					# The root should contain all the stuff from the other roots
+					for i in self.server.chatCore.get("root").contains:
+						root_obj.contains.append(i)
+						
 					#root_obj.contains = copy.deepcopy(self.server.definitions.get(""))
 
 					self.reply_operation(op, atlas.Operation("info", root_obj))

@@ -33,13 +33,16 @@ class Client(TcpClient):
 				print "Still waiting on", self.waiting
 
 	def error_op(self, op):
-		ent = op.arg_op.arg
+		obj = op.arg.op
+		ent = obj.arg
 		if hasattr(ent, "id"):
 			print "Removing", ent.id
 			try:
 				del self.waiting[ent.id]
 			except:
 				pass
+		print op
+		print ent
 
 	def loop(self):
 		get = atlas.Operation("get")
@@ -57,7 +60,7 @@ class Client(TcpClient):
 		self.ask("root")
 
 		# Okay now ask for the base of the universe
-		self.mode = "children"
+		self.mode = "contains"
 		
 		while self.waiting:
 			time.sleep(0.1)
