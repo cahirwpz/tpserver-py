@@ -1,4 +1,6 @@
 
+import pickle
+
 from config import db, netlib
 
 from SQL import *
@@ -7,6 +9,18 @@ from Order import Order
 class Component(SQLBase):
 	tablename = "`component`"
 	types = {}
+
+	def load(self, id):
+		SQLBase.load(self, id)
+
+		if len(self.language) > 0:
+			self.language = pickle.loads(self.language)
+		else:
+			self.language = ()
+
+	def save(self):
+		if len(self.language) > 0:
+			self.language = pickle.dumps(self.language)
 
 	def used(id):
 		"""\
@@ -60,6 +74,8 @@ class Component(SQLBase):
 	next = staticmethod(next)
 
 	def to_packet(self, sequence):
+		print "Language:", self.language
+		print "Args:", (sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)
 		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)
 
 	def __str__(self):

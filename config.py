@@ -11,6 +11,9 @@ except ImportError:
 	sys.path.append("../")
 	from tp import netlib
 
+import sys
+sys.path.append(".")
+
 class config:
 	pass
 

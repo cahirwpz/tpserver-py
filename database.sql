@@ -1,11 +1,18 @@
-DROP DATABASE IF EXISTS tp;
 CREATE DATABASE tp;
 USE tp;
--- MySQL dump 9.11
+-- MySQL dump 10.9
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.0.21-log
+-- Server version	4.1.8a-Debian_6-log
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8 */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE="NO_AUTO_VALUE_ON_ZERO" */;
 
 --
 -- Table structure for table `board`
@@ -17,11 +24,12 @@ CREATE TABLE `board` (
   `name` tinyblob NOT NULL,
   `desc` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `board`
 --
+
 
 --
 -- Table structure for table `category`
@@ -33,7 +41,7 @@ CREATE TABLE `category` (
   `name` tinytext NOT NULL,
   `desc` text,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `category`
@@ -53,13 +61,13 @@ CREATE TABLE `component` (
   `desc` text NOT NULL,
   `language` tinyblob,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component`
 --
 
-INSERT INTO `component` VALUES (1,0,'Generic Component','A very generic component that can be used anywhere for anything.', NULL);
+INSERT INTO `component` VALUES (1,0,'Generic Base Component A','A very generic component that can be used for almost anything.',NULL),(2,0,'Generic Base Component B','A very generic component that can be used anywhere Component A can\'t be.',NULL),(3,0,'Generic Base Component C','A very generic component that can be used inplace of Component B can\'t be.',NULL),(4,0,'Generic Hull','A very generic hull component that can have Generic Base Components added to it.','((I1\nI2\nI3\ntp0\n(I1\nI6\nI2\ntp1\n(I4\nI0\nI0\ntp2\n(I1\nI3\nI1\ntp3\n(I3\nI0\nI0\ntp4\ntp5\n.');
 
 --
 -- Table structure for table `component_category`
@@ -70,13 +78,13 @@ CREATE TABLE `component_category` (
   `component` bigint(20) NOT NULL default '0',
   `category` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`component`,`category`)
-) TYPE=MyISAM;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component_category`
 --
 
-INSERT INTO `component_category` VALUES (1,1);
+INSERT INTO `component_category` VALUES (1,1),(2,1),(3,1),(4,1);
 
 --
 -- Table structure for table `component_component`
@@ -87,13 +95,12 @@ CREATE TABLE `component_component` (
   `container` bigint(20) NOT NULL default '0',
   `component` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`container`,`component`)
-) TYPE=MyISAM;
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component_component`
 --
 
-INSERT INTO `component_component` VALUES (1,1);
 
 --
 -- Table structure for table `message`
@@ -107,11 +114,12 @@ CREATE TABLE `message` (
   `subject` tinyblob NOT NULL,
   `body` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `message`
 --
+
 
 --
 -- Table structure for table `object`
@@ -132,13 +140,13 @@ CREATE TABLE `object` (
   `parent` bigint(20) NOT NULL default '-1',
   `extra` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `object`
 --
 
-INSERT INTO `object` VALUES (-1,'sobjects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.');
+INSERT INTO `object` VALUES (-1,'sobjects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,'(dp0\nS\'turn\'\np1\nI0\ns.'),(1,'sobjects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,'(dp0\n.');
 INSERT INTO `object` VALUES (1,'sobjects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,'(dp0\n.');
 
 --
@@ -154,7 +162,7 @@ CREATE TABLE `order` (
   `worked` bigint(20) NOT NULL default '0',
   `extra` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `order`
@@ -171,12 +179,19 @@ CREATE TABLE `user` (
   `username` tinyblob NOT NULL,
   `password` tinyblob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `user`
 --
 
 INSERT INTO `user` VALUES (1,'admin@tp','adminpassword');
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 
 UPDATE object SET id = 0 WHERE name='The Universe';
