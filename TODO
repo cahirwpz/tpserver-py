@@ -1,0 +1,19 @@
+Fully python server. Uses a mysql database backend.
+ 
+Supports the following:
+        Object_GetById
+        Order_Get
+        Order_Insert
+        Order_Remove
+ 
+Still need to be done:
+        Orders actually do stuff
+        Orders report how long they'll take
+        Orders reports the resources used
+ 
+        OrderDesc_Get
+        ObjectDesc_Get
+        Object_GetByPos
+ 
+        Message board stuff
+

@@ -13,16 +13,15 @@ def query(query, kw1=None, **kw2):
 	global connection
 
 	if kw1:
-		kw = kw1
-	else:
-		kw = kw2
+		kw2.update(kw1)
 
-	for key,value in kw.items():
-		kw[key] = connection.escape_string(str(value))
+	for key,value in kw2.items():
+		kw2[key] = connection.escape_string(str(value))
 
 	connection.ping()
-	print query % kw
-	connection.query(query % kw)
+	sql = query % kw2
+	print sql
+	connection.query(sql)
 	
 	result = connection.use_result()
 	if not result:
@@ -41,4 +40,4 @@ if __name__ == "__main__":
 	connect()
 	print connection
 	print query("select * from user;")
-	
+	print query("describe user;")	

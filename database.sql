@@ -49,6 +49,22 @@ CREATE TABLE object_attr (
 INSERT INTO object_attr VALUES (0,1,'I0\n.');
 
 --
+-- Table structure for table `object_order_type`
+--
+
+DROP TABLE IF EXISTS object_order_type;
+CREATE TABLE object_order_type (
+  object_id bigint(20) NOT NULL default '0',
+  order_type_id bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (object_id,order_type_id)
+) TYPE=MyISAM;
+
+--
+-- Dumping data for table `object_order_type`
+--
+
+
+--
 -- Table structure for table `object_type`
 --
 
@@ -95,17 +111,20 @@ INSERT INTO object_type_attr VALUES (3,4,'owner');
 
 DROP TABLE IF EXISTS order;
 CREATE TABLE order (
-  _id bigint(20) NOT NULL auto_increment,
-  id bigint(20) NOT NULL default '0',
+  id bigint(20) NOT NULL auto_increment,
+  oid bigint(20) NOT NULL default '0',
   slot bigint(20) NOT NULL default '0',
   type bigint(20) NOT NULL default '0',
-  PRIMARY KEY  (_id)
+  PRIMARY KEY  (id)
 ) TYPE=MyISAM;
 
 --
 -- Dumping data for table `order`
 --
 
+INSERT INTO order VALUES (20,0,1,0);
+INSERT INTO order VALUES (21,0,2,0);
+INSERT INTO order VALUES (22,0,0,0);
 
 --
 -- Table structure for table `order_attr`
@@ -123,6 +142,9 @@ CREATE TABLE order_attr (
 -- Dumping data for table `order_attr`
 --
 
+INSERT INTO order_attr VALUES (20,1,'L2L\n.');
+INSERT INTO order_attr VALUES (21,1,'L1L\n.');
+INSERT INTO order_attr VALUES (22,1,'L22L\n.');
 
 --
 -- Table structure for table `order_type`

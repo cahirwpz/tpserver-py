@@ -16,43 +16,143 @@ constants = netlib.objects.constants
 class NoSuch(Exception):
 	pass
 
-class Object:
-	def __init__(self, id=None):
+class SQLThing:
+	def __init__(self, id=None, packet=None):
+		"""\
+		SQLObject(id)
+		SQLObject(packet)
+		SQLObject()
+
+		Create an object from the database using id.
+		Create an object from a network packet.
+		Create an empty object.
+		"""
 		if id != None:
 			self.load(id)
+		if packet != None:
+			self.from_packet(packet)
+
+	def todict(self):
+		return dict(zip(dir(self),map(lambda s: getattr(self,s),(dir(self)))))
 
 	def attributes(self):
+		"""\
+		*Internal*
+
+		Get a list of attributes this object type has.
+		"""
 		if not hasattr(self, "_attributes"):
-			self._attributes = db.query("""SELECT * FROM object_type_attr WHERE object_type_id=%(type)s ORDER BY id""", type=self.type)
+			self._attributes = db.query("""SELECT * FROM %(tablename)s_type_attr WHERE %(fieldname)s_type_id=%(type)s ORDER BY id""", self.todict())
 
 		return self._attributes
 
 	def load(self, id):
-		result = db.query("""SELECT * FROM object WHERE id=%(id)s""", id=id)
+		"""\
+		load(id)
+
+		Loads a thing from the database.
+		"""
+		self.id = id
+		
+		result = db.query("""SELECT * FROM %(tablename)s WHERE id=%(id)s""", self.todict())
 		if len(result) != 1:
-			raise NoSuch("Object %s does not exists" % id)
+			raise NoSuch("%s does not exists" % id)
+
 		self.__dict__.update(result[0])
 
 		# Now for the type specific attributes
 		for attribute in self.attributes():
-			value = db.query("""SELECT value FROM object_attr WHERE object_id=%(id)s and object_type_attr_id=%(aid)s""", id=self.id, aid=attribute['id'])
-			if len(value) != 1:
-				continue
-				
+			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
 			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
 
 	def save(self):
-		# Save the common attributes
-		db.query("""REPLACE INTO object VALUES (%(id)s, %(type)s, "%(name)s", %(size)s, %(posx)s, %(posy)s, %(posz)s, %(velx)s, %(vely)s, %(velz)s)""", self.__dict__)
-	
+		"""\
+		save()
+
+		Saves a thing to the database.
+		"""
+		# Build SQL query, there must be a better way to do this...
+		SQL = """REPLACE INTO %(tablename)s SET """
+		for finfo in db.query("DESCRIBE %(tablename)s", tablename=self.tablename):
+			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
+				continue
+			
+			SQL += """%(Field)s = "%%(%(Field)s)s", """ % finfo
+		SQL = SQL[:-2]
+
+		db.query(SQL, self.todict())
+
+		if not hasattr(self, 'id'):
+			self.id = db.connection.insert_id()
+
 		# Now for the type specific attributes
 		for attribute in self.attributes():
 			value = pickle.dumps(getattr(self, attribute['name']))
-			db.query("""REPLACE INTO object_attr WHERE (%(id)s, %(aid)s, "%(value)s")""", id=self.id, aid=attribute['id'], value=value)
+			db.query("""REPLACE INTO %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
+
+	def remove(self):
+		"""\
+		remove()
+
+		Removes an object from the database.
+		"""
+		# Remove the common attribute
+		db.query("""DELETE FROM %(tablename)s WHERE id=%(id)s""", self.todict())
+		db.query("""DELETE FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s""", self.todict())
+
+	def insert(self):
+		"""\
+		insert()
+
+		Inserts an object into the database.
+		"""
+		self.save()
+
+	def to_packet(self, sequence):
+		"""\
+		to_packet(sequence) -> netlib.Packet
+
+		Returns a Thousand Parsec network packet using the sequence number.
+		"""
+		pass
+
+	def from_packet(self, packet):
+		"""\
+		from_packet(packet)
+
+		Makes an object out of a Thousand Parsec packet.
+		"""
+		pass
+	
+class Object(SQLThing):
+	tablename = "tp.object"
+	fieldname = "object"
 
 	def orders(self):
-		result = db.query("""SELECT count(id) FROM tp.order WHERE id=%(id)s""", id=self.id)
-		return result[0]['count(id)']
+		"""\
+		orders()
+
+		Returns the number of orders this object has.
+		"""
+		return Order.number(self.id)
+
+	def ordertypes(self):
+		"""\
+		ordertypes()
+
+		Returns the valid order types for this object.
+		"""
+		results = db.query("""SELECT order_type_id FROM object_order_type WHERE object_id=%(id)s""", id=self.id)
+		return [x['order_type_id'] for x in results]
+
+	def contains(self):
+		"""\
+		contains()
+
+		Returns the objects this object contains.
+		"""
+		results = db.query("""SELECT id FROM object WHERE parent=%(id)s""", id=self.id)
+		return [x['id'] for x in results]
 
 	def to_packet(self, sequence):
 		# Preset arguments
@@ -63,76 +163,64 @@ class Object:
 
 		return netlib.objects.Object(*args)
 
-def OrderMax(id):
-	return db.query("""SELECT count(id) FROM tp.order WHERE id=%(id)s""", id=id)[0]['count(id)']
-
-class Order:
-	def __init__(self, id=None, slot=None):
-		if id != None and slot != None:
-			self.load(id, slot)
-
-	def attributes(self):
-		if not hasattr(self, "_attributes"):
-			self._attributes = db.query("""SELECT * FROM order_type_attr WHERE order_type_id=%(type)s ORDER BY id""", type=self.type)
-
-		return self._attributes
-
-	def _id(self):
-		result = db.query("""SELECT _id FROM tp.order WHERE id=%(id)s and slot=%(slot)s""", id=self.id, slot=self.slot)
+class Order(SQLThing):
+	tablename = "tp.order"
+	fieldname = "order"
+	
+	def realid(oid, slot):
+		result = db.query("""SELECT id FROM tp.order WHERE oid=%(oid)s and slot=%(slot)s""", oid=oid, slot=slot)
 		if len(result) != 1:
 			return -1
 		else:
-			return result[0]['_id']
+			return result[0]['id']
+	realid = staticmethod(realid)
 
-	def load(self, id, slot):
-		result = db.query("""SELECT * FROM tp.order WHERE id=%(id)s AND slot=%(slot)s""", id=id, slot=slot)
-		if len(result) != 1:
-			raise NoSuch("Order %s does not exists" % id)
+	def number(oid):
+		return db.query("""SELECT count(oid) FROM tp.order WHERE oid=%(oid)s""", oid=oid)[0]['count(oid)']
+	number = staticmethod(number)
+
+	def __init__(self, id=None, slot=None, packet=None):
+		if id != None and slot != None:
+			self.load(id, slot)
+		if packet != None:
+			self.from_packet(packet)
+
+	def load(self, oid, slot):
+		id = self.realid(oid, slot)
+		if id == -1:
+			raise NoSuch("Order %s %s does not exists" % (oid, slot))
 			
-		_id = result[0]['_id']
-		del result[0]['_id']
+		SQLThing.load(self, id)
 
-		self.__dict__.update(result[0])
-
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = db.query("""SELECT value FROM order_attr WHERE order_id=%(id)s and order_type_attr_id=%(aid)s""", id=_id, aid=attribute['id'])
-			setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+	def insert(self):
+		number = self.number(self.oid)
+		if self.slot == -1:
+			self.slot = number
+		elif self.slot < number:
+			# Need to move all the other orders down
+			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
+		else:
+			raise NoSuch("Cannot insert to that slot number.")
+		
+		self.save()
 
 	def save(self):
-		# Need to pull out the id
-		_id = self._id()
-		if _id == -1:
-			# New order
-			db.query("""REPLACE INTO tp.order SET id=%(id)s, slot=%(slot)s, type=%(type)s""", id=self.id, slot=self.slot, type=self.type)
-			_id = db.connection.insert_id()
-		else:
-			# Previous order
-			db.query("""REPLACE INTO tp.order VALUES (%(_id)s, %(id)s, %(slot)s, %(type)s)""", _id=_id, id=self.id, slot=self.slot, type=self.type)
-
-		# Now for the type specific attributes
-		for attribute in self.attributes():
-			value = pickle.dumps(getattr(self, attribute['name']))
-			db.query("""REPLACE INTO order_attr VALUES (%(_id)s, %(aid)s, "%(value)s")""", _id=_id, aid=attribute['id'], value=value)
+		if not hasattr(self, 'id'):
+			id = self.realid(self.oid, self.slot)
+			if id != -1:
+				self.id = id
+			
+		SQLThing.save(self)
 
 	def remove(self):
-		_id = self._id()
-		if _id == -1:
-			raise NoSuch("No such order.")
+		# Move the other orders down
+		db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 
-		# Reduce the other orders
-		max = OrderMax(self.id)
-
-		# Remove the
-		db.query("""UPDATE tp.order SET slot=slot-1 WHERE id=%(id)s > %(max)s""", id=self.id, max=max)
-
-		# Remove the common attribute
-		db.query("""DELETE FROM tp.order WHERE _id=%(_id)s""", _id=_id)
-		db.query("""DELETE FROM tp.order_attr WHERE order_id=%(_id)s""", _id=_id)
+		SQLThing.remove(self)
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.slot, self.type, 0, []]
+		args = [sequence, self.oid, self.slot, self.type, 0, []]
 
 		for attribute in self.attributes():
 			value = getattr(self, attribute['name'])
@@ -142,6 +230,8 @@ class Order:
 
 	def from_packet(self, packet):
 		self.__dict__.update(packet.__dict__)
+		self.oid = self.id
+		del self.id
 
 class FullConnection(netlib.ServerConnection):
 	def OnLogin(self, packet):
@@ -171,29 +261,17 @@ class FullConnection(netlib.ServerConnection):
 
 		for slot in packet.slots:
 			try:
-				self._send(Order(packet.id, slot).to_packet(packet.sequence))
+				order = Order(packet.id, slot)
+				self._send(order.to_packet(packet.sequence))
 			except NoSuch:
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
 		return True
 
 	def OnOrder_Insert(self, packet):
-		max = OrderMax(packet.id)
-		if packet.slot != -1:
-			if packet.slot > max:
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Cannot add order to that slot."))
-				return True
-			
-			# Need to move all the other orders down
-			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND id=%(id)s""" % packet.__dict__)
-		else:
-			packet.slot = max
-
 		try:
-			order = Order()
-			order.from_packet(packet)
-			order.save()
-		
+			order = Order(packet=packet)
+			order.insert()
 			self._send(OK(packet.sequence, "Order added."))
 		except NoSuch:
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
@@ -220,8 +298,8 @@ class FullServer(netlib.Server):
 
 	def __init__(self, host, port="6923"):
 		netlib.Server.__init__(self, host, port)
-	
-if __name__ == "__main__":
+
+def main():
 	# Connect to the database
 	db.connect()
 
@@ -235,4 +313,7 @@ if __name__ == "__main__":
 			port += 1
 			continue
 		s.serve_forever()
+
+if __name__ == "__main__":
+	main()
 
