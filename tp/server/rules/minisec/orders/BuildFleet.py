@@ -50,9 +50,9 @@ class BuildFleet(Order):
 		return []
 
 	def get_ships(self):
-		return [(0, "Scout", -1), (1, "Frigate", -1), (2, "Battleship", -1)], self.__dict__['ships']
+		return [(0, "Scout", -1), (1, "Frigate", -1), (2, "Battleship", -1)], self._ships
 	def set_ships(self, arguments):
-		self.__dict__['ships'] = arguments[1]
+		self._ships = arguments[1]
 	ships = property(get_ships, set_ships)
 
 Order.types[2] = BuildFleet

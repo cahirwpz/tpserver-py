@@ -74,7 +74,6 @@ class Order(SQLWithAttrBase):
 		SQLWithAttrBase.__init__(self, id, packet, type)
 
 	def load(self, id):
-
 		SQLWithAttrBase.load(self, id)
 		
 		if self.types.has_key(self.type):
@@ -87,6 +86,7 @@ class Order(SQLWithAttrBase):
 			self.slot = number
 		elif self.slot <= number:
 			# Need to move all the other orders down
+			print self.todict()
 			db.query("""UPDATE tp.order SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""" % self.todict())
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
@@ -120,14 +120,16 @@ class Order(SQLWithAttrBase):
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):
+		self.type = packet.type
+
+		# Upgrade the class
+		if self.types.has_key(self.type):
+			self.__class__ = self.types[self.type]
 
 		SQLWithAttrBase.from_packet(self, packet)
 
 		self.oid = self.id
 		del self.id
-
-		if self.types.has_key(self.type):
-			self.__class__ = self.types[self.type]
 
 	def __str__(self):
 		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)

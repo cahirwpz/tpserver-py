@@ -144,7 +144,7 @@ class SQLWithAttrBase(SQLBase):
 		# Set the default attributes
 		for attribute in self.attributes:
 			if not hasattr(self, attribute['name']):
-				setattr(self, attribute['name'], pickle.loads(attribute['default']))
+				setattr(self, '_'+attribute['name'], pickle.loads(attribute['default']))
 
 	def load(self, id):
 		"""\
@@ -160,7 +160,7 @@ class SQLWithAttrBase(SQLBase):
 		for attribute in self.attributes:
 			value = db.query("""SELECT value FROM %(tablename)s_attr WHERE %(fieldname)s_id=%(id)s AND %(fieldname)s_type_attr_id=%(aid)s""", self.todict(), aid=attribute['id'])
 			if len(value) == 1:
-				setattr(self, attribute['name'], pickle.loads(value[0]['value']))
+				setattr(self, '_'+attribute['name'], pickle.loads(value[0]['value']))
 
 	def save(self):
 		"""\
@@ -172,7 +172,7 @@ class SQLWithAttrBase(SQLBase):
 
 		# Now for the type specific attributes
 		for attribute in self.attributes:
-			value = pickle.dumps(getattr(self, attribute['name']))
+			value = pickle.dumps(getattr(self, '_'+attribute['name']))
 			db.query("""REPLACE %(tablename)s_attr VALUES (%(id)s, %(aid)s, "%(value)s")""", self.todict(), aid=attribute['id'], value=value)
 
 	def remove(self):
@@ -193,8 +193,22 @@ class SQLWithAttrBase(SQLBase):
 		Makes an object out of a Thousand Parsec packet.
 		"""
 		self.type = packet.type
-
 		self.defaults()
 		
-		SQLBase.from_packet(self, packet)
-		
+		# Need to do the normal and other attributes seperately...
+		for name in packet.__dict__.keys():
+			if hasattr(self, '_'+name) and not hasattr(self, name):
+				setattr(self, '_'+name, getattr(packet, name))
+			else:
+				setattr(self, name, getattr(packet, name))
+
+	def __getattr__(self, name):
+		"""\
+		Default if no property can be found.
+		"""
+		if not name.startswith('_'):
+			print "Fall through...", name
+			return getattr(self, '_'+name)
+		else:
+			raise KeyError("No such attribute")
+	
