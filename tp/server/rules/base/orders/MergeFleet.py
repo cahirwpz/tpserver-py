@@ -1,6 +1,6 @@
 
 import copy
-import netlib
+from config import netlib
 
 from sbases.SQL import NoSuch
 from sbases.Object import Object

@@ -1,6 +1,5 @@
 
-import netlib
-from config import db
+from config import db, netlib
 
 from SQL import *
 from Message import Message

@@ -1,5 +1,5 @@
 
-import netlib
+from config import netlib
 from sbases.Order import Order
 
 class NOp(Order):

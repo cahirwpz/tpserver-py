@@ -4,7 +4,7 @@ try:
 except ImportError:
 	import sys
 	sys.path.append("../")
-	import netlib
+	from tp import netlib
 
 class config:
 	pass

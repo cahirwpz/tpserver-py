@@ -1,6 +1,6 @@
 
 import math
-import netlib
+from config import netlib
 
 from sbases.Order import Order
 from sbases.Object import Object
