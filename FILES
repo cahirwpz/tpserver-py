@@ -1,0 +1,80 @@
+<no> is the "turn" number. 
+
+
+Client Files
+======================================================
+
+In.<player ID>.t<no>
+-----------------------
+These are submitted to the server and placed in the "Incoming" directory.
+
+
+Out.<player ID>.t<no>
+-----------------------
+These are returned to the client and will be found in the "Outgoing" directory.
+
+
+
+Suggested Client files
+=-=-=-=-=-=-=-=-=-=-=-=-
+
+Names.db
+-------------
+File contains a mapping of ID<->Human Name
+
+
+
+
+
+
+Server Files
+======================================================
+These files just contain "pickles" of real python objects, they are only used by the server and should never get anywhere near the client.
+
+ Root
+  |
+  +- Incoming.t<no>
+  +- Outgoing.t<no>
+  +- Map.t<no>
+  |
+  +- Players.t<no>
+  |
+  +- Incoming
+  |     |
+  |     +- In.<player ID>.t<no>
+  |
+  +- Outgoing
+  |     |
+  |     +- Out.<player ID>.t<no>
+  |
+  +- New
+       |
+       +-  <player ID>.rdf
+  
+  
+
+
+Incoming.t<no>
+-------------------
+This file stores all the incoming "messages".
+
+
+Player.t<no>
+------------------
+This file stores the players.
+
+
+Map.t<no>
+-------------------
+This file actually stores the actual Universe. Its the only file which contains "real" objects.
+
+
+Outgoings.t<no>
+-------------------
+This file stores all the outgoing "messages".
+
+
+<player ID>.rdf
+------------------
+This file stores a race.
+
