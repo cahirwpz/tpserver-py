@@ -2,18 +2,25 @@ Fully python server. Uses a mysql database backend.
  
 Supports the following:
         Object_GetById
+		Object_GetPyPos (Need testing)
         Order_Get
         Order_Insert
         Order_Remove
+		
+        Orders actually do stuff
+			Move order works (Reparenting needs testing)
+			NOp order works
+			
  
 Still need to be done:
-        Orders actually do stuff
         Orders report how long they'll take
         Orders reports the resources used
  
         OrderDesc_Get
         ObjectDesc_Get
-        Object_GetByPos
  
         Message board stuff
-
+		
+		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.
+		Figure out how to support multiple orders happening in 1 turn.
+		Figure out how to get rid of dummy orders which do nothing.
