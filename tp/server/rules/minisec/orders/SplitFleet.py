@@ -6,7 +6,7 @@ from sbases.Object import Object
 from sbases.Order import Order
 from sbases.Message import Message
 
-from sobjects import Fleet
+from sobjects.Fleet import Fleet
 
 class SplitFleet(Order):
 	"""\
@@ -26,7 +26,7 @@ Split some ships into a new fleet.
 		
 		# Create the new fleet
 		fleet2 = copy.deepcopy(fleet1)
-		fleet2.name = self.name
+		fleet2.name = self.call
 
 		# Add the ships to the new fleet
 		for type, number in self.ships:
@@ -35,8 +35,11 @@ Split some ships into a new fleet.
 
 		self.remove()
 
+	def simulate(self):
+		pass
+
 	def turns(self, turns=0):
-		return turns+1
+		return self.turns+1
 
 	def resources(self):
 		return []
@@ -52,7 +55,7 @@ Split some ships into a new fleet.
 		if value == None:
 			returns = []
 			for type, number in max.items():
-				returns.append((type, Fleet.ships[type], number))
+				returns.append((type, Fleet.ship_types[type], number))
 			print returns, self.ships.items()
 			return returns, self.ships.items()
 		else:

@@ -219,7 +219,7 @@ Extra attributes this type defines.
 
 		self.__upgrade__(self.type)
 
-	def save(self):
+	def save(self, preserve=True):
 		"""\
 		save()
 
@@ -227,6 +227,8 @@ Extra attributes this type defines.
 		"""
 		self.extra = pickle.dumps(self.extra)
 		SQLBase.save(self)
+		if preserve:
+			self.extra = pickle.loads(self.extra)
 
 	def from_packet(self, packet):
 		"""\
@@ -239,6 +241,7 @@ Extra attributes this type defines.
 		self.defaults()
 
 		for key, value in packet.__dict__.items():
+		
 			# Ignore special attributes
 			if key.startswith("_") or key == "extra" or key == "type":
 				continue

@@ -1,5 +1,7 @@
 
 import math
+import sys
+import traceback
 
 try:
 	from tp import netlib
@@ -9,26 +11,42 @@ except ImportError:
 	import netlib
 
 import config
+db = config.db
 
-def OrderGet(top, d={}):
-	if top.orders() > 0:
-		# Find the first valid order on this object
-		while True:
-			order = Order(top.id, 0)
+from sbases.Object import Object
+from sbases.Order import Order
 
-			if False:
-				order = None
-			else:
-				break
+def WalkUniverse(top, callback, *args, **kw):
+	"""\
+	Walks around the universe and calls a command for each object.
+	Parents will be called before there parents.
+	"""
+	callback(top, *args, **kw)
 
-		if not d.has_key(order.type):
-			d[order.type] = []
-
-		d[order.type].append(order)
-
-	# Walk around the universe and build a global order list
 	for id in top.contains():
-		OrderGet(Object(id), d)
+		WalkUniverse(Object(id), callback, *args, **kw)
+		
+def OrderGet(top, d={}):
+
+	def o(top, d=d):
+		if top.orders() > 0:
+			# Find the first valid order on this object
+			while True:
+				order = Order(top.id, 0)
+
+				if False:
+					order = None
+				else:
+					break
+
+			if not d.has_key(order.type):
+				d[order.type] = []
+
+			d[order.type].append(order)
+
+	WalkUniverse(top, o)
+
+
 
 def main():
 	# Connect to the database
@@ -50,10 +68,20 @@ def main():
 				print order
 				order.do()
 		
-		# Resolve combat
+		# Resolve combat (walk the universe and find all objects at a point...)
+		
+
+
+		# Cleanup any "dead" objects
+		
+		# Reparent the universe
+
+
+
+		
 	except Exception, e:
 		db.query("ROLLBACK")
-		raise e
+		raise
 	else:
 		db.query("COMMIT")
 	

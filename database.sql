@@ -14,7 +14,7 @@ CREATE TABLE `board` (
   `name` tinyblob NOT NULL,
   `desc` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `board`
@@ -34,7 +34,7 @@ CREATE TABLE `message` (
   `subject` tinyblob NOT NULL,
   `body` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `message`
@@ -60,7 +60,7 @@ CREATE TABLE `object` (
   `parent` bigint(20) NOT NULL default '-1',
   `extra` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `object`
@@ -89,7 +89,7 @@ CREATE TABLE `order` (
   `worked` bigint(20) NOT NULL default '0',
   `extra` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `order`
@@ -107,7 +107,7 @@ CREATE TABLE `user` (
   `username` tinyblob NOT NULL,
   `password` tinyblob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=MyISAM;
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `user`

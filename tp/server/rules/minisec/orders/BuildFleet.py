@@ -12,7 +12,7 @@ class BuildFleet(Order):
 Build a new star ship fleet."""
 
 	attributes = {\
-		'wait': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
+		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
 				desc="Ships to build and launch.")
 	}
 	
@@ -23,8 +23,12 @@ Build a new star ship fleet."""
 			print "Could not do a build order because it was on an unownable object."
 			self.remove()
 		
-		# FIXME: Need to see if we have waited long enough...
-	
+		if self.turns() != 0:
+			# Add another year to worked...
+			self.worked += 1
+			self.save()
+			return
+			
 		# Build new fleet object
 		fleet = Object(type='sobjects.Fleet')
 
@@ -50,12 +54,13 @@ Build a new star ship fleet."""
 		message.body = """\
 A new fleet has been built and is orbiting %s.
 It consists of:
-"""
+""" % builder.name
+
 		for type, number in fleet.ships.items():
 			if number > 1:
-				message.body += "%ss %s" % (number, Fleet.ships[type])
+				message.body += "%s %ss" % (number, Fleet.ship_types[type])
 			else:
-				message.body += "%s %s" % (number, Fleet.ships[type])
+				message.body += "%s %s" % (number, Fleet.ship_types[type])
 
 		message.insert()
 
@@ -67,7 +72,7 @@ It consists of:
 		for type, number in self.ships.items():
 			turns += time[type] * number
 
-		return turns
+		return turns-self.worked
 
 	def resources(self):
 		return []
@@ -75,7 +80,7 @@ It consists of:
 	def fn_ships(self, value=None):
 		if value == None:
 			returns = []
-			for type, name in Fleet.ships.items():
+			for type, name in Fleet.ship_types.items():
 				returns.append((type, name, -1))
 			return returns, self.ships.items()
 		else:
@@ -83,7 +88,7 @@ It consists of:
 
 			try:
 				for type, number in value[1]:
-					if not type in Fleet.ships.keys():
+					if not type in Fleet.ship_types.keys():
 						raise ValueError("Invalid type selected")
 					ships[type] = number
 			except:

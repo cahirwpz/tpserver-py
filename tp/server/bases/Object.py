@@ -76,3 +76,9 @@ ORDER BY size
 
 	def __str__(self):
 		return "<Object type=%s id=%s>" % (self.typeno, self.id)
+
+	def ghost(self):
+		"""\
+		Returns true if this object should be removed.
+		"""
+		return False

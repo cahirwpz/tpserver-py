@@ -76,7 +76,7 @@ class Order(SQLTypedBase):
 
 	def insert(self):
 		try:
-			db.query("begin")
+			db.query("BEGIN")
 		
 			number = self.number(self.oid)
 			if self.slot == -1:
@@ -91,13 +91,10 @@ class Order(SQLTypedBase):
 			self.save()
 
 		except Exception, e:
-			try:
-				db.query("rollback")
-			except:
-				pass
+			db.query("ROLLBACK")
 			raise e
 		else:
-			db.query("commit")
+			db.query("COMMIT")
 
 	def save(self):
 		if not hasattr(self, 'id'):
@@ -108,19 +105,16 @@ class Order(SQLTypedBase):
 
 	def remove(self):
 		try:
-			db.query("begin")
+			db.query("BEGIN")
 			
 			# Move the other orders down
 			db.query("""UPDATE tp.order SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
 			SQLTypedBase.remove(self)
 
 		except Exception, e:
-			try:
-				db.query("rollback")
-			except:
-				pass
+			db.query("ROLLBACK")
 		else:
-			db.query("commit")
+			db.query("COMMIT")
 
 	def to_packet(self, sequence):
 		# Preset arguments
@@ -130,13 +124,18 @@ class Order(SQLTypedBase):
 
 	def from_packet(self, packet):
 		self.worked = 0
+
+		self.oid = packet.id
+		self.slot = packet.slot
 		SQLTypedBase.from_packet(self, packet)
 
-		self.oid = self.id
 		del self.id
 
 	def __str__(self):
-		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.typeno, self.id, self.oid, self.slot)
+		if hasattr(self, 'id'):
+			return "<Order type=%s id=%s oid=%s slot=%s>" % (self.typeno, self.id, self.oid, self.slot)
+		else:
+			return "<Order type=%s id=XX oid=%s slot=%s>" % (self.typeno, self.oid, self.slot)
 
 	def turns(self, turns=0):
 		"""\
