@@ -14,7 +14,7 @@ Split some ships into a new fleet.
 """
 
 	attributes = {\
-		'call': Order.Attribute("call", "", 'public', type=netlib.objects.Constants.ARG_STRING, 
+		'call': Order.Attribute("call", "", 'protected', type=netlib.objects.Constants.ARG_STRING, 
 				desc="What to call the new fleet."),
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.Constants.ARG_LIST, 
 				desc="Ships to move into new fleet.")
@@ -30,9 +30,12 @@ Split some ships into a new fleet.
 
 		# Add the ships to the new fleet
 		for type, number in self.ships:
-			fleet1.ships[type] -= number
-			fleet2.ships[type] = number
-
+			if fleet1.ships[type] - number > 0:
+				fleet1.ships[type] -= number
+				fleet2.ships[type] = number
+			else:
+				fleet2.ships[type] = fleet1.ships[type]
+				fleet1.ships[type] = 0
 		self.remove()
 
 	def simulate(self):
@@ -44,11 +47,11 @@ Split some ships into a new fleet.
 	def resources(self):
 		return []
 
-	def fn_name_(self, value=None):
+	def fn_call(self, value=None):
 		if value == None:
-			return [0, self.name_]
+			return [0, self.call]
 		else:
-			self.name_ = value[0]
+			self.call = value[0]
 
 	def fn_ships(self, value=None):
 		max = self.object.ships

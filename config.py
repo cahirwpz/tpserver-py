@@ -26,4 +26,17 @@ import sorders.NOp
 import sorders.Move
 import sorders.BuildFleet
 import sorders.SplitFleet
-#import sorders.MergeFleet
+import sorders.MergeFleet
+
+#import sactions.Move
+#import sactions.Combat
+
+# The order orders and actions occur
+#order = [sorders.BuildFleet,
+#		 sorders.SplitFleet,
+#		 sorders.MergeFleet,
+#		 sorders.NOp,
+#		 sorders.Move, sactions.Move, sorders.Move,
+#		 sactions.Combat,
+#		]
+
