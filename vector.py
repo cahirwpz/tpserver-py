@@ -28,14 +28,14 @@ class Vector(object):
         if len(args) == 2:
             self.spatial(*args)
         if len(args) == 3:
-            self.cartesion(*args)
+            self.cartesian(*args)
         
     def spatial(self, (a, o), m):
         self.x = math.cos(a) * math.sin(o) * m
         self.y = math.sin(a) * math.sin(o) * m
         self.z = math.cos(o) * m
         
-    def cartesion(self, x, y ,z):
+    def cartesian(self, x, y, z):
         self.x = float(x)
         self.y = float(y)
         self.z = float(z)
