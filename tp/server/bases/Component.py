@@ -42,6 +42,23 @@ class Component(SQLBase):
 		return [(x['container'], x['component']) for x in result]
 	contains = staticmethod(contains)
 
+	def realid(id, pid):
+		return id
+	realid = staticmethod(realid)
+
+	def all():
+		results = db.query("""SELECT id FROM %(tablename)s""", tablename=Component.tablename)
+		return [x['id'] for x in results]
+	all = staticmethod(all)
+
+	def next(id):
+		result = db.query("""SELECT id FROM %(tablename)s WHERE id > %(id)s LIMIT 1""", tablename=Component.tablename, id=id)
+		if len(results) > 0:
+			return result[0]['id']
+		else:
+			raise NoSuch("No component after given...")
+	next = staticmethod(next)
+
 	def to_packet(self, sequence):
 		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, Component.contains(self.id), self.language)
 

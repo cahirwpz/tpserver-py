@@ -30,6 +30,122 @@ class FullConnection(netlib.ServerConnection):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
 
+	def OnGet(self, packet, type):
+		"""\
+		OnGet(packet, type) -> [True | False]
+
+		packet - Get packet to be processes, it must have the following
+			packet.ids	- The ids to be gotten
+					
+		type - The class used in processing, it must have the following
+			type.realid(id, user)		 		 - Get the real id for this object
+			type.all()							 - Gets all the ids for this object type
+			type.next(previousid)				 - Gets all the next id for this object type
+			type(realid)						 - Creates the object
+			typeinstance.allowed(user)			 - Is the user allowed to see this object
+			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
+		"""
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+		
+		# Empty list means we get all
+		if len(packet.ids) == 0:
+			packet.ids = type.all()
+		
+		# Replace the -1 with the "next" object
+		while -1 in packet.ids:
+			index = packet.ids.index(-1)
+
+			if index == 0:
+				packet.ids[index] = type.next(-1)
+			else:
+				try:
+					packet.ids[index] = type.next(packet.ids[index-1])
+				except NoSuch:
+					break
+		
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+		for id in packet.ids:
+			try:
+				# Get the real id
+				id = type.realid(id, self.user.id)
+				
+				o = type(id)
+
+				# Are we allowed to access this?
+				if not o.allowed(self.user):
+					print "ERROR: No Permission for %s with id %s." % (type, id)
+					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
+				else:	
+					self._send(o.to_packet(packet.sequence))
+
+			except NoSuch:
+				print "ERROR: No such %s with id %s." % (type, id)
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
+
+		return True
+		
+	def OnGetSlot(self, packet, type, container):
+		"""\
+		OnGetSlot(packet, type, container) -> [True | False]
+
+		packet - Get packet to be processes, it must have the following
+			packet.id		- The id of the container
+			packet.slots	- The slots to be gotten
+					
+		type - The class used in processing, it must have the following
+			type.all(realid)					 - Gets all the ids for this object type
+			type(realid, slot)					 - Creates the object
+			typeinstance.allowed(user)			 - Is the user allowed to see this object
+			typeinstance.to_packet(sequenceid)	 - Creates a network packet with this sequence number
+
+		container - The class that contains the other class
+			container.realid(id, user)			 - Get the real id for the container object
+		"""
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+		
+		# Get the real id
+		id = container.realid(packet.id, self.user.id)
+		
+		# Empty list means we get all
+		if len(packet.slots) == 0:
+			packet.slots = type.all(id)
+		
+		# Replace the -1 with the "next" slot
+		while -1 in packet.slots:
+			index = packet.slots.index(-1)
+
+			if index == 0:
+				packet.slots[index] = 0
+			else:
+				try:
+					packet.slots[index] = packet.slots[index-1]+1
+				except NoSuch:
+					break
+		
+		self._send(Sequence(packet.sequence, len(packet.slots)))
+		for slot in packet.slots:
+			try:
+				o = type(id, slot)
+
+				# Are we allowed to access this?
+				if not o.allowed(self.user):
+					print "ERROR: No Permission for %s with id %s, %s." % (type, id, slot)
+					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+				else:	
+					self._send(o.to_packet(packet.sequence))
+
+			except NoSuch:
+				print "ERROR: No such %s with id %s, %s." % (type, id, slot)
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
+
+		return True
+
 	def OnLogin(self, packet):
 		db.query("USE tp")
 
@@ -83,29 +199,9 @@ class FullConnection(netlib.ServerConnection):
 		for object in objects:
 			self._send(object.to_packet(packet.sequence))
 
+		
 	def OnOrder_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.slots)))
-
-		for slot in packet.slots:
-			try:
-				order = Order(packet.id, slot)
-
-				# Are we allowed to access this?
-				if not allowed(self.user, order.object):
-					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
-					print packet.id, slot, "No Permission"
-				else:	
-					self._send(order.to_packet(packet.sequence))
-			except NoSuch:
-				print packet.id, slot, "No such order."
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
-
-		return True
+		return self.OnGetSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
 		if self.user == None:
@@ -119,12 +215,12 @@ class FullConnection(netlib.ServerConnection):
 			# Are we allowed to do this?
 			if not allowed(self.user, order.object):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
-				print packet.id, slot, "No Permission"
+				print packet.id, packet.slot, "No Permission"
 			else:	
 				order.insert()
 				self._send(OK(packet.sequence, "Order added."))
 		except NoSuch:
-			print packet.id, slot, "Adding failed."
+			print packet.id, packet.slot, "Adding failed."
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
 		return True
@@ -173,37 +269,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnBoard_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.ids)))
-
-		for id in packet.ids:
-			try:
-				self._send(Board(Board.realid(id, self.user.id)).to_packet(packet.sequence))
-			except NoSuch:
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such board."))
-
-		return True
+		return self.OnGet(packet, Board)
 	
 	def OnMessage_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.slots)))
-
-		for slot in packet.slots:
-			try:
-				message = Message(Board.realid(packet.id, self.user.id), slot)
-				self._send(message.to_packet(packet.sequence))
-			except NoSuch:
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such message."))
-
-		return True
+		return self.OnGetSlot(packet, Message, Board)
 
 	def OnMessage_Insert(self, packet):
 		if self.user == None:
@@ -244,46 +313,10 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnCategory_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.ids)))
-
-		for id in packet.ids:
-			try:
-				object = Category(id)
-				
-				p = Category(id).to_packet(packet.sequence)
-				self._send(p)
-				
-			except NoSuch:
-				print "No such category", id
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such category."))
-
-		return True
-		
+		return self.OnGet(packet, Category)
+	
 	def OnComponent_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.ids)))
-
-		for id in packet.ids:
-			try:
-				object = Component(id)
-				
-				p = Component(id).to_packet(packet.sequence)
-				self._send(p)
-				
-			except NoSuch:
-				print "No such component", id
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such component."))
-
-		return True
+		return self.OnGet(packet, Component)
 		
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)

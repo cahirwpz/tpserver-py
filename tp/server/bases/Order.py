@@ -20,6 +20,11 @@ class Order(SQLTypedBase):
 			return result[0]['id']
 	realid = staticmethod(realid)
 
+	def all(oid):
+		results = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s""", tablename=Order.tablename, oid=oid)
+		return [x['id'] for x in results]
+	all = staticmethod(all)
+
 	def number(oid):
 		"""\
 		Order.number(objectid) -> number

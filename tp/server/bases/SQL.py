@@ -132,6 +132,14 @@ class SQLBase(object):
 
 			setattr(self, key, value)
 
+	def allowed(self, user):
+		"""\
+		allowed(user)
+
+		User is allowed to access this object.
+		"""
+		return True
+
 	def __repr__(self):
 		return self.__str__()
 

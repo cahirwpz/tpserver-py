@@ -37,6 +37,10 @@ ORDER BY size
 		return r
 	bypos = staticmethod(bypos)
 
+	def realid(oid, pid):
+		return oid
+	realid = staticmethod(realid)
+
 	def __init__(self, id=None, packet=None, type=None, typeno=None):
 		self.name = "Unknown object"
 		self.size = 0
