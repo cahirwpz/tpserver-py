@@ -1,5 +1,10 @@
 
 try:
+	import psyco
+except ImportError:
+	pass
+	
+try:
 	from tp import netlib
 except ImportError:
 	import sys
@@ -37,15 +42,17 @@ import sorders.MergeFleet
 import sorders.Colonise
 
 #import sactions.Move
-#import sactions.Combat
+import sactions.FleetCombat
+import sactions.Heal
 
 # The order orders and actions occur
 order = [sorders.BuildFleet,
 		 sorders.SplitFleet,
 		 sorders.MergeFleet,
-#		 sorders.NOp,
+		 sorders.NOp,
 		 sorders.Move, # sactions.Move, sorders.Move,
-#		 sactions.Combat,
+		 sactions.FleetCombat,
 		 sorders.Colonise,
+		 sactions.Heal,
 		]
 

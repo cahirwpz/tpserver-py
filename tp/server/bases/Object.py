@@ -37,6 +37,12 @@ ORDER BY size
 		return r
 	bypos = staticmethod(bypos)
 
+	def remove(self):
+		# Remove any parenting on this object.
+		db.query("""UPDATE tp.object SET parent=0 WHERE parent=%(id)s""", id=self.id)
+	
+		SQLTypedBase.remove(self)
+	
 	def orders(self):
 		"""\
 		orders()
@@ -80,4 +86,7 @@ ORDER BY size
 		"""\
 		Returns true if this object should be removed.
 		"""
-		return False
+		if hasattr(self, "owner"):
+			return self.owner == 0
+		else:
+			return False

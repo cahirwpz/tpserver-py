@@ -10,23 +10,32 @@ netlib = config.netlib
 from sbases.Object import Object
 from sbases.Order import Order
 
-def WalkUniverse(top, callback, *args, **kw):
+def WalkUniverse(top, order, callback, *args, **kw):
 	"""\
 	Walks around the universe and calls a command for each object.
-	Parents will be called before there parents.
+	
+	If the first argument is "before" parents will be called before there children.
+	If the first argument is "after" parents will be called after there children.
 	"""
-	callback(top, *args, **kw)
+	if order == "before":
+		callback(top, *args, **kw)
 
 	for id in top.contains():
-		WalkUniverse(Object(id), callback, *args, **kw)
-		
-def OrderGet(top, d={}):
+		WalkUniverse(Object(id), order, callback, *args, **kw)
 
-	def o(top, d=d):
-		if top.orders() > 0:
+	if order == "after":
+		callback(top, *args, **kw)
+
+def OrderGet(top, d={}):
+	"""
+	Walks around the universe and puts the orders into the given dictionary.
+	"""
+
+	def o(obj, d=d):
+		if obj.orders() > 0:
 			# Find the first valid order on this object
 			while True:
-				order = Order(top.id, 0)
+				order = Order(obj.id, 0)
 
 				if False:
 					order = None
@@ -38,7 +47,46 @@ def OrderGet(top, d={}):
 
 			d[order.type].append(order)
 
-	WalkUniverse(top, o)
+	WalkUniverse(top, "before", o)
+
+def Clean(top):
+	"""
+	Walks around the universe cleaning up ghost objects.
+	"""
+	def c(obj):
+		if obj.ghost():
+			print "Removing %s because it's a ghost." % obj.id
+			obj.remove()
+
+	WalkUniverse(top, "after", c)
+
+##def Reparent(top):
+##	# FIXME: Borked
+##	# FIXME: Cant walk the tree in this case as need to start from top every time.
+##
+##	c = []
+##	def r(obj, c=c):
+##		# FIXME: Reparent only objects which need reparenting
+##		# Reparent the object
+##		parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, limit=2)
+##		print "New object parents", parents
+##		obj.parent = obj.id
+##		while obj.parent == obj.id:
+##			if len(parents) > 0:
+##				id = parents.pop(-1).id
+##				# Make sure we don't parent to the same type
+##				if type(Object(id)) != type(obj):
+##					obj.parent = id
+##				continue
+##			else:
+##				obj.parent = 0
+##		print "New object parent is", obj.parent
+##		c.append(c)
+##
+##	WalkUniverse(top, c)
+##	
+##	for obj in c:
+##		c.save()
 
 def main():
 	# Connect to the database
@@ -51,26 +99,22 @@ def main():
 		d = {}
 		OrderGet(Object(0), d)
 
-		for type in d.keys():
+		for type in [str(m.__name__) for m in config.order]:
 			print type
-			if not d.has_key(type):
-				continue
+			if type.startswith("sorders"):
+				if not d.has_key(type):
+					continue
 
-			# Import the order processor
-			for order in d[type]:
-				print order
-				order.do()
+				for order in d[type]:
+					order.do()
 		
-		# Resolve combat (walk the universe and find all objects at a point...)
+			elif type.startswith("sactions"):
+				__import__(type, globals(), locals(), ["do"]).do(Object(0))
 		
-
-
 		# Cleanup any "dead" objects
-		
+		Clean(Object(0))
+
 		# Reparent the universe
-
-
-
 		
 	except Exception, e:
 		db.query("ROLLBACK")
