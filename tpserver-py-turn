@@ -61,15 +61,15 @@ def Clean(top):
 
 def ReparentOne(obj):
 	# Reparent the object
-	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0)
+	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby="size ASC")
 	print "Possible parents", parents
 	
 	obj.parent = 0
-	parents = [i for i in parents if i.type != obj.type]
+	parents = [id for (id, time) in parents if Object(id).type != obj.type]
 	if parents:
-		obj.parent = parents[0].id
+		obj.parent = parents[0]
 	else:
-		print "No parents left! Using universe."
+		print "No parents left! Using Universe."
 	
 	print "New Parent", obj.parent
 

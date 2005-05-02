@@ -10,7 +10,7 @@ class Object(SQLTypedBase):
 
 	orderclasses = {}
 
-	def bypos(cls, pos, size=0, limit=-1):
+	def bypos(cls, pos, size=0, limit=-1, orderby="time, size DESC"):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
 
@@ -21,28 +21,25 @@ class Object(SQLTypedBase):
 		
 		sql = """\
 SELECT id, time FROM %%(tablename)s WHERE \
-	(pow(posx-%s, 2) + pow(posy-%s, 2) + pow(posz-%s, 2)) =< pow(size, 2) \
-ORDER BY size \
-		""" % pos
-		
-		# FIXME: This is a square???
-		sql = """\
-SELECT id, time FROM %%(tablename)s WHERE \
-      (%s <= posx+size AND %s >= posx-size) AND \
-      (%s <= posy+size AND %s >= posy-size) AND \
-      (%s <= posz+size AND %s >= posz-size) \
-ORDER BY size
-		""" % (pos[0]-size, pos[0]+size, pos[1]-size, pos[1]+size, pos[2]-size, pos[2]+size)
+	(pow(posx-%s, 2) + pow(posy-%s, 2) + pow(posz-%s, 2)) <= ( %s + pow(size, 2) ) \
+ORDER BY %s \
+		""" % (pos[0], pos[1], pos[2], size**2, orderby)
 		if limit != -1:
 			sql += "LIMIT %s" % limit
 
-		result = db.query(sql, tablename=Object.tablename)
+		result = db.query(sql, tablename=cls.tablename)
 		return [(x['id'], x['time']) for x in result]
 	bypos = classmethod(bypos)
 
-	def realid(oid, pid):
-		return oid
-	realid = staticmethod(realid)
+	def byparent(cls, id):
+		"""\
+		byparent(id)
+
+		Returns the objects which have a parent of this id.
+		"""
+		results = db.query("""SELECT id, time FROM %(tablename)s WHERE parent=%(id)s""", tablename=cls.tablename, id=id)
+		return [(x['id'], x['time']) for x in results]
+	byparent = classmethod(byparent)
 
 	def __init__(self, id=None, packet=None, type=None, typeno=None):
 		self.name = "Unknown object"
@@ -56,7 +53,17 @@ ORDER BY size
 		self.parent = 0
 
 		SQLTypedBase.__init__(self, id, packet, type, typeno)
-	
+
+	def protect(self, user):
+		o = SQLBase.protect(self, user)
+		if hasattr(o, "owner"):
+			if o.owner != user.id:
+				def empty():
+					return 0
+				o.orders = empty
+
+		return o
+
 	def remove(self):
 		# FIXME: Need to remove associated orders in a better way
 		db.query("""DELETE FROM %(tablename)s WHERE oid=%(id)s""", tablename=Order.tablename, id=self.id)
@@ -86,13 +93,16 @@ ORDER BY size
 		return self._ordertypes
 
 	def contains(self):
-		"""\
+		"""
 		contains()
 
-		Returns the objects this object contains.
+		Returns the objects which this object contains.
 		"""
-		results = db.query("""SELECT id FROM %(tablename)s WHERE parent=%(id)s""", self.todict())
-		return [x['id'] for x in results]
+		ids = self.byparent(self.id)
+		if len(ids) > 0:
+			return zip(*ids)[0]
+		else:
+			return tuple()
 
 	def to_packet(self, sequence):
 		# Preset arguments

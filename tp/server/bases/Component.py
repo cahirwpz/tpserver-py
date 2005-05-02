@@ -56,10 +56,6 @@ class Component(SQLBase):
 		return [(x['container'], x['component']) for x in result]
 	contains = staticmethod(contains)
 
-	def realid(id, pid):
-		return id
-	realid = staticmethod(realid)
-
 	def to_packet(self, sequence):
 		print "Language:", self.language
 		print "Args:", (sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)

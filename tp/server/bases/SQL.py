@@ -30,23 +30,30 @@ class SQLBase(object):
 	_description = classmethod(_description)
 	description = property(_description)
 
-	def modified(cls):
+	def modified(cls, user):
 		"""\
-		Gets the last modified time for the whole table.
+		modified(user)
+		
+		Gets the last modified time for the whole table (that the user can see).
 		"""
 		result = db.query("SELECT time FROM %(tablename)s ORDER BY time DESC LIMIT 1", tablename=cls.tablename)
+		if len(result) == 0:
+			return 0
 		return result[0]['time']
 	modified = classmethod(modified)
 
-	def ids(cls, start, amount):
+	def ids(cls, user, start, amount):
 		"""\
-		Get the last ids for this.
+		ids(user, start, amount)
+		
+		Get the last ids for this (that the user can see).
 		"""
 		if amount == -1:
 			amount = 2**64
 		
-		result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(amount)s OFFSET %(start)s ORDER BY time DESC", tablename=cls.tablename, start=start, amount=amount)
+		result = db.query("SELECT id, time FROM %(tablename)s ORDER BY time DESC LIMIT %(amount)s OFFSET %(start)s", tablename=cls.tablename, start=start, amount=amount)
 		return [(x['id'], x['time']) for x in result] 
+		
 #		if "ids" in cls._description():
 #			if "time" in cls._description():
 #				result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(length)i OFFSET %(start)i ", tablename=cls.tablename, start=start, length=length)
@@ -56,16 +63,23 @@ class SQLBase(object):
 #		raise ValueError("Can not use this method for this table.")
 	ids = classmethod(ids)
 
-	def amount(cls):
+	def amount(cls, user):
 		"""\
-		Get the number of records in this table.
+		amount(user)
+
+		Get the number of records in this table (that the user can see).
 		"""
-		return db.query("SELECT count(*) FROM %(tablename)s", tablename=cls.tablename)[0]['count(*)']
+		result = db.query("SELECT count(*) FROM %(tablename)s", tablename=cls.tablename)
+		if len(result) == 0:
+			return 0
+		return result[0]['count(*)']
 	amount = classmethod(amount)
 
-	def realid(cls, id, pid):
+	def realid(cls, user, id):
 		"""\
-		Get the real id for an object.
+		realid(user, id)
+		
+		Get the real id for an object (as the user would see).
 		"""
 		return id
 	realid = classmethod(realid)
@@ -124,7 +138,7 @@ class SQLBase(object):
 			SQL = """REPLACE %(tablename)s SET """
 
 		# FIXME: This is MySQL specific....
-		for finfo in self.description:
+		for finfo in self._description():
 			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
 				continue
 			
@@ -176,13 +190,14 @@ class SQLBase(object):
 
 			setattr(self, key, value)
 
-	def allowed(self, user):
+	def protect(self, user):
 		"""\
-		allowed(user)
+		protect(user)
 
-		User is allowed to access this object.
+		Returns a version of this object which shows only details which the user is 
+		allowed to see.
 		"""
-		return True
+		return copy.deepcopy(self)
 
 	def __repr__(self):
 		return self.__str__()

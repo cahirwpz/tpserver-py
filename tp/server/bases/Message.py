@@ -6,17 +6,17 @@ from SQL import *
 class Message(SQLBase):
 	tablename = "`message`"
 
-	def realid(bid, slot):
-		result = db.query("""SELECT id FROM %(tablename)s WHERE bid=%(bid)s and slot=%(slot)s""", tablename=Message.tablename, bid=bid, slot=slot)
+	def realid(cls, bid, slot):
+		result = db.query("""SELECT id FROM %(tablename)s WHERE bid=%(bid)s and slot=%(slot)s""", tablename=cls.tablename, bid=bid, slot=slot)
 		if len(result) != 1:
 			return -1
 		else:
 			return result[0]['id']
-	realid = staticmethod(realid)
+	realid = classmethod(realid)
 
-	def number(bid):
-		return db.query("""SELECT COUNT(id) FROM %(tablename)s WHERE bid=%(bid)s""", tablename=Message.tablename, bid=bid)[0]['COUNT(id)']
-	number = staticmethod(number)
+	def number(cls, bid):
+		return db.query("""SELECT COUNT(id) FROM %(tablename)s WHERE bid=%(bid)s""", tablename=cls.tablename, bid=bid)[0]['COUNT(id)']
+	number = classmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
 		SQLBase.__init__(self)
