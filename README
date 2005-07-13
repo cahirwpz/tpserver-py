@@ -1,6 +1,12 @@
 This is a quick example server which doesn't to much. If you want
 a real server try cpp-server.
 
+The server requires the following python packages,
+
+libtpproto-py - The Thousand Parsec protocol stack
+pyscheme      - Python implimentation of Scheme
+
+
 README    - This file
 TODO      - Things which need to be done
 API       - How to create new rulesets/orders/objects

@@ -1,66 +1,39 @@
 
-import pickle
-
 from config import db, netlib
 
 from SQL import *
-from Order import Order
 
 class Component(SQLBase):
 	tablename = "`component`"
-	types = {}
 
-	def load(self, id):
-		SQLBase.load(self, id)
-
-		if len(self.language) > 0:
-			self.language = pickle.loads(self.language)
-		else:
-			self.language = ()
-
-	def save(self):
-		if len(self.language) > 0:
-			self.language = pickle.dumps(self.language)
-
-	def used(id):
+	def categories(cls, oid):
 		"""\
-		Component.used(id) -> integer
+		Component.categories(componentid) -> [id, ...]
 
-		Returns the number of places this component is used.
+		Returns the categories the component is in.
 		"""
-		sql = """SELECT COUNT(id) FROM %%(tablename)s WHERE base = %s ORDER BY id""" % (id)
-		result = db.query(sql, tablename=Component.tablename)
-		print result
-		return result[0]["COUNT(id)"]
-	used = staticmethod(used)
+		results = db.query("""SELECT %(tablename)s FROM %(tablename)s_category WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)
+		return [x[cls.tablename] for x in results]
+	category = classmethod(category)
 
-	def category(id):
+	def properties(cls, oid):
 		"""\
-		Component.category(id) -> [1, 3]
+		Component.properties(componentid) -> [(id, value), ...]
 
-		Returns the categories this component is a part of.
+		Returns the properties the component has.
 		"""
-		sql = """SELECT category FROM component_category WHERE component = %s ORDER BY category""" % (id)
-		result = db.query(sql, tablename=Component.tablename + "_component")
-		return [x['category'] for x in result]
-	category = staticmethod(category)
-
-	def contains(id):
-		"""\
-		Component.contains(id) -> [1, 3]
-
-		Returns the components contains by this component.
-		"""
-		sql = """SELECT * FROM component_component WHERE container = %s ORDER BY component""" % (id)
-		result = db.query(sql, tablename=Component.tablename + "_component")
-		return [(x['container'], x['component']) for x in result]
-	contains = staticmethod(contains)
+		results = db.query("""SELECT %(tablename)s, value FROM %(tablename)s_property WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)
+		return [(x[cls.tablename], x['value']) for x in results]
+	property = classmethod(property)
 
 	def to_packet(self, sequence):
-		print "Language:", self.language
-		print "Args:", (sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)
-		return netlib.objects.Component(sequence, self.id, self.base, Component.used(self.id), Component.category(self.id), self.name, self.desc, Component.contains(self.id), self.language)
+		# Preset arguments
+		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirement, self.properties())
+
+	def id_packet(cls):
+		return netlib.objects.Component_IDSequence
+	id_packet = classmethod(id_packet)   
 
 	def __str__(self):
-		return "<Component id=%s>" % (self.id,)
+		return "<Component id=%s name=%s>" % (self.id, self.name)
 

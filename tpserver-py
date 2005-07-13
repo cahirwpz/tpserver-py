@@ -218,6 +218,25 @@ class FullConnection(netlib.ServerConnection):
 
 #		self._send(Sequence(packet.sequence,)
 
+	def OnOrderDesc_GetID(self, packet):
+		return False # self.OnGetID(packet, Board)	
+
+	def OnOrderDesc_Get(self, packet):
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+
+		self._send(Sequence(packet.sequence, len(packet.ids)))
+
+		for id in packet.ids:
+			try:
+				self._send(Order.desc_packet(packet.sequence, id))
+			except NoSuch:
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
+
+		return True
+
 	def OnOrder_Get(self, packet):
 		return self.OnGetWithIDandSlot(packet, Order, Object)
 
@@ -244,22 +263,6 @@ class FullConnection(netlib.ServerConnection):
 		return True
 	OnOrder = OnOrder_Insert
 
-	def OnOrderDesc_Get(self, packet):
-		if self.user == None:
-			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-
-		self._send(Sequence(packet.sequence, len(packet.ids)))
-
-		for id in packet.ids:
-			try:
-				self._send(Order.desc_packet(packet.sequence, id))
-			except NoSuch:
-				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
-
-		return True
-
 	def OnOrder_Remove(self, packet):
 		if self.user == None:
 			return False
@@ -285,8 +288,7 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
-
-	def OnBoard_GetById(self, packet):
+	def OnBoard_Get(self, packet):
 		return self.OnGetWithID(packet, Board)
 		
 	def OnBoard_GetID(self, packet):
@@ -333,19 +335,24 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
-	def OnResource_GetById(self, packet):
+	def OnResource_Get(self, packet):
 		return self.OnGetWithID(packet, Resource)
 		
 	def OnResource_GetID(self, packet):
 		return self.OnGetID(packet, Resource)
 
-
 	def OnCategory_Get(self, packet):
 		return self.OnGetWithID(packet, Category)
-	
+
+	def OnCategory_GetID(self, packet):
+		return self.OnGetID(packet, Category)
+
 	def OnComponent_Get(self, packet):
 		return self.OnGetWithID(packet, Component)
-		
+
+	def OnComponent_GetID(self, packet):
+		return self.OnGetID(packet, Component)
+
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)
 		return netlib.ServerConnection._send(self, packet)

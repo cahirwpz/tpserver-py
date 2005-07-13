@@ -27,8 +27,8 @@ ORDER BY %s \
 		if limit != -1:
 			sql += "LIMIT %s" % limit
 
-		result = db.query(sql, tablename=cls.tablename)
-		return [(x['id'], x['time']) for x in result]
+		results = db.query(sql, tablename=cls.tablename)
+		return [(x['id'], x['time']) for x in results]
 	bypos = classmethod(bypos)
 
 	def byparent(cls, id):

@@ -24,7 +24,6 @@ CREATE TABLE `board` (
 -- Dumping data for table `board`
 --
 
-
 --
 -- Table structure for table `category`
 --
@@ -43,6 +42,7 @@ CREATE TABLE `category` (
 --
 
 INSERT INTO `category` VALUES (1,'Misc','Things which don\'t fit into any specific category.',0);
+INSERT INTO `category` VALUES (2,'Physical','Physical properties of an object.',0);
 
 --
 -- Table structure for table `component`
@@ -51,10 +51,9 @@ INSERT INTO `category` VALUES (1,'Misc','Things which don\'t fit into any specif
 DROP TABLE IF EXISTS `component`;
 CREATE TABLE `component` (
   `id` bigint(20) NOT NULL auto_increment,
-  `base` bigint(20) default NULL,
   `name` tinytext NOT NULL,
   `desc` text NOT NULL,
-  `language` tinyblob,
+  `requirements` tinyblob,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
@@ -63,10 +62,10 @@ CREATE TABLE `component` (
 -- Dumping data for table `component`
 --
 
-INSERT INTO `component` VALUES 	(1,0,'Generic Base Component A','A very generic component that can be used for almost anything.',NULL,0),
-								(2,0,'Generic Base Component B','A very generic component that can be used anywhere Component A can\'t be.',NULL,0),
-								(3,0,'Generic Base Component C','A very generic component that can be used inplace of Component B can\'t be.',NULL,0),
-								(4,0,'Generic Hull','A very generic hull component that can have Generic Base Components added to it.','((I1\nI2\nI3\ntp0\n(I1\nI6\nI2\ntp1\n(I4\nI0\nI0\ntp2\n(I1\nI3\nI1\ntp3\n(I3\nI0\nI0\ntp4\ntp5\n.', 0);
+INSERT INTO `component` VALUES 	(1,'Generic Base Component A','A very generic component that can be used for almost anything.','',0),
+								(2,'Generic Base Component B','A very generic component that can be used anywhere Component A can\'t be.','',0),
+								(3,'Generic Base Component C','A very generic component that can be used inplace of Component B can\'t be.','',0),
+								(4,'Generic Hull','A very generic hull component that can have Generic Base Components added to it.','', 0);
 
 --
 -- Table structure for table `component_category`
@@ -86,20 +85,53 @@ CREATE TABLE `component_category` (
 INSERT INTO `component_category` VALUES (1,1),(2,1),(3,1),(4,1);
 
 --
--- Table structure for table `component_component`
+-- Table structure for table `component_property`
 --
 
-DROP TABLE IF EXISTS `component_component`;
-CREATE TABLE `component_component` (
-  `container` bigint(20) NOT NULL default '0',
+DROP TABLE IF EXISTS `component_property`;
+CREATE TABLE `component_property` (
   `component` bigint(20) NOT NULL default '0',
-  PRIMARY KEY  (`container`,`component`)
+  `property` bigint(20) NOT NULL default '0',
+  `value` tinyblob NOT NULL,
+  PRIMARY KEY  (`component`,`property`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
--- Dumping data for table `component_component`
+-- Dumping data for table `component_property`
 --
 
+--
+-- Table structure for table `design`
+--
+
+DROP TABLE IF EXISTS `design`;
+CREATE TABLE `design` (
+  `id` bigint(20) NOT NULL auto_increment,
+  `name` tinytext NOT NULL,
+  `desc` text NOT NULL,
+  `requirements` tinyblob,
+  `time` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `design`
+--
+
+--
+-- Table structure for table `design_category`
+--
+
+DROP TABLE IF EXISTS `design_category`;
+CREATE TABLE `design_category` (
+  `design` bigint(20) NOT NULL default '0',
+  `category` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`design`,`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `design_category`
+--
 
 --
 -- Table structure for table `message`
@@ -168,6 +200,39 @@ CREATE TABLE `order` (
 -- Dumping data for table `order`
 --
 
+--
+-- Table structure for table `property`
+--
+
+DROP TABLE IF EXISTS `property`;
+CREATE TABLE `property` (
+  `id` bigint(20) NOT NULL auto_increment,
+  `name` tinytext NOT NULL,
+  `desc` text NOT NULL,
+  `rank` tinyint(8) NOT NULL default '255',
+  `requirements` tinyblob NOT NULL,
+  `time` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `property`
+--
+
+--
+-- Table structure for table `property_category`
+--
+
+DROP TABLE IF EXISTS `property_category`;
+CREATE TABLE `property_category` (
+  `property` bigint(20) NOT NULL default '0',
+  `category` bigint(20) NOT NULL default '0',
+  PRIMARY KEY  (`property`,`category`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Dumping data for table `property_category`
+--
 
 --
 -- Table structure for table `user`
