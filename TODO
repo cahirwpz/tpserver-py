@@ -1,15 +1,30 @@
 Fully python server. Uses a mysql database backend.
  
 Supports the following:
+		Connect
+		Login
+		Feature
         Object_GetById
-		Object_GetPyPos (Need testing)
+		Object_GetByPos (square instead of required circle)
+		Object_GetByContainer
+		Object_GetID
+		OrderDesc_GetByID
+		OrderDesc_GetID
         Order_Get
         Order_Insert
         Order_Remove
-		Board_Get
+		Board_GetByID
+		Board_GetID
 		Message_Get
 		Message_Remove
 		Message_Insert
+		Resource_GetByID
+		Resource_GetID
+		Category_GetByID
+		Category_GetID
+		Component_GetByID
+		Component_GetID
+		
 
         Orders actually do stuff
 			Move order works (Reparenting needs testing)
@@ -31,9 +46,16 @@ Supports the following:
 
 		Database dumping program. 
 		
+		TPCL and Design support
+			- Can get designs from server
+			- Can get properties from server
+			- Can get categories from server
+			- Can get components from server
+			- Can get properties from server
+
 Still need to be done:
 
-		Make reparenting use a circle
+		Make reparenting use a sphere (instead of the current cube)
 
 		Remove Player tool
 			- Remove the username/password record
@@ -41,9 +63,28 @@ Still need to be done:
 			- Renames/Reowners the homesystem/homeplanet
 			- Removes any fleets
 
-        ObjectDesc_Get
-		
 		Fix MySQL auto_increment and 0 bug. May just map 0 to -1.
 		
 		Figure out how to support multiple orders happening in 1 turn.
 		Figure out how to get rid of dummy orders which do nothing.
+	
+		Add SQLite Support
+
+		Remove MySQLism and go to a portable SQL and use SQLdb.
+
+		Rewrite the permission stuff (allowed/protect) to actually use permissions 
+			- Allow people to give permissions to other people
+			- Administrator can do anything
+
+		Write a test suite
+			- Tests connect and login
+			- Tests getting the base Universe object
+			- Tests getting one of each object type
+			- Tests security (ie get object as owner, administrator, other)
+			- Tests adding and removing every order
+			- Tests message board stuff
+			- Tests manipulating the design stuff (include categories, designs, components and properties)
+
+		Scheme order support
+			- Orders calculate properties
+		

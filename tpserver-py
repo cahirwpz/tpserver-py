@@ -17,19 +17,26 @@ from sbases.SQL       import NoSuch
 from sbases.Board     import Board
 from sbases.Category  import Category
 from sbases.Component import Component
+from sbases.Design    import Design
 from sbases.Message   import Message
 from sbases.Object    import Object
 from sbases.Order     import Order
+from sbases.Property  import Property
 from sbases.User      import User
 from sbases.Resource  import Resource
-
-def allowed(user, obj):
-	return (user.id in config.admin) or (hasattr(obj, "owner") and obj.owner == user.id)
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
+
+	def check(self):
+		db.query("COMMIT") # This is needed as we turned off autocommit mode.
+		if self.user == None:
+			return False
+		else:
+			db.query("USE %(db)s", db=self.user.domain())
+		return True
 
 	def OnGetWithID(self, packet, type):
 		"""\
@@ -41,14 +48,13 @@ class FullConnection(netlib.ServerConnection):
 		type - The class used in processing, it must have the following
 			type.realid(user, id)                - Get the real id for this object
 			type(realid)                         - Creates the object
+			typeinstance.allowed(user)           - Is the user allowed to see this object
 			typeinstance.protect(user)           - Protect the object against this user
 			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 		"""
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-		
+
 		print "Getting stuff with ids", packet.ids
 		
 		if len(packet.ids) > 1:
@@ -56,16 +62,18 @@ class FullConnection(netlib.ServerConnection):
 
 		for id in packet.ids:
 			try:
-				# Get the real id
+				# Get the real id of the object
 				id = type.realid(self.user, id)
 				
-				o = type(id).protect(self.user)
+				o = type(id)
 
-				# Are we allowed to access this?
-				if o is None:
+				# Is the user allowed to access this object?
+				if not o.allowed(self.user):
 					print "ERROR: No permission for %s with id %s." % (type, id)
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
-				else:	
+				else:
+					# Protect certain details from a user (ie if can see only some of the object)
+					o = o.protect(self.user)
 					self._send(o.to_packet(packet.sequence))
 
 			except NoSuch:
@@ -89,10 +97,8 @@ class FullConnection(netlib.ServerConnection):
 			type.ids(user, start, amount)       - Get the ids (that this user can see)
 			type.ids_packet()                   - Get the packet type for sending a list of ids
 		"""
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		print "Getting IDs with ", packet.key, packet.start, packet.amount
 
@@ -130,15 +136,14 @@ class FullConnection(netlib.ServerConnection):
 		type - The class used in processing, it must have the following
 			type(realid, slot)                   - Creates the object
 			typeinstance.allowed(user)           - Is the user allowed to see this object
+			typeinstance.protect(user)           - Protect the object against this user
 			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 
 		container - The class that contains the other class
 			container.realid(user, id)           - Get the real id for the container object
 		"""
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 		
 		# Get the real id
 		id = container.realid(self.user, packet.id)
@@ -149,11 +154,13 @@ class FullConnection(netlib.ServerConnection):
 			try:
 				o = type(id, slot)
 
-				# Are we allowed to access this?
+				# Is the user allowed to access this object?
 				if not o.allowed(self.user):
-					print "ERROR: No Permission for %s with id %s, %s." % (type, id, slot)
-					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
-				else:	
+					print "ERROR: No permission for %s with id %s." % (type, )
+					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
+				else:
+					# Protect certain details from a user (ie if can see only some of the object)
+					o = o.protect(self.user)
 					self._send(o.to_packet(packet.sequence))
 
 			except NoSuch:
@@ -196,10 +203,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetID(packet, Object)	
 
 	def OnObject_GetID_ByPos(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		objects = Object.bypos(packet.pos, packet.size)
 
@@ -209,10 +214,8 @@ class FullConnection(netlib.ServerConnection):
 			self._send(object.to_packet(packet.sequence))
 
 	def OnObject_GetID_ByContainer(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 		
 		objects = Object.byparent(packet.id)
 
@@ -222,10 +225,8 @@ class FullConnection(netlib.ServerConnection):
 		return False # self.OnGetID(packet, Board)	
 
 	def OnOrderDesc_Get(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
@@ -241,16 +242,14 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		try:
 			order = Order(packet=packet)
 			
 			# Are we allowed to do this?
-			if not allowed(self.user, order.object):
+			if not order.object.allowed(self.user):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
 				print packet.id, packet.slot, "No Permission"
 			else:	
@@ -264,10 +263,8 @@ class FullConnection(netlib.ServerConnection):
 	OnOrder = OnOrder_Insert
 
 	def OnOrder_Remove(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -276,7 +273,7 @@ class FullConnection(netlib.ServerConnection):
 				order = Order(packet.id, slot)
 				
 				# Are we allowed to do this?
-				if not allowed(self.user, order.object):
+				if not order.object.allowed(self.user):
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 					print self.user.id, packet.id, slot, "No Permission"
 				else:	
@@ -298,10 +295,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Message, Board)
 
 	def OnMessage_Insert(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		try:
 			# Mangle the board id
@@ -318,10 +313,8 @@ class FullConnection(netlib.ServerConnection):
 	OnMessage = OnMessage_Insert
 
 	def OnMessage_Remove(self, packet):
-		if self.user == None:
+		if not self.check():
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -352,6 +345,18 @@ class FullConnection(netlib.ServerConnection):
 
 	def OnComponent_GetID(self, packet):
 		return self.OnGetID(packet, Component)
+
+	def OnDesign_Get(self, packet):
+		return self.OnGetWithID(packet, Design)
+
+	def OnDesign_GetID(self, packet):
+		return self.OnGetID(packet, Design)
+
+	def OnProperty_Get(self, packet):
+		return self.OnGetWithID(packet, Design)
+
+	def OnProperty_GetID(self, packet):
+		return self.OnGetID(packet, Design)
 
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)

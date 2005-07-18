@@ -8,6 +8,11 @@ import time
 
 from config import db
 
+import types
+# These types go through repr fine
+types.SimpleTypes = [types.BooleanType, types.ComplexType, types.FloatType, 
+					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
+
 def quickimport(s):
 	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
 
@@ -32,10 +37,11 @@ class SQLBase(object):
 
 	def modified(cls, user):
 		"""\
-		modified(user)
+		modified(user) -> unixtime
 		
-		Gets the last modified time for the whole table (that the user can see).
+		Gets the last modified time for the type.
 		"""
+		# FIXME: This gives the last modified for anyone time, not for the specific user.
 		result = db.query("SELECT time FROM %(tablename)s ORDER BY time DESC LIMIT 1", tablename=cls.tablename)
 		if len(result) == 0:
 			return 0
@@ -44,7 +50,7 @@ class SQLBase(object):
 
 	def ids(cls, user, start, amount):
 		"""\
-		ids(user, start, amount)
+		ids(user, start, amount) -> [id, ...]
 		
 		Get the last ids for this (that the user can see).
 		"""
@@ -65,7 +71,7 @@ class SQLBase(object):
 
 	def amount(cls, user):
 		"""\
-		amount(user)
+		amount(user) -> int
 
 		Get the number of records in this table (that the user can see).
 		"""
@@ -77,9 +83,9 @@ class SQLBase(object):
 
 	def realid(cls, user, id):
 		"""\
-		realid(user, id)
+		realid(user, id) -> id
 		
-		Get the real id for an object (as the user would see).
+		Get the real id for an object (from id the user sees).
 		"""
 		return id
 	realid = classmethod(realid)
@@ -103,7 +109,7 @@ class SQLBase(object):
 
 	def todict(self):
 		"""\
-		todict()
+		todict() -> dict
 
 		Turns this object into a dictionary.
 		"""
@@ -142,7 +148,7 @@ class SQLBase(object):
 			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
 				continue
 			
-			SQL += """`%(Field)s` = "%%(%(Field)s)s", """ % finfo
+			SQL += """`%(Field)s` = '%%(%(Field)s)s', """ % finfo
 		SQL = SQL[:-2]
 
 		db.query(SQL, self.todict())
@@ -190,9 +196,18 @@ class SQLBase(object):
 
 			setattr(self, key, value)
 
+	def allowed(self, user):
+		"""\
+		allowed(user) -> boolean
+
+		Returns a boolean which tells if a user can even see this object.
+		"""
+		return copy.deepcopy(self)
+
+
 	def protect(self, user):
 		"""\
-		protect(user)
+		protect(user) -> object
 
 		Returns a version of this object which shows only details which the user is 
 		allowed to see.
@@ -226,7 +241,6 @@ Extra attributes this type defines.
 			self.level = level
 			self.type = type
 			self.desc = desc
-
 	
 	def __init__(self, id=None, packet=None, type=None, typeno=None):
 		if hasattr(self, "typeno"):
@@ -250,35 +264,10 @@ Extra attributes this type defines.
 		
 		self.defaults()
 
-	def __getattr__(self, key, default=_marker):
-		if hasattr(self, 'extra') and self.extra.has_key(key):
-			# Return the extra value
-			return self.extra[key]
-		elif self.attributes.has_key(key):
-			# Return the default
-			return self.attributes[key].default
-		elif not default is _marker:
-			return default
-		raise AttributeError("%s instance has no attribute '%s'" % (self.__class__.__name__, key))
-
-	def __setattr__(self, key, value):
-		if self.attributes.has_key(key):
-			try:
-				self.extra[key] = value
-			except AttributeError:
-				self.extra = {}
-				self.extra[key] = value
-		else:
-			SQLBase.__setattr__(self, key, value)
-
 	def defaults(self):
 		"""\
-		Sets all the attributes to there default values.
+		Sets all the attributes to their default values.
 		"""
-		# Set the default attributes
-		if not hasattr(self, "extra"):
-			self.extra = {}
-		
 		for attribute in self.attributes.values():
 			if not hasattr(self, attribute.name):
 				setattr(self, attribute.name, attribute.default)
@@ -290,9 +279,31 @@ Extra attributes this type defines.
 		Loads a thing from the database.
 		"""
 		SQLBase.load(self, id)
-		self.extra = pickle.loads(self.extra)
-
+			
 		self.__upgrade__(self.type)
+
+		# Load the extra properties from the object_extra table
+		results = db.query("""SELECT name, `key`, value FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s""", 
+			tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
+		if len(results) > 0:
+			for result in results:
+				print result
+				name, key, value = result['name'], result['key'], result['value']
+				attribute = self.attributes[name]
+				
+				if type(attribute.default) is types.DictType:
+					if not hasattr(self, name):
+						setattr(self, name, {})
+
+					getattr(self, name)[key] = value
+					continue
+			
+				elif type(attribute.default) in types.SimpleTypes:
+					value = eval(value)
+				else:
+					value = pickle.loads(value)
+					
+				setattr(self, name, value)
 
 	def save(self, preserve=True):
 		"""\
@@ -300,10 +311,50 @@ Extra attributes this type defines.
 
 		Saves a thing to the database.
 		"""
-		self.extra = pickle.dumps(self.extra)
-		SQLBase.save(self)
-		if preserve:
-			self.extra = pickle.loads(self.extra)
+		db.query("BEGIN")
+		try:
+			SQLBase.save(self)
+
+			for attribute in self.attributes.values():
+				if type(attribute.default) is types.DictType:
+					for key, value in getattr(self, attribute.name):
+						if type(attribute.default) in types.SimpleTypes:
+							value = repr(getattr(self, attribute.name))
+						else:
+							value = pickle.dumps(getattr(self, attribute.name))
+							
+						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`=%(key), value='%(value)s'",
+							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
+				else:
+					if type(attribute.default) in types.SimpleTypes:
+						value = repr(getattr(self, attribute.name))
+					else:
+						value = pickle.dumps(getattr(self, attribute.name))
+					db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='', value='%(value)s'",
+						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, value=value)
+		
+		except Exception, e:
+			db.query("ROLLBACK")
+			raise
+		else:
+			db.query("COMMIT")
+
+	def remove(self):
+		"""\
+		remove()
+
+		Removes an object from the database.
+		"""
+		db.query("BEGIN")
+		try:
+			db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s", 
+				tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
+			SQLBase.remove(self)
+		except Exception, e:
+			db.query("ROLLBACK")
+			raise
+		else:
+			db.query("COMMIT")
 
 	def from_packet(self, packet):
 		"""\
@@ -316,7 +367,7 @@ Extra attributes this type defines.
 		for key, value in packet.__dict__.items():
 		
 			# Ignore special attributes
-			if key.startswith("_") or key == "extra" or key == "type":
+			if key.startswith("_") or key == "type":
 				continue
 
 			if self.attributes.has_key(key):
@@ -328,10 +379,6 @@ Extra attributes this type defines.
 				setattr(self, key, value)
 
 	def to_packet(self, sequence, args):
-		"""\
-		to_packet(packet)
-
-		"""
 		for attribute in self.attributes.values():
 			if attribute.level == "public":
 				value = getattr(self, attribute.name)

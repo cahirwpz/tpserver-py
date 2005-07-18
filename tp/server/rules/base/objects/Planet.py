@@ -5,7 +5,7 @@ from sbases.Combattant import Combattant
 class Planet(Object, Combattant):
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
-		'resources': Object.Attribute('resources', [], 'public'),
+		'resources': Object.Attribute('resources', {}, 'public'),
 	}
 	orderclasses = ('sorders.NOp', 'sorders.BuildFleet', 'sorders.Mine')
 
@@ -38,7 +38,7 @@ class Planet(Object, Combattant):
 		return (6, 2)[fail]
 
 	def resources_get(self):
-		return []	
+		return []
 
 Planet.typeno = 3
 Object.types[Planet.typeno] = Planet

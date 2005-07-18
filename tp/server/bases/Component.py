@@ -6,28 +6,25 @@ from SQL import *
 class Component(SQLBase):
 	tablename = "`component`"
 
-	def categories(cls, oid):
+	def categories(self):
 		"""\
-		Component.categories(componentid) -> [id, ...]
+		categories() -> [id, ...]
 
 		Returns the categories the component is in.
 		"""
-		results = db.query("""SELECT %(tablename)s FROM %(tablename)s_category WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)
-		return [x[cls.tablename] for x in results]
-	category = classmethod(category)
+		results = db.query("""SELECT category FROM %(tablename)s_category WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		return [x['category'] for x in results]
 
-	def properties(cls, oid):
+	def properties(self):
 		"""\
-		Component.properties(componentid) -> [(id, value), ...]
+		properties() -> [(id, value), ...]
 
 		Returns the properties the component has.
 		"""
-		results = db.query("""SELECT %(tablename)s, value FROM %(tablename)s_property WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)
-		return [(x[cls.tablename], x['value']) for x in results]
-	property = classmethod(property)
+		results = db.query("""SELECT property, value FROM %(tablename)s_property WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		return [(x['property'], x['value']) for x in results]
 
 	def to_packet(self, sequence):
-		# Preset arguments
 		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirement, self.properties())
 
 	def id_packet(cls):

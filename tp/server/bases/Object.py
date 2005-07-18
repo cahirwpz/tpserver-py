@@ -1,11 +1,12 @@
 
-from config import db, netlib
+from config import db, netlib, admin
 
 from SQL import *
 from Order import Order
 
 class Object(SQLTypedBase):
 	tablename = "`object`"
+	tablename_extra = "`object_extra`"
 	types = {}
 
 	orderclasses = {}
@@ -56,11 +57,10 @@ ORDER BY %s \
 
 	def protect(self, user):
 		o = SQLBase.protect(self, user)
-		if hasattr(o, "owner"):
-			if o.owner != user.id:
-				def empty():
-					return 0
-				o.orders = empty
+		if not (user.id in admin) and (hasattr(self.object, "owner") and self.object.owner != user.id):
+			def empty():
+				return 0
+			o.orders = empty
 
 		return o
 

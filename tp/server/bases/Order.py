@@ -1,10 +1,11 @@
 
-from config import db, netlib
+from config import db, netlib, admin
 
 from SQL import *
 
 class Order(SQLTypedBase):
 	tablename = "`order`"
+	tablename_extra = "`order_extra`"
 	types = {}
 
 	def realid(cls, oid, slot):
@@ -67,7 +68,11 @@ class Order(SQLTypedBase):
 			id = None
 			
 		SQLTypedBase.__init__(self, id, packet, type, typeno)
-	
+
+	def allowed(self, user):
+		# FIXME: This is a hack.
+		return (user.id in admin) or (hasattr(self.object, "owner") and self.object.owner == user.id)
+
 	def object(self):
 		if not hasattr(self, "_object"):
 			from Object import Object
@@ -109,6 +114,7 @@ class Order(SQLTypedBase):
 			SQLTypedBase.save(self)
 		except Exception, e:
 			db.query("ROLLBACK")
+			raise
 		else:
 			db.query("COMMIT")
 
@@ -124,6 +130,7 @@ class Order(SQLTypedBase):
 
 		except Exception, e:
 			db.query("ROLLBACK")
+			raise
 		else:
 			db.query("COMMIT")
 
