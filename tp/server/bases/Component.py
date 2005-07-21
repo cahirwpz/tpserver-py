@@ -5,6 +5,8 @@ from SQL import *
 
 class Component(SQLBase):
 	tablename = "`component`"
+	tablename_category = "`component_category`"
+	tablename_property = "`component_property`"
 
 	def categories(self):
 		"""\
@@ -12,7 +14,8 @@ class Component(SQLBase):
 
 		Returns the categories the component is in.
 		"""
-		results = db.query("""SELECT category FROM %(tablename)s_category WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+			tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
 		return [x['category'] for x in results]
 
 	def properties(self):
@@ -21,11 +24,12 @@ class Component(SQLBase):
 
 		Returns the properties the component has.
 		"""
-		results = db.query("""SELECT property, value FROM %(tablename)s_property WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		results = db.query("""SELECT property, value FROM %(tablename_property)s WHERE %(tablename)s=%(id)s""", 
+			tablename_property=self.tablename_property, tablename=self.tablename, id=self.id)
 		return [(x['property'], x['value']) for x in results]
 
 	def to_packet(self, sequence):
-		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirement, self.properties())
+		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties())
 
 	def id_packet(cls):
 		return netlib.objects.Component_IDSequence

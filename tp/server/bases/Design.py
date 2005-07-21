@@ -5,6 +5,8 @@ from SQL import *
 
 class Design(SQLBase):
 	tablename = "`design`"
+	tablename_category = "`design_category`"
+	tablename_component = "`design_component`"
 
 	def categories(self):
 		"""\
@@ -12,8 +14,19 @@ class Design(SQLBase):
 
 		Returns the categories the design is in.
 		"""
-		results = db.query("""SELECT category FROM %(tablename)s_category WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+			tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
 		return [x['category'] for x in results]
+
+	def components(self):
+		"""\
+		components() -> [id, ...]
+
+		Returns the components the design contains.
+		"""
+		results = db.query("""SELECT component FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
+			tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
+		return [x['component'] for x in results]
 
 	def valid(self):
 		"""\
@@ -34,15 +47,15 @@ class Design(SQLBase):
 			return -1
 		
 		# FIXME: This is a bit of a hack (and most probably won't work on non-MySQL)
-		results = db.query("""SELECT SUM(value) AS inplay FROM object_extra WHERE name = 'ships' AND `key` = %(key)s""", key=repr(self.id))
+		results = db.query("""SELECT SUM(value) AS inplay FROM object_extra WHERE name = 'ships' AND `key` = '%(key)s'""", key=repr(self.id))
 		try:
-			inplay = result['inplay']
+			inplay = results[0]['inplay']
 		except KeyError:
 			inplay = 0
 	
-		results = db.query("""SELECT SUM(value) as beingbuilt FROM order_extra JOIN `order` ON order.id = order_extra.order WHERE name = 'ships' AND type = 'sorders.Build' AND `key` = %(key)s""", key=repr(self.id))
+		results = db.query("""SELECT SUM(value) as beingbuilt FROM order_extra JOIN `order` ON order.id = order_extra.order WHERE name = 'ships' AND type = 'sorders.Build' AND `key` = '%(key)s'""", key=repr(self.id))
 		try:
-			beingbuilt = result['beingbuilt']
+			beingbuilt = results[0]['beingbuilt']
 		except KeyError:
 			beingbuilt = 0
 		
@@ -66,7 +79,7 @@ class Design(SQLBase):
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		return netlib.objects.Design(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.feedback(), self.properties())
+		return netlib.objects.Design(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.components(), self.feedback(), self.properties())
 
 	def id_packet(cls):
 		return netlib.objects.Design_IDSequence

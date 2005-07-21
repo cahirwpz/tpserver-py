@@ -5,6 +5,7 @@ from SQL import *
 
 class Property(SQLBase):
 	tablename = "`property`"
+	tablename_category = "`property_category`"
 
 	def categories(self):
 		"""\
@@ -12,12 +13,13 @@ class Property(SQLBase):
 
 		Returns the categories the property is in.
 		"""
-		results = db.query("""SELECT category FROM %(tablename)s_category WHERE %(tablename)s=%(id)s""", tablename=self.tablename, id=self.id)
+		results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+			tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
 		return [x['category'] for x in results]
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		return netlib.objects.Property(sequence, self.id, self.time, self.categories(), self.rank, self.name, self.desc, self.calculate)
+		return netlib.objects.Property(sequence, self.id, self.time, self.categories(), self.rank, self.display_name, self.name, self.desc, self.calculate, self.requirements)
 
 	def id_packet(cls):
 		return netlib.objects.Property_IDSequence

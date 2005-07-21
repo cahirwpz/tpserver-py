@@ -353,10 +353,10 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetID(packet, Design)
 
 	def OnProperty_Get(self, packet):
-		return self.OnGetWithID(packet, Design)
+		return self.OnGetWithID(packet, Property)
 
 	def OnProperty_GetID(self, packet):
-		return self.OnGetID(packet, Design)
+		return self.OnGetID(packet, Property)
 
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)
