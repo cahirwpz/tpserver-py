@@ -41,6 +41,7 @@ class Component(SQLBase):
 		return None
 
 	def to_packet(self, sequence):
+		print (self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties())
 		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties())
 
 	def id_packet(cls):

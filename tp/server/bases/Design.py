@@ -58,6 +58,7 @@ class Design(SQLBase):
 		return inplay+beingbuilt
 
 	def rank(self):
+		# FIXME: This is a hack, there should be a better way to do this
 		results = db.query("""SELECT DISTINCT cp.property AS id, p.rank AS rank FROM component_property AS cp JOIN property AS p ON p.id = cp.property WHERE cp.component in %s ORDER by rank""" 
 			% str(zip(*self.components())[0]).replace('L','').replace(',)',')'))
 
@@ -215,6 +216,8 @@ class Design(SQLBase):
 
 	def to_packet(self, sequence):
 		# Preset arguments
+		
+		# FIXME: The calculate function gets called 3 times when we convert to a packet
 		print (sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.components(), self.feedback(), self.properties())
 		return netlib.objects.Design(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.components(), self.feedback(), self.properties())
 

@@ -222,7 +222,28 @@ class FullConnection(netlib.ServerConnection):
 #		self._send(Sequence(packet.sequence,)
 
 	def OnOrderDesc_GetID(self, packet):
-		return False # self.OnGetID(packet, Board)	
+		if not self.check():
+			return False
+
+		# FIXME: There is a better place to put this class
+		class OrderDesc:
+			def modified(cls, user):
+				return 0
+			modified = classmethod(modified)
+			
+			def amount(cls, user):
+				return len(Order.types.keys())
+			amount = classmethod(amount)
+			
+			def ids(cls, user, start, amount):
+				return [(id, 0) for id in Order.types.keys()[start:amount]]
+			ids = classmethod(ids)
+		
+			def id_packet(cls):
+				return netlib.objects.OrderDesc_IDSequence
+			id_packet = classmethod(id_packet)
+
+		return self.OnGetID(packet, OrderDesc)	
 
 	def OnOrderDesc_Get(self, packet):
 		if not self.check():
