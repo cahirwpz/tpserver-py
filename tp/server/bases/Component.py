@@ -28,6 +28,18 @@ class Component(SQLBase):
 			tablename_property=self.tablename_property, tablename=self.tablename, id=self.id)
 		return [(x['property'], x['value']) for x in results]
 
+	def property(self, id):
+		"""\
+		property(property_id) -> property_value_function
+
+		Returns the property value function for this component given a property id
+		"""
+		results = db.query("""SELECT value FROM %(tablename_property)s WHERE %(tablename)s=%(cid)s AND property=%(pid)s""", 
+			tablename_property=self.tablename_property, tablename=self.tablename, cid=self.id, pid=id)
+		if len(results) == 1:
+			return results[0]['value']
+		return None
+
 	def to_packet(self, sequence):
 		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties())
 

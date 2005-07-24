@@ -53,7 +53,24 @@ Supports the following:
 			- Can get components from server
 			- Can get properties from server
 
+		Scheme Design support
+			- Designs calculate properties
+			- Designs check requirements and provide feedback
+			- Designs correctly produce
+
 Still need to be done:
+
+		Find all FIXME in the code and actually fix them. 
+		
+		There are a lot of places where hacks have been added to get stuff working. These 
+		need to be cleaned up.
+
+		Optimisation and Caching. There are plenty of places for optimisation, currently
+		tpserver-py is quite slow and could easily be much faster. The addition of caching
+		of many things would speed up the server dramatically.
+
+		Remove duplicate code. There are a bunch of places which have very similar code, it
+		might be a good idea to clean these up.
 
 		Make reparenting use a sphere (instead of the current cube)
 
@@ -84,7 +101,3 @@ Still need to be done:
 			- Tests adding and removing every order
 			- Tests message board stuff
 			- Tests manipulating the design stuff (include categories, designs, components and properties)
-
-		Scheme order support
-			- Orders calculate properties
-		

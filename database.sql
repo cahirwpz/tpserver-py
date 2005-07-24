@@ -200,7 +200,7 @@ CREATE TABLE `design_component` (
 -- Dumping data for table `design_component`
 --
 
-INSERT INTO `design_component` VALUES (1, 1, 1);
+INSERT INTO `design_component` VALUES (1, 1, 2);
 
 
 -- (1,'Generic Base Component A'
@@ -339,9 +339,9 @@ INSERT INTO `property` VALUES
 		(cons n \
 			(string-append (number->string n) \" Slots\"))))',
 '(lambda (design) \
-	(if (< (designtype.slots design) 0) \
-		(cons #f \"Too many generic slots are used\") \
-		(cons #t \"\")))', 
+	(if (> (designtype.slots design) 0) \
+		(cons #t \"\") \
+		(cons #f \"Too many generic slots are used\")))', 
 'Generic slots must not go negative. Is formated like \"12 Slots\"',
 	0),
 (2,'mass','Mass','How massive (heavy) something is.',10,
@@ -396,7 +396,7 @@ INSERT INTO `property` VALUES
 '(lambda (design bits) \
 	(let ((n (apply + bits))) \
 		(cons n \"\")))',
-'(lambda (design) #t)',
+'(lambda (design) (cons #t \"\"))',
 'A hidden property which just counts the number of hulls in a design',
 		0);
 
