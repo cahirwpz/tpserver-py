@@ -287,7 +287,6 @@ Extra attributes this type defines.
 			tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
 		if len(results) > 0:
 			for result in results:
-				print result
 				name, key, value = result['name'], result['key'], result['value']
 				attribute = self.attributes[name]
 				
@@ -317,16 +316,12 @@ Extra attributes this type defines.
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
-					print attribute.name, getattr(self, attribute.name).items()
 					for key, value in getattr(self, attribute.name).items():
 						if type(attribute.default) in types.SimpleTypes:
 							value = repr(getattr(self, attribute.name))
 						else:
 							value = pickle.dumps(getattr(self, attribute.name))
 						
-						print "self.id -->", repr(self.id)
-						print "key   ---->", repr(key)
-						print "value ---->", repr(value)
 						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`=%(key)s, value='%(value)s'",
 							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
 				else:
