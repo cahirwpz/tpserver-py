@@ -104,7 +104,7 @@ def ReparentOne(obj):
 
 def main():
 	# Connect to the database
-	db.query("BEGIN")
+	db.begin()
 
 	try:
 		# Use the corret database
@@ -134,10 +134,10 @@ def main():
 		# Reparent the universe
 		
 	except:
-		db.query("ROLLBACK")
+		db.rollback()
 		raise
 	else:
-		db.query("COMMIT")
+		db.commit()
 	
 if __name__ == "__main__":
 	main()

@@ -28,7 +28,7 @@ dbconfig.database = "tp"
 db.connect(dbconfig)
 
 # Introduce artifical lag
-lag = 0
+lag = 1
 
 # Admin users
 admin = (1,)
@@ -61,4 +61,3 @@ order = [sorders.BuildFleet,
 		 sorders.Colonise,
 		 sactions.Heal,
 		]
-

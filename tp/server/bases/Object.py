@@ -57,7 +57,7 @@ ORDER BY %s \
 
 	def protect(self, user):
 		o = SQLBase.protect(self, user)
-		if not (user.id in admin) and (hasattr(self.object, "owner") and self.object.owner != user.id):
+		if not (user.id in admin) and (hasattr(self, "owner") and self.owner != user.id):
 			def empty():
 				return 0
 			o.orders = empty

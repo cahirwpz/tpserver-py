@@ -311,19 +311,23 @@ Extra attributes this type defines.
 
 		Saves a thing to the database.
 		"""
-		db.query("BEGIN")
+		db.begin()
 		try:
 			SQLBase.save(self)
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
-					for key, value in getattr(self, attribute.name):
+					print attribute.name, getattr(self, attribute.name).items()
+					for key, value in getattr(self, attribute.name).items():
 						if type(attribute.default) in types.SimpleTypes:
 							value = repr(getattr(self, attribute.name))
 						else:
 							value = pickle.dumps(getattr(self, attribute.name))
-							
-						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`=%(key), value='%(value)s'",
+						
+						print "self.id -->", repr(self.id)
+						print "key   ---->", repr(key)
+						print "value ---->", repr(value)
+						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`=%(key)s, value='%(value)s'",
 							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
 				else:
 					if type(attribute.default) in types.SimpleTypes:
@@ -334,10 +338,10 @@ Extra attributes this type defines.
 						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, value=value)
 		
 		except Exception, e:
-			db.query("ROLLBACK")
+			db.rollback()
 			raise
 		else:
-			db.query("COMMIT")
+			db.commit()
 
 	def remove(self):
 		"""\
@@ -345,16 +349,16 @@ Extra attributes this type defines.
 
 		Removes an object from the database.
 		"""
-		db.query("BEGIN")
+		db.begin()
 		try:
 			db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s", 
 				tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
 			SQLBase.remove(self)
 		except Exception, e:
-			db.query("ROLLBACK")
+			db.rollback()
 			raise
 		else:
-			db.query("COMMIT")
+			db.commit()
 
 	def from_packet(self, packet):
 		"""\

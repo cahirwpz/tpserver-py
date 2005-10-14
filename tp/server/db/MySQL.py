@@ -9,6 +9,36 @@ def connect(config):
 	global connection
 	
 	connection = MySQLdb.connect(config.host, config.user, config.password, config.database)
+	connection.query("SET AUTOCOMMIT=0")
+
+def begin():
+	global connection
+
+	if not hasattr(connection, 'tlevel'):
+		connection.tlevel = 0
+		query("BEGIN")
+	else:
+		connection.tlevel += 1
+
+def commit():
+	global connection
+	
+	if not hasattr(connection, 'tlevel'):
+		raise "Commit called when no transaction!"
+	elif connection.tlevel > 0:
+		connection.tlevel -= 1
+	else:
+		del connection.tlevel
+		query("COMMIT")
+
+def rollback():
+	global connection
+
+	if not hasattr(connection, 'tlevel'):
+		print "Rollback called when no transaction!"
+	else:
+		del connection.tlevel
+	query("ROLLBACK")
 
 def query(query, kw1=None, **kw2):
 	global connection

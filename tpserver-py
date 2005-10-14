@@ -26,12 +26,12 @@ from sbases.User      import User
 from sbases.Resource  import Resource
 
 class FullConnection(netlib.ServerConnection):
+
 	def __init__(self, *args, **kw):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
 
 	def check(self):
-		db.query("COMMIT") # This is needed as we turned off autocommit mode.
 		if self.user == None:
 			return False
 		else:
@@ -385,6 +385,7 @@ class FullConnection(netlib.ServerConnection):
 
 class FullServer(netlib.Server):
 	handler = FullConnection
+	debug = False
 
 	def __init__(self, host, port="6923"):
 		netlib.Server.__init__(self, host, port)

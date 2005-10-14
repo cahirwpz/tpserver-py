@@ -18,7 +18,7 @@ This tool lets you do admin type stuff to your server database.
 	--delete
 		Delete a game.
 
-	--generate <key> <max number> <min number>
+	--generate <key> <min number> <max number>
 		Generates a universe for the game. 
 		Will use the key in the random number generator, use -1 to use the 
 		current unix timestamp.
@@ -183,7 +183,7 @@ def main():
 		print __doc__
 		return
 
-	db.query("BEGIN")
+	db.begin()
 	db.query("USE tp")
 	
 	try:
@@ -203,10 +203,10 @@ def main():
 			print "Unknown operation."
 
 	except:
-		db.query("ROLLBACK")
+		db.rollback()
 		raise
 	else:
-		db.query("COMMIT")
+		db.commit()
 	
 if __name__ == "__main__":
 	main()

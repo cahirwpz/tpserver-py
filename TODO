@@ -89,6 +89,8 @@ Still need to be done:
 
 		Remove MySQLism and go to a portable SQL and use SQLdb.
 
+		Make the database use forgien keys properly.
+
 		Rewrite the permission stuff (allowed/protect) to actually use permissions 
 			- Allow people to give permissions to other people
 			- Administrator can do anything

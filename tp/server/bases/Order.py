@@ -97,14 +97,14 @@ class Order(SQLTypedBase):
 			self.save()
 
 		except Exception, e:
-			db.query("ROLLBACK")
+			db.rollback()
 			raise
 		else:
-			db.query("COMMIT")
+			db.commit()
 
 	def save(self):
 		try:
-			db.query("BEGIN")
+			db.begin()
 			
 			self.object.save()	
 			if not hasattr(self, 'id'):
@@ -113,14 +113,14 @@ class Order(SQLTypedBase):
 					self.id = id
 			SQLTypedBase.save(self)
 		except Exception, e:
-			db.query("ROLLBACK")
+			db.rollback()
 			raise
 		else:
-			db.query("COMMIT")
+			db.commit()
 
 	def remove(self):
 		try:
-			db.query("BEGIN")
+			db.begin()
 			
 			# Move the other orders down
 			db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
@@ -129,10 +129,10 @@ class Order(SQLTypedBase):
 			SQLTypedBase.remove(self)
 
 		except Exception, e:
-			db.query("ROLLBACK")
+			db.rollback()
 			raise
 		else:
-			db.query("COMMIT")
+			db.commit()
 
 	def to_packet(self, sequence):
 		# Preset arguments
