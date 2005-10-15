@@ -8,10 +8,24 @@ import time
 
 from config import db
 
-import types
 # These types go through repr fine
+import types
 types.SimpleTypes = [types.BooleanType, types.ComplexType, types.FloatType, 
 					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
+
+types.SimpleCompoundTypes = [types.ListType, types.TupleType]
+def isSimpleType(value):
+	if type(value) in types.SimpleTypes:
+		return True
+	
+	elif type(value) in types.SimpleCompoundTypes:
+		for subvalue in value:
+			if not isSimpleType(subvalue):
+				return False
+		return True
+		
+	else:
+		return False
 
 def quickimport(s):
 	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
@@ -294,10 +308,10 @@ Extra attributes this type defines.
 					if not hasattr(self, name):
 						setattr(self, name, {})
 
-					getattr(self, name)[key] = value
+					getattr(self, name)[eval(key)] = eval(value)
 					continue
 			
-				elif type(attribute.default) in types.SimpleTypes:
+				elif isSimpleType(attribute.default):
 					value = eval(value)
 				else:
 					value = pickle.loads(value)
@@ -317,15 +331,20 @@ Extra attributes this type defines.
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
 					for key, value in getattr(self, attribute.name).items():
-						if type(attribute.default) in types.SimpleTypes:
-							value = repr(getattr(self, attribute.name))
+						if not isSimpleType(key):
+							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
 						else:
-							value = pickle.dumps(getattr(self, attribute.name))
+							key = repr(key)
 						
-						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`=%(key)s, value='%(value)s'",
+						if not isSimpleType(value):
+							raise ValueError("The value %s with key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
+						else:
+							value = repr(value)
+						
+						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='%(key)s', value='%(value)s'",
 							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
 				else:
-					if type(attribute.default) in types.SimpleTypes:
+					if isSimpleType(attribute.default):
 						value = repr(getattr(self, attribute.name))
 					else:
 						value = pickle.dumps(getattr(self, attribute.name))
