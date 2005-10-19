@@ -61,7 +61,10 @@ ORDER BY %s \
 			def empty():
 				return 0
 			o.orders = empty
-
+			
+			def empty():
+				return []
+			o.ordertypes = empty
 		return o
 
 	def remove(self):

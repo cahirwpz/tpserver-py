@@ -156,7 +156,7 @@ class FullConnection(netlib.ServerConnection):
 
 				# Is the user allowed to access this object?
 				if not o.allowed(self.user):
-					print "ERROR: No permission for %s with id %s." % (type, )
+					print "ERROR: No permission for %s with id %s." % (type, id)
 					self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
 				else:
 					# Protect certain details from a user (ie if can see only some of the object)
