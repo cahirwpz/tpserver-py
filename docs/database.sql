@@ -32,7 +32,7 @@ CREATE TABLE "board" (
 --
 
 CREATE TABLE "category" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "name" tinytext NOT NULL,
   "desc" text,
   "time" bigint(20) NOT NULL default '0',
@@ -54,7 +54,7 @@ INSERT INTO "category" VALUES (5,'Electrical','Things which go beep and consume 
 --
 
 CREATE TABLE "component" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "name" tinytext NOT NULL,
   "desc" text NOT NULL,
   "requirements" blob,
@@ -131,7 +131,7 @@ INSERT INTO "component_property" VALUES (4,6,'(lambda (design) 1)','Hull A provi
 --
 
 CREATE TABLE "design" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "name" tinytext NOT NULL,
   "desc" text NOT NULL,
   "owner" bigint(20) NOT NULL default '0',
@@ -183,7 +183,7 @@ INSERT INTO "design_component" VALUES (1,1,2);
 --
 
 CREATE TABLE "message" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "bid" bigint(20) NOT NULL default '0',
   "slot" bigint(20) NOT NULL default '0',
   "subject" tinyblob NOT NULL,
@@ -201,7 +201,7 @@ CREATE TABLE "message" (
 --
 
 CREATE TABLE "object" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "type" varchar(255) NOT NULL default '',
   "name" tinyblob NOT NULL,
   "size" bigint(20) NOT NULL default '0',
@@ -246,7 +246,7 @@ INSERT INTO "object_extra" VALUES (0,'turn','','0');
 --
 
 CREATE TABLE "order" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "type" varchar(255) NOT NULL default '',
   "oid" bigint(20) NOT NULL default '0',
   "slot" bigint(20) NOT NULL default '0',
@@ -281,7 +281,7 @@ CREATE TABLE "order_extra" (
 --
 
 CREATE TABLE "property" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "name" tinytext NOT NULL,
   "display_name" tinytext NOT NULL,
   "desc" text NOT NULL,
@@ -365,7 +365,7 @@ INSERT INTO "property_category" VALUES (5,1);
 --
 
 CREATE TABLE "resource" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "namesingular" tinytext NOT NULL,
   "nameplural" tinytext NOT NULL,
   "unitsingular" tinytext NOT NULL,
@@ -387,7 +387,7 @@ CREATE TABLE "resource" (
 --
 
 CREATE TABLE "user" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(20) NOT NULL default '0',
   "username" tinyblob NOT NULL,
   "password" tinyblob NOT NULL,
   "time" bigint(20) NOT NULL default '0',
