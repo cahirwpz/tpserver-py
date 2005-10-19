@@ -7,7 +7,7 @@ USE tp;
 -- Server version	4.1.14-Debian_4-log
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL323' */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL40' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
@@ -20,7 +20,7 @@ CREATE TABLE `board` (
   `desc` blob NOT NULL,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `board`
@@ -37,7 +37,7 @@ CREATE TABLE `category` (
   `desc` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `category`
@@ -61,7 +61,7 @@ CREATE TABLE `component` (
   `comment` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `component`
@@ -84,7 +84,7 @@ CREATE TABLE `component_category` (
   `category` bigint(20) NOT NULL default '0',
   `comment` text,
   PRIMARY KEY  (`component`,`category`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `component_category`
@@ -108,7 +108,7 @@ CREATE TABLE `component_property` (
   `value` blob NOT NULL,
   `comment` text,
   PRIMARY KEY  (`component`,`property`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `component_property`
@@ -137,7 +137,7 @@ CREATE TABLE `design` (
   `owner` bigint(20) NOT NULL default '0',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `design`
@@ -153,7 +153,7 @@ CREATE TABLE `design_category` (
   `design` bigint(20) NOT NULL default '0',
   `category` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`design`,`category`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `design_category`
@@ -170,7 +170,7 @@ CREATE TABLE `design_component` (
   `component` bigint(20) NOT NULL default '0',
   `amount` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`design`,`component`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `design_component`
@@ -189,7 +189,7 @@ CREATE TABLE `message` (
   `subject` tinyblob NOT NULL,
   `body` blob NOT NULL,
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `message`
@@ -214,7 +214,7 @@ CREATE TABLE `object` (
   `parent` bigint(20) NOT NULL default '-1',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `object`
@@ -233,7 +233,7 @@ CREATE TABLE `object_extra` (
   `key` varchar(128) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`object`,`name`,`key`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `object_extra`
@@ -252,7 +252,7 @@ CREATE TABLE `order` (
   `slot` bigint(20) NOT NULL default '0',
   `worked` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `order`
@@ -269,7 +269,7 @@ CREATE TABLE `order_extra` (
   `key` varchar(128) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`order`,`name`,`key`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `order_extra`
@@ -291,7 +291,7 @@ CREATE TABLE `property` (
   `comment` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `property`
@@ -348,7 +348,7 @@ CREATE TABLE `property_category` (
   `property` bigint(20) NOT NULL default '0',
   `category` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`property`,`category`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `property_category`
@@ -375,7 +375,7 @@ CREATE TABLE `resource` (
   `size` bigint(20) NOT NULL default '0',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `resource`
@@ -392,7 +392,7 @@ CREATE TABLE `user` (
   `password` tinyblob NOT NULL,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-);
+) TYPE=InnoDB;
 
 --
 -- Dumping data for table `user`
