@@ -5,7 +5,7 @@ The server requires the following python packages,
 
 libtpproto-py - The Thousand Parsec protocol stack
 pyscheme      - Python implimentation of Scheme
-
+                http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/
 
 README    - This file
 TODO      - Things which need to be done

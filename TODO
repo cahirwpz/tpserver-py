@@ -24,7 +24,6 @@ Supports the following:
 		Category_GetID
 		Component_GetByID
 		Component_GetID
-		
 
         Orders actually do stuff
 			Move order works (Reparenting needs testing)
@@ -59,6 +58,8 @@ Supports the following:
 			- Designs correctly produce
 
 Still need to be done:
+
+		Remove the included pyscheme and make it work with the default pyscheme install.
 
 		Find all FIXME in the code and actually fix them. 
 		
