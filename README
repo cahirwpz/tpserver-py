@@ -4,8 +4,10 @@ a real server try cpp-server.
 The server requires the following python packages,
 
 libtpproto-py - The Thousand Parsec protocol stack
-pyscheme      - Python implimentation of Scheme
+pyscheme-1.6  - Python implimentation of Scheme
                 http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/
+MySQL-4.0     - The server uses mysql for it's database, you must have
+                a version which has InnoDB for it to work.
 
 README    - This file
 TODO      - Things which need to be done

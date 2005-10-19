@@ -11,6 +11,38 @@ def connect():
 	
 	connection = sqlite.connect(config.database).db
 
+
+def begin():
+	global connection
+
+	if hasattr(connection, 'tlevel'):
+		print "BEGIN ++"
+		connection.tlevel += 1
+	else:
+		connection.tlevel = 0
+		query("BEGIN")
+
+def commit():
+	global connection
+	
+	if not hasattr(connection, 'tlevel'):
+		raise "Commit called when no transaction!"
+	elif connection.tlevel > 0:
+		print "COMMIT --"
+		connection.tlevel -= 1
+	else:
+		del connection.tlevel
+		query("COMMIT")
+
+def rollback():
+	global connection
+
+	if not hasattr(connection, 'tlevel'):
+		print "Rollback called when no transaction!"
+	else:
+		del connection.tlevel
+	query("ROLLBACK")
+
 def query(query, kw1=None, **kw2):
 	global connection
 
