@@ -230,7 +230,7 @@ INSERT INTO `object` VALUES (1,'sobjects.Galaxy','The Milky Way',10000000000,0,0
 CREATE TABLE `object_extra` (
   `object` bigint(20) NOT NULL default '0',
   `name` varchar(255) NOT NULL default '',
-  `key` varchar(255) NOT NULL default '',
+  `key` varchar(128) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`object`,`name`,`key`)
 );
@@ -266,7 +266,7 @@ CREATE TABLE `order` (
 CREATE TABLE `order_extra` (
   `order` bigint(20) NOT NULL default '0',
   `name` varchar(255) NOT NULL default '',
-  `key` varchar(255) NOT NULL default '',
+  `key` varchar(128) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`order`,`name`,`key`)
 );
