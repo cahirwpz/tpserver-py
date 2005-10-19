@@ -82,7 +82,7 @@ class Order(SQLTypedBase):
 
 	def insert(self):
 		try:
-			db.query("BEGIN")
+			db.begin()
 		
 			number = self.number(self.oid)
 			if self.slot == -1:
@@ -138,6 +138,7 @@ class Order(SQLTypedBase):
 		# Preset arguments
 		args = [sequence, self.oid, self.slot, self.typeno, self.turns(), self.resources()]
 		SQLTypedBase.to_packet(self, sequence, args)
+		print self, args
 		return netlib.objects.Order(*args)
 
 	def from_packet(self, packet):

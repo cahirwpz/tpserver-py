@@ -36,6 +36,7 @@ class FullConnection(netlib.ServerConnection):
 			return False
 		else:
 			db.query("USE %(db)s", db=self.user.domain())
+			db.query("COMMIT")
 		return True
 
 	def OnGetWithID(self, packet, type):
@@ -120,7 +121,6 @@ class FullConnection(netlib.ServerConnection):
 			left = total - (packet.start+packet.amount)
 		
 		ids = type.ids(self.user, packet.start, packet.amount)
-		print "Returning ", ids
 		self._send(type.id_packet()(packet.sequence, key, left, ids))
 
 		return True

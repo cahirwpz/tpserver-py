@@ -251,11 +251,15 @@ Extra attributes this type defines.
 				raise ValueError("Invalid access level for attribute.")
 
 			self.name = name
-			self.default = default
+			self._default = default
 			self.level = level
 			self.type = type
 			self.desc = desc
-	
+
+		def get_default(self):
+			return copy.deepcopy(self._default)
+		default = property(get_default)
+
 	def __init__(self, id=None, packet=None, type=None, typeno=None):
 		if hasattr(self, "typeno"):
 			typeno = self.typeno

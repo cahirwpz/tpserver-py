@@ -14,11 +14,12 @@ def connect(config):
 def begin():
 	global connection
 
-	if not hasattr(connection, 'tlevel'):
+	if hasattr(connection, 'tlevel'):
+		print "BEGIN ++"
+		connection.tlevel += 1
+	else:
 		connection.tlevel = 0
 		query("BEGIN")
-	else:
-		connection.tlevel += 1
 
 def commit():
 	global connection
@@ -26,6 +27,7 @@ def commit():
 	if not hasattr(connection, 'tlevel'):
 		raise "Commit called when no transaction!"
 	elif connection.tlevel > 0:
+		print "COMMIT --"
 		connection.tlevel -= 1
 	else:
 		del connection.tlevel
