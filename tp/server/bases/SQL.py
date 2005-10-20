@@ -152,10 +152,10 @@ class SQLBase(object):
 		self.time = time.time()
 		
 		# Build SQL query, there must be a better way to do this...
-		if hasattr(self, 'id') and self.id == 0:
-			SQL = """UPDATE %(tablename)s SET """
-		else:
+		if hasattr(self, 'id'):
 			SQL = """REPLACE %(tablename)s SET """
+		else:
+			SQL = """INSERT %(tablename)s SET """
 
 		# FIXME: This is MySQL specific....
 		for finfo in self._description():
@@ -169,6 +169,7 @@ class SQLBase(object):
 
 		if not hasattr(self, 'id'):
 			self.id = db.connection.insert_id()
+			print "Newly inserted id is", self.id
 
 	def remove(self):
 		"""\
@@ -306,6 +307,9 @@ Extra attributes this type defines.
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']
+
+				if not self.attributes.has_key(name):
+					continue
 				attribute = self.attributes[name]
 				
 				if type(attribute.default) is types.DictType:
