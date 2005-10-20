@@ -16,7 +16,7 @@ echo "USE tp;" 				>> ./db/database.mysql
 
 # Dump the database
 # We need to rewrite Universe and NOp to -1
-mysqldump -h localhost -u tp -p tp --add-drop-table -Q --skip-disable-keys --skip-add-locks --skip-opt --create-options \
+mysqldump -h localhost -u tp -p tp --add-drop-table -Q --skip-disable-keys --skip-add-locks --skip-opt --compatible=mysql40 --create-options \
 	| sed -e"s/(0,'sobjects.Universe','The Universe/(-1,'sobjects.Universe','The Universe/" -e's/\\n/\n/g' >> ./db/database.mysql
 
 # We need to add the fix db stuff
