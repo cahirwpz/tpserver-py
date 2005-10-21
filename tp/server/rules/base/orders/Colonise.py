@@ -56,6 +56,11 @@ The order has been removed.""" % (planet.name, fleet.name)
 
 			self.remove()
 			return
+
+		message.subject = "Colonise success."
+		message.body = """\
+Colonise of %s succeded.""" % (planet.name,)
+		message.insert()
 		
 		planet.owner = fleet.owner
 		fleet.ships[Frigate] -= 1
