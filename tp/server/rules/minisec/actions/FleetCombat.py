@@ -6,6 +6,7 @@ import random
 
 from turn import WalkUniverse
 from sbases.Combattant import Combattant
+from sbases.Message import Message
 
 class Choice:
 	choices = ('Rock', 'Paper', 'Scissors')
@@ -97,7 +98,7 @@ def combat(pos, class1, class2):
 		
 	for owner in participants:
 		m = Message()
-		m.bid = obj.owner
+		m.bid = owner
 		m.slot = Message.number(m.bid)
 		
 		m.body = ""
@@ -137,7 +138,7 @@ def do(top):
 	WalkUniverse(top, "before", h, d)
 
 	for pos, fleets in d.items():
-		if len(fleets[0]+fleets[1]) > 1:
+		if len(fleets[0]+fleets[1]) < 2:
 			continue
 			
 		if len(dict.fromkeys([fleet.owner for fleet in fleets[0]+fleets[1]])) <= 1:
