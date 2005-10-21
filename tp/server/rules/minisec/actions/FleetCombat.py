@@ -48,10 +48,12 @@ def combat(pos, class1, class2):
 	while True:
 		owners = dict.fromkeys([fleet.owner for fleet in class1+class2])
 		if len(owners) <= 1:
+			print "Nobody left apart from ", owners.keys()
 			break
 
 		working = list(class1)
-		if len(working) <= 1:
+		if len((dict.fromkeys([fleet.owner for fleet in class1])).items()) <= 1:
+			print "Adding planets into combat because the somebody has run out of ships."
 			working += class2
 
 		#
@@ -63,28 +65,36 @@ def combat(pos, class1, class2):
 			if red.owner != blue.owner:
 				break
 		
+		print "The following will do combat", red, blue
+	
 		#
 		# Do the combat
 		#
 		choices = (Choice(rand=rand), Choice(rand=rand))
 		if choices[0] >= choices[1]:
-			blue.damage_do(red.damage_get(choices[0] == choices[1]))
+			damage = red.damage_get(choices[0] == choices[1])
+			print red, "won the round! Doing ", damage, "hp of damage to", blue
+			blue.damage_do(damage)
 		if choices[0] <= choices[1]:
-			red.damage_do(blue.damage_get(choices[0] == choices[1]))
+			damage = blue.damage_get(choices[0] == choices[1])
+			print blue, "won the round! Doing ", damage, "hp of damage to", red
+			red.damage_do(damage)
 
 		#
 		# See is anything has died
 		#
 		for fleet in blue, red:
 			if fleet.dead():
-				print "Dead", fleet
 				if fleet in class1:
 					if not fleet.ghost():
+						print "Fleet", fleet, "reduced to non-combat ships!"
 						messages.append((fleet.owner, "fleet %s was reduced to non-combat ships." % fleet.name))
 					else:
+						print "Fleet", fleet, "reduced was destroyed!"
 						messages.append((fleet.owner, "fleet %s was destroyed in the battle." % fleet.name))
 					class1.remove(fleet)
 				elif fleet in class2:
+					print "Planet", fleet, "was depopulated!"
 					messages.append((fleet.owner, "planet %s was depopulated in the battle." % fleet.name))
 					class2.remove(fleet)
 					fleet.owner = 0
