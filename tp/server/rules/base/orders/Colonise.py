@@ -36,6 +36,18 @@ The order has been removed.""" % (planet.name, planet.name)
 			self.remove()
 			return
 
+		if planet.owner != 0:
+			message.body = """\
+Colonise of %s failed because %s is already colonised by %s!
+You can decolonised the planet by bombing the bejesus out of it.
+The order has been removed.""" % (planet.name, planet.owner)
+			message.insert()
+
+			self.remove()
+			return
+
+			
+
 		if not fleet.ships.has_key(Frigate) or fleet.ships[Frigate] < 1:
 			message.body = """\
 Colonise of %s failed because %s does not have any Frigates!
