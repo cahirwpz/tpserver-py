@@ -45,7 +45,7 @@ Build a new star ship fleet."""
 		fleet.save()
 
 		message = Message()
-		message.slot = 0
+		message.slot = -1
 		message.bid = builder.owner
 		message.subject = "Fleet built"
 		

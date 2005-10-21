@@ -20,6 +20,7 @@ def do(top):
 		
 		m = Message()
 		m.bid = winner
+		m.slot = -1
 		m.subject = "Yay!"
 		m.body = """\
 <h1>You are the undisputed ruler of the universe!</h1>

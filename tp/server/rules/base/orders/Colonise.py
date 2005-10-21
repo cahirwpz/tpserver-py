@@ -23,7 +23,7 @@ Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 
 		# Do checks :)
 		message = Message()
-		message.slot = 0
+		message.slot = -1
 		message.bid = fleet.owner
 		message.subject = "Colonise failed."
 		

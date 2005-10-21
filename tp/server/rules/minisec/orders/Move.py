@@ -63,7 +63,7 @@ Move to a point in space.
 			# Send a message to the owner that the object has arrived...
 			message = Message()
 			message.bid = obj.owner
-			message.slot = Message.number(message.bid)
+			message.slot = -1
 			message.subject = "%s arrived" % obj.name
 			message.body = """%s has arrive at it's destination.""" % obj.name
 			message.insert()

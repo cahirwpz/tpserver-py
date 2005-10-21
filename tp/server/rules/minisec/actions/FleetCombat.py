@@ -111,7 +111,7 @@ def combat(pos, class1, class2):
 	for owner in participants:
 		m = Message()
 		m.bid = owner
-		m.slot = Message.number(m.bid)
+		m.slot = -1
 		
 		m.body = ""
 		if owner == winner:

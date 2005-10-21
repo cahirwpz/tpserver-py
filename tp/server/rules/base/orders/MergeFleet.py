@@ -28,7 +28,7 @@ Merge two fleets together.
 			fleet2 = Object(self.fleet)
 
 		message = Message()
-		message.slot = 0
+		message.slot = -1
 		message.bid = fleet1.owner
 		message.subject = "Merge Fleet failed."
 		
