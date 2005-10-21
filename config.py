@@ -51,6 +51,7 @@ import sorders.Colonise
 import sactions.Clean
 import sactions.FleetCombat
 import sactions.Heal
+import sactions.Win
 
 # The order orders and actions occur
 order = [sorders.BuildFleet,
@@ -64,5 +65,5 @@ order = [sorders.BuildFleet,
 		 sorders.Colonise,
 		 sactions.Clean,
 		 sactions.Heal,
-		 sactions.Clean,
+		 sactions.Win,
 		]
