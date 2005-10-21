@@ -88,14 +88,14 @@ def combat(pos, class1, class2):
 				if fleet in class1:
 					if not fleet.ghost():
 						print "Fleet", fleet, "reduced to non-combat ships!"
-						messages.append((fleet.owner, "fleet %s was reduced to non-combat ships." % fleet.name))
+						messages.append((fleet.owner, "fleet %s was reduced to non-combat ships.<br>" % fleet.name))
 					else:
 						print "Fleet", fleet, "was destroyed!"
-						messages.append((fleet.owner, "fleet %s was destroyed in the battle." % fleet.name))
+						messages.append((fleet.owner, "fleet %s was destroyed in the battle.<br>" % fleet.name))
 					class1.remove(fleet)
 				elif fleet in class2:
 					print "Planet", fleet, "was depopulated!"
-					messages.append((fleet.owner, "planet %s was depopulated in the battle." % fleet.name))
+					messages.append((fleet.owner, "planet %s was depopulated in the battle.<br>" % fleet.name))
 					class2.remove(fleet)
 					
 					fleet.owner = 0
@@ -116,23 +116,22 @@ def combat(pos, class1, class2):
 		m.body = ""
 		if owner == winner:
 			m.subject = "Battle won!"
-			m.body += "You have been victorious in a battle at %s, %s, %s.\n" % pos
+			m.body += "You have been <b>victorious</b> in a battle at %s, %s, %s.<br>" % pos
 		else:
 			m.subject = "Battle lost!"
-			m.body += "You have been defeated in a battle at %s, %s, %s.\n" % pos
+			m.body += "You have been <b>defeated</b> in a battle at %s, %s, %s.<br>" % pos
 			
-		m.body += "\nSummary as follows:\n"
+		m.body += "<br>Summary as follows:<br>"
 
 		you = ""
 		other = ""
 		for downer, message in messages:
 			if downer != owner:
-				other += "\t%s's %s\n" % (downer, message)
+				other += "\t<li>%s's %s</li>\n" % (downer, message)
 			else:
-				you += "\tYour %s\n" % message
+				you += "\t<li>Your %s</li>\n" % message
 				
-		m.body += you
-		m.body += other
+		m.body += "<ul>%s</ul><ul>%s</ul>" % (you, other)
 		m.insert()
 
 def do(top):

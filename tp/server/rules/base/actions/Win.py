@@ -13,7 +13,6 @@ def do(top):
 			owners[obj.owner] = None
 
 	WalkUniverse(top, "after", h)
-	print "The following players still have objects in the universe", owners.keys()
 	if len(owners.keys()) == 1:
 		winner = owners.keys()[0]
 		print "It seems that %i is the only player left so must be the winner!" % winner
@@ -27,4 +26,5 @@ def do(top):
 You have crushed all your enemies and now only you remain.
 It's a lonely place at the top but you'll live."""
 		m.insert()
-
+	else:
+		print "The following players still have objects in the universe", owners.keys()
