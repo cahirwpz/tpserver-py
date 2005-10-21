@@ -29,7 +29,7 @@ Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 		
 		if planet.type != 'sobjects.Planet':
 			message.body = """\
-Colonise of %s failed because %s is not a Planet!
+Colonise of %s <b>failed</b> because %s is not a Planet!<br>
 The order has been removed.""" % (planet.name, planet.name)
 			message.insert()
 
@@ -38,7 +38,7 @@ The order has been removed.""" % (planet.name, planet.name)
 
 		if planet.owner != 0:
 			message.body = """\
-Colonise of %s failed because %s is already colonised by %s!
+Colonise of %s <b>failed</b> because %s is already colonised by %s!<br>
 You can decolonised the planet by bombing the bejesus out of it.
 The order has been removed.""" % (planet.name, planet.owner)
 			message.insert()
@@ -50,7 +50,7 @@ The order has been removed.""" % (planet.name, planet.owner)
 
 		if not fleet.ships.has_key(Frigate) or fleet.ships[Frigate] < 1:
 			message.body = """\
-Colonise of %s failed because %s does not have any Frigates!
+Colonise of %s <b>failed</b> because %s does not have any Frigates!<br>
 The order has been removed.""" % (planet.name, fleet.name)
 			message.insert()
 
@@ -59,7 +59,7 @@ The order has been removed.""" % (planet.name, fleet.name)
 
 		message.subject = "Colonise success."
 		message.body = """\
-Colonise of %s succeded.""" % (planet.name,)
+Colonisation of %s <b>succeded</b>.""" % (planet.name,)
 		message.insert()
 		
 		planet.owner = fleet.owner
