@@ -60,8 +60,8 @@ class Message(SQLBase):
 		SQLBase.remove(self)
 
 	def to_packet(self, sequence):
-		# Preset arguments
-		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body)
+		# FIXME: The reference system needs to be added and so does the turn
+		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body, 0, [])
 
 	def from_packet(self, packet):
 		SQLBase.from_packet(self, packet)
