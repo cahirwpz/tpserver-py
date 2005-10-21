@@ -131,7 +131,7 @@ class Design(SQLBase):
 				value, display = scheme.pair.car(total), scheme.pair.cdr(total)
 
 				print "In total I got '%i' which will be displayed as '%s'" % (value, display)
-				design[property.name] = (property_id, value, display)
+				design[property.name] = (property_id, display)
 
 				def t(design, name=property.name):
 					return design[name][1]
