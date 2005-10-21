@@ -93,11 +93,14 @@ def combat(pos, class1, class2):
 						print "Fleet", fleet, "was destroyed!"
 						messages.append((fleet.owner, "fleet %s was destroyed in the battle." % fleet.name))
 					class1.remove(fleet)
+					fleet.save()
 				elif fleet in class2:
 					print "Planet", fleet, "was depopulated!"
 					messages.append((fleet.owner, "planet %s was depopulated in the battle." % fleet.name))
 					class2.remove(fleet)
+					
 					fleet.owner = 0
+					fleet.save()
 
 	messages.sort()
 	# Build messages for all the participants
