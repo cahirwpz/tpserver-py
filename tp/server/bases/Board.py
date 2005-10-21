@@ -51,7 +51,7 @@ class Board(SQLBase):
 	ids = classmethod(ids)
 
 	def to_packet(self, sequence):
-		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id))
+		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time)
 
 	def id_packet(cls):
 		return netlib.objects.Board_IDSequence
