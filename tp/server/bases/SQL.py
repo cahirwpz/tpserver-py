@@ -337,7 +337,10 @@ Extra attributes this type defines.
 			SQLBase.save(self)
 
 			for attribute in self.attributes.values():
+				print "attributes", attribute
 				if type(attribute.default) is types.DictType:
+					db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s AND name='%(name)s'",
+						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name)
 					for key, value in getattr(self, attribute.name).items():
 						if not isSimpleType(key):
 							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
@@ -349,7 +352,7 @@ Extra attributes this type defines.
 						else:
 							value = repr(value)
 						
-						db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='%(key)s', value='%(value)s'",
+						db.query("INSERT INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='%(key)s', value='%(value)s'",
 							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
 				else:
 					if isSimpleType(attribute.default):
