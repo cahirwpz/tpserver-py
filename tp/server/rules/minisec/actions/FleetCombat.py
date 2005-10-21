@@ -84,9 +84,9 @@ def combat(pos, class1, class2):
 					else:
 						messages.append((fleet.owner, "fleet %s was destroyed in the battle." % fleet.name))
 					class1.remove(fleet)
-				elif red in class2:
+				elif fleet in class2:
 					messages.append((fleet.owner, "planet %s was depopulated in the battle." % fleet.name))
-					class1.remove(fleet)
+					class2.remove(fleet)
 					fleet.owner = 0
 
 	messages.sort()
