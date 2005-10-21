@@ -49,17 +49,6 @@ def OrderGet(top, d={}):
 
 	WalkUniverse(top, "before", o)
 
-def Clean(top):
-	"""
-	Walks around the universe cleaning up ghost objects.
-	"""
-	def c(obj):
-		if obj.ghost():
-			print "Removing %s because it's a ghost." % obj.id
-			obj.remove()
-
-	WalkUniverse(top, "after", c)
-
 def ReparentOne(obj):
 	# Reparent the object
 	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby="size ASC")
@@ -129,9 +118,6 @@ def main():
 			elif type.startswith("sactions"):
 				__import__(type, globals(), locals(), ["do"]).do(Object(0))
 		
-		# Cleanup any "dead" objects
-		Clean(Object(0))
-
 		# Reparent the universe
 		
 	except:

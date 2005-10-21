@@ -48,6 +48,7 @@ import sorders.MergeFleet
 import sorders.Colonise
 
 #import sactions.Move
+import sactions.Clean
 import sactions.FleetCombat
 import sactions.Heal
 
@@ -55,9 +56,13 @@ import sactions.Heal
 order = [sorders.BuildFleet,
 		 sorders.SplitFleet,
 		 sorders.MergeFleet,
+		 sactions.Clean,
 		 sorders.NOp,
 		 sorders.Move, # sactions.Move, sorders.Move,
 		 sactions.FleetCombat,
+		 sactions.Clean,
 		 sorders.Colonise,
+		 sactions.Clean,
 		 sactions.Heal,
+		 sactions.Clean,
 		]

@@ -90,7 +90,7 @@ def combat(pos, class1, class2):
 						print "Fleet", fleet, "reduced to non-combat ships!"
 						messages.append((fleet.owner, "fleet %s was reduced to non-combat ships." % fleet.name))
 					else:
-						print "Fleet", fleet, "reduced was destroyed!"
+						print "Fleet", fleet, "was destroyed!"
 						messages.append((fleet.owner, "fleet %s was destroyed in the battle." % fleet.name))
 					class1.remove(fleet)
 				elif fleet in class2:
