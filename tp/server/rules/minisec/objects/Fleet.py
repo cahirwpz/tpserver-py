@@ -1,8 +1,8 @@
 
 from types import TupleType, ListType
 
-from sbases.Object import Object
-from sbases.Combattant import Combattant
+from tp.server.bases.Object import Object
+from tp.server.bases.Combattant import Combattant
 
 class Fleet(Object, Combattant):
 	attributes = { \

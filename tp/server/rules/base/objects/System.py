@@ -1,5 +1,5 @@
 
-from sbases.Object import Object
+from tp.server.bases.Object import Object
 
 class System(Object):
 	attributes = {}

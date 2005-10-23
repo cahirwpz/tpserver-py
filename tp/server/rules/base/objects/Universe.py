@@ -1,5 +1,5 @@
 
-from sbases.Object import Object
+from tpserver.bases.Object import Object
 
 class Universe(Object):
 	attributes = {'turn': Object.Attribute('turn', 0, 'public')}

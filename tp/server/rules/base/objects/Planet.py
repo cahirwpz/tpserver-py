@@ -1,6 +1,6 @@
 
-from sbases.Object import Object
-from sbases.Combattant import Combattant
+from tp.server.bases.Object import Object
+from tp.server.bases.Combattant import Combattant
 
 class Planet(Object, Combattant):
 	attributes = { \
