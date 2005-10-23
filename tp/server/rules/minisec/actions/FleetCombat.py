@@ -4,9 +4,10 @@ This module impliments combat as found in the MiniSec document.
 
 import random
 
-from turn import WalkUniverse
-from sbases.Combattant import Combattant
-from sbases.Message import Message
+from tp.server.bases.Combattant import Combattant
+from tp.server.bases.Message import Message
+
+from tp.server.utils import WalkUniverse
 
 class Choice:
 	choices = ('Rock', 'Paper', 'Scissors')

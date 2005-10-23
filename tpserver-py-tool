@@ -36,23 +36,24 @@ This tool lets you do admin type stuff to your server database.
 		Removes a user from the game.
 """
 
+
 import sys
+sys.path.append("/etc/tpserver-py")
+import config
+
 import random
 
-import config
 from config import netlib, db
 
-from turn import ReparentOne
-
-from sbases.User import User
-from sbases.Board import Board
-from sbases.Message import Message
-from sbases.Object import Object
+from tp.server.utils import ReparentOne
+from tp.server.bases.User import User
+from tp.server.bases.Board import Board
+from tp.server.bases.Message import Message
+from tp.server.bases.Object import Object
 
 SIZE = 10000000
 	
 def adduser(game, username, password):
-
 	fullusername = "%s@%s" % (username, game)
 
 	# Check the user doesn't already exist
@@ -98,7 +99,7 @@ You are currently in the game %s.
 	print "Putting homeworld at", pos
 
 	# Add homesystem
-	homesystem = Object(type='sobjects.System')
+	homesystem = Object(type='tp.server.rules.base.objects.System')
 	homesystem.name = "%s's System" % username
 	homesystem.size = random.randint(800000, 2000000)
 	homesystem.parent = 0
@@ -110,7 +111,7 @@ You are currently in the game %s.
 	print "Homeworld has the id:", homesystem.id
 	
 	# Add homeworld
-	homeworld = Object(type='sobjects.Planet')
+	homeworld = Object(type='tp.server.rules.base.objects.Planet')
 	homeworld.name = "%s's Homeworld" % username
 	homeworld.size = 1000
 	homeworld.parent = homesystem.id
@@ -125,7 +126,7 @@ You are currently in the game %s.
 	print "Adding %s planet's for fun!" % extraplanets
 
 	for planet in range(0, extraplanets):
-		extra = Object(type='sobjects.Planet')
+		extra = Object(type='tp.server.rules.base.objects.Planet')
 		extra.name = "Planet %s %s" % (username, planet)
 		extra.size = random.randint(1000, 10000)
 		extra.parent = homesystem.id
@@ -135,7 +136,7 @@ You are currently in the game %s.
 		print "Extra planet has the id:", extra.id
 
 	# Add inital fleet
-	fleet = Object(type='sobjects.Fleet')
+	fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
 	fleet.name = "First Fleet"
 	fleet.size = 1
 	fleet.parent = homeworld.id
@@ -156,7 +157,7 @@ def generate(game, key=-1, min=0, max=12):
 		pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
 		
 		# Add system
-		system = Object(type='sobjects.System')
+		system = Object(type='tp.server.rules.base.objects.System')
 		system.name = "System %s" % i
 		system.size = random.randint(800000, 2000000)
 		system.posx = pos[0]
@@ -168,7 +169,7 @@ def generate(game, key=-1, min=0, max=12):
 		
 		# In each system create a number of planets
 		for j in range(0, random.randint(min, max)):
-			planet = Object(type='sobjects.Planet')
+			planet = Object(type='tp.server.rules.base.objects.Planet')
 			planet.name = "Planet %i" % (i*max + j)
 			planet.size = random.randint(1000, 10000)
 			planet.parent = system.id

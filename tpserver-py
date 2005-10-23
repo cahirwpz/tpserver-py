@@ -1,10 +1,13 @@
 #! /usr/bin/env python
 
+import sys
+sys.path.append("/etc/tpserver-py")
+import config
+
 import copy
 import pickle
 import time
 
-import config
 from config import db, netlib
 
 OK = netlib.objects.OK
@@ -13,17 +16,17 @@ Sequence = netlib.objects.Sequence
 constants = netlib.objects.constants
 
 # Base objects
-from sbases.SQL       import NoSuch
-from sbases.Board     import Board
-from sbases.Category  import Category
-from sbases.Component import Component
-from sbases.Design    import Design
-from sbases.Message   import Message
-from sbases.Object    import Object
-from sbases.Order     import Order
-from sbases.Property  import Property
-from sbases.User      import User
-from sbases.Resource  import Resource
+from tp.server.bases.SQL       import NoSuch
+from tp.server.bases.Board     import Board
+from tp.server.bases.Category  import Category
+from tp.server.bases.Component import Component
+from tp.server.bases.Design    import Design
+from tp.server.bases.Message   import Message
+from tp.server.bases.Object    import Object
+from tp.server.bases.Order     import Order
+from tp.server.bases.Property  import Property
+from tp.server.bases.User      import User
+from tp.server.bases.Resource  import Resource
 
 class FullConnection(netlib.ServerConnection):
 

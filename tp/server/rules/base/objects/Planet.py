@@ -7,7 +7,7 @@ class Planet(Object, Combattant):
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'resources': Object.Attribute('resources', {}, 'public'),
 	}
-	orderclasses = ('sorders.NOp', 'sorders.BuildFleet', 'sorders.Mine')
+	orderclasses = ('tp.server.rules.base.orders.NOp', 'tp.server.rules.minisec.orders.BuildFleet')
 
 	def ghost(self):
 		"""\

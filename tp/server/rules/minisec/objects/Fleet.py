@@ -10,8 +10,11 @@ class Fleet(Object, Combattant):
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
-	orderclasses = ('sorders.NOp', 'sorders.Move', 'sorders.SplitFleet', 'sorders.MergeFleet',
-					'sorders.Colonise',)
+	orderclasses = ('tp.server.rules.base.orders.NOp', 
+					'tp.server.rules.minisec.orders.Move',
+					'tp.server.rules.minisec.orders.SplitFleet',
+					'tp.server.rules.minisec.orders.MergeFleet',
+					'tp.server.rules.base.orders.Colonise',)
 
 	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
 	ship_hp = {0: 2, 1:4, 2:6}

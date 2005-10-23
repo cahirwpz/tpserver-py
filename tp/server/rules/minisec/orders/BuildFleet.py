@@ -5,7 +5,7 @@ from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
 
-from tp.server.bases.minisec.objects.Fleet import Fleet
+from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class BuildFleet(Order):
 	"""\

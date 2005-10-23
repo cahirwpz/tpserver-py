@@ -1,4 +1,6 @@
 
+from tp.server.bases.Object import Object
+
 def WalkUniverse(top, order, callback, *args, **kw):
 	"""\
 	Walks around the universe and calls a command for each object.

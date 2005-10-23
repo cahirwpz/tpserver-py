@@ -2,9 +2,8 @@
 Heals a fleet to full health if they are orbiting a friendly planet.
 """
 
-from turn import WalkUniverse
-
-from sbases.Object import Object
+from tp.server.bases.Object import Object
+from tp.server.utils import WalkUniverse
 
 def do(top):
 	def h(obj):
