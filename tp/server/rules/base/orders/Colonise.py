@@ -2,9 +2,9 @@
 import math
 from config import netlib
 
-from sbases.Order import Order
-from sbases.Object import Object
-from sbases.Message import Message
+from tp.server.bases.Order import Order
+from tp.server.bases.Object import Object
+from tp.server.bases.Message import Message
 
 Frigate = 1
 

@@ -18,7 +18,7 @@ class config:
 	pass
 
 # Database config
-import db.MySQL as db
+import tp.server.db.MySQL as db
 db = db
 dbconfig = config()
 dbconfig.host = "localhost"
@@ -34,36 +34,36 @@ lag = 1
 admin = (1,)
 
 # Add ruleset imports below here
-import sobjects.Universe
-import sobjects.Galaxy
-import sobjects.System
-import sobjects.Planet
-import sobjects.Fleet
 
-import sorders.NOp
-import sorders.Move
-import sorders.BuildFleet
-import sorders.SplitFleet
-import sorders.MergeFleet
-import sorders.Colonise
+# Generic
+import tp.server.rules.base.objects.Universe
+import tp.server.rules.base.objects.Galaxy
+import tp.server.rules.base.objects.System
+import tp.server.rules.base.objects.Planet
+import tp.server.rules.base.orders.NOp
+import tp.server.rules.base.orders.Move
+import tp.server.rules.base.orders.SplitFleet
+import tp.server.rules.base.orders.MergeFleet
+import tp.server.rules.base.orders.Colonise
+#import tp.server.rules.base.actions.Move
+import tp.server.rules.base.actions.Clean
+import tp.server.rules.base.actions.Win
 
-#import sactions.Move
-import sactions.Clean
-import sactions.FleetCombat
-import sactions.Heal
-import sactions.Win
+import tp.server.rules.minisec.objects.Fleet
+import tp.server.rules.minisec.orders.BuildFleet
+import tp.server.rules.minisec.actions.FleetCombat
+import tp.server.rules.minisec.actions.Heal
 
 # The order orders and actions occur
-order = [sorders.BuildFleet,
-		 sorders.SplitFleet,
-		 sorders.MergeFleet,
-		 sactions.Clean,
-		 sorders.NOp,
-		 sorders.Move, # sactions.Move, sorders.Move,
-		 sactions.FleetCombat,
-		 sactions.Clean,
-		 sorders.Colonise,
-		 sactions.Clean,
-		 sactions.Heal,
-		 sactions.Win,
+order = [tp.server.rules.minisec.orders.BuildFleet,
+		 tp.server.rules.base.orders.SplitFleet,
+		 tp.server.rules.base.orders.MergeFleet,
+		 tp.server.rules.base.actions.Clean,
+		 tp.server.rules.base.orders.NOp,
+		 tp.server.rules.base.orders.Move,
+		 tp.server.rules.minisec.actions.FleetCombat,
+		 tp.server.rules.base.orders.Colonise,
+		 tp.server.rules.base.actions.Clean,
+		 tp.server.rules.minisec.actions.Heal,
+		 tp.server.rules.base.actions.Win,
 		]

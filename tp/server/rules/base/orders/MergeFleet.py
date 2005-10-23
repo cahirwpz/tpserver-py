@@ -2,10 +2,10 @@
 import copy
 from config import netlib
 
-from sbases.SQL import NoSuch
-from sbases.Object import Object
-from sbases.Order import Order
-from sbases.Message import Message
+from tp.server.bases.SQL import NoSuch
+from tp.server.bases.Object import Object
+from tp.server.bases.Order import Order
+from tp.server.bases.Message import Message
 
 from sobjects.Fleet import Fleet
 
