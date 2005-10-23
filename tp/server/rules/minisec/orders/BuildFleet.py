@@ -1,11 +1,11 @@
 
 from config import netlib
 
-from sbases.Object import Object
-from sbases.Order import Order
-from sbases.Message import Message
+from tp.server.bases.Object import Object
+from tp.server.bases.Order import Order
+from tp.server.bases.Message import Message
 
-from sobjects.Fleet import Fleet
+from tp.server.bases.minisec.objects.Fleet import Fleet
 
 class BuildFleet(Order):
 	"""\
