@@ -1,10 +1,8 @@
 """\
-This module impliments combat as found in the MiniSec document.
+This action removes objects which are ghosts.
 """
 
-import random
-
-from turn import WalkUniverse
+from tp.server.utils import WalkUniverse
 
 def do(top):
 	"""

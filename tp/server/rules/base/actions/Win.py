@@ -1,5 +1,5 @@
 """\
-Heals a fleet to full health if they are orbiting a friendly planet.
+This action sends the player a message to the winning player.
 """
 
 from turn import WalkUniverse
