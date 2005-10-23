@@ -1,6 +1,5 @@
 
-
-class Action:
+class Action(object):
 	"""\
 	Anything that happens without requiring the user to initiate.
 	Some examples would be Combat or growing the Population.
