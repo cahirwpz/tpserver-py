@@ -2,11 +2,11 @@
 import math
 from config import netlib
 
-from turn import ReparentOne
-
 from tp.server.bases.Order import Order
 from tp.server.bases.Object import Object
 from tp.server.bases.Message import Message
+
+from tp.server.utils import ReparentOne
 
 class Move(Order):
 	"""\

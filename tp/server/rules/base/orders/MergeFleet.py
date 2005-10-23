@@ -7,8 +7,6 @@ from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
 
-from sobjects.Fleet import Fleet
-
 class MergeFleet(Order):
 	"""\
 Merge two fleets together.
@@ -33,7 +31,7 @@ Merge two fleets together.
 		message.subject = "Merge Fleet failed."
 		
 		# Check the other object is actually a fleet...
-		if self.fleet == -1 or fleet2.type != 'sobjects.Fleet':
+		if self.fleet == -1 or fleet2.type.endswith('Fleet'):
 			# Send message about the owner not matching...
 			message.body = """\
 The merge failed (of %s) because the merge target wasn't a fleet!

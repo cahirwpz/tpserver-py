@@ -2,9 +2,8 @@
 This action sends the player a message to the winning player.
 """
 
-from turn import WalkUniverse
-
-from sbases.Message import Message
+from tp.server.bases.Message import Message
+from tp.server.utils import WalkUniverse
 
 def do(top):
 	owners = {}
