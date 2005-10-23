@@ -4,6 +4,7 @@ import sys
 sys.path.append("/etc/tpserver-py")
 import config
 
+from tp.server.utils import *
 from config import db, netlib
 
 def main():

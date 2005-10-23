@@ -1,5 +1,6 @@
 
 from tp.server.bases.Object import Object
+from tp.server.bases.Order import Order
 
 def WalkUniverse(top, order, callback, *args, **kw):
 	"""\
