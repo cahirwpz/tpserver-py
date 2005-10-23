@@ -13,7 +13,7 @@ class Fleet(Object, Combattant):
 	orderclasses = ('tp.server.rules.base.orders.NOp', 
 					'tp.server.rules.minisec.orders.Move',
 					'tp.server.rules.minisec.orders.SplitFleet',
-					'tp.server.rules.minisec.orders.MergeFleet',
+					'tp.server.rules.base.orders.MergeFleet',
 					'tp.server.rules.base.orders.Colonise',)
 
 	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}

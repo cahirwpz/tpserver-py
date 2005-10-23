@@ -28,7 +28,6 @@ def isSimpleType(value):
 		return False
 
 def quickimport(s):
-	print s
 	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
 
 class NoSuch(Exception):
