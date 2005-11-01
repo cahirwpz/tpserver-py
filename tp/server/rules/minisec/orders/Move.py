@@ -22,42 +22,27 @@ Move to a point in space.
 		# We are going to have to modify the object so lets load it
 		obj = Object(self.oid)
 
-		if not hasattr(obj, "owner"):
-			# Ekk we can't build an object if we don't have an owner...
-			print "Could not do a move order because it was on an unownable object."
-			self.remove()
-		
-		# Is this the first time we are moving?
-		if (obj.velx, obj.vely, obj.velz) == (0,0,0):
-			# Set the velocity
-			obj.velx = math.ceil((self.pos[0] - obj.posx) / 2)
-			obj.vely = math.ceil((self.pos[1] - obj.posy) / 2)
-			obj.velz = math.ceil((self.pos[2] - obj.posz) / 2)
+		# Work out what the maximum speed of this object is
+		speed = obj.speed()
 
-		if obj.velx != 0 or obj.vely != 0 or obj.velz != 0:
-			# Move the object
-			obj.posx, obj.posy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
+		xd, yd, zd = self.pos[0] - obj.posx, self.pos[1] - obj.posy, self.pos[2] - obj.posz
 
-			# Just to make sure we don't get a division by zero error
-			def div(a, b):
-				try:
-					return a/b
-				except ZeroDivisionError:
-					return 0
-
-			# Make sure that we haven't missed the object
-			if div(self.pos[0] - obj.posx, obj.velx) < 0 or \
-				div(self.pos[1] - obj.posy, obj.vely) < 0 or \
-				div(self.pos[2] - obj.posz, obj.velz) < 0:
+		# Make sure that we haven't missed the object
+		if (obj.velx, obj.vely, obj.velz) != (0,0,0):
+			if xd*obj.velx < 0 or yd*obj.vely < 0 or zd*obj.velz < 0:
+				print "Object %i has overshot destination %s to (%i, %i, %i)" % \
+					(obj.id, self.pos[0], obj.velx, obj.vely, obj.velz)
 				obj.posx, obj.posy, obj.posz = self.pos
-		
-		# Reparent the object
-		ReparentOne(obj)
-		print "New object parent is", obj.parent
+				ReparentOne(obj)
+				obj.save()
 
-		pos = obj.posx, obj.posy, obj.posz
-		if self.pos == pos:
+		# Have we reached our destination?
+		if self.pos == (obj.posx, obj.posy, obj.posz):
+			print "Object %i has arrived at destination (%i, %i, %i)" % \
+					(obj.id, obj.velx, obj.vely, obj.velz)
 			obj.velx = obj.vely = obj.velz = 0
+			obj.save()
+			
 			self.remove()
 
 			# Send a message to the owner that the object has arrived...
@@ -65,13 +50,30 @@ Move to a point in space.
 			message.bid = obj.owner
 			message.slot = -1
 			message.subject = "%s arrived" % obj.name
-			message.body = """%s has arrive at it's destination.""" % obj.name
+			message.body = """%s has arrive at it's destination (%i, %i, %i).""" % \
+								(obj.name, obj.posx, obj.posy, obj.posz)
 			message.insert()
+			return
 
-		obj.save()
+		# Are we moving at the right speed?
+		if abs(obj.velx**2 + obj.vely**2 + obj.velx**2 - speed**2) > (0.01*speed)**2:
+			distance = math.sqrt(xd**2 + yd**2 + zd**2)
+			
+			# Set the velocity so we are moving towards self.pos at speed
+			obj.velx = math.ceil(min(speed * xd/distance, xd))
+			obj.vely = math.ceil(min(speed * yd/distance, yd))
+			obj.velz = math.ceil(min(speed * zd/distance, zd))
+		
+			print "Setting velocity of object %i to (%i, %i, %i)" % (obj.id, obj.velx, obj.vely, obj.velz)
+			obj.save()
+
 
 	def turns(self, turns=0):
-		return 2 + turns
+		obj = Object(self.oid)
+		xd, yd, zd = self.pos[0] - obj.posx, self.pos[1] - obj.posy, self.pos[2] - obj.posz
+		distance = math.sqrt(xd**2 + yd**2 + zd**2)
+		
+		return math.ceil(distance/obj.speed()) + turns
 
 	def resources(self):
 		return []

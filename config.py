@@ -46,7 +46,7 @@ import tp.server.rules.minisec.objects.Fleet
 import tp.server.rules.base.orders.NOp as NOp
 import tp.server.rules.base.orders.MergeFleet as MergeFleet
 import tp.server.rules.base.orders.Colonise as Colonise
-#import tp.server.rules.base.actions.Move as Move
+import tp.server.rules.base.actions.Move as MoveAction
 import tp.server.rules.base.actions.Clean as Clean
 import tp.server.rules.base.actions.Win as Win
 
@@ -62,6 +62,8 @@ order = [BuildFleet,
 		 MergeFleet,
 		 Clean,
 		 NOp,
+		 Move,
+		 MoveAction,
 		 Move,
 		 FleetCombat,
 		 Colonise,

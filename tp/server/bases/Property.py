@@ -19,7 +19,7 @@ class Property(SQLBase):
 
 	def to_packet(self, sequence):
 		# Preset arguments
-		return netlib.objects.Property(sequence, self.id, self.time, self.categories(), self.rank, self.display_name, self.name, self.desc, self.calculate, self.requirements)
+		return netlib.objects.Property(sequence, self.id, self.time, self.categories(), self.rank, self.name, self.display_name, self.desc, self.calculate, self.requirements)
 
 	def id_packet(cls):
 		return netlib.objects.Property_IDSequence

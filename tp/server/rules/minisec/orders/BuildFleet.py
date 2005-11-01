@@ -30,7 +30,7 @@ Build a new star ship fleet."""
 			return
 			
 		# Build new fleet object
-		fleet = Object(type='sobjects.Fleet')
+		fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
 
 		# Type Fleet
 		fleet.parent = builder.id

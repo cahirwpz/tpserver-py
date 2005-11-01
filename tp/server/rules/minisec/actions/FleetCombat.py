@@ -137,13 +137,18 @@ def combat(pos, class1, class2):
 
 def do(top):
 	def h(obj, d):
+		# Check the object can go into combat
 		if not isinstance(obj, Combattant):
+			return
+
+		# Check the object isn't owned by the universe
+		if obj.owner == -1:
 			return
 
 		pos = obj.posx, obj.posy, obj.posz
 		if not d.has_key(pos):
 			d[pos] = [[], []]
-			
+
 		d[pos][obj.type == "sobjects.Planet"].append(obj)
 
 	d = {}

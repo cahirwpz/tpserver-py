@@ -4,6 +4,8 @@ from types import TupleType, ListType
 from tp.server.bases.Object import Object
 from tp.server.bases.Combattant import Combattant
 
+UNIT = 300000000
+
 class Fleet(Object, Combattant):
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
@@ -19,6 +21,7 @@ class Fleet(Object, Combattant):
 	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
 	ship_hp = {0: 2, 1:4, 2:6}
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
+	ship_speed = {0: 3*UNIT, 1: 2*UNIT, 2: 1*UNIT}
 
 	def fn_ships(self, value=None):
 		if value == None:
@@ -58,6 +61,15 @@ class Fleet(Object, Combattant):
 		self.tidy()
 		return len(self.ships.keys()) < 1
 
+	#############################################
+	# Movement functions
+	#############################################
+	def speed(self):
+		"""\
+		Returns the maximum speed of the fleet.
+		"""
+		return self.ship_speed[max(self.ships.keys())]
+	
 	#############################################
 	# Combat functions
 	#############################################

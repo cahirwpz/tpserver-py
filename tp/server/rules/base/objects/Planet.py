@@ -26,7 +26,7 @@ class Planet(Object, Combattant):
 		"""
 		return self.damage > 12
 	
-	def damage_set(self, damage):
+	def damage_do(self, damage):
 		if type(amount) in (TupleType, ListType):
 			for a in amount:
 				self.damage_do(a)
