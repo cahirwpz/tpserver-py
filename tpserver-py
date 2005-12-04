@@ -7,6 +7,7 @@ import config
 import copy
 import pickle
 import time
+import socket
 
 from config import db, netlib
 
@@ -110,7 +111,7 @@ class FullConnection(netlib.ServerConnection):
 		total = type.amount(self.user)
 		
 		if packet.key != -1 and key != packet.key:
-			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Key is no longer valid, please get a new key." % (packet.start+packet.length, total)))
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Key %s is no longer valid, please get a new key." % (packet.key,)))
 			return True
 		
 		if packet.start+packet.amount > total:
@@ -179,9 +180,11 @@ class FullConnection(netlib.ServerConnection):
 			constants.FEATURE_ORDERED_OBJECT,
 			constants.FEATURE_ORDERED_ORDERDESC,
 			constants.FEATURE_ORDERED_BOARD,
-			constants.FEATURE_ORDERED_RESOURCE,
 			constants.FEATURE_ORDERED_CATEGORY,
-			constants.FEATURE_ORDERED_COMPONENT]))
+			constants.FEATURE_ORDERED_DESIGN,
+			constants.FEATURE_ORDERED_COMPONENT,
+			constants.FEATURE_ORDERED_PROPERTY,
+			constants.FEATURE_ORDERED_RESOURCE,]))
 		return True
 
 	def OnLogin(self, packet):
@@ -388,10 +391,7 @@ class FullConnection(netlib.ServerConnection):
 
 class FullServer(netlib.Server):
 	handler = FullConnection
-	debug = False
-
-	def __init__(self, host, port="6923"):
-		netlib.Server.__init__(self, host, port)
+	debug = True
 
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
@@ -402,12 +402,13 @@ def main():
 	port = 6923
 	while True:
 		try:
-			s = FullServer("", port=port)
+			s = FullServer("", port, port+1)
 			print "Used port", port
-		except:
-			print "This port in use...", port
+		except socket.error, e:
+			print e, "This port in use...", port
 			port += 1
 			continue
+		
 		try:
 			import signal
 
