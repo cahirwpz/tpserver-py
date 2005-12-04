@@ -8,6 +8,12 @@ from tp.server.bases.Message import Message
 
 from tp.server.utils import ReparentOne
 
+def away(x):
+	if x < 0:
+		return int(-math.ceil(-x))
+	else: 
+		return int(math.ceil(x))
+
 class Move(Order):
 	"""\
 Move to a point in space.
@@ -60,11 +66,14 @@ Move to a point in space.
 			distance = math.sqrt(xd**2 + yd**2 + zd**2)
 			
 			# Set the velocity so we are moving towards self.pos at speed
-			obj.velx = math.ceil(min(speed * xd/distance, xd))
-			obj.vely = math.ceil(min(speed * yd/distance, yd))
-			obj.velz = math.ceil(min(speed * zd/distance, zd))
+			obj.velx = away(min(speed * xd/distance, xd))
+			obj.vely = away(min(speed * yd/distance, yd))
+			obj.velz = away(min(speed * zd/distance, zd))
 		
-			print "Setting velocity of object %i to (%i, %i, %i)" % (obj.id, obj.velx, obj.vely, obj.velz)
+			print "Setting velocity of object %i to %r currently at %r destination %r" % (obj.id, 
+				(obj.velx, obj.vely, obj.velz),
+				(obj.posx, obj.posy, obj.posz),
+				self.pos)
 			obj.save()
 
 
@@ -73,7 +82,7 @@ Move to a point in space.
 		xd, yd, zd = self.pos[0] - obj.posx, self.pos[1] - obj.posy, self.pos[2] - obj.posz
 		distance = math.sqrt(xd**2 + yd**2 + zd**2)
 		
-		return math.ceil(distance/obj.speed()) + turns
+		return away(distance/obj.speed()) + turns
 
 	def resources(self):
 		return []
