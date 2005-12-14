@@ -3,6 +3,7 @@
 import sys
 sys.path.append("/etc/tpserver-py")
 import config
+from types import TupleType
 
 from tp.server.utils import *
 from config import db, netlib
@@ -21,17 +22,30 @@ def main():
 		d = {}
 		OrderGet(Object(0), d)
 
-		for type in [str(m.__name__) for m in config.order]:
-			print type
-			if "orders" in type:
-				if not d.has_key(type):
+		for action in config.order:
+			if type(action) == TupleType:
+				action, args = action[0], action[1:]
+			else:
+				args = tuple()
+			
+			name = str(action.__name__)
+			if "orders" in name:
+				sys.stdout.write(r"[01;32m")
+				print name, args
+				sys.stdout.write(r"[00m")
+			
+				if not d.has_key(name):
 					continue
 
-				for order in d[type]:
-					order.do()
+				for order in d[name]:
+					order.do(*args)
 		
-			elif "actions" in type:
-				__import__(type, globals(), locals(), ["do"]).do(Object(0))
+			elif "actions" in name:
+				sys.stdout.write(r"[01;34m")
+				print name, args
+				sys.stdout.write(r"[00m")
+			
+				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
 		
 		# Reparent the universe
 		

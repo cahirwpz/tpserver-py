@@ -2,7 +2,13 @@
 
 import MySQLdb
 import time
+import sys
 from array import ArrayType
+
+def output(s):
+	sys.stdout.write(r"[01;30m")
+	print s
+	sys.stdout.write(r"[00m")
 
 connection = None
 def connect(config):
@@ -15,7 +21,7 @@ def begin():
 	global connection
 
 	if hasattr(connection, 'tlevel'):
-		print "BEGIN ++"
+		output( "BEGIN ++" )
 		connection.tlevel += 1
 	else:
 		connection.tlevel = 0
@@ -27,7 +33,7 @@ def commit():
 	if not hasattr(connection, 'tlevel'):
 		raise "Commit called when no transaction!"
 	elif connection.tlevel > 0:
-		print "COMMIT --"
+		output( "COMMIT --" )
 		connection.tlevel -= 1
 	else:
 		del connection.tlevel
@@ -37,7 +43,7 @@ def rollback():
 	global connection
 
 	if not hasattr(connection, 'tlevel'):
-		print "Rollback called when no transaction!"
+		output( "Rollback called when no transaction!" )
 	else:
 		del connection.tlevel
 	query("ROLLBACK")
@@ -53,7 +59,7 @@ def query(query, kw1=None, **kw2):
 
 	connection.ping()
 	sql = query % kw2
-	print sql
+	output( sql )
 	connection.query(sql)
 	
 	result = connection.use_result()
@@ -77,6 +83,6 @@ def query(query, kw1=None, **kw2):
 
 if __name__ == "__main__":
 	connect()
-	print connection
-	print query("select * from user;")
-	print query("describe user;")	
+	output( connection )
+	output( query("select * from user;") )
+	output( query("describe user;")	 )
