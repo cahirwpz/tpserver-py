@@ -143,7 +143,7 @@ You are currently in the game %s.
 	fleet.posx = homeworld.posx
 	fleet.posy = homeworld.posy
 	fleet.owner = user.id
-	fleet.ships = {0:1}
+	fleet.ships = {1:1}
 	fleet.insert()
 	print "Fleet has the id:", fleet.id
 

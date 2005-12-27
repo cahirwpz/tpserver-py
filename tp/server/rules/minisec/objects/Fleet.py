@@ -1,12 +1,28 @@
 
+from config import db
 from types import TupleType, ListType
 
 from tp.server.bases.Object import Object
+from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
 
 UNIT = 300000000
 
+class ShipTypes(type):
+	def ship_types(self):
+		results = db.query("""SELECT id, name, owner FROM %(tablename)s WHERE owner""", tablename=Design.tablename)
+
+		r = {}
+		for x in results:
+			r[x['id']] = x['name']
+
+		return r
+	ship_types = property(ship_types)
+	
+
 class Fleet(Object, Combattant):
+	__metaclass__ = ShipTypes
+	
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
@@ -17,8 +33,7 @@ class Fleet(Object, Combattant):
 					'tp.server.rules.minisec.orders.SplitFleet',
 					'tp.server.rules.base.orders.MergeFleet',
 					'tp.server.rules.base.orders.Colonise',)
-
-	ship_types = {0: "Scout", 1:"Frigate", 2:"Battleship"}
+	
 	ship_hp = {0: 2, 1:4, 2:6}
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
 	ship_speed = {0: 3*UNIT, 1: 2*UNIT, 2: 1*UNIT}

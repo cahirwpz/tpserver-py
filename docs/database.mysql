@@ -144,6 +144,9 @@ CREATE TABLE `design` (
 --
 
 INSERT INTO `design` VALUES (1,'Test','A design for testing',1,0);
+INSERT INTO `design` VALUES (2,'Scout','MiniSec Scout design',-1,0);
+INSERT INTO `design` VALUES (3,'Frigate','A MiniSec Frigate design',-1,0);
+INSERT INTO `design` VALUES (4,'Battleship','A MiniSec Battleship design',-1,0);
 
 --
 -- Table structure for table `design_category`

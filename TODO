@@ -59,6 +59,8 @@ Supports the following:
 
 Still need to be done:
 
+		Orders don't take into account the effect of previous orders.
+
 		Remove the included pyscheme and make it work with the default pyscheme install.
 
 		Find all FIXME in the code and actually fix them. 

@@ -337,7 +337,6 @@ Extra attributes this type defines.
 			SQLBase.save(self)
 
 			for attribute in self.attributes.values():
-				print "attributes", attribute
 				if type(attribute.default) is types.DictType:
 					db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s AND name='%(name)s'",
 						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name)
