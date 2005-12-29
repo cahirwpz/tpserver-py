@@ -191,7 +191,7 @@ class FullConnection(netlib.ServerConnection):
 		db.query("USE tp")
 
 		# We need username and password
-		pid = User.realid(packet.username, packet.password)
+		pid = User.usernameid(packet.username, packet.password)
 	
 		if pid == -1:
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
@@ -384,6 +384,9 @@ class FullConnection(netlib.ServerConnection):
 
 	def OnProperty_GetID(self, packet):
 		return self.OnGetID(packet, Property)
+
+	def OnPlayer_Get(self, packet):
+		return self.OnGetWithID(packet, User)
 
 	def _send(self, packet):
 		time.sleep(config.lag/1000.0)
