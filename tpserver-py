@@ -327,7 +327,7 @@ class FullConnection(netlib.ServerConnection):
 
 		try:
 			# Mangle the board id
-			packet.id = Board.realid(packet.id, self.user.id)
+			packet.id = Board.mangleid(packet.id, self.user.id)
 
 			message = Message(packet=packet)
 			message.insert()
