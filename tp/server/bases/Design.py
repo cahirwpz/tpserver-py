@@ -18,9 +18,11 @@ class Design(SQLBase):
 
 		Returns the categories the design is in.
 		"""
-		results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-			tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
-		return [x['category'] for x in results]
+		if not hasattr(self, '_categories'):
+			results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+				tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+			self._categories = [x['category'] for x in results]
+		return self._categories
 
 	def components(self):
 		"""\
@@ -28,9 +30,11 @@ class Design(SQLBase):
 
 		Returns the components the design contains.
 		"""
-		results = db.query("""SELECT component, amount FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
-			tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
-		return [(x['component'], x['amount']) for x in results]
+		if not hasattr(self, '_components'):
+			results = db.query("""SELECT component, amount FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
+				tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
+			self._components = [(x['component'], x['amount']) for x in results]
+		return self._components
 
 	def used(self):
 		"""\
@@ -58,6 +62,9 @@ class Design(SQLBase):
 		return inplay+beingbuilt
 
 	def rank(self):
+		if len(self.components()) <= 0:
+			return {}
+
 		# FIXME: This is a hack, there should be a better way to do this
 		results = db.query("""SELECT DISTINCT cp.property AS id, p.rank AS rank FROM component_property AS cp JOIN property AS p ON p.id = cp.property WHERE cp.component in %s ORDER by rank""" 
 			% str(zip(*self.components())[0]).replace('L','').replace(',)',')'))
@@ -111,8 +118,7 @@ class Design(SQLBase):
 					# Calculate the actual value for this design
 					value = component.property(property_id)
 					if value:
-						print "Now evaluating",
-						print value
+						print "Now evaluating", value
 						value = i.eval(scheme.parse("""( %s design)""" % value))
 
 						print "The value calculated for component %i was %r" % (component_id, value)
@@ -139,7 +145,7 @@ class Design(SQLBase):
 				i.install_function('designtype.'+property.name, t)
 				
 		print "The final properties we have are", design.items()
-		return i, design, rank
+		return i, design
 	
 	def check(self):
 		"""\
@@ -148,7 +154,7 @@ class Design(SQLBase):
 		Checks the requirements of a design.
 		"""
 		# Step 1, calculate the properties
-		i, design, rank = self.calculate()
+		i, design = self.calculate()
 		
 		total_okay = True
 		total_feedback = []
@@ -203,7 +209,7 @@ class Design(SQLBase):
 
 		Returns the properties (and values) a design has.
 		"""
-		i, design, rank = self.calculate()
+		i, design = self.calculate()
 		return design.values()
 
 	def feedback(self):
