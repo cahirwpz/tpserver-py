@@ -12,9 +12,12 @@ class Design(SQLBase):
 	tablename_category = "`design_category`"
 	tablename_component = "`design_component`"
 
-	def categories(self):
+	def set_ignore(self, value):
+		return
+	
+	def get_categories(self):
 		"""\
-		categories() -> [id, ...]
+		categories -> [id, ...]
 
 		Returns the categories the design is in.
 		"""
@@ -23,10 +26,15 @@ class Design(SQLBase):
 				tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
 			self._categories = [x['category'] for x in results]
 		return self._categories
+		
+	def set_categories(self, value):
+		print "WARNING: Currently ignored set_categories"
 
-	def components(self):
+	categories = property(get_categories, set_categories)
+
+	def get_components(self):
 		"""\
-		components() -> [id, ...]
+		components -> [id, ...]
 
 		Returns the components the design contains.
 		"""
@@ -35,10 +43,15 @@ class Design(SQLBase):
 				tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
 			self._components = [(x['component'], x['amount']) for x in results]
 		return self._components
+	
+	def set_components(self, value):
+		print "WARNING: Currently ignored set_components"
+
+	components = property(get_components, set_components)
 
 	def used(self):
 		"""\
-		used() -> value
+		used -> value
 
 		Returns the properties (and values) a design has.
 		"""
@@ -60,14 +73,34 @@ class Design(SQLBase):
 			beingbuilt = 0
 		
 		return inplay+beingbuilt
+	used = property(used, set_ignore)
+
+	def properties(self):
+		"""\
+		properties -> [(id, value, string), ...]
+
+		Returns the properties (and values) a design has.
+		"""
+		i, design = self.calculate()
+		return design.values()
+	properties = property(properties, set_ignore)
+
+	def feedback(self):
+		"""\
+		feedback -> string
+
+		Returns the feedback for this design.
+		"""
+		return self.check()[1]
+	feedback = property(feedback, set_ignore)
 
 	def rank(self):
-		if len(self.components()) <= 0:
+		if len(self.components) <= 0:
 			return {}
 
 		# FIXME: This is a hack, there should be a better way to do this
 		results = db.query("""SELECT DISTINCT cp.property AS id, p.rank AS rank FROM component_property AS cp JOIN property AS p ON p.id = cp.property WHERE cp.component in %s ORDER by rank""" 
-			% str(zip(*self.components())[0]).replace('L','').replace(',)',')'))
+			% str(zip(*self.components)[0]).replace('L','').replace(',)',')'))
 
 		ranks = {}
 		for result in results:
@@ -111,7 +144,7 @@ class Design(SQLBase):
 				bits = []
 		
 				# Get all the components we contain
-				for component_id, amount in self.components():
+				for component_id, amount in self.components:
 					# Create the component object
 					component = Component(component_id)
 
@@ -183,7 +216,7 @@ class Design(SQLBase):
 
 				
 		# Step 3, calculate the requirements for the components
-		for component_id, amount in self.components():
+		for component_id, amount in self.components:
 			component = Component(component_id)
 			if component.requirements == '':
 				print "Component with id (%i) doesn't have any requirements" % property_id
@@ -203,29 +236,12 @@ class Design(SQLBase):
 
 		return total_okay, "\n".join(total_feedback)
 
-	def properties(self):
-		"""\
-		properties() -> [(id, value, string), ...]
-
-		Returns the properties (and values) a design has.
-		"""
-		i, design = self.calculate()
-		return design.values()
-
-	def feedback(self):
-		"""\
-		feedback() -> string
-
-		Returns the feedback for this design.
-		"""
-		return self.check()[1]
-
 	def to_packet(self, sequence):
 		# Preset arguments
 		
 		# FIXME: The calculate function gets called 3 times when we convert to a packet
-		print (sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.components(), self.feedback(), self.properties())
-		return netlib.objects.Design(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.used(), self.owner, self.components(), self.feedback(), self.properties())
+		print (sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
+		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 
 	def id_packet(cls):
 		return netlib.objects.Design_IDSequence

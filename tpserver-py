@@ -379,6 +379,27 @@ class FullConnection(netlib.ServerConnection):
 	def OnDesign_GetID(self, packet):
 		return self.OnGetID(packet, Design)
 
+	def OnDesign_Add(self, packet):
+		if not self.check():
+			return False
+
+		try:
+			design = Design(packet=packet)
+			
+			# Are we allowed to do this?
+			if not design.allowed(self.user):
+				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+				print packet.id, packet.slot, "No Permission"
+			else:	
+				design.save()
+				self._send(design.to_packet(packet.sequence))
+		except NoSuch:
+			print packet.id, packet.slot, "Adding failed."
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Design adding failed."))
+
+		return True
+	OnDesign = OnDesign_Add
+
 	def OnProperty_Get(self, packet):
 		return self.OnGetWithID(packet, Property)
 
