@@ -263,7 +263,7 @@ class Design(SQLBase):
 		for component_id, amount in self.components:
 			component = Component(component_id)
 			if component.requirements == '':
-				print "Component with id (%i) doesn't have any requirements" % property_id
+				print "Component with id (%i) doesn't have any requirements" % component_id
 				continue
 			
 			print "Now checking the following requirement"
