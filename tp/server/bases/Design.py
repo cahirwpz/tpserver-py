@@ -157,6 +157,8 @@ class Design(SQLBase):
 		Calculates all the properties on a design. 
 		Returns the Interpretor (used to create the design and the actual design).
 		"""
+		if hasattr(self, '_calculate'):
+			return self._calculate
 		i = scheme.make_interpreter()
 
 		# Step 1 -------------------------------------
@@ -216,6 +218,7 @@ class Design(SQLBase):
 				i.install_function('designtype.'+property.name, t)
 				
 		print "The final properties we have are", design.items()
+		self._calculate = (i, design)
 		return i, design
 	
 	def check(self):
@@ -224,6 +227,9 @@ class Design(SQLBase):
 
 		Checks the requirements of a design.
 		"""
+		if hasattr(self, '_check'):
+			return self._check
+		
 		# Step 1, calculate the properties
 		i, design = self.calculate()
 		
@@ -271,12 +277,11 @@ class Design(SQLBase):
 		
 			if feedback != "":
 				total_feedback.append(feedback)
-
+		
+		self._check = (total_okay, "\n".join(total_feedback))
 		return total_okay, "\n".join(total_feedback)
 
 	def to_packet(self, sequence):
-		# Preset arguments
-		
 		# FIXME: The calculate function gets called 3 times when we convert to a packet
 		print (sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
