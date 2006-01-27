@@ -27,9 +27,24 @@ class Design(SQLBase):
 			self._categories = [x['category'] for x in results]
 		return self._categories
 		
-	def set_categories(self, value):
-		print "WARNING: Currently ignored set_categories"
+	def set_categories(self, values):
+		if not hasattr(self, '_categories'):
+			self.categories
 
+		for cid in values+self._categories:
+			if cid in self._categories and not cid in values:
+				# Remove the category
+				results = db.query("""DELETE FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+			
+			if cid not in self._categories and cid in values:
+				# Add the category
+				results = db.query("""INSERT INTO %(tablename_category)s SET %(tablename)s=%(id)s, category=%(cid)s""", 
+					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id, cid=cid)
+		
+		# Clear the cache
+		del self._categories
+		
 	categories = property(get_categories, set_categories)
 
 	def get_components(self):
@@ -44,9 +59,32 @@ class Design(SQLBase):
 			self._components = [(x['component'], x['amount']) for x in results]
 		return self._components
 	
-	def set_components(self, value):
-		print "WARNING: Currently ignored set_components"
+	def set_components(self, values):
+		if not hasattr(self, '_components'):
+			self.components
 
+		components = {}
+		for cid, amount in self._components:
+			components[cid] = [amount, None]
+		for cid, amount in values:
+			if components.has_key(cid):
+				components[cid][1] = amount
+			else:
+				components[cid] = [None, amount]
+
+		for cid, values in components.items():
+			start, end = values
+		
+			if end == None or end < 1:
+				results = db.query("""DELETE FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+	
+			if start != end:
+				results = db.query("""REPLACE INTO %(tablename_component)s SET %(tablename)s=%(id)s, component=%(cid)s, amount=%(amount)s""", 
+					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id, cid=cid, amount=amount)
+			
+		# Clear the cache
+		del self._components
 	components = property(get_components, set_components)
 
 	def used(self):
@@ -82,7 +120,7 @@ class Design(SQLBase):
 		Returns the properties (and values) a design has.
 		"""
 		i, design = self.calculate()
-		return design.values()
+		return [(x[0], x[2]) for x in design.values()]
 	properties = property(properties, set_ignore)
 
 	def feedback(self):
@@ -170,7 +208,7 @@ class Design(SQLBase):
 				value, display = scheme.pair.car(total), scheme.pair.cdr(total)
 
 				print "In total I got '%i' which will be displayed as '%s'" % (value, display)
-				design[property.name] = (property_id, display)
+				design[property.name] = (property_id, value, display)
 
 				def t(design, name=property.name):
 					return design[name][1]
@@ -242,6 +280,10 @@ class Design(SQLBase):
 		# FIXME: The calculate function gets called 3 times when we convert to a packet
 		print (sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
+
+	def from_packet(self, packet):
+		for key in ["id", "categories", "name", "desc", "used", "owner", "components", "feedback"]:
+			setattr(self, key, getattr(packet, key))
 
 	def id_packet(cls):
 		return netlib.objects.Design_IDSequence
