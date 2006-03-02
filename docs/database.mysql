@@ -4,7 +4,7 @@ USE tp;
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.1.14-Debian_4-log
+-- Server version	4.1.15-Debian_1-log
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL40' */;
@@ -15,7 +15,7 @@ USE tp;
 --
 
 CREATE TABLE `board` (
-  `id` bigint(20) NOT NULL default '0',
+  `id` bigint(64) unsigned NOT NULL default '0',
   `name` tinyblob NOT NULL,
   `desc` blob NOT NULL,
   `time` bigint(20) NOT NULL default '0',
@@ -32,7 +32,7 @@ CREATE TABLE `board` (
 --
 
 CREATE TABLE `category` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `name` tinytext NOT NULL,
   `desc` text,
   `time` bigint(20) NOT NULL default '0',
@@ -54,7 +54,7 @@ INSERT INTO `category` VALUES (5,'Electrical','Things which go beep and consume 
 --
 
 CREATE TABLE `component` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `name` tinytext NOT NULL,
   `desc` text NOT NULL,
   `requirements` blob,
@@ -80,8 +80,8 @@ INSERT INTO `component` VALUES (4,'Generic Hull','A very generic hull component 
 --
 
 CREATE TABLE `component_category` (
-  `component` bigint(20) NOT NULL default '0',
-  `category` bigint(20) NOT NULL default '0',
+  `component` int(32) unsigned NOT NULL default '0',
+  `category` int(32) unsigned NOT NULL default '0',
   `comment` text,
   PRIMARY KEY  (`component`,`category`)
 ) TYPE=InnoDB;
@@ -103,8 +103,8 @@ INSERT INTO `component_category` VALUES (4,4,'Hull A is a Hull');
 --
 
 CREATE TABLE `component_property` (
-  `component` bigint(20) NOT NULL default '0',
-  `property` bigint(20) NOT NULL default '0',
+  `component` int(32) unsigned NOT NULL default '0',
+  `property` int(32) unsigned NOT NULL default '0',
   `value` blob NOT NULL,
   `comment` text,
   PRIMARY KEY  (`component`,`property`)
@@ -131,10 +131,10 @@ INSERT INTO `component_property` VALUES (4,6,'(lambda (design) 1)','Hull A provi
 --
 
 CREATE TABLE `design` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `name` tinytext NOT NULL,
   `desc` text NOT NULL,
-  `owner` bigint(20) NOT NULL default '0',
+  `owner` bigint(64) unsigned NOT NULL default '0',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
@@ -144,17 +144,17 @@ CREATE TABLE `design` (
 --
 
 INSERT INTO `design` VALUES (1,'Test','A design for testing',1,0);
-INSERT INTO `design` VALUES (2,'Scout','MiniSec Scout design',-1,0);
-INSERT INTO `design` VALUES (3,'Frigate','A MiniSec Frigate design',-1,0);
-INSERT INTO `design` VALUES (4,'Battleship','A MiniSec Battleship design',-1,0);
+INSERT INTO `design` VALUES (2,'Scout','MiniSec Scout design',18446744073709551615,0);
+INSERT INTO `design` VALUES (3,'Frigate','A MiniSec Frigate design',18446744073709551615,0);
+INSERT INTO `design` VALUES (4,'Battleship','A MiniSec Battleship design',18446744073709551615,0);
 
 --
 -- Table structure for table `design_category`
 --
 
 CREATE TABLE `design_category` (
-  `design` bigint(20) NOT NULL default '0',
-  `category` bigint(20) NOT NULL default '0',
+  `design` int(32) unsigned NOT NULL default '0',
+  `category` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`design`,`category`)
 ) TYPE=InnoDB;
 
@@ -169,9 +169,9 @@ INSERT INTO `design_category` VALUES (1,1);
 --
 
 CREATE TABLE `design_component` (
-  `design` bigint(20) NOT NULL default '0',
-  `component` bigint(20) NOT NULL default '0',
-  `amount` bigint(20) NOT NULL default '0',
+  `design` int(32) unsigned NOT NULL default '0',
+  `component` int(32) unsigned NOT NULL default '0',
+  `amount` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`design`,`component`)
 ) TYPE=InnoDB;
 
@@ -187,9 +187,9 @@ INSERT INTO `design_component` VALUES (1,2,2);
 --
 
 CREATE TABLE `message` (
-  `id` bigint(20) NOT NULL auto_increment,
-  `bid` bigint(20) NOT NULL default '0',
-  `slot` bigint(20) NOT NULL default '0',
+  `id` bigint(64) unsigned NOT NULL,
+  `bid` bigint(64) unsigned NOT NULL default '0',
+  `slot` int(32) unsigned NOT NULL default '0',
   `subject` tinyblob NOT NULL,
   `body` blob NOT NULL,
   PRIMARY KEY  (`id`)
@@ -205,17 +205,17 @@ CREATE TABLE `message` (
 --
 
 CREATE TABLE `object` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` bigint(64) unsigned NOT NULL,
   `type` varchar(255) NOT NULL default '',
   `name` tinyblob NOT NULL,
-  `size` bigint(20) NOT NULL default '0',
-  `posx` bigint(20) NOT NULL default '0',
-  `posy` bigint(20) NOT NULL default '0',
-  `posz` bigint(20) NOT NULL default '0',
-  `velx` bigint(20) NOT NULL default '0',
-  `vely` bigint(20) NOT NULL default '0',
-  `velz` bigint(20) NOT NULL default '0',
-  `parent` bigint(20) NOT NULL default '-1',
+  `size` bigint(64) NOT NULL default '0',
+  `posx` bigint(64) NOT NULL default '0',
+  `posy` bigint(64) NOT NULL default '0',
+  `posz` bigint(64) NOT NULL default '0',
+  `velx` bigint(64) NOT NULL default '0',
+  `vely` bigint(64) NOT NULL default '0',
+  `velz` bigint(64) NOT NULL default '0',
+  `parent` bigint(64) NOT NULL default '-1',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
@@ -232,7 +232,7 @@ INSERT INTO `object` VALUES (1,'tp.server.rules.base.objects.Galaxy','The Milky 
 --
 
 CREATE TABLE `object_extra` (
-  `object` bigint(20) NOT NULL default '0',
+  `object` bigint(64) unsigned NOT NULL default '0',
   `name` varchar(255) NOT NULL default '',
   `key` varchar(255) NOT NULL default '',
   `value` blob,
@@ -250,11 +250,11 @@ INSERT INTO `object_extra` VALUES (0,'turn','','0');
 --
 
 CREATE TABLE `order` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` bigint(64) unsigned NOT NULL,
   `type` varchar(255) NOT NULL default '',
-  `oid` bigint(20) NOT NULL default '0',
-  `slot` bigint(20) NOT NULL default '0',
-  `worked` bigint(20) NOT NULL default '0',
+  `oid` bigint(64) unsigned NOT NULL default '0',
+  `slot` int(32) unsigned NOT NULL default '0',
+  `worked` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 
@@ -268,7 +268,7 @@ CREATE TABLE `order` (
 --
 
 CREATE TABLE `order_extra` (
-  `order` bigint(20) NOT NULL default '0',
+  `order` bigint(64) unsigned NOT NULL default '0',
   `name` varchar(255) NOT NULL default '',
   `key` varchar(255) NOT NULL default '',
   `value` blob,
@@ -285,7 +285,7 @@ CREATE TABLE `order_extra` (
 --
 
 CREATE TABLE `property` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `name` tinytext NOT NULL,
   `display_name` tinytext NOT NULL,
   `desc` text NOT NULL,
@@ -349,8 +349,8 @@ INSERT INTO `property` VALUES (6,'hulls','Hulls','Number of hulls in a design',1
 --
 
 CREATE TABLE `property_category` (
-  `property` bigint(20) NOT NULL default '0',
-  `category` bigint(20) NOT NULL default '0',
+  `property` int(32) unsigned NOT NULL default '0',
+  `category` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`property`,`category`)
 ) TYPE=InnoDB;
 
@@ -369,15 +369,15 @@ INSERT INTO `property_category` VALUES (5,1);
 --
 
 CREATE TABLE `resource` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `namesingular` tinytext NOT NULL,
   `nameplural` tinytext NOT NULL,
   `unitsingular` tinytext NOT NULL,
   `unitplural` tinytext NOT NULL,
   `desc` text,
-  `weight` bigint(20) NOT NULL default '0',
-  `size` bigint(20) NOT NULL default '0',
-  `time` bigint(20) NOT NULL default '0',
+  `weight` int(32) unsigned NOT NULL default '0',
+  `size` int(32) unsigned NOT NULL default '0',
+  `time` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
 ) TYPE=InnoDB;
 
@@ -391,7 +391,7 @@ CREATE TABLE `resource` (
 --
 
 CREATE TABLE `user` (
-  `id` bigint(20) NOT NULL auto_increment,
+  `id` int(32) unsigned NOT NULL,
   `username` tinyblob NOT NULL,
   `password` tinyblob NOT NULL,
   `time` bigint(20) NOT NULL default '0',

@@ -4,7 +4,7 @@ USE tp;
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.1.14-Debian_4-log
+-- Server version	4.1.15-Debian_1-log
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL40,ANSI' */;
@@ -15,7 +15,7 @@ USE tp;
 --
 
 CREATE TABLE "board" (
-  "id" bigint(20) NOT NULL default '0',
+  "id" bigint(64) unsigned NOT NULL default '0',
   "name" tinyblob NOT NULL,
   "desc" blob NOT NULL,
   "time" bigint(20) NOT NULL default '0',
@@ -32,7 +32,7 @@ CREATE TABLE "board" (
 --
 
 CREATE TABLE "category" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "name" tinytext NOT NULL,
   "desc" text,
   "time" bigint(20) NOT NULL default '0',
@@ -54,7 +54,7 @@ INSERT INTO "category" VALUES (5,'Electrical','Things which go beep and consume 
 --
 
 CREATE TABLE "component" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "name" tinytext NOT NULL,
   "desc" text NOT NULL,
   "requirements" blob,
@@ -80,8 +80,8 @@ INSERT INTO "component" VALUES (4,'Generic Hull','A very generic hull component 
 --
 
 CREATE TABLE "component_category" (
-  "component" bigint(20) NOT NULL default '0',
-  "category" bigint(20) NOT NULL default '0',
+  "component" int(32) unsigned NOT NULL default '0',
+  "category" int(32) unsigned NOT NULL default '0',
   "comment" text,
   PRIMARY KEY  ("component","category")
 );
@@ -103,8 +103,8 @@ INSERT INTO "component_category" VALUES (4,4,'Hull A is a Hull');
 --
 
 CREATE TABLE "component_property" (
-  "component" bigint(20) NOT NULL default '0',
-  "property" bigint(20) NOT NULL default '0',
+  "component" int(32) unsigned NOT NULL default '0',
+  "property" int(32) unsigned NOT NULL default '0',
   "value" blob NOT NULL,
   "comment" text,
   PRIMARY KEY  ("component","property")
@@ -131,10 +131,10 @@ INSERT INTO "component_property" VALUES (4,6,'(lambda (design) 1)','Hull A provi
 --
 
 CREATE TABLE "design" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "name" tinytext NOT NULL,
   "desc" text NOT NULL,
-  "owner" bigint(20) NOT NULL default '0',
+  "owner" bigint(64) unsigned NOT NULL default '0',
   "time" bigint(20) NOT NULL default '0',
   PRIMARY KEY  ("id")
 );
@@ -144,14 +144,17 @@ CREATE TABLE "design" (
 --
 
 INSERT INTO "design" VALUES (1,'Test','A design for testing',1,0);
+INSERT INTO "design" VALUES (2,'Scout','MiniSec Scout design',18446744073709551615,0);
+INSERT INTO "design" VALUES (3,'Frigate','A MiniSec Frigate design',18446744073709551615,0);
+INSERT INTO "design" VALUES (4,'Battleship','A MiniSec Battleship design',18446744073709551615,0);
 
 --
 -- Table structure for table "design_category"
 --
 
 CREATE TABLE "design_category" (
-  "design" bigint(20) NOT NULL default '0',
-  "category" bigint(20) NOT NULL default '0',
+  "design" int(32) unsigned NOT NULL default '0',
+  "category" int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  ("design","category")
 );
 
@@ -166,9 +169,9 @@ INSERT INTO "design_category" VALUES (1,1);
 --
 
 CREATE TABLE "design_component" (
-  "design" bigint(20) NOT NULL default '0',
-  "component" bigint(20) NOT NULL default '0',
-  "amount" bigint(20) NOT NULL default '0',
+  "design" int(32) unsigned NOT NULL default '0',
+  "component" int(32) unsigned NOT NULL default '0',
+  "amount" int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  ("design","component")
 );
 
@@ -177,15 +180,16 @@ CREATE TABLE "design_component" (
 --
 
 INSERT INTO "design_component" VALUES (1,1,2);
+INSERT INTO "design_component" VALUES (1,2,2);
 
 --
 -- Table structure for table "message"
 --
 
 CREATE TABLE "message" (
-  "id" bigint(20) NOT NULL,
-  "bid" bigint(20) NOT NULL default '0',
-  "slot" bigint(20) NOT NULL default '0',
+  "id" bigint(64) unsigned NOT NULL,
+  "bid" bigint(64) unsigned NOT NULL default '0',
+  "slot" int(32) unsigned NOT NULL default '0',
   "subject" tinyblob NOT NULL,
   "body" blob NOT NULL,
   PRIMARY KEY  ("id")
@@ -201,17 +205,17 @@ CREATE TABLE "message" (
 --
 
 CREATE TABLE "object" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(64) unsigned NOT NULL,
   "type" varchar(255) NOT NULL default '',
   "name" tinyblob NOT NULL,
-  "size" bigint(20) NOT NULL default '0',
-  "posx" bigint(20) NOT NULL default '0',
-  "posy" bigint(20) NOT NULL default '0',
-  "posz" bigint(20) NOT NULL default '0',
-  "velx" bigint(20) NOT NULL default '0',
-  "vely" bigint(20) NOT NULL default '0',
-  "velz" bigint(20) NOT NULL default '0',
-  "parent" bigint(20) NOT NULL default '-1',
+  "size" bigint(64) NOT NULL default '0',
+  "posx" bigint(64) NOT NULL default '0',
+  "posy" bigint(64) NOT NULL default '0',
+  "posz" bigint(64) NOT NULL default '0',
+  "velx" bigint(64) NOT NULL default '0',
+  "vely" bigint(64) NOT NULL default '0',
+  "velz" bigint(64) NOT NULL default '0',
+  "parent" bigint(64) NOT NULL default '-1',
   "time" bigint(20) NOT NULL default '0',
   PRIMARY KEY  ("id")
 );
@@ -220,42 +224,15 @@ CREATE TABLE "object" (
 -- Dumping data for table "object"
 --
 
-INSERT INTO "object" VALUES (-1,'sobjects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,0);
-INSERT INTO "object" VALUES (1,'sobjects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,0);
-INSERT INTO "object" VALUES (2,'sobjects.System','System 0',1102049,8687575000,3567274000,0,0,0,0,1,1129766512);
-INSERT INTO "object" VALUES (3,'sobjects.Planet','Planet 0',3839,8687647000,3567275000,0,0,0,0,2,1129766512);
-INSERT INTO "object" VALUES (4,'sobjects.Planet','Planet 1',8542,8687620000,3567324000,0,0,0,0,2,1129766512);
-INSERT INTO "object" VALUES (5,'sobjects.Planet','Planet 2',8352,8687605000,3567359000,0,0,0,0,2,1129766512);
-INSERT INTO "object" VALUES (6,'sobjects.System','System 1',1840168,5455353000,-7455800000,0,0,0,0,1,1129766512);
-INSERT INTO "object" VALUES (7,'sobjects.Planet','Planet 8',4130,5455431000,-7455741000,0,0,0,0,6,1129766512);
-INSERT INTO "object" VALUES (8,'sobjects.Planet','Planet 9',5329,5455379000,-7455714000,0,0,0,0,6,1129766513);
-INSERT INTO "object" VALUES (9,'sobjects.Planet','Planet 10',3736,5455436000,-7455758000,0,0,0,0,6,1129766513);
-INSERT INTO "object" VALUES (10,'sobjects.Planet','Planet 11',8214,5455423000,-7455721000,0,0,0,0,6,1129766513);
-INSERT INTO "object" VALUES (11,'sobjects.Planet','Planet 12',2655,5455429000,-7455750000,0,0,0,0,6,1129766513);
-INSERT INTO "object" VALUES (12,'sobjects.Planet','Planet 13',1191,5455419000,-7455721000,0,0,0,0,6,1129766513);
-INSERT INTO "object" VALUES (13,'sobjects.System','System 2',1803442,-4897082000,-6160222000,0,0,0,0,1,1129766513);
-INSERT INTO "object" VALUES (14,'sobjects.Planet','Planet 16',2473,-4897076000,-6160205000,0,0,0,0,13,1129766513);
-INSERT INTO "object" VALUES (15,'sobjects.Planet','Planet 17',5544,-4897034000,-6160161000,0,0,0,0,13,1129766513);
-INSERT INTO "object" VALUES (16,'sobjects.System','System 3',1431840,-4213329000,8468435000,0,0,0,0,1,1129766513);
-INSERT INTO "object" VALUES (17,'sobjects.Planet','Planet 24',7625,-4213307000,8468529000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (18,'sobjects.Planet','Planet 25',1759,-4213307000,8468494000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (19,'sobjects.Planet','Planet 26',5907,-4213301000,8468492000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (20,'sobjects.Planet','Planet 27',3471,-4213253000,8468478000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (21,'sobjects.Planet','Planet 28',3444,-4213327000,8468534000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (22,'sobjects.Planet','Planet 29',9551,-4213245000,8468486000,0,0,0,0,16,1129766513);
-INSERT INTO "object" VALUES (23,'sobjects.System','System 4',917398,-8776580000,-2691055000,0,0,0,0,1,1129766514);
-INSERT INTO "object" VALUES (24,'sobjects.Planet','Planet 32',3505,-8776483000,-2691036000,0,0,0,0,23,1129766514);
-INSERT INTO "object" VALUES (25,'sobjects.System','System 5',963168,4582430000,-829670000,0,0,0,0,1,1129766514);
-INSERT INTO "object" VALUES (26,'sobjects.Planet','Planet 40',3723,4582432000,-829625000,0,0,0,0,25,1129766514);
-INSERT INTO "object" VALUES (27,'sobjects.Planet','Planet 41',7079,4582472000,-829585000,0,0,0,0,25,1129766514);
-INSERT INTO "object" VALUES (28,'sobjects.Planet','Planet 42',2402,4582483000,-829614000,0,0,0,0,25,1129766514);
+INSERT INTO "object" VALUES (-1,'tp.server.rules.base.objects.Universe','The Universe',100000000000,0,0,0,0,0,0,-1,0);
+INSERT INTO "object" VALUES (1,'tp.server.rules.base.objects.Galaxy','The Milky Way',10000000000,0,0,-6000,0,0,1000,0,0);
 
 --
 -- Table structure for table "object_extra"
 --
 
 CREATE TABLE "object_extra" (
-  "object" bigint(20) NOT NULL default '0',
+  "object" bigint(64) unsigned NOT NULL default '0',
   "name" varchar(255) NOT NULL default '',
   "key" varchar(255) NOT NULL default '',
   "value" blob,
@@ -267,38 +244,17 @@ CREATE TABLE "object_extra" (
 --
 
 INSERT INTO "object_extra" VALUES (0,'turn','','0');
-INSERT INTO "object_extra" VALUES (3,'owner','','-1');
-INSERT INTO "object_extra" VALUES (4,'owner','','-1');
-INSERT INTO "object_extra" VALUES (5,'owner','','-1');
-INSERT INTO "object_extra" VALUES (7,'owner','','-1');
-INSERT INTO "object_extra" VALUES (8,'owner','','-1');
-INSERT INTO "object_extra" VALUES (9,'owner','','-1');
-INSERT INTO "object_extra" VALUES (10,'owner','','-1');
-INSERT INTO "object_extra" VALUES (11,'owner','','-1');
-INSERT INTO "object_extra" VALUES (12,'owner','','-1');
-INSERT INTO "object_extra" VALUES (14,'owner','','-1');
-INSERT INTO "object_extra" VALUES (15,'owner','','-1');
-INSERT INTO "object_extra" VALUES (17,'owner','','-1');
-INSERT INTO "object_extra" VALUES (18,'owner','','-1');
-INSERT INTO "object_extra" VALUES (19,'owner','','-1');
-INSERT INTO "object_extra" VALUES (20,'owner','','-1');
-INSERT INTO "object_extra" VALUES (21,'owner','','-1');
-INSERT INTO "object_extra" VALUES (22,'owner','','-1');
-INSERT INTO "object_extra" VALUES (24,'owner','','-1');
-INSERT INTO "object_extra" VALUES (26,'owner','','-1');
-INSERT INTO "object_extra" VALUES (27,'owner','','-1');
-INSERT INTO "object_extra" VALUES (28,'owner','','-1');
 
 --
 -- Table structure for table "order"
 --
 
 CREATE TABLE "order" (
-  "id" bigint(20) NOT NULL,
+  "id" bigint(64) unsigned NOT NULL,
   "type" varchar(255) NOT NULL default '',
-  "oid" bigint(20) NOT NULL default '0',
-  "slot" bigint(20) NOT NULL default '0',
-  "worked" bigint(20) NOT NULL default '0',
+  "oid" bigint(64) unsigned NOT NULL default '0',
+  "slot" int(32) unsigned NOT NULL default '0',
+  "worked" bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  ("id")
 );
 
@@ -312,7 +268,7 @@ CREATE TABLE "order" (
 --
 
 CREATE TABLE "order_extra" (
-  "order" bigint(20) NOT NULL default '0',
+  "order" bigint(64) unsigned NOT NULL default '0',
   "name" varchar(255) NOT NULL default '',
   "key" varchar(255) NOT NULL default '',
   "value" blob,
@@ -329,7 +285,7 @@ CREATE TABLE "order_extra" (
 --
 
 CREATE TABLE "property" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "name" tinytext NOT NULL,
   "display_name" tinytext NOT NULL,
   "desc" text NOT NULL,
@@ -393,8 +349,8 @@ INSERT INTO "property" VALUES (6,'hulls','Hulls','Number of hulls in a design',1
 --
 
 CREATE TABLE "property_category" (
-  "property" bigint(20) NOT NULL default '0',
-  "category" bigint(20) NOT NULL default '0',
+  "property" int(32) unsigned NOT NULL default '0',
+  "category" int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  ("property","category")
 );
 
@@ -413,15 +369,15 @@ INSERT INTO "property_category" VALUES (5,1);
 --
 
 CREATE TABLE "resource" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "namesingular" tinytext NOT NULL,
   "nameplural" tinytext NOT NULL,
   "unitsingular" tinytext NOT NULL,
   "unitplural" tinytext NOT NULL,
   "desc" text,
-  "weight" bigint(20) NOT NULL default '0',
-  "size" bigint(20) NOT NULL default '0',
-  "time" bigint(20) NOT NULL default '0',
+  "weight" int(32) unsigned NOT NULL default '0',
+  "size" int(32) unsigned NOT NULL default '0',
+  "time" int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  ("id")
 );
 
@@ -435,7 +391,7 @@ CREATE TABLE "resource" (
 --
 
 CREATE TABLE "user" (
-  "id" bigint(20) NOT NULL,
+  "id" int(32) unsigned NOT NULL,
   "username" tinyblob NOT NULL,
   "password" tinyblob NOT NULL,
   "time" bigint(20) NOT NULL default '0',
