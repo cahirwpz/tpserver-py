@@ -389,12 +389,16 @@ class FullConnection(netlib.ServerConnection):
 			# Are we allowed to do this?
 			if not design.allowed(self.user):
 				self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
-				print packet.id, packet.slot, "No Permission"
+				print packet.id, "No Permission"
 			else:	
 				design.save()
 				self._send(design.to_packet(packet.sequence))
+		except ValueError:
+			print packet.id, "Adding failed."
+			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Design adding failed."))
+			
 		except NoSuch:
-			print packet.id, packet.slot, "Adding failed."
+			print packet.id, "Adding failed."
 			self._send(Fail(packet.sequence, constants.FAIL_NOSUCH, "Design adding failed."))
 
 		return True

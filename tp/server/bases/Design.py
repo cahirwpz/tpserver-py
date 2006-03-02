@@ -11,68 +11,55 @@ class Design(SQLBase):
 	tablename = "`design`"
 	tablename_category = "`design_category`"
 	tablename_component = "`design_component`"
-
-	def set_ignore(self, value):
-		return
 	
-	def get_categories(self):
+	def load(self, id):
 		"""\
-		categories -> [id, ...]
+		load(id)
 
-		Returns the categories the design is in.
+		Loads a thing from the database.
 		"""
-		if not hasattr(self, '_categories'):
-			results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-				tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
-			self._categories = [x['category'] for x in results]
-		return self._categories
-		
-	def set_categories(self, values):
-		if not hasattr(self, '_categories'):
-			self.categories
+		SQLBase.load(self, id)
 
-		for cid in values+self._categories:
-			if cid in self._categories and not cid in values:
+		# Load the categories now
+		self.categories = self.get_categories()
+
+		# Load the properties now
+		self.components = self.get_components()
+
+	def save(self):
+		"""\
+		save()
+
+		Saves a thing to the database.
+		"""
+		SQLBase.save(self)
+
+		# Save the categories now
+		current = self.get_categories()
+		for cid in current+self.categories:
+			if cid in current and not cid in self.categories:
 				# Remove the category
 				results = db.query("""DELETE FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
 					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
 			
-			if cid not in self._categories and cid in values:
+			if cid not in self.categories and cid in current:
 				# Add the category
 				results = db.query("""INSERT INTO %(tablename_category)s SET %(tablename)s=%(id)s, category=%(cid)s""", 
 					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id, cid=cid)
+
+		# Save the components now
+		current = self.get_components()
 		
-		# Clear the cache
-		del self._categories
-		
-	categories = property(get_categories, set_categories)
-
-	def get_components(self):
-		"""\
-		components -> [id, ...]
-
-		Returns the components the design contains.
-		"""
-		if not hasattr(self, '_components'):
-			results = db.query("""SELECT component, amount FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
-				tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
-			self._components = [(x['component'], x['amount']) for x in results]
-		return self._components
-	
-	def set_components(self, values):
-		if not hasattr(self, '_components'):
-			self.components
-
-		components = {}
-		for cid, amount in self._components:
-			components[cid] = [amount, None]
-		for cid, amount in values:
-			if components.has_key(cid):
-				components[cid][1] = amount
+		ct = {}
+		for cid, amount in current:
+			ct[cid] = [amount, None]
+		for cid, amount in self.components:
+			if ct.has_key(cid):
+				ct[cid][1] = amount
 			else:
-				components[cid] = [None, amount]
+				ct[cid] = [None, amount]
 
-		for cid, values in components.items():
+		for cid, values in ct.items():
 			start, end = values
 		
 			if end == None or end < 1:
@@ -81,12 +68,41 @@ class Design(SQLBase):
 	
 			if start != end:
 				results = db.query("""REPLACE INTO %(tablename_component)s SET %(tablename)s=%(id)s, component=%(cid)s, amount=%(amount)s""", 
-					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id, cid=cid, amount=amount)
+					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id, cid=cid, amount=end)
 			
-		# Clear the cache
-		del self._components
-	components = property(get_components, set_components)
+	def set_ignore(self, value):
+		return
+	
+	def get_categories(self):
+		"""\
+		get_categories -> [id, ...]
 
+		Returns the categories the design is in.
+		"""
+		if not hasattr(self, '_categories'):
+			if not hasattr(self, 'id'):
+				self._categories = []
+			else:
+				results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
+					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+				self._categories = [x['category'] for x in results]
+		return self._categories
+		
+	def get_components(self):
+		"""\
+		get_components -> [id, ...]
+
+		Returns the components the design contains.
+		"""
+		if not hasattr(self, '_components'):
+			if not hasattr(self, 'id'):
+				self._components = []
+			else:
+				results = db.query("""SELECT component, amount FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
+					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
+				self._components = [(x['component'], x['amount']) for x in results]
+		return self._components
+	
 	def used(self):
 		"""\
 		used -> value
@@ -104,6 +120,7 @@ class Design(SQLBase):
 		except (KeyError, ValueError):
 			inplay = 0
 	
+		# FIXME: This is hardcoded currently
 		results = db.query("""SELECT SUM(value) as beingbuilt FROM order_extra JOIN `order` ON order.id = order_extra.order WHERE name = 'ships' AND type = 'sorders.Build' AND `key` = '%(key)s'""", key=repr(self.id))
 		try:
 			beingbuilt = long(results[0]['beingbuilt'])
@@ -111,7 +128,7 @@ class Design(SQLBase):
 			beingbuilt = 0
 		
 		return inplay+beingbuilt
-	used = property(used, set_ignore)
+	used = property(used)
 
 	def properties(self):
 		"""\
@@ -121,7 +138,7 @@ class Design(SQLBase):
 		"""
 		i, design = self.calculate()
 		return [(x[0], x[2]) for x in design.values()]
-	properties = property(properties, set_ignore)
+	properties = property(properties)
 
 	def feedback(self):
 		"""\
@@ -130,7 +147,7 @@ class Design(SQLBase):
 		Returns the feedback for this design.
 		"""
 		return self.check()[1]
-	feedback = property(feedback, set_ignore)
+	feedback = property(feedback)
 
 	def rank(self):
 		if len(self.components) <= 0:
@@ -287,7 +304,26 @@ class Design(SQLBase):
 		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 
 	def from_packet(self, packet):
-		for key in ["id", "categories", "name", "desc", "used", "owner", "components", "feedback"]:
+		# Check the design meets a few guide lines
+		
+		# FIXME: Check each component exists and the amount is posative
+		for id, amount in packet.components:
+			pass
+		
+		# Check we have at least one category
+		if len(packet.categories) < 1:
+			raise ValueError("Designs must have atleast one category")
+		else:
+			# FIXME: Check that the categories are valid
+			pass
+		
+		# FIXME: Check the owner is sane
+	
+		# FIXME: Check the id
+		if packet.id != -1:
+			self.id = packet.id
+			
+		for key in ["categories", "name", "desc", "owner", "components"]:
 			setattr(self, key, getattr(packet, key))
 
 	def id_packet(cls):
