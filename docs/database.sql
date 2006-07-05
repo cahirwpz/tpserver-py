@@ -1,10 +1,12 @@
 CREATE DATABASE tp;
 USE tp;
--- MySQL dump 10.9
+-- MySQL dump 10.10
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.1.15-Debian_1-log
+-- Server version	5.0.21-Debian_3ubuntu1-log
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL40,ANSI' */;
@@ -144,9 +146,9 @@ CREATE TABLE "design" (
 --
 
 INSERT INTO "design" VALUES (1,'Test','A design for testing',1,0);
-INSERT INTO "design" VALUES (2,'Scout','MiniSec Scout design',18446744073709551615,0);
-INSERT INTO "design" VALUES (3,'Frigate','A MiniSec Frigate design',18446744073709551615,0);
-INSERT INTO "design" VALUES (4,'Battleship','A MiniSec Battleship design',18446744073709551615,0);
+INSERT INTO "design" VALUES (2,'Scout','MiniSec Scout design',0,0);
+INSERT INTO "design" VALUES (3,'Frigate','A MiniSec Frigate design',0,0);
+INSERT INTO "design" VALUES (4,'Battleship','A MiniSec Battleship design',0,0);
 
 --
 -- Table structure for table "design_category"
@@ -403,6 +405,7 @@ CREATE TABLE "user" (
 --
 
 INSERT INTO "user" VALUES (1,'admin@tp','adminpassword',0);
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

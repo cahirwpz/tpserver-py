@@ -1,13 +1,15 @@
 CREATE DATABASE tp;
 USE tp;
--- MySQL dump 10.9
+-- MySQL dump 10.10
 --
 -- Host: localhost    Database: tp
 -- ------------------------------------------------------
--- Server version	4.1.15-Debian_1-log
+-- Server version	5.0.21-Debian_3ubuntu1-log
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO,MYSQL40' */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
@@ -20,7 +22,7 @@ CREATE TABLE `board` (
   `desc` blob NOT NULL,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `board`
@@ -32,12 +34,12 @@ CREATE TABLE `board` (
 --
 
 CREATE TABLE `category` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `name` tinytext NOT NULL,
   `desc` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `category`
@@ -54,14 +56,14 @@ INSERT INTO `category` VALUES (5,'Electrical','Things which go beep and consume 
 --
 
 CREATE TABLE `component` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `name` tinytext NOT NULL,
   `desc` text NOT NULL,
   `requirements` blob,
   `comment` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component`
@@ -84,7 +86,7 @@ CREATE TABLE `component_category` (
   `category` int(32) unsigned NOT NULL default '0',
   `comment` text,
   PRIMARY KEY  (`component`,`category`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component_category`
@@ -108,7 +110,7 @@ CREATE TABLE `component_property` (
   `value` blob NOT NULL,
   `comment` text,
   PRIMARY KEY  (`component`,`property`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `component_property`
@@ -131,22 +133,22 @@ INSERT INTO `component_property` VALUES (4,6,'(lambda (design) 1)','Hull A provi
 --
 
 CREATE TABLE `design` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `name` tinytext NOT NULL,
   `desc` text NOT NULL,
   `owner` bigint(64) unsigned NOT NULL default '0',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `design`
 --
 
 INSERT INTO `design` VALUES (1,'Test','A design for testing',1,0);
-INSERT INTO `design` VALUES (2,'Scout','MiniSec Scout design',18446744073709551615,0);
-INSERT INTO `design` VALUES (3,'Frigate','A MiniSec Frigate design',18446744073709551615,0);
-INSERT INTO `design` VALUES (4,'Battleship','A MiniSec Battleship design',18446744073709551615,0);
+INSERT INTO `design` VALUES (2,'Scout','MiniSec Scout design',0,0);
+INSERT INTO `design` VALUES (3,'Frigate','A MiniSec Frigate design',0,0);
+INSERT INTO `design` VALUES (4,'Battleship','A MiniSec Battleship design',0,0);
 
 --
 -- Table structure for table `design_category`
@@ -156,7 +158,7 @@ CREATE TABLE `design_category` (
   `design` int(32) unsigned NOT NULL default '0',
   `category` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`design`,`category`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `design_category`
@@ -173,7 +175,7 @@ CREATE TABLE `design_component` (
   `component` int(32) unsigned NOT NULL default '0',
   `amount` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`design`,`component`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `design_component`
@@ -187,13 +189,13 @@ INSERT INTO `design_component` VALUES (1,2,2);
 --
 
 CREATE TABLE `message` (
-  `id` bigint(64) unsigned NOT NULL,
+  `id` bigint(64) unsigned NOT NULL auto_increment,
   `bid` bigint(64) unsigned NOT NULL default '0',
   `slot` int(32) unsigned NOT NULL default '0',
   `subject` tinyblob NOT NULL,
   `body` blob NOT NULL,
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `message`
@@ -205,7 +207,7 @@ CREATE TABLE `message` (
 --
 
 CREATE TABLE `object` (
-  `id` bigint(64) unsigned NOT NULL,
+  `id` bigint(64) unsigned NOT NULL auto_increment,
   `type` varchar(255) NOT NULL default '',
   `name` tinyblob NOT NULL,
   `size` bigint(64) NOT NULL default '0',
@@ -218,7 +220,7 @@ CREATE TABLE `object` (
   `parent` bigint(64) NOT NULL default '-1',
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `object`
@@ -237,7 +239,7 @@ CREATE TABLE `object_extra` (
   `key` varchar(255) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`object`,`name`,`key`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `object_extra`
@@ -250,13 +252,13 @@ INSERT INTO `object_extra` VALUES (0,'turn','','0');
 --
 
 CREATE TABLE `order` (
-  `id` bigint(64) unsigned NOT NULL,
+  `id` bigint(64) unsigned NOT NULL auto_increment,
   `type` varchar(255) NOT NULL default '',
   `oid` bigint(64) unsigned NOT NULL default '0',
   `slot` int(32) unsigned NOT NULL default '0',
   `worked` bigint(20) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `order`
@@ -273,7 +275,7 @@ CREATE TABLE `order_extra` (
   `key` varchar(255) NOT NULL default '',
   `value` blob,
   PRIMARY KEY  (`order`,`name`,`key`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `order_extra`
@@ -285,7 +287,7 @@ CREATE TABLE `order_extra` (
 --
 
 CREATE TABLE `property` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `name` tinytext NOT NULL,
   `display_name` tinytext NOT NULL,
   `desc` text NOT NULL,
@@ -295,7 +297,7 @@ CREATE TABLE `property` (
   `comment` text,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `property`
@@ -352,7 +354,7 @@ CREATE TABLE `property_category` (
   `property` int(32) unsigned NOT NULL default '0',
   `category` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`property`,`category`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `property_category`
@@ -369,7 +371,7 @@ INSERT INTO `property_category` VALUES (5,1);
 --
 
 CREATE TABLE `resource` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `namesingular` tinytext NOT NULL,
   `nameplural` tinytext NOT NULL,
   `unitsingular` tinytext NOT NULL,
@@ -379,7 +381,7 @@ CREATE TABLE `resource` (
   `size` int(32) unsigned NOT NULL default '0',
   `time` int(32) unsigned NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `resource`
@@ -391,18 +393,19 @@ CREATE TABLE `resource` (
 --
 
 CREATE TABLE `user` (
-  `id` int(32) unsigned NOT NULL,
+  `id` int(32) unsigned NOT NULL auto_increment,
   `username` tinyblob NOT NULL,
   `password` tinyblob NOT NULL,
   `time` bigint(20) NOT NULL default '0',
   PRIMARY KEY  (`id`)
-) TYPE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `user`
 --
 
 INSERT INTO `user` VALUES (1,'admin@tp','adminpassword',0);
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
