@@ -185,6 +185,23 @@ INSERT INTO "design_component" VALUES (1,1,2);
 INSERT INTO "design_component" VALUES (1,2,2);
 
 --
+-- Table structure for table "lock"
+--
+
+CREATE TABLE "lock" (
+  "host" varchar(255) NOT NULL,
+  "pid" bigint(20) NOT NULL,
+  "type" enum('server','turn','tool') NOT NULL default 'server',
+  "time" bigint(20) NOT NULL,
+  PRIMARY KEY  ("host","pid","type")
+);
+
+--
+-- Dumping data for table "lock"
+--
+
+
+--
 -- Table structure for table "message"
 --
 
