@@ -35,12 +35,26 @@ class FullConnection(netlib.ServerConnection):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
 
-	def check(self):
+	def check(self, packet):
+		"""
+		Checks if the user is logged in and the turns are not currently been processed.
+		"""
 		if self.user == None:
+			self._send(Fail(packet.sequence, constants.FAIL_TEMP, 
+								"You need to be logged in to use this functionality."))
 			return False
-		else:
-			db.query("USE %(db)s", db=self.user.domain())
-			db.query("COMMIT")
+
+		# Reset the database connection
+		db.query("USE %(db)s", db=self.user.domain())
+		db.query("COMMIT")
+
+		# Check that the database isn't currently locked for turn processing
+		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
+		if len(result) > 0:
+			self._send(Fail(packet.sequence, constants.FAIL_TEMP, 
+								"Turns are currently been processed, please try again soon."))
+			return False
+
 		return True
 
 	def OnGetWithID(self, packet, type):
@@ -57,8 +71,8 @@ class FullConnection(netlib.ServerConnection):
 			typeinstance.protect(user)           - Protect the object against this user
 			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 		"""
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		print "Getting stuff with ids", packet.ids
 		
@@ -102,8 +116,8 @@ class FullConnection(netlib.ServerConnection):
 			type.ids(user, start, amount)       - Get the ids (that this user can see)
 			type.ids_packet()                   - Get the packet type for sending a list of ids
 		"""
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		print "Getting IDs with ", packet.key, packet.start, packet.amount
 
@@ -146,8 +160,8 @@ class FullConnection(netlib.ServerConnection):
 		container - The class that contains the other class
 			container.realid(user, id)           - Get the real id for the container object
 		"""
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 		
 		# Get the real id
 		id = container.realid(self.user, packet.id)
@@ -209,8 +223,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetID(packet, Object)	
 
 	def OnObject_GetID_ByPos(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		objects = Object.bypos(packet.pos, packet.size)
 
@@ -220,16 +234,16 @@ class FullConnection(netlib.ServerConnection):
 			self._send(object.to_packet(packet.sequence))
 
 	def OnObject_GetID_ByContainer(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 		
 		objects = Object.byparent(packet.id)
 
 #		self._send(Sequence(packet.sequence,)
 
 	def OnOrderDesc_GetID(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		# FIXME: There is a better place to put this class
 		class OrderDesc:
@@ -252,8 +266,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetID(packet, OrderDesc)	
 
 	def OnOrderDesc_Get(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		self._send(Sequence(packet.sequence, len(packet.ids)))
 
@@ -269,8 +283,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		try:
 			order = Order(packet=packet)
@@ -290,8 +304,8 @@ class FullConnection(netlib.ServerConnection):
 	OnOrder = OnOrder_Insert
 
 	def OnOrder_Remove(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -322,8 +336,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Message, Board)
 
 	def OnMessage_Insert(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		try:
 			# Mangle the board id
@@ -340,8 +354,8 @@ class FullConnection(netlib.ServerConnection):
 	OnMessage = OnMessage_Insert
 
 	def OnMessage_Remove(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		self._send(Sequence(packet.sequence, len(packet.slots)))
 
@@ -380,8 +394,8 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetID(packet, Design)
 
 	def OnDesign_Add(self, packet):
-		if not self.check():
-			return False
+		if not self.check(packet):
+			return True
 
 		try:
 			design = Design(packet=packet)
