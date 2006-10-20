@@ -57,7 +57,17 @@ def query(query, kw1=None, **kw2):
 	for key,value in kw2.items():
 		kw2[key] = connection.escape_string(str(value))
 
-	connection.ping()
+	try:
+		connection.ping()
+	except MySQLdb.OperationalError, e:
+		print "Database error,", e
+		print "Trying to reconnect..."
+		import config
+		reload(config)
+		connect(config)
+		del config
+	
+
 	sql = query % kw2
 	output( sql )
 	connection.query(sql)
