@@ -458,10 +458,6 @@ class FullConnection(netlib.ServerConnection):
 	def OnPlayer_Get(self, packet):
 		return self.OnGetWithID(packet, User)
 
-	def _send(self, packet):
-		time.sleep(config.lag/1000.0)
-		return netlib.ServerConnection._send(self, packet)
-
 class FullServer(netlib.Server):
 	handler = FullConnection
 	debug = True
