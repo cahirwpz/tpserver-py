@@ -198,8 +198,39 @@ class FullConnection(netlib.ServerConnection):
 			constants.FEATURE_ORDERED_DESIGN,
 			constants.FEATURE_ORDERED_COMPONENT,
 			constants.FEATURE_ORDERED_PROPERTY,
-			constants.FEATURE_ORDERED_RESOURCE,]))
+			constants.FEATURE_ORDERED_RESOURCE,
+			constants.FEATURE_ACCOUNT_REGISTER,
+		]))
 		return True
+
+	def OnAccount(self, packet):
+		db.query("USE tp")
+		
+		if config.usercreation:
+			username = packet.username
+			if username.find('@') == -1:
+				self._send(Fail(packet.sequence, constants.FAIL_PERM, 
+					"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
+				return
+			
+			# FIXME: Need to check that the game is a valid game..
+			username, game = username.split('@', 1)
+			if not game in config.games:
+				self._send(Fail(packet.sequence, constants.FAIL_PERM, 
+					"The game you specified is not valid.\nUsernames should be of the form <username>@<game>."))
+				return 
+
+			# Check the username is not in use?
+			pid = User.usernameid(packet.username)
+			if pid != -1:
+				self._send(Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
+				return
+
+			# FIXME: This should call the add tool rather then doing this directly...			
+			
+			self._send(Ok(packet.sequence, "User successfully created. You can login straight away now."))
+
+		return self._send(Fail(packet.sequence, constant.FAIL_TEMP, "Unable to create accounts at this time."))
 
 	def OnLogin(self, packet):
 		db.query("USE tp")

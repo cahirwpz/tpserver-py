@@ -33,6 +33,9 @@ lag = 1
 # Admin users
 admin = (1,)
 
+usercreation = True
+games = ('tp',)
+
 # Add ruleset imports below here
 
 # Generic
