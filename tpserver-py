@@ -76,7 +76,7 @@ class FullConnection(netlib.ServerConnection):
 
 		print "Getting stuff with ids", packet.ids
 		
-		if len(packet.ids) > 1:
+		if len(packet.ids) != 1:
 			self._send(Sequence(packet.sequence, len(packet.ids)))
 
 		for id in packet.ids:
@@ -166,8 +166,8 @@ class FullConnection(netlib.ServerConnection):
 		# Get the real id
 		id = container.realid(self.user, packet.id)
 		
-#		if len(packet.slots) > 1:
-		self._send(Sequence(packet.sequence, len(packet.slots)))
+		if len(packet.slots) != 1:
+			self._send(Sequence(packet.sequence, len(packet.slots)))
 		for slot in packet.slots:
 			try:
 				o = type(id, slot)
