@@ -49,16 +49,16 @@ class FullConnection(netlib.ServerConnection):
 								"You need to be logged in to use this functionality."))
 			return False
 
-		# Reset the database connection
-		db.query("USE %(db)s", db=self.user.domain())
-		db.query("COMMIT")
+#		# Reset the database connection
+#		db.query("USE %(db)s", db=self.user.domain())
+#		db.query("COMMIT")
 
 		# Check that the database isn't currently locked for turn processing
-		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
-		if len(result) > 0:
-			self._send(Fail(packet.sequence, constants.FAIL_TEMP, 
-								"Turns are currently been processed, please try again soon."))
-			return False
+#		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
+#		if len(result) > 0:
+#			self._send(Fail(packet.sequence, constants.FAIL_TEMP, 
+#								"Turns are currently been processed, please try again soon."))
+#			return False
 
 		return True
 
@@ -209,7 +209,7 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnAccount(self, packet):
-		db.query("USE tp")
+		#db.query("USE tp")
 		
 		if config.usercreation:
 			username = packet.username
@@ -238,8 +238,6 @@ class FullConnection(netlib.ServerConnection):
 		return self._send(Fail(packet.sequence, constant.FAIL_TEMP, "Unable to create accounts at this time."))
 
 	def OnLogin(self, packet):
-		db.query("USE tp")
-
 		# We need username and password
 		pid = User.usernameid(packet.username, packet.password)
 	

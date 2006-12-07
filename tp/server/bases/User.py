@@ -20,11 +20,11 @@ class User(SQLBase):
 	)
 
 	def usernameid(username, password=None):
-		t = self.table
+		t = User.table
 		if password != None:
-			result = t.select([t.c.id], username==username & password==password).execute().fetchall()
+			result = select([t.c.id], (t.c.username==username) & (t.c.password==password)).execute().fetchall()
 		else:
-			result = t.select([t.c.id], username==username).execute().fetchall()
+			result = select([t.c.id], t.c.username==username).execute().fetchall()
 		
 		if len(result) != 1:
 			return -1
