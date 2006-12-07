@@ -13,8 +13,8 @@ class User(SQLBase):
 		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
-		Column('comment',   Binary,      nullable=False),
-		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+#		Column('comment',   Binary,      nullable=False),
+#		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('username')
 	)

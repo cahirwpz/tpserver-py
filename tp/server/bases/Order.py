@@ -32,8 +32,8 @@ class Order(SQLTypedBase):
 		
 		Returns the database id for the order found on object at slot.
 		"""
-		t = self.table
-		result = t.select(t.c.oid==oid, t.c.slot==slot).execute()
+		t = cls.table
+		result = select([t], t.c.oid==oid, t.c.slot==slot).execute()
 		if len(result) != 1:
 			return -1
 		else:
@@ -46,8 +46,8 @@ class Order(SQLTypedBase):
 
 		Returns the number of orders on an object.
 		"""
-		t = self.table
-		return t.select(func.count(t.c.id), oid==self.oid).execute().fetchall()[0]['count(id)']
+		t = cls.table
+		return select([func.count(t.c.id).label('count')], t.c.oid==oid).execute().fetchall()[0]['count']
 	number = classmethod(number)
 
 	def desc_packet(cls, sequence, typeno):

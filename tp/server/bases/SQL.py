@@ -125,6 +125,11 @@ class SQLBase(object):
 			raise NoSuch("%s does not exists" % id)
 
 		self.__dict__.update(result[0])
+		# FIXME: HACK!
+		for name in self.__dict__:
+			value = self.__dict__[name]
+			if type(value) is buffer:
+				self.__dict__[name] = str(value)
 
 	def save(self):
 		"""\
@@ -222,7 +227,7 @@ def SQLTypedTable(name):
 		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
 		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True),
 		Column('value',	Binary),
-		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+#		Column('time',	DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		# Extra properties
 		ForeignKeyConstraint([name], [name+'.id']),
@@ -317,11 +322,11 @@ Extra attributes this type defines.
 					if not hasattr(self, name):
 						setattr(self, name, {})
 
-					getattr(self, name)[eval(key)] = eval(value)
+					getattr(self, name)[eval(key)] = eval(str(value))
 					continue
 			
 				elif isSimpleType(attribute.default):
-					value = eval(value)
+					value = eval(str(value))
 				else:
 					value = pickle.loads(value)
 					

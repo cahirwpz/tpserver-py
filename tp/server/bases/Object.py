@@ -6,7 +6,8 @@ from sqlalchemy import *
 
 # Local imports
 from tp import netlib
-from SQL import SQLTypedBase, SQLTypedTable
+from config import admin
+from SQL import SQLBase, SQLTypedBase, SQLTypedTable
 from Order import Order
 
 class Object(SQLTypedBase):
@@ -61,8 +62,8 @@ class Object(SQLTypedBase):
 
 		Returns the objects which have a parent of this id.
 		"""
-		t = self.table
-		results = t.select([t.c.id, t.c.time], t.c.parent==id).execute().fetchall()
+		t = cls.table
+		results = select([t.c.id, t.c.time], t.c.parent==id).execute().fetchall()
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
