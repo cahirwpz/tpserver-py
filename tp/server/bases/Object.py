@@ -1,14 +1,36 @@
+"""\
+The basis for all objects that exist.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib, admin
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLTypedBase, SQLTypedTable
 from Order import Order
 
 class Object(SQLTypedBase):
-	tablename = "`object`"
-	tablename_extra = "`object_extra`"
-	types = {}
+	table = Table('object',
+		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('type',	    String(255), nullable=False, index=True),
+		Column('name',      Binary,      nullable=False),
+		Column('size',      Integer,     nullable=False),
+		Column('posx',      Integer,     nullable=False, default=0),
+		Column('posy',      Integer,     nullable=False, default=0),
+		Column('posz',      Integer,     nullable=False, default=0),
+		Column('velx',      Integer,     nullable=False, default=0),
+		Column('vely',      Integer,     nullable=False, default=0),
+		Column('velz',      Integer,     nullable=False, default=0),
+		Column('parent',    Integer,     nullable=True),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
+		ForeignKeyConstraint(['parent'], ['object.id']),
+	)
+	Index('idx_object_position', table.c.posx, table.c.posy, table.c.posz)
+
+	table_extra = SQLTypedTable('object')
+
+	types = {}
 	orderclasses = {}
 
 	def bypos(cls, pos, size=0, limit=-1, orderby="time, size DESC"):
@@ -19,16 +41,17 @@ class Object(SQLTypedBase):
 		size and radius of size.
 		"""
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
-		
-		sql = """\
-SELECT id, time FROM %%(tablename)s WHERE \
-	(pow(posx-%s, 2) + pow(posy-%s, 2) + pow(posz-%s, 2)) <= ( %s + pow(size, 2) ) \
-ORDER BY %s \
-		""" % (pos[0], pos[1], pos[2], size**2, orderby)
-		if limit != -1:
-			sql += "LIMIT %s" % limit
 
-		results = db.query(sql, tablename=cls.tablename)
+		c = self.table.c
+		s = self.table.select([c.id, c.time],
+				(func.pow(c.posx-pos[0], 2) + \
+				 func.pow(c.posy-pos[1], 2) + \
+				 func.pow(c.posz-pos[2], 2)) <= \
+					(size**2 + func.pow(c.size, 2)))
+		if limit != -1:
+			s.limit = limit
+
+		results = s.execute().fetchall()
 		return [(x['id'], x['time']) for x in results]
 	bypos = classmethod(bypos)
 
@@ -38,7 +61,8 @@ ORDER BY %s \
 
 		Returns the objects which have a parent of this id.
 		"""
-		results = db.query("""SELECT id, time FROM %(tablename)s WHERE parent=%(id)s""", tablename=cls.tablename, id=id)
+		t = self.table
+		results = t.select([t.c.id, t.c.time], t.c.parent==id).execute().fetchall()
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
@@ -69,9 +93,11 @@ ORDER BY %s \
 
 	def remove(self):
 		# FIXME: Need to remove associated orders in a better way
-		db.query("""DELETE FROM %(tablename)s WHERE oid=%(id)s""", tablename=Order.tablename, id=self.id)
+		t = Order.table
+		t.delete(oid==self.id)
 		# Remove any parenting on this object.
-		db.query("""UPDATE %(tablename)s SET parent=0 WHERE parent=%(id)s""", self.todict())
+		t = Object.table
+		t.update(parent==self.id).execute(t.c.parent==0)
 		SQLTypedBase.remove(self)
 	
 	def orders(self):

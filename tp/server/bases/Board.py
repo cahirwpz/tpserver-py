@@ -1,11 +1,21 @@
+"""\
+Board which contains posts about stuff.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 from Message import Message
 
 class Board(SQLBase):
-	tablename = "`board`"
+	table = Table('board',
+		Column('id',	Integer,     nullable = False, default=0, index=True, primary_key=True),
+		Column('name',	String(255), nullable = False, index=True),
+		Column('desc',	Binary,      nullable = False),
+		Column('time',	DateTime,    nullable = False, index=True, onupdate=func.current_timestamp()),
+	)
 
 	def realid(cls, user, bid):
 		# Board ID Zero gets map to player id
@@ -31,7 +41,8 @@ class Board(SQLBase):
 
 		Get the number of records in this table (that the user can see).
 		"""
-		result = db.query("SELECT count(*) FROM %(tablename)s WHERE id < 0 OR id = %(userid)s", tablename=cls.tablename, userid=user.id)
+		t = self.table
+		result = t.select([func.count(t.c.id)], t.c.id<0 | t.c.id==user.id).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['count(*)']
@@ -46,7 +57,9 @@ class Board(SQLBase):
 		if amount == -1:
 			amount = 2**64
 		
-		result = db.query("SELECT id, time FROM %(tablename)s WHERE id < 0 OR id = %(userid)s ORDER BY time DESC LIMIT %(amount)s OFFSET %(start)s", tablename=cls.tablename, userid=user.id, start=start, amount=amount)
+		t = self.table
+		result = t.select([t.c.id, t.c.time], t.c.id<0 | t.c.id==user.id, 
+							order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(cls.mangleid(x['id']), x['time']) for x in result] 
 	ids = classmethod(ids)
 

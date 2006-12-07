@@ -1,6 +1,6 @@
 
 import copy
-from config import netlib
+from tp import netlib
 
 from tp.server.bases.SQL import NoSuch
 from tp.server.bases.Object import Object

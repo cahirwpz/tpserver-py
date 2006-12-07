@@ -1,11 +1,29 @@
+"""\
+How to tell objects what to do.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib, admin
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLTypedBase, SQLTypedTable
 
 class Order(SQLTypedBase):
-	tablename = "`order`"
-	tablename_extra = "`order_extra`"
+	table = Table('order',
+		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('type',	    String(255), nullable=False, index=True),
+		Column('oid',       Integer,     nullable=True),
+		Column('slot',      Integer,     nullable=False),
+		Column('worked',    Integer,     nullable=False),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		UniqueConstraint('oid', 'slot'),
+		ForeignKeyConstraint(['oid'], ['object.id']),
+	)
+	Index('idx_order_oidslot', table.c.oid, table.c.slot)
+
+	table_extra = SQLTypedTable('order')
+
 	types = {}
 
 	def realid(cls, oid, slot):
@@ -14,7 +32,8 @@ class Order(SQLTypedBase):
 		
 		Returns the database id for the order found on object at slot.
 		"""
-		result = db.query("""SELECT id FROM %(tablename)s WHERE oid=%(oid)s and slot=%(slot)s""", tablename=cls.tablename, oid=oid, slot=slot)
+		t = self.table
+		result = t.select(t.c.oid==oid, t.c.slot==slot).execute()
 		if len(result) != 1:
 			return -1
 		else:
@@ -27,7 +46,8 @@ class Order(SQLTypedBase):
 
 		Returns the number of orders on an object.
 		"""
-		return db.query("""SELECT count(id) FROM %(tablename)s WHERE oid=%(oid)s""", tablename=cls.tablename, oid=oid)[0]['count(id)']
+		t = self.table
+		return t.select(func.count(t.c.id), oid==self.oid).execute().fetchall()[0]['count(id)']
 	number = classmethod(number)
 
 	def desc_packet(cls, sequence, typeno):
@@ -82,29 +102,32 @@ class Order(SQLTypedBase):
 
 	def insert(self):
 		try:
-			db.begin()
+#			db.begin()
+
+			t = self.table
 		
 			number = self.number(self.oid)
 			if self.slot == -1:
 				self.slot = number
 			elif self.slot <= number:
 				# Need to move all the other orders down
-				print self.todict()
-				db.query("""UPDATE %(tablename)s SET slot=slot+1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
+				t = self.table
+				t.update(t.c.slot>=self.slot & oid==self.oid).execute(slot=t.c.slot+1)
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
 			self.save()
 
 		except Exception, e:
-			db.rollback()
+#			db.rollback()
 			raise
 		else:
-			db.commit()
+#			db.commit()
+			pass
 
 	def save(self):
 		try:
-			db.begin()
+#			db.begin()
 			
 			self.object.save()	
 			if not hasattr(self, 'id'):
@@ -113,26 +136,29 @@ class Order(SQLTypedBase):
 					self.id = id
 			SQLTypedBase.save(self)
 		except Exception, e:
-			db.rollback()
+#			db.rollback()
 			raise
 		else:
-			db.commit()
+#			db.commit()
+			pass
 
 	def remove(self):
 		try:
-			db.begin()
+#			db.begin()
 			
 			# Move the other orders down
-			db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND oid=%(oid)s""", self.todict())
-			
+			t = self.table
+			t.update(t.c.slot>=self.slot & oid==self.oid).execute(slot=t.c.slot-1)
+
 			self.object.save()
 			SQLTypedBase.remove(self)
 
 		except Exception, e:
-			db.rollback()
+#			db.rollback()
 			raise
 		else:
-			db.commit()
+#			db.commit()
+			pass
 
 	def to_packet(self, sequence):
 		# Preset arguments

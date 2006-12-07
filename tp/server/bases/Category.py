@@ -1,10 +1,20 @@
+"""\
+Categories which help group things together.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 
 class Category(SQLBase):
-	tablename = "`category`"
+	table = Table('category',
+		Column('id',	Integer,     nullable = False, default=0, index=True, primary_key=True),
+		Column('name',	String(255), nullable = False, index=True),
+		Column('desc',	Binary,      nullable = False),
+		Column('time',	DateTime,    nullable = False, index=True, onupdate=func.current_timestamp()),
+	)
 
 	def to_packet(self, sequence):
 		# Preset arguments

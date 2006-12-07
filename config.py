@@ -4,28 +4,12 @@ try:
 except ImportError:
 	pass
 	
-try:
-	from tp import netlib
-except ImportError:
-	import sys
-	sys.path.append("../")
-	from tp import netlib
-
+from tp import netlib
 import sys
 sys.path.append(".")
 
 class config:
 	pass
-
-# Database config
-import tp.server.db.MySQL as db
-db = db
-dbconfig = config()
-dbconfig.host = "localhost"
-dbconfig.user = "tp"
-dbconfig.password = "tp-password"
-dbconfig.database = "tp"
-db.connect(dbconfig)
 
 # Introduce artifical lag
 lag = 1
@@ -74,3 +58,6 @@ order = [BuildFleet,
 		 Heal,
 		 Win,
 		]
+
+dbconfig = "mysql://tp:tp-password@localhost/tp"
+

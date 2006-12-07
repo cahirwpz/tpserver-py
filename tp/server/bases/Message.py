@@ -1,13 +1,47 @@
+"""\
+Message with information about stuff (and references to other objects).
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 
-from SQL import *
+table_types = Table('reference',
+	Column('id',    Integer,     nullable=False, primary_key=True),
+	Column('value', Integer,     nullable=False, index=True),
+	Column('desc',  Binary,      nullable=False),
+	Column('ref',   String(255), nullable=False),
+)
 
 class Message(SQLBase):
-	tablename = "`message`"
+	table = Table('message',
+		Column('id',	  Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('bid',	  Integer,     nullable=False, index=True),
+		Column('slot',	  Integer,     nullable=False),
+		Column('subject', String(255), nullable=False, index=True),
+		Column('body',    Binary,      nullable=False),
+		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		UniqueConstraint('bid', 'slot'),
+		ForeignKeyConstraint(['bid'], ['board.id']),
+	)
+	Index('idx_message_bidslot', table.c.bid, table.c.slot),
+
+	table_references = Table('message_references',
+		Column('mid',   Integer, nullable=False, default=0, primary_key=True),
+		Column('rid',   Integer, nullable=False, default=0, primary_key=True),
+		Column('value', Integer, nullable=False, default=0),
+
+		ForeignKeyConstraint(['mid'], ['message.id']),
+		ForeignKeyConstraint(['rid'], ['reference.id']),
+	)
+	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid),
 
 	def realid(cls, bid, slot):
-		result = db.query("""SELECT id FROM %(tablename)s WHERE bid=%(bid)s and slot=%(slot)s""", tablename=cls.tablename, bid=bid, slot=slot)
+		t = self.table
+		result = t.select([t.c.id], t.c.bid==bid & t.c.slot==slot).execute().fetchall()
 		if len(result) != 1:
 			return -1
 		else:
@@ -15,7 +49,8 @@ class Message(SQLBase):
 	realid = classmethod(realid)
 
 	def number(cls, bid):
-		return db.query("""SELECT COUNT(id) FROM %(tablename)s WHERE bid=%(bid)s""", tablename=cls.tablename, bid=bid)[0]['COUNT(id)']
+		t = self.table
+		return t.select(func.count(t.c.id), t.c.bid==bid).execute().fetchall()[0]['COUNT(id)']
 	number = classmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):
@@ -39,7 +74,8 @@ class Message(SQLBase):
 			self.slot = number
 		elif self.slot <= number:
 			# Need to move all the other orders down
-			db.query("""UPDATE %(tablename)s SET slot=slot+1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
+			t = self.table
+			t.update(t.c.slot>=self.slot & bid==self.bid).execute(slot=t.c.slot+1)
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
 		
@@ -55,7 +91,8 @@ class Message(SQLBase):
 
 	def remove(self):
 		# Move the other orders down
-		db.query("""UPDATE %(tablename)s SET slot=slot-1 WHERE slot>=%(slot)s AND bid=%(bid)s""", self.todict())
+		t = self.table
+		t.update(t.c.slot>=self.slot & bid==self.bid).execute(slot=t.c.slot-1)
 
 		SQLBase.remove(self)
 

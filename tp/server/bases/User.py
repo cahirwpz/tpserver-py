@@ -1,16 +1,30 @@
+"""\
+Resources require to build stuff.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 
 class User(SQLBase):
-	tablename = "`user`"
+	table = Table('user',
+		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('username',  String(255), nullable=False, index=True),
+		Column('password',  String(255), nullable=False, index=True),
+		Column('comment',   Binary,      nullable=False),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		UniqueConstraint('username')
+	)
 
 	def usernameid(username, password=None):
-		print db
+		t = self.table
 		if password != None:
-			result = db.query("""SELECT id FROM %(tablename)s WHERE username="%(username)s" and password="%(password)s" """, username=username, password=password, tablename=User.tablename)
+			result = t.select([t.c.id], username==username & password==password).execute().fetchall()
 		else:
-			result = db.query("""SELECT id FROM %(tablename)s WHERE username="%(username)s" """, username=username, tablename=User.tablename)
+			result = t.select([t.c.id], username==username).execute().fetchall()
 		
 		if len(result) != 1:
 			return -1
@@ -34,4 +48,4 @@ class User(SQLBase):
 		# Preset arguments
 		args = [sequence, self.id, self.username, ""]
 		return netlib.objects.Player(*args)
-	
+

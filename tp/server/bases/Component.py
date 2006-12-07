@@ -1,12 +1,39 @@
+"""\
+Components which can be put together to form designs.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 
 class Component(SQLBase):
-	tablename = "`component`"
-	tablename_category = "`component_category`"
-	tablename_property = "`component_property`"
+	table = Table('component',
+		Column('id',	  Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('name',	  String(255), nullable=False, index=True),
+		Column('desc',    Binary,      nullable=False),
+		Column('requirements', Binary, nullable=False),
+		Column('comment', Binary,      nullable=False),
+		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+	)
+	table_category = Table('component_category',
+		Column('component', Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('category',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('comment',   Binary,   nullable=False, default=''),
+		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		ForeignKeyConstraint(['component'], ['component.id']),
+		ForeignKeyConstraint(['category'],  ['category.id']),
+	)
+	table_property = Table('component_property',
+		Column('component', Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('property',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('value',     Binary,   nullable=False, default=''),
+		Column('comment',   Binary,   nullable=False, default=''),
+		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		ForeignKeyConstraint(['component'], ['component.id']),
+		ForeignKeyConstraint(['property'],  ['property.id']),
+	)
 
 	def categories(self):
 		"""\
@@ -14,8 +41,8 @@ class Component(SQLBase):
 
 		Returns the categories the component is in.
 		"""
-		results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-			tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+		t = self.table_category
+		results = t.select([t.c.category], t.c.component==self.id).execute().fetchall()
 		return [x['category'] for x in results]
 
 	def properties(self):
@@ -24,8 +51,8 @@ class Component(SQLBase):
 
 		Returns the properties the component has.
 		"""
-		results = db.query("""SELECT property, value FROM %(tablename_property)s WHERE %(tablename)s=%(id)s""", 
-			tablename_property=self.tablename_property, tablename=self.tablename, id=self.id)
+		t = self.table_property
+		results = t.select([t.c.property, t.c.value], t.c.component==self.id).execute().fetchall()
 		return [(x['property'], x['value']) for x in results]
 
 	def property(self, id):
@@ -34,8 +61,8 @@ class Component(SQLBase):
 
 		Returns the property value function for this component given a property id
 		"""
-		results = db.query("""SELECT value FROM %(tablename_property)s WHERE %(tablename)s=%(cid)s AND property=%(pid)s""", 
-			tablename_property=self.tablename_property, tablename=self.tablename, cid=self.id, pid=id)
+		t = self.table_property
+		results = t.select([t.c.value], t.c.component==self.id & t.c.property==id).execute().fetchall()
 		if len(results) == 1:
 			return results[0]['value']
 		return None

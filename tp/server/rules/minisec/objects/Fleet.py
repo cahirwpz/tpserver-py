@@ -1,5 +1,4 @@
 
-from config import db
 from types import TupleType, ListType
 
 from tp.server.bases.Object import Object

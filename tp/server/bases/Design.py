@@ -1,16 +1,43 @@
+"""\
+Design of things.
+"""
+# Module imports
+from sqlalchemy import *
 
-from config import db, netlib
-
-from SQL import *
+# Local imports
+from tp import netlib
+from SQL import SQLBase
 from Component import Component
 from Property import Property
 
 import pyscheme as scheme
 
 class Design(SQLBase):
-	tablename = "`design`"
-	tablename_category = "`design_category`"
-	tablename_component = "`design_component`"
+	table = Table('design',
+		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('name',	    String(255), nullable=False, index=True),
+		Column('desc',      Binary,      nullable=False),
+		Column('owner',     Integer,     nullable=False),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		ForeignKeyConstraint(['owner'], ['user.id']),
+	)
+	table_category = Table('design_category',
+		Column('design',    Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('category',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('comment',   Binary,   nullable=False, default=''),
+		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		ForeignKeyConstraint(['design'],   ['design.id']),
+		ForeignKeyConstraint(['category'], ['category.id']),
+	)
+	table_component = Table('design_component',
+		Column('design',    Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('component', Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('amount',    Integer,  nullable=False, default=0),
+		Column('comment',   Binary,   nullable=False, default=''),
+		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		ForeignKeyConstraint(['design'],   ['design.id']),
+		ForeignKeyConstraint(['component'], ['component.id']),
+	)
 	
 	def load(self, id):
 		"""\
@@ -35,19 +62,19 @@ class Design(SQLBase):
 		SQLBase.save(self)
 
 		# Save the categories now
+		t = self.table_category
 		current = self.get_categories()
 		for cid in current+self.categories:
 			if cid in current and not cid in self.categories:
 				# Remove the category
-				results = db.query("""DELETE FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+				results = t.delete(t.c.design==self.id & t.c.category==cid).execute()
 			
 			if cid not in self.categories and cid in current:
 				# Add the category
-				results = db.query("""INSERT INTO %(tablename_category)s SET %(tablename)s=%(id)s, category=%(cid)s""", 
-					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id, cid=cid)
+				results = t.insert().execute(design=self.id, category=cid)
 
 		# Save the components now
+		t = self.table_components
 		current = self.get_components()
 		
 		ct = {}
@@ -63,12 +90,10 @@ class Design(SQLBase):
 			start, end = values
 		
 			if end == None or end < 1:
-				results = db.query("""DELETE FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+				results = t.delete(t.c.design==self.id & t.c.component==cid).execute()
 	
 			if start != end:
-				results = db.query("""REPLACE INTO %(tablename_component)s SET %(tablename)s=%(id)s, component=%(cid)s, amount=%(amount)s""", 
-					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id, cid=cid, amount=end)
+				results = t.update().execute(design=self.id, category=cid, amount=amount)
 			
 	def set_ignore(self, value):
 		return
@@ -79,12 +104,13 @@ class Design(SQLBase):
 
 		Returns the categories the design is in.
 		"""
+		t = self.table_category
+
 		if not hasattr(self, '_categories'):
 			if not hasattr(self, 'id'):
 				self._categories = []
 			else:
-				results = db.query("""SELECT category FROM %(tablename_category)s WHERE %(tablename)s=%(id)s""", 
-					tablename_category=self.tablename_category, tablename=self.tablename, id=self.id)
+				results = t.select([t.c.category], t.c.design==self.id).execute().fetchall()
 				self._categories = [x['category'] for x in results]
 		return self._categories
 		
@@ -94,12 +120,13 @@ class Design(SQLBase):
 
 		Returns the components the design contains.
 		"""
+		t = self.table_component
+
 		if not hasattr(self, '_components'):
 			if not hasattr(self, 'id'):
 				self._components = []
 			else:
-				results = db.query("""SELECT component, amount FROM %(tablename_component)s WHERE %(tablename)s=%(id)s""", 
-					tablename_component=self.tablename_component, tablename=self.tablename, id=self.id)
+				results = t.select([t.c.component, t.c.amount], t.c.design==self.id).execute().fetchall()
 				self._components = [(x['component'], x['amount']) for x in results]
 		return self._components
 	
@@ -114,14 +141,20 @@ class Design(SQLBase):
 			return -1
 		
 		# FIXME: This is a bit of a hack (and most probably won't work on non-MySQL)
-		results = db.query("""SELECT SUM(value) AS inplay FROM object_extra WHERE name = 'ships' AND `key` = '%(key)s'""", key=repr(self.id))
+		te = Object.table_extra
+		results = te.select(func.sum(te.c.value, alias='inplay'), 
+								te.c.name=='ships' & te.c.key==repr(self.id)).execute().fetchall()
 		try:
 			inplay = long(results[0]['inplay'])
 		except (KeyError, ValueError):
 			inplay = 0
 	
 		# FIXME: This is hardcoded currently
-		results = db.query("""SELECT SUM(value) as beingbuilt FROM order_extra JOIN `order` ON order.id = order_extra.order WHERE name = 'ships' AND type = 'sorders.Build' AND `key` = '%(key)s'""", key=repr(self.id))
+		t  = Order.table
+		te = Order.table_extra
+		j  = join(Order.table, Order.table_extra)
+		results = t.select(func.sum(te.c.value, alias='beingbuilt'), 
+							te.c.name=='ships' & te.c.key==repr(self.id) & t.c.type=='sorders.Build').execute().fetchall()
 		try:
 			beingbuilt = long(results[0]['beingbuilt'])
 		except (KeyError, ValueError):
@@ -154,8 +187,11 @@ class Design(SQLBase):
 			return {}
 
 		# FIXME: This is a hack, there should be a better way to do this
-		results = db.query("""SELECT DISTINCT cp.property AS id, p.rank AS rank FROM component_property AS cp JOIN property AS p ON p.id = cp.property WHERE cp.component in %s ORDER by rank""" 
-			% str(zip(*self.components)[0]).replace('L','').replace(',)',')'))
+		tc = Component.table_property
+		tp = Property.table
+		j = join(tc, tp)
+		results = join.select([tc.c.id, tp.c.rank], 
+						tc.c.component in self.components, order_by=[tc.c.rank]).execute().fetchall()
 
 		ranks = {}
 		for result in results:

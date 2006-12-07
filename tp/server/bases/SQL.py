@@ -1,3 +1,8 @@
+"""\
+Database backed bases for the objects.
+"""
+# Module imports
+from sqlalchemy import *
 
 try:
 	import cPickle as pickle
@@ -6,14 +11,12 @@ except ImportError:
 import copy
 import time
 
-from config import db
-
 # These types go through repr fine
 import types
 types.SimpleTypes = [types.BooleanType, types.ComplexType, types.FloatType, 
 					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
-
 types.SimpleCompoundTypes = [types.ListType, types.TupleType]
+
 def isSimpleType(value):
 	if type(value) in types.SimpleTypes:
 		return True
@@ -37,18 +40,6 @@ class SQLBase(object):
 	"""\
 	A class which stores it's data in a SQL database.
 	"""
-	def _description(cls):
-		"""\
-		*Internal*
-
-		Get a description of the object.
-		"""
-		if not hasattr(cls, "__description"):
-			cls.__description = db.query("DESCRIBE %(tablename)s", tablename=cls.tablename)
-		return cls.__description
-	_description = classmethod(_description)
-	description = property(_description)
-
 	def modified(cls, user):
 		"""\
 		modified(user) -> unixtime
@@ -56,7 +47,8 @@ class SQLBase(object):
 		Gets the last modified time for the type.
 		"""
 		# FIXME: This gives the last modified for anyone time, not for the specific user.
-		result = db.query("SELECT time FROM %(tablename)s ORDER BY time DESC LIMIT 1", tablename=cls.tablename)
+		t = self.table
+		result = t.select(order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['time']
@@ -71,16 +63,9 @@ class SQLBase(object):
 		if amount == -1:
 			amount = 2**64
 		
-		result = db.query("SELECT id, time FROM %(tablename)s ORDER BY time DESC LIMIT %(amount)s OFFSET %(start)s", tablename=cls.tablename, start=start, amount=amount)
-		return [(x['id'], x['time']) for x in result] 
-		
-#		if "ids" in cls._description():
-#			if "time" in cls._description():
-#				result = db.query("SELECT id, time FROM %(tablename)s LIMIT %(length)i OFFSET %(start)i ", tablename=cls.tablename, start=start, length=length)
-#			else:
-#				result = db.query("SELECT id FROM %(tablename)s LIMIT %(length)i OFFSET %(start)i", tablename=cls.tablename, start=start, length=length)
-#			return [(x['id'], x['time']) for x in result] 
-#		raise ValueError("Can not use this method for this table.")
+		t = self.table
+		result = t.select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
+		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
 
 	def amount(cls, user):
@@ -89,7 +74,7 @@ class SQLBase(object):
 
 		Get the number of records in this table (that the user can see).
 		"""
-		result = db.query("SELECT count(*) FROM %(tablename)s", tablename=cls.tablename)
+		result = self.table.select([func.count(self.table.c.time)]).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['count(*)']
@@ -114,8 +99,6 @@ class SQLBase(object):
 		Create an object from a network packet.
 		Create an empty object.
 		"""
-		self.tablename = self.tablename
-		
 		if id != None:
 			self.load(id)
 		if packet != None:
@@ -137,7 +120,7 @@ class SQLBase(object):
 		"""
 		self.id = id
 		
-		result = db.query("""SELECT * FROM %(tablename)s WHERE id=%(id)s""", self.todict())
+		result = self.table.select(self.table.c.id==id).execute().fetchall()
 		if len(result) != 1:
 			raise NoSuch("%s does not exists" % id)
 
@@ -153,19 +136,20 @@ class SQLBase(object):
 		
 		# Build SQL query, there must be a better way to do this...
 		if hasattr(self, 'id'):
-			SQL = """REPLACE %(tablename)s SET """
+			method = 'replace'
 		else:
-			SQL = """INSERT %(tablename)s SET """
+			method = 'insert'
 
 		# FIXME: This is MySQL specific....
-		for finfo in self._description():
-			if finfo['Field'] == 'id' and not hasattr(self, 'id'):
+		arguments = {}
+		for column in self.table.columns:
+			if c.name == 'id' and not hasattr(self, 'id'):
 				continue
+			if hasattr(self, column.name):
+				arguments[column.name] = getattr(self, column.name)
 			
-			SQL += """`%(Field)s` = '%%(%(Field)s)s', """ % finfo
-		SQL = SQL[:-2]
-
-		db.query(SQL, self.todict())
+		result = getattr(self.table, method).execute(arguments)
+		print result
 
 		if not hasattr(self, 'id'):
 			self.id = db.connection.insert_id()
@@ -178,7 +162,7 @@ class SQLBase(object):
 		Removes an object from the database.
 		"""
 		# Remove the common attribute
-		db.query("""DELETE FROM %(tablename)s WHERE id=%(id)s""", self.todict())
+		self.table.delete(self.table.c.id==self.id).execute()
 
 	def insert(self):
 		"""\
@@ -231,6 +215,23 @@ class SQLBase(object):
 
 	def __repr__(self):
 		return self.__str__()
+
+def SQLTypedTable(name):
+	t = Table(name+"_extra",
+		Column(name,	Integer,	 default=0,  nullable = False, index=True, primary_key=True),
+		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
+		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True),
+		Column('value',	Binary),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		# Extra properties
+		ForeignKeyConstraint([name], [name+'.id']),
+	)
+	# Index on the ID and name
+	Index('idx_'+name+'xtr_idname', getattr(t.c, name), t.c.name)
+	Index('idx_'+name+'xtr_idnamevalue', getattr(t.c, name), t.c.name, t.c.value)
+
+	return t
 
 _marker = []
 class SQLTypedBase(SQLBase):
@@ -297,13 +298,13 @@ Extra attributes this type defines.
 
 		Loads a thing from the database.
 		"""
+		te = self.table_extra
 		SQLBase.load(self, id)
 			
 		self.__upgrade__(self.type)
 
 		# Load the extra properties from the object_extra table
-		results = db.query("""SELECT name, `key`, value FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s""", 
-			tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
+		results = te.select(te.c.object==self.id).execute().fetchall()
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']
@@ -332,14 +333,15 @@ Extra attributes this type defines.
 
 		Saves a thing to the database.
 		"""
-		db.begin()
+#		db.begin()
+
+		te = self.table_extra
 		try:
 			SQLBase.save(self)
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
-					db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s AND name='%(name)s'",
-						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name)
+					te.delete(te.c.object==self.id, te.c.name==attribute.name).execute()
 					for key, value in getattr(self, attribute.name).items():
 						if not isSimpleType(key):
 							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
@@ -351,21 +353,19 @@ Extra attributes this type defines.
 						else:
 							value = repr(value)
 						
-						db.query("INSERT INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='%(key)s', value='%(value)s'",
-							tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, key=key, value=value)
+						te.insert().execute(object=self.id, name=attribute.name, key=key, value=value)
 				else:
 					if isSimpleType(attribute.default):
 						value = repr(getattr(self, attribute.name))
 					else:
 						value = pickle.dumps(getattr(self, attribute.name))
-					db.query("REPLACE INTO %(tablename_extra)s SET %(tablename)s=%(id)s, name='%(name)s', `key`='', value='%(value)s'",
-						tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id, name=attribute.name, value=value)
-		
+					te.replace().execute(object=self.id, name=attribute.name, key='', value=value)
 		except Exception, e:
-			db.rollback()
+#			db.rollback()
 			raise
 		else:
-			db.commit()
+#			db.commit()
+			pass
 
 	def remove(self):
 		"""\
@@ -373,16 +373,16 @@ Extra attributes this type defines.
 
 		Removes an object from the database.
 		"""
-		db.begin()
+#		db.begin()
 		try:
-			db.query("DELETE FROM %(tablename_extra)s WHERE %(tablename)s=%(id)s", 
-				tablename_extra=self.tablename_extra, tablename=self.tablename, id=self.id)
+			self.table_extra.delete().execute(id=self.id)
 			SQLBase.remove(self)
 		except Exception, e:
-			db.rollback()
+#			db.rollback()
 			raise
 		else:
-			db.commit()
+#			db.commit()
+			pass
 
 	def from_packet(self, packet):
 		"""\
