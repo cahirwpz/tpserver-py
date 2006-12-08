@@ -59,5 +59,7 @@ order = [BuildFleet,
 		 Win,
 		]
 
+# Database config
+from sqlalchemy import *
 dbconfig = "mysql://tp:tp-password@localhost/tp"
 

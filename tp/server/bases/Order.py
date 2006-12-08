@@ -6,7 +6,7 @@ from sqlalchemy import *
 
 # Local imports
 from tp import netlib
-from SQL import SQLTypedBase, SQLTypedTable
+from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 
 class Order(SQLTypedBase):
 	table = Table('order',

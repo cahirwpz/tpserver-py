@@ -7,7 +7,7 @@ from sqlalchemy import *
 # Local imports
 from tp import netlib
 from config import admin
-from SQL import SQLBase, SQLTypedBase, SQLTypedTable
+from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from Order import Order
 
 class Object(SQLTypedBase):
