@@ -16,7 +16,7 @@ class Resource(SQLBase):
 		Column('unitsingular', Binary,   nullable=False),
 		Column('unitplural',   Binary,   nullable=False),
 		Column('desc',         Binary,   nullable=False),
-		Column('weigth',       Integer,  nullable=False, default=0),
+		Column('weight',       Integer,  nullable=False, default=0),
 		Column('size',         Integer,  nullable=False, default=0),
 		Column('time',	       DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 	)

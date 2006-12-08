@@ -10,6 +10,7 @@ except ImportError:
 	import pickle
 import copy
 import time
+from array import array
 
 # These types go through repr fine
 import types
@@ -47,8 +48,8 @@ class SQLBase(object):
 		Gets the last modified time for the type.
 		"""
 		# FIXME: This gives the last modified for anyone time, not for the specific user.
-		t = self.table
-		result = t.select(order_by=[desc(t.c.time)], limit=1).execute().fetchall()
+		t = cls.table
+		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['time']
@@ -63,8 +64,8 @@ class SQLBase(object):
 		if amount == -1:
 			amount = 2**64
 		
-		t = self.table
-		result = t.select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
+		t = cls.table
+		result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
 
@@ -74,10 +75,10 @@ class SQLBase(object):
 
 		Get the number of records in this table (that the user can see).
 		"""
-		result = self.table.select([func.count(self.table.c.time)]).execute().fetchall()
+		result = select([func.count(cls.table.c.time).label('count')]).execute().fetchall()
 		if len(result) == 0:
 			return 0
-		return result[0]['count(*)']
+		return result[0]['count']
 	amount = classmethod(amount)
 
 	def realid(cls, user, id):
@@ -128,7 +129,7 @@ class SQLBase(object):
 		# FIXME: HACK!
 		for name in self.__dict__:
 			value = self.__dict__[name]
-			if type(value) is buffer:
+			if type(value) in (buffer, array):
 				self.__dict__[name] = str(value)
 
 	def save(self):

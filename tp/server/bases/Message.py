@@ -40,8 +40,8 @@ class Message(SQLBase):
 	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid),
 
 	def realid(cls, bid, slot):
-		t = self.table
-		result = t.select([t.c.id], t.c.bid==bid & t.c.slot==slot).execute().fetchall()
+		t = cls.table
+		result = select([t.c.id], t.c.bid==bid & t.c.slot==slot).execute().fetchall()
 		if len(result) != 1:
 			return -1
 		else:
@@ -49,8 +49,8 @@ class Message(SQLBase):
 	realid = classmethod(realid)
 
 	def number(cls, bid):
-		t = self.table
-		return t.select(func.count(t.c.id), t.c.bid==bid).execute().fetchall()[0]['COUNT(id)']
+		t = cls.table
+		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
 	number = classmethod(number)
 
 	def __init__(self, id=None, slot=None, packet=None):

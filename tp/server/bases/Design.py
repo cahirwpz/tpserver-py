@@ -7,6 +7,9 @@ from sqlalchemy import *
 # Local imports
 from tp import netlib
 from SQL import SQLBase
+
+from Object import Object
+from Order import Order
 from Component import Component
 from Property import Property
 
@@ -67,7 +70,7 @@ class Design(SQLBase):
 		for cid in current+self.categories:
 			if cid in current and not cid in self.categories:
 				# Remove the category
-				results = t.delete(t.c.design==self.id & t.c.category==cid).execute()
+				results = t.delete((t.c.design==self.id) & (t.c.category==cid)).execute()
 			
 			if cid not in self.categories and cid in current:
 				# Add the category
@@ -110,7 +113,7 @@ class Design(SQLBase):
 			if not hasattr(self, 'id'):
 				self._categories = []
 			else:
-				results = t.select([t.c.category], t.c.design==self.id).execute().fetchall()
+				results = select([t.c.category], t.c.design==self.id).execute().fetchall()
 				self._categories = [x['category'] for x in results]
 		return self._categories
 		
@@ -126,7 +129,7 @@ class Design(SQLBase):
 			if not hasattr(self, 'id'):
 				self._components = []
 			else:
-				results = t.select([t.c.component, t.c.amount], t.c.design==self.id).execute().fetchall()
+				results = select([t.c.component, t.c.amount], t.c.design==self.id).execute().fetchall()
 				self._components = [(x['component'], x['amount']) for x in results]
 		return self._components
 	
@@ -142,22 +145,25 @@ class Design(SQLBase):
 		
 		# FIXME: This is a bit of a hack (and most probably won't work on non-MySQL)
 		te = Object.table_extra
-		results = te.select(func.sum(te.c.value, alias='inplay'), 
-								te.c.name=='ships' & te.c.key==repr(self.id)).execute().fetchall()
+		results = select([func.sum(te.c.value).label('inplay')], 
+								(te.c.name=='ships') & (te.c.key==repr(self.id))).execute().fetchall()
 		try:
 			inplay = long(results[0]['inplay'])
-		except (KeyError, ValueError):
+		except (KeyError, ValueError, TypeError):
 			inplay = 0
 	
 		# FIXME: This is hardcoded currently
 		t  = Order.table
 		te = Order.table_extra
 		j  = join(Order.table, Order.table_extra)
-		results = t.select(func.sum(te.c.value, alias='beingbuilt'), 
-							te.c.name=='ships' & te.c.key==repr(self.id) & t.c.type=='sorders.Build').execute().fetchall()
+		results = select([func.sum(te.c.value).label('beingbuilt')], 
+							(te.c.name=='ships') & (te.c.key==repr(self.id)) & (t.c.type=='sorders.Build'),
+							from_obj=[j]
+						).execute().fetchall()
+
 		try:
 			beingbuilt = long(results[0]['beingbuilt'])
-		except (KeyError, ValueError):
+		except (KeyError, ValueError, TypeError):
 			beingbuilt = 0
 		
 		return inplay+beingbuilt
@@ -188,10 +194,11 @@ class Design(SQLBase):
 
 		# FIXME: This is a hack, there should be a better way to do this
 		tc = Component.table_property
-		tp = Property.table
-		j = join(tc, tp)
-		results = join.select([tc.c.id, tp.c.rank], 
-						tc.c.component in self.components, order_by=[tc.c.rank]).execute().fetchall()
+		tpr = Property.table
+		j = join(tc, tpr)
+
+		results = select([tc.c.property.label('id'), tpr.c.rank.label('rank')], tc.c.component.in_(*zip(*self.components)[0]), \
+								from_obj=[j], order_by=[tpr.c.rank], distinct=True).execute().fetchall()
 
 		ranks = {}
 		for result in results:

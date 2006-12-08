@@ -37,7 +37,7 @@ class Property(SQLBase):
 		Returns the categories the property is in.
 		"""
 		t = self.table_category
-		results = t.select([t.c.category], t.c.property==self.id).execute().fetchall()
+		results = select([t.c.category], t.c.property==self.id).execute().fetchall()
 		return [x['category'] for x in results]
 
 	def to_packet(self, sequence):

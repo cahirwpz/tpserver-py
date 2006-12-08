@@ -41,11 +41,11 @@ class Board(SQLBase):
 
 		Get the number of records in this table (that the user can see).
 		"""
-		t = self.table
-		result = t.select([func.count(t.c.id)], t.c.id<0 | t.c.id==user.id).execute().fetchall()
+		t = cls.table
+		result = select([func.count(t.c.id).label('count')], (t.c.id<0) | (t.c.id==user.id)).execute().fetchall()
 		if len(result) == 0:
 			return 0
-		return result[0]['count(*)']
+		return result[0]['count']
 	amount = classmethod(amount)
 
 	def ids(cls, user, start, amount):
@@ -57,13 +57,17 @@ class Board(SQLBase):
 		if amount == -1:
 			amount = 2**64
 		
-		t = self.table
-		result = t.select([t.c.id, t.c.time], t.c.id<0 | t.c.id==user.id, 
+		t = cls.table
+		result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
 							order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(cls.mangleid(x['id']), x['time']) for x in result] 
 	ids = classmethod(ids)
 
 	def to_packet(self, sequence):
+		b = Board.mangleid(self.id)
+		m = Message.number(self.id)
+		print "--------------------------- Board", b, "Message", m
+		print repr([sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time])
 		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time)
 
 	def id_packet(cls):

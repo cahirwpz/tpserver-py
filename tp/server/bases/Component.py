@@ -42,7 +42,7 @@ class Component(SQLBase):
 		Returns the categories the component is in.
 		"""
 		t = self.table_category
-		results = t.select([t.c.category], t.c.component==self.id).execute().fetchall()
+		results = select([t.c.category], t.c.component==self.id).execute().fetchall()
 		return [x['category'] for x in results]
 
 	def properties(self):
@@ -52,7 +52,7 @@ class Component(SQLBase):
 		Returns the properties the component has.
 		"""
 		t = self.table_property
-		results = t.select([t.c.property, t.c.value], t.c.component==self.id).execute().fetchall()
+		results = select([t.c.property, t.c.value], t.c.component==self.id).execute().fetchall()
 		return [(x['property'], x['value']) for x in results]
 
 	def property(self, id):
@@ -62,7 +62,7 @@ class Component(SQLBase):
 		Returns the property value function for this component given a property id
 		"""
 		t = self.table_property
-		results = t.select([t.c.value], t.c.component==self.id & t.c.property==id).execute().fetchall()
+		results = select([t.c.value], (t.c.component==self.id) & (t.c.property==id)).execute().fetchall()
 		if len(results) == 1:
 			return results[0]['value']
 		return None

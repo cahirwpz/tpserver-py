@@ -4,12 +4,8 @@ try:
 except ImportError:
 	pass
 	
-from tp import netlib
-import sys
-sys.path.append(".")
-
-class config:
-	pass
+# Database config
+dbconfig = "mysql://tp:tp-password@localhost/tp"
 
 # Introduce artifical lag
 lag = 1
@@ -21,7 +17,7 @@ usercreation = True
 games = ('tp',)
 
 # Add ruleset imports below here
-
+# -------------------------------------------------------------
 # Generic
 import tp.server.rules.base.objects.Universe
 import tp.server.rules.base.objects.Galaxy
@@ -37,6 +33,7 @@ import tp.server.rules.base.actions.Move as MoveAction
 import tp.server.rules.base.actions.Clean as Clean
 import tp.server.rules.base.actions.Win as Win
 
+# Minisec specific imports
 import tp.server.rules.minisec.orders.Move as Move
 import tp.server.rules.minisec.orders.BuildFleet as BuildFleet
 import tp.server.rules.minisec.orders.SplitFleet as SplitFleet
@@ -58,8 +55,4 @@ order = [BuildFleet,
 		 Heal,
 		 Win,
 		]
-
-# Database config
-from sqlalchemy import *
-dbconfig = "mysql://tp:tp-password@localhost/tp"
 
