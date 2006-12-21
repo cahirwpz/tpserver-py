@@ -22,7 +22,7 @@ class Message(SQLBase):
 		Column('slot',	  Integer,     nullable=False),
 		Column('subject', String(255), nullable=False, index=True),
 		Column('body',    Binary,      nullable=False),
-		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+#		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('bid', 'slot'),
 		ForeignKeyConstraint(['bid'], ['board.id']),
@@ -41,7 +41,7 @@ class Message(SQLBase):
 
 	def realid(cls, bid, slot):
 		t = cls.table
-		result = select([t.c.id], t.c.bid==bid & t.c.slot==slot).execute().fetchall()
+		result = select([t.c.id], (t.c.bid==bid) & (t.c.slot==slot)).execute().fetchall()
 		if len(result) != 1:
 			return -1
 		else:
@@ -75,7 +75,7 @@ class Message(SQLBase):
 		elif self.slot <= number:
 			# Need to move all the other orders down
 			t = self.table
-			t.update(t.c.slot>=self.slot & bid==self.bid).execute(slot=t.c.slot+1)
+			t.update((t.c.slot>=self.slot) & (bid==self.bid)).execute(slot=t.c.slot+1)
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
 		
@@ -92,7 +92,7 @@ class Message(SQLBase):
 	def remove(self):
 		# Move the other orders down
 		t = self.table
-		t.update(t.c.slot>=self.slot & bid==self.bid).execute(slot=t.c.slot-1)
+		t.update((t.c.slot>=self.slot) & (bid==self.bid)).execute(slot=t.c.slot-1)
 
 		SQLBase.remove(self)
 
