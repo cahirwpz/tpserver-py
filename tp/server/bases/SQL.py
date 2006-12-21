@@ -129,8 +129,10 @@ class SQLBase(object):
 		# FIXME: HACK!
 		for name in self.__dict__:
 			value = self.__dict__[name]
-			if type(value) in (buffer, array):
+			if isinstance(value, buffer):
 				self.__dict__[name] = str(value)
+			elif isinstance(value, array):
+				self.__dict__[name] = value.tostring()
 
 	def save(self):
 		"""\
