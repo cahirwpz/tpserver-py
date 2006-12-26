@@ -144,23 +144,22 @@ class SQLBase(object):
 		
 		# Build SQL query, there must be a better way to do this...
 		if hasattr(self, 'id'):
-			method = 'replace'
+			method = self.table.update(self.table.c.id==self.id)
 		else:
-			method = 'insert'
+			method = self.table.insert()
 
 		# FIXME: This is MySQL specific....
 		arguments = {}
 		for column in self.table.columns:
-			if c.name == 'id' and not hasattr(self, 'id'):
+			if column.name == 'id' and not hasattr(self, 'id'):
 				continue
 			if hasattr(self, column.name):
 				arguments[column.name] = getattr(self, column.name)
 			
-		result = getattr(self.table, method).execute(arguments)
-		print result
+		result = method.execute(arguments)
 
 		if not hasattr(self, 'id'):
-			self.id = db.connection.insert_id()
+			self.id = result.last_inserted_ids()[0]
 			print "Newly inserted id is", self.id
 
 	def remove(self):
@@ -228,7 +227,7 @@ def SQLTypedTable(name):
 	t = Table(name+"_extra",
 		Column(name,	Integer,	 default=0,  nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
-		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True),
+		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True, quote=True),
 		Column('value',	Binary),
 #		Column('time',	DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
@@ -238,6 +237,8 @@ def SQLTypedTable(name):
 	# Index on the ID and name
 	Index('idx_'+name+'xtr_idname', getattr(t.c, name), t.c.name)
 	Index('idx_'+name+'xtr_idnamevalue', getattr(t.c, name), t.c.name, t.c.value)
+
+	t._name = name
 
 	return t
 
@@ -312,7 +313,8 @@ Extra attributes this type defines.
 		self.__upgrade__(self.type)
 
 		# Load the extra properties from the object_extra table
-		results = te.select(te.c.object==self.id).execute().fetchall()
+		results = te.select(getattr(te.c, te._name)==self.id).execute().fetchall()
+		print results
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']
@@ -349,7 +351,7 @@ Extra attributes this type defines.
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
-					te.delete(te.c.object==self.id, te.c.name==attribute.name).execute()
+					te.delete((getattr(te.c, te._name)==self.id) & (te.c.name==attribute.name)).execute()
 					for key, value in getattr(self, attribute.name).items():
 						if not isSimpleType(key):
 							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
@@ -361,13 +363,19 @@ Extra attributes this type defines.
 						else:
 							value = repr(value)
 						
-						te.insert().execute(object=self.id, name=attribute.name, key=key, value=value)
+						eval("te.insert().execute(%s=self.id, name=attribute.name, key=key, value=value)" % te._name)
 				else:
 					if isSimpleType(attribute.default):
 						value = repr(getattr(self, attribute.name))
 					else:
 						value = pickle.dumps(getattr(self, attribute.name))
-					te.replace().execute(object=self.id, name=attribute.name, key='', value=value)
+					# Check if attribute exists
+					result = select([te], (getattr(te.c, te._name)==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute().fetchall()
+					print result
+					if len(result) > 0:
+						eval("te.update((getattr(te.c, te._name)==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute(%s=self.id, name=attribute.name, key='', value=value)" % te._name)
+					else:
+						eval("te.insert().execute(%s=self.id, name=attribute.name, key='', value=value)" % te._name)
 		except Exception, e:
 #			db.rollback()
 			raise

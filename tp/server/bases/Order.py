@@ -8,6 +8,8 @@ from sqlalchemy import *
 from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 
+from config import admin
+
 class Order(SQLTypedBase):
 	table = Table('order',
 		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
@@ -15,7 +17,7 @@ class Order(SQLTypedBase):
 		Column('oid',       Integer,     nullable=True),
 		Column('slot',      Integer,     nullable=False),
 		Column('worked',    Integer,     nullable=False),
-		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+#		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('oid', 'slot'),
 		ForeignKeyConstraint(['oid'], ['object.id']),
@@ -33,7 +35,7 @@ class Order(SQLTypedBase):
 		Returns the database id for the order found on object at slot.
 		"""
 		t = cls.table
-		result = select([t], t.c.oid==oid, t.c.slot==slot).execute()
+		result = select([t], (t.c.oid==oid) & (t.c.slot==slot)).execute().fetchall()
 		if len(result) != 1:
 			return -1
 		else:
@@ -112,7 +114,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				t = self.table
-				t.update(t.c.slot>=self.slot & oid==self.oid).execute(slot=t.c.slot+1)
+				t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot+1)
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
@@ -148,7 +150,7 @@ class Order(SQLTypedBase):
 			
 			# Move the other orders down
 			t = self.table
-			t.update(t.c.slot>=self.slot & oid==self.oid).execute(slot=t.c.slot-1)
+			t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot-1)
 
 			self.object.save()
 			SQLTypedBase.remove(self)
