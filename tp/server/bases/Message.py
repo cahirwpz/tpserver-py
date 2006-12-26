@@ -75,7 +75,7 @@ class Message(SQLBase):
 		elif self.slot <= number:
 			# Need to move all the other orders down
 			t = self.table
-			t.update((t.c.slot>=self.slot) & (bid==self.bid)).execute(slot=t.c.slot+1)
+			t.update((t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot+1)
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
 		
@@ -92,7 +92,7 @@ class Message(SQLBase):
 	def remove(self):
 		# Move the other orders down
 		t = self.table
-		t.update((t.c.slot>=self.slot) & (bid==self.bid)).execute(slot=t.c.slot-1)
+		t.update((t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot-1)
 
 		SQLBase.remove(self)
 
