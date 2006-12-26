@@ -1,4 +1,6 @@
 
+from sqlalchemy import *
+
 from types import TupleType, ListType
 
 from tp.server.bases.Object import Object
@@ -9,7 +11,8 @@ UNIT = 300000000
 
 class ShipTypes(type):
 	def ship_types(self):
-		results = db.query("""SELECT id, name, owner FROM %(tablename)s WHERE owner""", tablename=Design.tablename)
+		t = Design.table 
+		results = select([t.c.id, t.c.name, t.c.owner]).execute().fetchall()
 
 		r = {}
 		for x in results:
