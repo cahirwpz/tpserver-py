@@ -3,6 +3,7 @@ Database backed bases for the objects.
 """
 # Module imports
 from sqlalchemy import *
+from tp.server import dbconn
 
 try:
 	import cPickle as pickle
@@ -352,7 +353,7 @@ Extra attributes this type defines.
 
 		Saves a thing to the database.
 		"""
-#		db.begin()
+		trans = dbconn.begin()
 
 		te = self.table_extra
 		te.create(checkfirst=True)
@@ -387,10 +388,10 @@ Extra attributes this type defines.
 					else:
 						eval("te.insert().execute(%s=self.id, name=attribute.name, key='', value=value)" % te._name)
 		except Exception, e:
-#			db.rollback()
+			trans.rollback()
 			raise
 		else:
-#			db.commit()
+			trans.commit()
 			pass
 
 	def remove(self):
@@ -399,15 +400,15 @@ Extra attributes this type defines.
 
 		Removes an object from the database.
 		"""
-#		db.begin()
+		trans = dbconn.begin()
 		try:
 			self.table_extra.delete().execute(id=self.id)
 			SQLBase.remove(self)
 		except Exception, e:
-#			db.rollback()
+			trans.rollback()
 			raise
 		else:
-#			db.commit()
+			trans.commit()
 			pass
 
 	def from_packet(self, packet):

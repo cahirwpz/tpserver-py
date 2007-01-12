@@ -7,6 +7,7 @@ from sqlalchemy import *
 # Local imports
 from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
+from tp.server import dbconn
 
 from config import admin
 
@@ -103,9 +104,8 @@ class Order(SQLTypedBase):
 	object = property(object)
 
 	def insert(self):
+		trans = dbconn.begin()
 		try:
-#			db.begin()
-
 			t = self.table
 		
 			number = self.number(self.oid)
@@ -121,16 +121,15 @@ class Order(SQLTypedBase):
 			self.save()
 
 		except Exception, e:
-#			db.rollback()
+			trans.rollback()
 			raise
 		else:
-#			db.commit()
+			trans.commit()
 			pass
 
 	def save(self):
+		trans = dbconn.begin()
 		try:
-#			db.begin()
-			
 			self.object.save()	
 			if not hasattr(self, 'id'):
 				id = self.realid(self.oid, self.slot)
@@ -138,16 +137,15 @@ class Order(SQLTypedBase):
 					self.id = id
 			SQLTypedBase.save(self)
 		except Exception, e:
-#			db.rollback()
+			trans.rollback()
 			raise
 		else:
-#			db.commit()
+			trans.commit()
 			pass
 
 	def remove(self):
+		trans = dbconn.begin()
 		try:
-#			db.begin()
-			
 			# Move the other orders down
 			t = self.table
 			t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot-1)
@@ -156,10 +154,10 @@ class Order(SQLTypedBase):
 			SQLTypedBase.remove(self)
 
 		except Exception, e:
-#			db.rollback()
+			trans.rollback()
 			raise
 		else:
-#			db.commit()
+			trans.commit()
 			pass
 
 	def to_packet(self, sequence):
