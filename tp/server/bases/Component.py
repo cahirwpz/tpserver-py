@@ -10,7 +10,7 @@ from SQL import SQLBase
 
 class Component(SQLBase):
 	table = Table('component',
-		Column('id',	  Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	  String(255), nullable=False, index=True),
 		Column('desc',    Binary,      nullable=False),
 		Column('requirements', Binary, nullable=False),
@@ -18,16 +18,16 @@ class Component(SQLBase):
 		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 	)
 	table_category = Table('component_category',
-		Column('component', Integer,  nullable=False, default=0, index=True, primary_key=True),
-		Column('category',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('component', Integer,  nullable=False, index=True, primary_key=True),
+		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['category'],  ['category.id']),
 	)
 	table_property = Table('component_property',
-		Column('component', Integer,  nullable=False, default=0, index=True, primary_key=True),
-		Column('property',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('component', Integer,  nullable=False, index=True, primary_key=True),
+		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('value',     Binary,   nullable=False, default=''),
 		Column('comment',   Binary,   nullable=False, default=''),
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),

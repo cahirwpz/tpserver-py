@@ -10,7 +10,7 @@ from SQL import SQLBase
 
 class Property(SQLBase):
 	table = Table('property',
-		Column('id',	       Integer,      nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	       Integer,      nullable=False, index=True, primary_key=True),
 		Column('name',	       String(255),  nullable=False, index=True),
 		Column('display_name', Binary,       nullable=False),
 		Column('desc',         Binary,       nullable=False),
@@ -22,8 +22,8 @@ class Property(SQLBase):
 		Column('time',	       DateTime,     nullable=False, index=True, onupdate=func.current_timestamp()),
 	)
 	table_category = Table('property_category',
-		Column('property',  Integer,  nullable=False, default=0, index=True, primary_key=True),
-		Column('category',  Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
+		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['property'], ['property.id']),

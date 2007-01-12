@@ -9,23 +9,28 @@ from tp.server import FullServer
 
 def main():
 	port = 6923
-	while True:
-		try:
-			s = FullServer("", port, port+1)
-			print "Used port", port
-		except socket.error, e:
-			print e, "This port in use...", port
-			port += 1
-			continue
-		
-		try:
-			import signal
+	try:
+		while True:
+			try:
+				s = FullServer("", port, port+1)
+				print "Used port", port
+			except socket.error, e:
+				print e, "This port in use...", port
+				port += 1
+				continue
+			
+			try:
+				import signal
 
-			signal.signal(signal.SIGUSR1, s.endofturn)
-		except ImportError:
-			print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
+				signal.signal(signal.SIGUSR1, s.endofturn)
+			except ImportError:
+				print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
 
-		s.serve_forever()
+			s.serve_forever()
+	except KeyboardInterrupt:
+		# FIXME: Should notify clients, or should at least explicitely
+		# close all open connections.
+		print "Interrupted by keyboard; exiting"
 
 if __name__ == "__main__":
 	main()

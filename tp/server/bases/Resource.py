@@ -10,7 +10,7 @@ from SQL import SQLBase
 
 class Resource(SQLBase):
 	table = Table('resource',
-		Column('id',	       Integer,  nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('namesingular', Binary,   nullable=False),
 		Column('nameplural',   Binary,   nullable=False),
 		Column('unitsingular', Binary,   nullable=False),

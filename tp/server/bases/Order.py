@@ -12,7 +12,7 @@ from config import admin
 
 class Order(SQLTypedBase):
 	table = Table('order',
-		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('oid',       Integer,     nullable=True),
 		Column('slot',      Integer,     nullable=False),

@@ -12,7 +12,7 @@ from Order import Order
 
 class Object(SQLTypedBase):
 	table = Table('object',
-		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
 		Column('size',      Integer,     nullable=False),
@@ -23,7 +23,7 @@ class Object(SQLTypedBase):
 		Column('vely',      Integer,     nullable=False, default=0),
 		Column('velz',      Integer,     nullable=False, default=0),
 		Column('parent',    Integer,     nullable=True),
-		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    Integer,    nullable=False, index=True),
 
 		ForeignKeyConstraint(['parent'], ['object.id']),
 	)
@@ -43,12 +43,12 @@ class Object(SQLTypedBase):
 		"""
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
 
-		c = self.table.c
-		s = self.table.select([c.id, c.time],
-				(func.pow(c.posx-pos[0], 2) + \
-				 func.pow(c.posy-pos[1], 2) + \
-				 func.pow(c.posz-pos[2], 2)) <= \
-					(size**2 + func.pow(c.size, 2)))
+		c = cls.table.c
+		where = (((c.size * c.size) + size**2) >= \
+					(((c.posx-pos[0]) * (c.posx-pos[0])) + \
+					 ((c.posy-pos[1]) * (c.posy-pos[1])) + \
+					 ((c.posz-pos[2]) * (c.posz-pos[2]))))
+		s = select([c.id, c.time], where)
 		if limit != -1:
 			s.limit = limit
 

@@ -217,27 +217,28 @@ class FullConnection(netlib.ServerConnection):
 		if config.usercreation:
 			username = packet.username
 			if username.find('@') == -1:
-				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
-					"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
-				return
+				#return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
+				#	"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
+				username += "@tp"
 			
 			# FIXME: Need to check that the game is a valid game..
-			username, game = username.split('@', 1)
+			userpart, game = username.split('@', 1)
 			if not game in config.games:
-				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
+				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
 					"The game you specified is not valid.\nUsernames should be of the form <username>@<game>."))
-				return 
 
 			# Check the username is not in use?
-			pid = User.usernameid(packet.username)
+			pid = User.usernameid(username)
 			if pid != -1:
-				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
-				return
+				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
 
-			# FIXME: This should call the add tool rather then doing this directly...			
-			self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
+			account = User(None, packet)
+			account.username = username
+			account.save()
+			config.ruleset.spawn_player(account)
+			return self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
 
-		return self._send(netlib.objects.Fail(packet.sequence, constant.FAIL_TEMP, "Unable to create accounts at this time."))
+		return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, "Unable to create accounts at this time."))
 
 	def OnLogin(self, packet):
 		# We need username and password

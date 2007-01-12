@@ -49,6 +49,7 @@ class SQLBase(object):
 		"""
 		# FIXME: This gives the last modified for anyone time, not for the specific user.
 		t = cls.table
+		t.create(checkfirst=True)
 		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
 			return 0
@@ -65,6 +66,7 @@ class SQLBase(object):
 			amount = 2**64
 		
 		t = cls.table
+		t.create(checkfirst=True)
 		result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
@@ -75,6 +77,7 @@ class SQLBase(object):
 
 		Get the number of records in this table (that the user can see).
 		"""
+		cls.table.create(checkfirst=True)
 		result = select([func.count(cls.table.c.time).label('count')]).execute().fetchall()
 		if len(result) == 0:
 			return 0
@@ -100,6 +103,8 @@ class SQLBase(object):
 		Create an object from a network packet.
 		Create an empty object.
 		"""
+		if hasattr(self, 'table') and self.table != None:
+			self.table.create(checkfirst=True)
 		if id != None:
 			self.load(id)
 		if packet != None:
@@ -225,7 +230,7 @@ class SQLBase(object):
 
 def SQLTypedTable(name):
 	t = Table(name+"_extra",
-		Column(name,	Integer,	 default=0,  nullable = False, index=True, primary_key=True),
+		Column(name,	Integer,	 nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
 		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True, quote=True),
 		Column('value',	Binary),
@@ -280,6 +285,9 @@ Extra attributes this type defines.
 
 		SQLBase.__init__(self, id, packet)
 
+		if hasattr(self, 'table_extra') and self.table_extra != None:
+			self.table_extra.create(checkfirst=True)
+
 		self.__upgrade__(type, typeno)
 
 	def __upgrade__(self, type=None, typeno=None):
@@ -308,6 +316,7 @@ Extra attributes this type defines.
 		Loads a thing from the database.
 		"""
 		te = self.table_extra
+		te.create(checkfirst=True)
 		SQLBase.load(self, id)
 			
 		self.__upgrade__(self.type)
@@ -346,6 +355,7 @@ Extra attributes this type defines.
 #		db.begin()
 
 		te = self.table_extra
+		te.create(checkfirst=True)
 		try:
 			SQLBase.save(self)
 

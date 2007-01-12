@@ -17,7 +17,7 @@ table_types = Table('reference',
 
 class Message(SQLBase):
 	table = Table('message',
-		Column('id',	  Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('bid',	  Integer,     nullable=False, index=True),
 		Column('slot',	  Integer,     nullable=False),
 		Column('subject', String(255), nullable=False, index=True),
@@ -30,8 +30,8 @@ class Message(SQLBase):
 	Index('idx_message_bidslot', table.c.bid, table.c.slot),
 
 	table_references = Table('message_references',
-		Column('mid',   Integer, nullable=False, default=0, primary_key=True),
-		Column('rid',   Integer, nullable=False, default=0, primary_key=True),
+		Column('mid',   Integer, nullable=False, primary_key=True),
+		Column('rid',   Integer, nullable=False, primary_key=True),
 		Column('value', Integer, nullable=False, default=0),
 
 		ForeignKeyConstraint(['mid'], ['message.id']),

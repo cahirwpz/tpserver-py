@@ -10,7 +10,7 @@ from SQL import SQLBase
 
 class User(SQLBase):
 	table = Table('user',
-		Column('id',	    Integer,     nullable=False, default=0, index=True, primary_key=True),
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
 #		Column('comment',   Binary,      nullable=False),
@@ -21,6 +21,7 @@ class User(SQLBase):
 
 	def usernameid(username, password=None):
 		t = User.table
+		t.create(checkfirst=True)
 		if password != None:
 			result = select([t.c.id], (t.c.username==username) & (t.c.password==password)).execute().fetchall()
 		else:

@@ -11,7 +11,7 @@ from Message import Message
 
 class Board(SQLBase):
 	table = Table('board',
-		Column('id',	Integer,     nullable = False, default=0, index=True, primary_key=True),
+		Column('id',	Integer,     nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), nullable = False, index=True),
 		Column('desc',	Binary,      nullable = False),
 		Column('time',	DateTime,    nullable = False, index=True, onupdate=func.current_timestamp()),

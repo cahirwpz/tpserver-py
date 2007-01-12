@@ -5,7 +5,8 @@ except ImportError:
 	pass
 	
 # Database config
-dbconfig = "mysql://tp:tp-password@localhost/tp"
+#dbconfig = "mysql://tp:tp-password@localhost/tp"
+dbconfig = "sqlite:///tp.db"
 
 # Introduce artifical lag
 lag = 1
@@ -19,6 +20,8 @@ games = ('tp',)
 # Add ruleset imports below here
 # -------------------------------------------------------------
 # Generic
+import tp.server.rules.minisec as ruleset
+
 import tp.server.rules.base.objects.Universe
 import tp.server.rules.base.objects.Galaxy
 import tp.server.rules.base.objects.System
