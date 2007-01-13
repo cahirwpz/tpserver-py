@@ -5,6 +5,7 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import dbconn
 from tp import netlib
 from SQL import SQLBase
 
@@ -13,19 +14,20 @@ class User(SQLBase):
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
-#		Column('comment',   Binary,      nullable=False),
-#		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('comment',   Binary,      nullable=False),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('username')
 	)
 
 	def usernameid(username, password=None):
+		print dbconn
+
 		t = User.table
-		t.create(checkfirst=True)
 		if password != None:
-			result = select([t.c.id], (t.c.username==username) & (t.c.password==password)).execute().fetchall()
+			result = dbconn.execute(select([t.c.id], (t.c.username==username) & (t.c.password==password))).fetchall()
 		else:
-			result = select([t.c.id], t.c.username==username).execute().fetchall()
+			result = dbconn.execute(select([t.c.id], t.c.username==username)).fetchall()
 		
 		if len(result) != 1:
 			return -1

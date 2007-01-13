@@ -17,11 +17,6 @@ except ImportError:
 import config
 from config import dbconfig
 
-# Database setup
-from sqlalchemy import *
-dbconn = global_connect(dbconfig)
-default_metadata.engine.echo = True
-
 
 from tp import netlib
 constants = netlib.objects.constants
@@ -38,6 +33,11 @@ from tp.server.bases.Order     import Order
 from tp.server.bases.Property  import Property
 from tp.server.bases.User      import User
 from tp.server.bases.Resource  import Resource
+
+# Database setup
+from sqlalchemy import *
+from tp.server import db
+db.setup(dbconfig)
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
@@ -463,6 +463,9 @@ class FullConnection(netlib.ServerConnection):
 
 	def OnPlayer_Get(self, packet):
 		return self.OnGetWithID(packet, User)
+
+	def _send(self, *args, **kw):
+		netlib.ServerConnection._send(self, *args, **kw)
 
 class FullServer(netlib.Server):
 	# FIXME: Should start a thread for checking the database for locks...

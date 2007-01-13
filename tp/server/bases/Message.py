@@ -22,7 +22,7 @@ class Message(SQLBase):
 		Column('slot',	  Integer,     nullable=False),
 		Column('subject', String(255), nullable=False, index=True),
 		Column('body',    Binary,      nullable=False),
-#		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('bid', 'slot'),
 		ForeignKeyConstraint(['bid'], ['board.id']),

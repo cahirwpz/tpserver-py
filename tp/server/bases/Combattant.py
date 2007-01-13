@@ -1,5 +1,5 @@
 
-class Combattant:
+class Combattant(object):
 	def dead(self):
 		"""\
 		Returns if the object can no-longer participate in combat.

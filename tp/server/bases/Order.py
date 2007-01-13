@@ -7,25 +7,25 @@ from sqlalchemy import *
 # Local imports
 from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
-from tp.server import dbconn
+from tp.server.db import dbconn
 
 from config import admin
 
 class Order(SQLTypedBase):
-	table = Table('order',
+	table = Table('orders',
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('oid',       Integer,     nullable=True),
 		Column('slot',      Integer,     nullable=False),
 		Column('worked',    Integer,     nullable=False),
-#		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('oid', 'slot'),
 		ForeignKeyConstraint(['oid'], ['object.id']),
 	)
 	Index('idx_order_oidslot', table.c.oid, table.c.slot)
 
-	table_extra = SQLTypedTable('order')
+	table_extra = SQLTypedTable('orders')
 
 	types = {}
 
