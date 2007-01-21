@@ -231,15 +231,18 @@ class FullConnection(netlib.ServerConnection):
 			# Check the username is not in use?
 			pid = User.usernameid(username)
 			if pid != -1:
-				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
+				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
+				return True
 
 			account = User(None, packet)
 			account.username = username
 			account.save()
 			config.ruleset.spawn_player(account)
-			return self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
+			self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
+			return True
 
-		return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, "Unable to create accounts at this time."))
+		self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, "Unable to create accounts at this time."))
+		return True
 
 	def OnLogin(self, packet):
 		# We need username and password
