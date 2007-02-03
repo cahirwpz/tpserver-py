@@ -33,18 +33,21 @@ class Choice(object):
 
 	def __str__(self):
 		return "<Choice %s>" % self.choice
-
 	__repr__ = __str__
 
 
-BATTLESHIP = 0
-FRIGATE    = 1
-SCOUT      = 2
-PLANET     = 3
-HOMEWORLD  = 4
-PLANET_EQV = 2
-HOME_EQV   = 5
 class Ships(list):
+	BATTLESHIP = 0
+	FRIGATE    = 1
+	SCOUT      = 2
+	PLANET     = 3
+	HOMEWORLD  = 4
+	PLANET_EQV = 2
+	HOME_EQV   = 5
+
+	names = ['battleship', 'frigate', 'scout', 'planet', 'homeworld']
+	strength = [6, 6, 6, 4, 2]
+
 	def __init__(self, l=[], split=False):
 		list.__init__(self, l)
 		self.split = split
@@ -63,11 +66,13 @@ class Ships(list):
 	__repr__ = __str__
 
 class Side(object):
+	dead = []
+
 	def __init__(self, owner, battleships, frigates, scouts, planets, homeworld):
 		self.owner  = owner
-		self.ships  = Ships([battleships, frigates, scouts, planets*PLANET_EQV, homeworld*HOME_EQV], split=True)
+		self.ships  = Ships([battleships, frigates, scouts, planets*Ships.PLANET_EQV, homeworld*Ships.HOME_EQV], split=True)
 		self.damages = []
-		for amount in [self.battleship_equiv(), self.ships[FRIGATE], self.ships[SCOUT]]:
+		for amount in self.ships:
 			self.damages.append([])
 			for j in range(0, int(amount)):
 				self.damages[-1].append(0)
@@ -81,27 +86,29 @@ class Side(object):
 		Returns the chance of escape.
 		"""
 		# Can't escape if we are defending our planets.
-		if (self.ships[PLANET]+self.ships[HOMEWORLD]) > 0:
+		if (self.ships[Ships.PLANET]+self.ships[Ships.HOMEWORLD]) > 0:
 			return 0 
-		return self.ships[SCOUT] * 100.0/(self.ships[SCOUT] + self.ships[FRIGATE] + self.ships[BATTLESHIP])
+		return self.ships[Ships.SCOUT] * 100.0/(self.ships[Ships.SCOUT] + self.ships[Ships.FRIGATE] + self.ships[Ships.BATTLESHIP])
 
 	def fire(self, win):
 		"""\
 		Returns the damage this fleet will do.
 		"""
 		if win:
-			return [3]*self.battleship_equiv() + [2]*int(self.ships[FRIGATE])
+			return [3]*self.battleship_equiv() + [2]*int(self.ships[Ships.FRIGATE])
 		else:
 			return [1]*self.battleship_equiv()
 
 	def battleship_equiv(self):
-		return int(self.ships[BATTLESHIP]+self.ships[PLANET]+self.ships[HOMEWORLD])
+		return int(self.ships[Ships.BATTLESHIP]+self.ships[Ships.PLANET]+self.ships[Ships.HOMEWORLD])
 
-	def damage(self, points):
+	def damage(self, points, bxml=None):
 		"""\
 		Applies damage to this fleet.
 		"""
 		points = copy(points)
+
+		print points
 
 		death = Ships([0, 0, 0, 0, 0])
 		while len(points) > 0:
@@ -113,6 +120,8 @@ class Side(object):
 			for type, damages in enumerate(self.damages):
 				try:
 					smallest = min(damages)
+					if smallest is self.dead:
+						continue
 					index = damages.index(smallest)
 					break
 				except ValueError:
@@ -123,31 +132,31 @@ class Side(object):
 	
 			self.damages[type][index] += damage
 
+			if bxml:
+				bxml.damage("%s-%s-%i" % (self.owner, Ships.names[type], index), damage)
+
 			# Now is this over?
-			if self.damages[type][index] >= {BATTLESHIP:6, FRIGATE:4, SCOUT:2}[type]:
+			if self.damages[type][index] >= Ships.strength[type]:
 				type = self.remove(type, index)
+
 				if type > -1:
+					if bxml:
+						bxml.death("%s-%s-%i" % (self.owner, Ships.names[type], index))
 					death[type] += 1
+
 		return death
 
 	def remove(self, type, index):
-		del self.damages[type][index]
-		if type == BATTLESHIP:
-			if self.ships[BATTLESHIP] > 0:
-				self.ships[BATTLESHIP] -= 1
-				return BATTLESHIP
-			elif self.ships[PLANET] > 0:
-				self.ships[PLANET] -= 1
-				if self.ships[PLANET] % PLANET_EQV == 0:
-					return PLANET
-			elif self.ships[HOMEWORLD] > 0:
-				self.ships[HOMEWORLD] -= 1
-				if self.ships[HOMEWORLD] % HOME_EQV == 0:
-					return HOMEWORLD
-			else:
-				raise RuntimeError("Somehow we did damage to a battleship like object which didn't exist.")
-			return -1
+		# Remove the ship
+		self.damages[type][index] = self.dead
 		self.ships[type] -= 1
+
+		if type == Ships.PLANET:
+			if self.ships[Ships.PLANET] % Ships.PLANET_EQV != 0:
+				return -1
+		if type == Ships.HOMEWORLD:
+			if self.ships[Ships.HOMEWORLD] % Ships.HOME_EQV != 0:
+				return -1
 		return type
 
 	def size(self):
@@ -193,6 +202,72 @@ class Stats(dict):
 			self[src]['killed'][i] += v
 			self[dst]['lost'][i]   += v
 
+from elementtree.ElementTree import Element, SubElement, tostring
+
+def indent(elem, level=0):
+    i = "\n" + level*"  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        for elem in elem:
+            indent(elem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
+class BattleXML(object):
+	def __init__(self):
+		self.root = Element('battle', version='0.0.1')
+		self.sides  = SubElement(self.root, "sides")
+		self.rounds = SubElement(self.root, "rounds")
+
+	def init(self, side):
+		self.sides.append(Element("side", name=side.owner))
+		sidexml = self.sides[-1]
+		for i, amount in enumerate(side.ships):
+			for j in range(i, amount):
+				entityid = "%s-%s-%s" % (side.owner, side.ships.names[i], j)
+
+				sidexml.append(Element("entity", id=entityid))
+				entityxml = sidexml[-1]
+				
+				namexml = SubElement(entityxml, "name")
+				namexml.text = entityid
+
+	def round(self):
+		self.rounds.append(Element('round', no=str(len(self.rounds))))
+
+	def log(self, s):
+		logxml = Element('log')
+		logxml.text = s
+		self.rounds[-1].append(logxml)
+
+	def fire(self, src, dst):
+		self.rounds[-1].append(Element("fire"))
+		firexml = self.rounds[-1][-1]
+
+		firexml.append(Element("source", ref=src))
+		firexml.append(Element("destination", ref=dst))
+
+	def damage(self, ref, amount):
+		self.rounds[-1].append(Element("damage"))
+		damagexml = self.rounds[-1][-1]
+		
+		damagexml.append(Element("reference", ref=ref))
+		damagexml.append(Element("amount"))
+		amountxml = damagexml[-1]
+		amountxml.text = str(amount)
+
+	def death(self, ref):
+		self.rounds[-1].append(Element("death"))
+		self.rounds[-1][-1].append(Element("reference", ref=ref))
+
+	def output(self):
+		indent(self.root)
+		print tostring(self.root)
+
 def combat(*working):
 	working = list(working)
 	print "Starting combat with", working
@@ -200,6 +275,9 @@ def combat(*working):
  
 	messages = {}
 	stats = Stats()
+	bxml  = BattleXML()
+	
+	# Setup the sides
 	for side in working:
 		s = ""
 		others = [other for other in working if other != side]
@@ -215,9 +293,14 @@ def combat(*working):
 				s+= "%s" % other.owner
 
 		messages[side.owner] = ['A battle was started against %s' % s]
+		bxml.init(side)
 		stats.init(side.owner)
 
+	print bxml
+	print bxml.output()
+
 	while len(working) >= 2:
+		bxml.round()
 		stats.round()
 
 		while True:
@@ -232,8 +315,11 @@ def combat(*working):
 		# Figure out who chooses what
 		choices = (Choice(rand=rand), Choice(rand=rand))
 		stats.choice(red.owner, choices[0]), stats.choice(blue.owner, choices[1])
+		bxml.log("%s choose %s." % (red.owner,  choices[0].choice) )
+		bxml.log("%s choose %s." % (blue.owner, choices[1].choice) )
 		if choices[0] == choices[1]:
 			print "Round was a draw!"
+			bxml.log("Round was a draw!")
 
 			# Draw
 			stats.draw(red.owner)
@@ -244,27 +330,30 @@ def combat(*working):
 
 			if len(brd) > 0:
 				stats.damage(blue.owner, red.owner, brd)
-				death = blue.damage(brd)
+				death = blue.damage(brd, bxml)
 				stats.killed(red.owner, blue.owner, *death)
 
 			if len(rbd) > 0:
 				stats.damage(red.owner, blue.owner, rbd)
-				death = red.damage(rbd)
+				death = red.damage(rbd, bxml)
 				stats.killed(blue.owner, red.owner, *death)
 
 		else:
 			# One side won
 			if choices[0] >= choices[1]:
 				print red, "won the round!"
+				bxml.log("%s won the round!" % red.owner)
 				winner, loser = red, blue
 			if choices[0] <= choices[1]:
 				print blue, "won the round!"
+				bxml.log("%s won the round!" % blue.owner)
 				winner, loser = blue, red
 
 			# See if the winning fleet has escaped?
 			a, b =  winner.escape(), (1-rand.random())*100
 			if a > b:
-				print winner, "has escaped. (%s got %s)" % (a, b)
+				bxml.log("%s has escaped. (%s got %s)" % (winner.owner, a, b))
+				print "%s has escaped. (%s got %s)" % (winner, a, b)
 				messages[winner.owner].append("Your fleet escaped from battle.")
 
 				for side in working:
@@ -280,12 +369,13 @@ def combat(*working):
 			damage = winner.fire(True)
 			if len(damage) > 0:
 				stats.damage(winner.owner, loser.owner, damage)
-				death = loser.damage(damage)
+				death = loser.damage(damage, bxml)
 				stats.killed(winner.owner, loser.owner, *death)
 
 		# See is anything has died
 		for side in [blue, red]:
 			if side.size == 0:
+				bxml.log("%s was knocked out of the battle." % side.owner)
 				print side, "was knocked out of the battle."
 				working.remove(side)
 				messages[side.owner].append("Your fleet was totally destoryed.")
@@ -293,6 +383,8 @@ def combat(*working):
 				for other in working:
 					messages[other.owner].append("%s's fleet was totally destoryed." % side.owner)
 
+	print bxml
+	print bxml.output()
 	pprint.pprint(messages)
 
 	print "--Stats--"
