@@ -35,8 +35,24 @@ class Choice(object):
 		return "<Choice %s>" % self.choice
 	__repr__ = __str__
 
+class Damage(int):
+	"""\
+	An integer which tracks where it came from.
+	"""
+	def __new__(cls, source, amount):
+		return int.__new__(cls, amount)
+
+	def __init__(self, source, amount):
+		self.source = source
 
 class Ships(list):
+	"""
+	Class which defines the number of ships at this location
+
+	If split is given true, planets and homeworlds are considered in their
+	"battery" components.
+	"""
+
 	BATTLESHIP = 0
 	FRIGATE    = 1
 	SCOUT      = 2
@@ -45,8 +61,9 @@ class Ships(list):
 	PLANET_EQV = 2
 	HOME_EQV   = 5
 
-	names = ['battleship', 'frigate', 'scout', 'planet', 'homeworld']
-	strength = [6, 6, 6, 4, 2]
+	names    = ['battleship', 'frigate', 'scout', 'planet', 'homeworld'] 	# Names of the ships
+	strength = [6, 6, 6, 4, 2] 												# How many HP each ship has
+	damage   = [(3, 1), (2, 0), (0, 0), (3, 1), (3, 1)] 					# How much damage the ship does (win, draw)
 
 	def __init__(self, l=[], split=False):
 		list.__init__(self, l)
@@ -66,7 +83,11 @@ class Ships(list):
 	__repr__ = __str__
 
 class Side(object):
-	dead = []
+	"""\
+	A class which keeps track of how many ships a side has.
+	"""
+
+	dead = [] # Marker which means a ship is dead
 
 	def __init__(self, owner, battleships, frigates, scouts, planets, homeworld):
 		self.owner  = owner
@@ -94,13 +115,13 @@ class Side(object):
 		"""\
 		Returns the damage this fleet will do.
 		"""
-		if win:
-			return [3]*self.battleship_equiv() + [2]*int(self.ships[Ships.FRIGATE])
-		else:
-			return [1]*self.battleship_equiv()
-
-	def battleship_equiv(self):
-		return int(self.ships[Ships.BATTLESHIP]+self.ships[Ships.PLANET]+self.ships[Ships.HOMEWORLD])
+		damages = []
+		for type, amount in enumerate(self.ships):
+			damage = Ships.damage[type][win]
+			if damage > 0:
+				for index in range(0, amount):
+					damages.append(Damage(self.name(type, index), damage))
+		return damages
 
 	def damage(self, points, bxml=None):
 		"""\
@@ -133,20 +154,32 @@ class Side(object):
 			self.damages[type][index] += damage
 
 			if bxml:
-				bxml.damage("%s-%s-%i" % (self.owner, Ships.names[type], index), damage)
+				bxml.fire(damage.source, self.name(type, index))
+				bxml.damage(self.name(type, index), damage)
 
-			# Now is this over?
 			if self.damages[type][index] >= Ships.strength[type]:
 				type = self.remove(type, index)
 
 				if type > -1:
 					if bxml:
-						bxml.death("%s-%s-%i" % (self.owner, Ships.names[type], index))
+						bxml.death(self.name(type, index))
 					death[type] += 1
 
 		return death
 
+	def name(self, type, index):
+		"""\
+		Returns a unquie "name" for a ship in this side (from type and index).
+		"""
+		return "%s-%s-%i" % (self.owner, Ships.names[type], index)
+
 	def remove(self, type, index):
+		"""\
+		Removes a ship from the side, returns if this meant there was a death
+		in that type. (For example you need to remove all batteries from a 
+		planet before it died.)
+		"""
+
 		# Remove the ship
 		self.damages[type][index] = self.dead
 		self.ships[type] -= 1
@@ -159,15 +192,25 @@ class Side(object):
 				return -1
 		return type
 
-	def size(self):
-		return reduce(int.__add__, self.ships, 0)
-	size = property(size)
+	def empty(self):
+		"""\
+		Returns if the number of ships is == 0
+		"""
+		return reduce(int.__add__, self.ships, 0) == 0
+	empty = property(empty)
 
 class Stats(dict):
+	"""
+	Records various stats about the Battle.
+	"""
+
 	def __init__(self):
 		self.rounds = 0
 
 	def init(self, id):
+		"""\
+		Initialises the stats information for a side.
+		"""
 		if self.has_key(id):
 			return
 		self[id] = {
@@ -203,38 +246,46 @@ class Stats(dict):
 			self[dst]['lost'][i]   += v
 
 from elementtree.ElementTree import Element, SubElement, tostring
-
 def indent(elem, level=0):
-    i = "\n" + level*"  "
-    if len(elem):
-        if not elem.text or not elem.text.strip():
-            elem.text = i + "  "
-        for elem in elem:
-            indent(elem, level+1)
-        if not elem.tail or not elem.tail.strip():
-            elem.tail = i
-    else:
-        if level and (not elem.tail or not elem.tail.strip()):
-            elem.tail = i
+	"""
+	Simple helper function to indent an ElementTree before outputing it.
+	"""
+	i = "\n" + level*"  "
+	if len(elem):
+		if not elem.text or not elem.text.strip():
+			elem.text = i + "  "
+		for elem in elem:
+			indent(elem, level+1)
+		if not elem.tail or not elem.tail.strip():
+			elem.tail = i
+	else:
+		if level and (not elem.tail or not elem.tail.strip()):
+			elem.tail = i
 
 class BattleXML(object):
+	"""
+	A class to output BattleXML data.
+	"""
 	def __init__(self):
-		self.root = Element('battle', version='0.0.1')
+		self.root = Element('battle', version='0.0.1', media='minisec.zip')
 		self.sides  = SubElement(self.root, "sides")
 		self.rounds = SubElement(self.root, "rounds")
 
 	def init(self, side):
 		self.sides.append(Element("side", name=side.owner))
 		sidexml = self.sides[-1]
-		for i, amount in enumerate(side.ships):
-			for j in range(i, amount):
-				entityid = "%s-%s-%s" % (side.owner, side.ships.names[i], j)
+		for type, amount in enumerate(side.ships):
+			for index in range(0, amount):
+				entityid = side.name(type, index)
 
 				sidexml.append(Element("entity", id=entityid))
 				entityxml = sidexml[-1]
 				
 				namexml = SubElement(entityxml, "name")
 				namexml.text = entityid
+
+				typexml = SubElement(entityxml, "type")
+				typexml.text = side.ships.names[type]
 
 	def round(self):
 		self.rounds.append(Element('round', no=str(len(self.rounds))))
@@ -266,9 +317,9 @@ class BattleXML(object):
 
 	def output(self):
 		indent(self.root)
-		print tostring(self.root)
+		return tostring(self.root)
 
-def combat(*working):
+def combat(working, bxmloutput=None):
 	working = list(working)
 	print "Starting combat with", working
 	rand = random.Random()
@@ -295,9 +346,6 @@ def combat(*working):
 		messages[side.owner] = ['A battle was started against %s' % s]
 		bxml.init(side)
 		stats.init(side.owner)
-
-	print bxml
-	print bxml.output()
 
 	while len(working) >= 2:
 		bxml.round()
@@ -374,7 +422,7 @@ def combat(*working):
 
 		# See is anything has died
 		for side in [blue, red]:
-			if side.size == 0:
+			if side.empty:
 				bxml.log("%s was knocked out of the battle." % side.owner)
 				print side, "was knocked out of the battle."
 				working.remove(side)
@@ -383,8 +431,8 @@ def combat(*working):
 				for other in working:
 					messages[other.owner].append("%s's fleet was totally destoryed." % side.owner)
 
-	print bxml
-	print bxml.output()
+	if not bxmloutput is None:
+		print >> bxmloutput, bxml.output()
 	pprint.pprint(messages)
 
 	print "--Stats--"
@@ -475,6 +523,11 @@ Input file format,
 		print main.__doc__
 		return	
 
+	if len(sys.argv) == 3:
+		bxmloutput = file(sys.argv[2], 'w')
+	else:
+		bxmloutput = None
+
 	sides = []
 
 	f = file(sys.argv[1], 'r')
@@ -484,7 +537,7 @@ Input file format,
 
 	print sides
 
-	combat(*sides)
+	combat(sides, bxmloutput)
 
 	print "Ships remaining:"
 	for side in sides:
