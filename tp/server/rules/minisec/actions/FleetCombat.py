@@ -5,6 +5,7 @@ This module impliments combat as found in the MiniSec document.
 from copy import copy
 import random
 import pprint
+import math
 
 class Choice(object):
 	choices = ('Rock', 'Paper', 'Scissors')
@@ -82,6 +83,14 @@ class Ships(list):
 		return s + ']'
 	__repr__ = __str__
 
+	def combine(self):
+		if self.split:
+			return [self[Ships.BATTLESHIP], self[Ships.FRIGATE], self[Ships.SCOUT], 
+				int(math.ceil(1.0*self[Ships.PLANET]/Ships.PLANET_EQV)), 
+				int(math.ceil(1.0*self[Ships.HOMEWORLD]/Ships.HOME_EQV))]
+		else:
+			return self
+
 class Side(object):
 	"""\
 	A class which keeps track of how many ships a side has.
@@ -111,13 +120,14 @@ class Side(object):
 			return 0 
 		return self.ships[Ships.SCOUT] * 100.0/(self.ships[Ships.SCOUT] + self.ships[Ships.FRIGATE] + self.ships[Ships.BATTLESHIP])
 
-	def fire(self, win):
+	def fire(self, win=True):
 		"""\
 		Returns the damage this fleet will do.
 		"""
 		damages = []
 		for type, amount in enumerate(self.ships):
-			damage = Ships.damage[type][win]
+			damage = Ships.damage[type][not win]
+
 			if damage > 0:
 				for index in range(0, amount):
 					damages.append(Damage(self.name(type, index), damage))
@@ -128,8 +138,6 @@ class Side(object):
 		Applies damage to this fleet.
 		"""
 		points = copy(points)
-
-		print points
 
 		death = Ships([0, 0, 0, 0, 0])
 		while len(points) > 0:
@@ -171,6 +179,10 @@ class Side(object):
 		"""\
 		Returns a unquie "name" for a ship in this side (from type and index).
 		"""
+		if type == Ships.PLANET:
+			index = index / Ships.PLANET_EQV
+		if type == Ships.HOMEWORLD:
+			index = index / Ships.HOME_EQV
 		return "%s-%s-%i" % (self.owner, Ships.names[type], index)
 
 	def remove(self, type, index):
@@ -267,14 +279,14 @@ class BattleXML(object):
 	A class to output BattleXML data.
 	"""
 	def __init__(self):
-		self.root = Element('battle', version='0.0.1', media='minisec.zip')
+		self.root = Element('battle', version='0.0.1', media='minisec')
 		self.sides  = SubElement(self.root, "sides")
 		self.rounds = SubElement(self.root, "rounds")
 
 	def init(self, side):
 		self.sides.append(Element("side", name=side.owner))
 		sidexml = self.sides[-1]
-		for type, amount in enumerate(side.ships):
+		for type, amount in enumerate(side.ships.combine()):
 			for index in range(0, amount):
 				entityid = side.name(type, index)
 
@@ -378,12 +390,12 @@ def combat(working, bxmloutput=None):
 
 			if len(brd) > 0:
 				stats.damage(blue.owner, red.owner, brd)
-				death = blue.damage(brd, bxml)
+				death = blue.damage(rbd, bxml)
 				stats.killed(red.owner, blue.owner, *death)
 
 			if len(rbd) > 0:
 				stats.damage(red.owner, blue.owner, rbd)
-				death = red.damage(rbd, bxml)
+				death = red.damage(brd, bxml)
 				stats.killed(blue.owner, red.owner, *death)
 
 		else:
