@@ -146,7 +146,7 @@ class Object(SQLTypedBase):
 	id_packet = classmethod(id_packet)
 
 	def __str__(self):
-		return "<Object type=%s id=%s>" % (self.typeno, self.id)
+		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
 
 	def ghost(self):
 		"""\
