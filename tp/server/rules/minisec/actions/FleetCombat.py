@@ -91,6 +91,13 @@ class Ships(list):
 		else:
 			return self
 
+	def addships(self, Battleship=0, Frigate=0, Scout=0, Planet=0, Homeworld=0):
+		self[0] += Battleship
+		self[1] += Frigate
+		self[2] += Scout
+		self[3] += Planet
+		self[4] += Homeworld
+
 class Side(object):
 	"""\
 	A class which keeps track of how many ships a side has.
@@ -101,16 +108,23 @@ class Side(object):
 	def __init__(self, owner, battleships, frigates, scouts, planets, homeworld):
 		self.owner  = owner
 		self.ships  = Ships([battleships, frigates, scouts, planets*Ships.PLANET_EQV, homeworld*Ships.HOME_EQV], split=True)
+		self.initdamage()
+
+	def initdamage(self):
 		self.damages = []
 		for amount in self.ships:
 			self.damages.append([])
 			for j in range(0, int(amount)):
 				self.damages[-1].append(0)
 
+	def addships(self, **kw):
+		self.ships.addships(**kw)
+		self.initdamage()
+
 	def __str__(self):
 		return "<Side %s>" % self.owner
 	__repr__ = __str__	
-
+	
 	def escape(self):
 		"""\
 		Returns the chance of escape.
@@ -153,7 +167,8 @@ class Side(object):
 						continue
 					index = damages.index(smallest)
 					break
-				except ValueError:
+				except ValueError, e:
+					print e
 					pass
 
 			if index == -1:
@@ -286,6 +301,7 @@ class BattleXML(object):
 	def init(self, side):
 		self.sides.append(Element("side", name=side.owner))
 		sidexml = self.sides[-1]
+
 		for type, amount in enumerate(side.ships.combine()):
 			for index in range(0, amount):
 				entityid = side.name(type, index)
@@ -356,6 +372,7 @@ def combat(working, bxmloutput=None):
 				s+= "%s" % other.owner
 
 		messages[side.owner] = ['A battle was started against %s' % s]
+
 		bxml.init(side)
 		stats.init(side.owner)
 
@@ -501,21 +518,33 @@ def do(top):
 
 		pos = obj.posx, obj.posy, obj.posz
 		if not d.has_key(pos):
-			d[pos] = [[], []]
+			d[pos] = []
 
-		d[pos][obj.type == "sobjects.Planet"].append(obj)
+		d[pos].append(obj)
 
 	d = {}
 	WalkUniverse(top, "before", h, d)
 
 	for pos, fleets in d.items():
-		if len(fleets[0]+fleets[1]) < 2:
+		if len(fleets) < 2:
 			continue
 			
-		if len(dict.fromkeys([fleet.owner for fleet in fleets[0]+fleets[1]])) <= 1:
+		if len(dict.fromkeys([fleet.owner for fleet in fleets])) <= 1:
 			continue
-			
-		r = combat(*fleets)
+	
+		# Build the sides
+		sides = {}
+		for fleet in fleets:
+			if not sides.has_key(fleet.owner):
+				sides[fleet.owner] = Side(fleet.owner, 0, 0, 0, 0, 0)
+
+			if fleet.type.endswith("Planet"):
+				sides[fleet.owner].addships(Planet=1)
+			else:
+				for type, amount in fleet.ships.items():
+					sides[fleet.owner].addships(**{['Scout', 'Frigate', 'Battleship'][type]: amount})
+
+		r = combat(sides.values())
 
 
 def main():
