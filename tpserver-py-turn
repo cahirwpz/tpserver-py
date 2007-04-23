@@ -6,15 +6,15 @@ import config
 from types import TupleType
 
 from tp.server.utils import *
-from config import db, netlib
+from tp.server.db import dbconn
 
 def main():
 	# Connect to the database
-	db.begin()
+	trans = dbconn.begin()
 
 	try:
 		# Use the corret database
-		db.query("USE %(database)s", database=sys.argv[1])
+#		db.query("USE %(database)s", database=sys.argv[1])
 		
 		# Clean up any phoney orders
 
@@ -50,10 +50,10 @@ def main():
 		# Reparent the universe
 		
 	except:
-		db.rollback()
+		trans.rollback()
 		raise
 	else:
-		db.commit()
+		trans.commit()
 	
 if __name__ == "__main__":
 	main()
