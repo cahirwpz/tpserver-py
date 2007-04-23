@@ -238,7 +238,7 @@ def SQLTypedTable(name):
 	)
 	# Index on the ID and name
 	Index('idx_'+name+'xtr_idname', t.c.oid, t.c.name)
-	Index('idx_'+name+'xtr_idnamevalue', t.c.oid, t.c.name, t.c.value)
+	Index('idx_'+name+'xtr_idnamevalue', t.c.oid, t.c.name, t.c.key)
 
 	t._name = name
 
