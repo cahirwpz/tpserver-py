@@ -468,7 +468,7 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithID(packet, User)
 
 	def _send(self, *args, **kw):
-		netlib.ServerConnection._send(self, *args, **kw)
+		return netlib.ServerConnection._send(self, *args, **kw)
 
 class FullServer(netlib.Server):
 	# FIXME: Should start a thread for checking the database for locks...
