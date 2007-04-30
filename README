@@ -1,24 +1,43 @@
-This is a quick example server which doesn't to much. If you want
-a real server try cpp-server.
+This is a quick example server which doesn't do to much. If you want a real
+server try cpp-server.
 
 The server requires the following python packages,
 
-libtpproto-py - The Thousand Parsec protocol stack
-pyscheme-1.6  - Python implimentation of Scheme
-                http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/
-MySQL-4.0     - The server uses mysql for it's database, you must have
-                a version which has InnoDB for it to work.
+libtpproto-py  - The Thousand Parsec protocol stack	
+sqlalchemy-3.0 - 
+
+pyscheme-1.6   - Python implementation of Scheme
+                 http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/
+
+You also need a database engine, either MySQL or SQLite will work
+(PostgreSQL, Oracle or similar might work but havn't been tested). 
+
+Install and setting up the appriporiate database engine is left to the
+user. You must also install the Python database adaptor, they are listed
+below:
+    * Postgres: 	psycopg2
+    * SQLite: 		pysqlite
+    * MySQL: 		MySQLDB
+    * Oracle: 		cx_Oracle
+    * MS-SQL: 		adodbapi pymssql
+    * Firebird: 	kinterbasdb
+    * Informix: 	informixdb
+
+Notes: 
+	MySQL ***only*** works reliably when InnoDB support is active.
+Commands will appear to work but on an error, changes can not be rolled
+back.
 
 README    - This file
 TODO      - Things which need to be done
 API       - How to create new rulesets/orders/objects
 
-database.sql - Database structure
+tpserver-py 	 - The server that clients connect to
+config.py 		 - Server config file
 
-server.py - The server that clients connect to
-config.py - Server config file
-
-turn.py   - Executes one turn, will SIGUSR1 the server if it's running
+tpserver-py-turn - Executes one turn, will SIGUSR1 the server if it's running
+tpserver-py-tool - Allows you to do admin tasks such as, create games,
+remove games, add new users, generate universe, etc.
 
 sobjects  - Generic Objects (ie ruleset independent)
 sorders   - Generic Orders (ie ruleset independent)
@@ -27,7 +46,7 @@ sbases    - Base files
 rules     - Rules for different types of games
 utils     - Useful programs to maintaining and reporting on the server
 
-rules/minisec - Rules for Thousand Parsec's first game
+rules/minisec 		   - Rules for Thousand Parsec's first game
 rules/minisec/start.py - Sets up the database for a new MiniSec game
 rules/minisec/add.py   - Adds a new user to a MiniSec game
 rules/minisec/sobjects - MiniSec specific objects
