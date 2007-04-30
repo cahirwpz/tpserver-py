@@ -11,3 +11,5 @@ cd scratchpad
 ./setup.sh
 cd ..
 
+cd tpserver-py
+cp config.py-template config.py
