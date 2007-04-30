@@ -14,7 +14,7 @@ class User(SQLBase):
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
-		Column('comment',   Binary,      nullable=False),
+		Column('comment',   Binary,      nullable=False, default=""),
 		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('username')

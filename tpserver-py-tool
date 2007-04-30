@@ -43,7 +43,8 @@ import config
 
 import random
 
-from config import netlib, db
+from tp.server.utils import *
+from tp.server.db import dbconn
 
 from tp.server.utils import ReparentOne
 from tp.server.bases.User import User
@@ -69,7 +70,7 @@ def adduser(game, username, password):
 	user.insert()
 	print "User has the id:", user.id
 			
-	db.query("USE %(database)s", database=game)
+	#dbconn.query("USE %(database)s", database=game)
 
 	# Add private message board
 	board = Board()
@@ -148,7 +149,7 @@ You are currently in the game %s.
 	print "Fleet has the id:", fleet.id
 
 def generate(game, key=-1, min=0, max=12):
-	db.query("USE %(database)s", database=game)
+	#dbconn.query("USE %(database)s", database=game)
 	
 	# FIXME: Assuming that the Universe and the Galaxy exist.
 
@@ -184,9 +185,7 @@ def main():
 		print __doc__
 		return
 
-	db.begin()
-	db.query("USE tp")
-	
+	trans = dbconn.begin()
 	try:
 		game = sys.argv[1]
 
@@ -204,10 +203,10 @@ def main():
 			print "Unknown operation."
 
 	except:
-		db.rollback()
+		trans.rollback()
 		raise
 	else:
-		db.commit()
+		trans.commit()
 	
 if __name__ == "__main__":
 	main()
