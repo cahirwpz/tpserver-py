@@ -1,0 +1,13 @@
+
+Quick setup instructions for "inplace" operation:
+--------------------------------------------------------
+apt-get install python-pysqlite2 python-sqlalchemy
+
+cg-clone git://git.thousandparsec.net/scratchpad
+cg-clone git://git.thousandparsec.net/libtpproto-py
+cg-clone git://git.thousandparsec.net/tpserver-py
+
+cd scratchpad
+./setup.sh
+cd ..
+
