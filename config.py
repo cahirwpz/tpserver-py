@@ -5,8 +5,8 @@ except ImportError:
 	pass
 	
 # Database config
-dbconfig = "mysql://tp:tp-password@localhost/tp"
-#dbconfig = "sqlite:///tp.db"
+#dbconfig = "mysql://tp:tp-password@localhost/tp"
+dbconfig = "sqlite:///tp.db"
 
 # Introduce artifical lag
 lag = 1
