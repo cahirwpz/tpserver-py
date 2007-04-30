@@ -7,3 +7,4 @@ build-stamp
 html
 tp/netlib
 tp.db
+config.py
