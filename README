@@ -4,7 +4,7 @@ server try cpp-server.
 The server requires the following python packages,
 
 libtpproto-py  - The Thousand Parsec protocol stack	
-sqlalchemy-3.0 - 
+sqlalchemy-3.0 - The database abstraction layer
 
 pyscheme-1.6   - Python implementation of Scheme
                  http://hkn.eecs.berkeley.edu/~dyoo/python/pyscheme/
