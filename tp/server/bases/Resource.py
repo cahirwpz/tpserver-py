@@ -5,11 +5,13 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 
 class Resource(SQLBase):
 	table = Table('resource',
+		Column('game', 	       Integer,  nullable=False, index=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('namesingular', Binary,   nullable=False),
 		Column('nameplural',   Binary,   nullable=False),

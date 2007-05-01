@@ -5,6 +5,7 @@ The basis for all objects that exist.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from config import admin
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
@@ -12,7 +13,9 @@ from Order import Order
 
 class Object(SQLTypedBase):
 	table = Table('object',
+		Column('game',	    Integer,     nullable=False),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
 		Column('size',      Integer,     nullable=False),
@@ -23,7 +26,7 @@ class Object(SQLTypedBase):
 		Column('vely',      Integer,     nullable=False, default=0),
 		Column('velz',      Integer,     nullable=False, default=0),
 		Column('parent',    Integer,     nullable=True),
-		Column('time',	    Integer,    nullable=False, index=True),
+		Column('time',	    Integer,     nullable=False, index=True),
 
 		ForeignKeyConstraint(['parent'], ['object.id']),
 	)
@@ -98,7 +101,7 @@ class Object(SQLTypedBase):
 		t.delete(oid==self.id)
 		# Remove any parenting on this object.
 		t = Object.table
-		t.update(parent==self.id).execute(t.c.parent==0)
+		update(t, parent==self.id).execute(t.c.parent==0)
 		SQLTypedBase.remove(self)
 	
 	def orders(self):

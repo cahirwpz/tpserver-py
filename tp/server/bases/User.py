@@ -5,7 +5,7 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 # Local imports
-from tp.server.db import dbconn
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 
@@ -21,8 +21,7 @@ class User(SQLBase):
 	)
 
 	def usernameid(username, password=None):
-		print dbconn
-
+		dbconn.use()
 		t = User.table
 		if password != None:
 			result = dbconn.execute(select([t.c.id], (t.c.username==username) & (t.c.password==password))).fetchall()
@@ -44,7 +43,7 @@ class User(SQLBase):
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)
 
-	def domain(self):
+	def game(self):
 		return self.username.split("@")[1]
 
 	def to_packet(self, sequence):

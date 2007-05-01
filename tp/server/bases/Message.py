@@ -5,10 +5,12 @@ Message with information about stuff (and references to other objects).
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 
 table_types = Table('reference',
+	Column('game', 	Integer,     nullable=False, index=True),
 	Column('id',    Integer,     nullable=False, primary_key=True),
 	Column('value', Integer,     nullable=False, index=True),
 	Column('desc',  Binary,      nullable=False),
@@ -17,6 +19,7 @@ table_types = Table('reference',
 
 class Message(SQLBase):
 	table = Table('message',
+		Column('game', 	  Integer,     nullable=False, index=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('bid',	  Integer,     nullable=False, index=True),
 		Column('slot',	  Integer,     nullable=False),
@@ -30,6 +33,7 @@ class Message(SQLBase):
 	Index('idx_message_bidslot', table.c.bid, table.c.slot),
 
 	table_references = Table('message_references',
+		Column('game', 	Integer, nullable=False),
 		Column('mid',   Integer, nullable=False, primary_key=True),
 		Column('rid',   Integer, nullable=False, primary_key=True),
 		Column('value', Integer, nullable=False, default=0),
@@ -75,7 +79,7 @@ class Message(SQLBase):
 		elif self.slot <= number:
 			# Need to move all the other orders down
 			t = self.table
-			t.update((t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot+1)
+			update(t, (t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot+1)
 		else:
 			raise NoSuch("Cannot insert to that slot number.")
 		
@@ -92,7 +96,7 @@ class Message(SQLBase):
 	def remove(self):
 		# Move the other orders down
 		t = self.table
-		t.update((t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot-1)
+		update(t, (t.c.slot>=self.slot) & (t.c.bid==self.bid)).execute(slot=t.c.slot-1)
 
 		SQLBase.remove(self)
 

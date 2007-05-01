@@ -5,6 +5,7 @@ How to tell objects what to do.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from tp.server.db import dbconn
@@ -13,6 +14,7 @@ from config import admin
 
 class Order(SQLTypedBase):
 	table = Table('orders',
+		Column('game', 	    Integer,     nullable=False, index=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('oid',       Integer,     nullable=True),
@@ -114,7 +116,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				t = self.table
-				t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot+1)
+				update(t, (t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot+1)
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			

@@ -1,64 +1,94 @@
 
-from sqlalchemy import *
+import sqlalchemy as sql
 
 class Proxy(object):
 	def __init__(self):
-		self.__dict__['game'] = None
-		self.__dict__['engine'] = None
-		self.__dict__['dbconn'] = None
+		self.engine = None
+		self.game   = None
 
-	def __getattr__(self, key, ignore=False):
-		if not self.__dict__.has_key(key) or ignore:
-			if self.__dict__['dbconn'] is None:
-				return getattr(self.__dict__['engine'], key)
-			else:
-				return getattr(self.__dict__['dbconn'], key)
-		return self.__dict__[key]
+	def select(self, *a, **kw):
+		print "Creating a select statment"
 
-	def begin(self, *args, **kw):
-		if self.dbconn is None:
-			self.dbconn = self.engine.connect()
-			self.dbconn.first = True
+		r = sql.select(*a, **kw)
+		def execute(self=r, proxy=self, **arguments):
+			print "Executing a select statement!"
+			if proxy.game == None:
+				return query.execute(**kw)
 
-		trans = self.dbconn.begin(*args, **kw)
-		trans.previous = self.dbconn
-		return trans
+			for table in self.froms:
+				print "Table", table
+				self.append_whereclause((table.c.game == proxy.game))
+			return self._execute(**arguments)
 
-	def rollback(self, *args, **kw):
-		r = self.dbconn.rollback(*args, **kw)
-
-		self.dbconn = self.dbconn.previous
-		if hasattr(self.dbconn, 'first'):
-			self.dbconn = None
+		r._execute = r.execute
+		r.execute = execute
 
 		return r
 
-	def commit(self, *args, **kw):
-		r = self.dbconn.commit(*args, **kw)
-		self.dbconn = self.dbconn.previous
-		if hasattr(self.dbconn, 'first'):
-			self.dbconn = None
+	def insert(self, *a, **kw):
+		print "Creating a insert statment"
+
+		r = sql.insert(*a, **kw)
+		def execute(self=r, proxy=self, **arguments):
+			print "Executing a insert statement!"
+			if not proxy.game is None:
+				arguments['game'] = proxy.game
+			return self._execute(**arguments)
+
+		r._execute = r.execute
+		r.execute = execute
+
 		return r
 
-	def execute(self, obj, **kw):
-		if False and self.game == None:
-			return self.__getattr__('execute', True)(obj, **kw)
-		else:
-			# Add the gameid to the select...
-			if isinstance(obj, (sql.Select, sql._Delete, sql._Update)):
-				print "Going to do a select, delete or update!"
-			elif isinstance(obj, sql._Insert):
-				print "Going to do insert!"
-			else:
-				print "Dunno what this is?"
-			print self, repr(obj), kw
-			return self.__getattr__('execute', True)(obj, **kw)
+	def update(self, *a, **kw):
+		print "Creating a update statment"
+
+		r = sql.update(*a, **kw)
+		def execute(self=r, proxy=self, **arguments):
+			print "Executing a update statement!"
+			if not proxy.game is None:
+				arguments['game'] = proxy.game
+			return self._execute(**arguments)
+
+		r._execute = r.execute
+		r.execute = execute
+
+		return r
+
+	def delete(self, *a, **kw):
+		print "Creating a delete statment"
+
+		r = sql.delete(*a, **kw)
+		def execute(self=r, proxy=self, **arguments):
+			print "Executing a delete statement!"
+			if not proxy.game is None:
+				self.whereclause &= (self.table.c.game == proxy.game)
+			return self._execute(**arguments)
+
+		r._execute = r.execute
+		r.execute = execute
+		
+		return r
+
+	def use(self, db=None):
+		# FIXME: This should look the game ID up in a table
+		self.game = int(db)
+
+	def __getattr__(self, name):
+		if self.engine is None:
+			raise AttributeError("No such attribute %s" % name)
+		return getattr(self.engine, name)
 
 dbconn = Proxy()
+select = dbconn.select
+insert = dbconn.insert
+update = dbconn.update
+delete = dbconn.delete
+
 def setup(dbconfig):
-	global_connect(dbconfig)
-	default_metadata.engine.echo = True
-	default_metadata.create_all()
+	engine = sql.create_engine(dbconfig, strategy='threadlocal')
+	sql.default_metadata.connect(engine)
+	sql.default_metadata.engine.echo = True
+	sql.default_metadata.create_all()
 
-	dbconn.engine = default_metadata.engine
-
+	dbconn.engine = sql.default_metadata.engine

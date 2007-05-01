@@ -10,11 +10,11 @@ from tp.server.db import dbconn
 
 def main():
 	# Connect to the database
-	trans = dbconn.begin()
+	# Use the corret database
+	dbconn.use(sys.argv[1])
 
+	trans = dbconn.begin()
 	try:
-		# Use the corret database
-#		db.query("USE %(database)s", database=sys.argv[1])
 		
 		# Clean up any phoney orders
 

@@ -5,12 +5,14 @@ Board which contains posts about stuff.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 from Message import Message
 
 class Board(SQLBase):
 	table = Table('board',
+		Column('game',	Integer,     nullable = False, index=True),
 		Column('id',	Integer,     nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), nullable = False, index=True),
 		Column('desc',	Binary,      nullable = False),

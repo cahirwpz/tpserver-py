@@ -70,8 +70,6 @@ def adduser(game, username, password):
 	user.insert()
 	print "User has the id:", user.id
 			
-	#dbconn.query("USE %(database)s", database=game)
-
 	# Add private message board
 	board = Board()
 	board.id = user.id
@@ -149,7 +147,6 @@ You are currently in the game %s.
 	print "Fleet has the id:", fleet.id
 
 def generate(game, key=-1, min=0, max=12):
-	#dbconn.query("USE %(database)s", database=game)
 	
 	# FIXME: Assuming that the Universe and the Galaxy exist.
 
@@ -185,9 +182,10 @@ def main():
 		print __doc__
 		return
 
+	game = sys.argv[1]
+	dbconn.use(game)
 	trans = dbconn.begin()
 	try:
-		game = sys.argv[1]
 
 		if sys.argv[2] == "--create":
 			create(game)
@@ -202,7 +200,10 @@ def main():
 		else:
 			print "Unknown operation."
 
+#		raise IOError("Testing")
+
 	except:
+		print "Rolling back..."
 		trans.rollback()
 		raise
 	else:

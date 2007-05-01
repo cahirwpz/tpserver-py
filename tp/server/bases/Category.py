@@ -5,11 +5,13 @@ Categories which help group things together.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 
 class Category(SQLBase):
 	table = Table('category',
+		Column('game',	Integer,     nullable = False, index=True),
 		Column('id',	Integer,     nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), nullable = False, index=True),
 		Column('desc',	Binary,      nullable = False),

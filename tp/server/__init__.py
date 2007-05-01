@@ -53,9 +53,8 @@ class FullConnection(netlib.ServerConnection):
 							"You need to be logged in to use this functionality."))
 			return False
 
-#		# Reset the database connection
-#		db.query("USE %(db)s", db=self.user.domain())
-#		db.query("COMMIT")
+		# Reset the database connection
+		db.dbconn.use(db=self.user.domain())
 
 		# Check that the database isn't currently locked for turn processing
 #		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")

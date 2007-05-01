@@ -5,6 +5,7 @@ Design of things.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
 
@@ -17,6 +18,7 @@ import pyscheme as scheme
 
 class Design(SQLBase):
 	table = Table('design',
+		Column('game', 	    Integer,     nullable=False, index=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	    String(255), nullable=False, index=True),
 		Column('desc',      Binary,      nullable=False),
@@ -25,6 +27,7 @@ class Design(SQLBase):
 		ForeignKeyConstraint(['owner'], ['user.id']),
 	)
 	table_category = Table('design_category',
+		Column('game', 	    Integer,  nullable=False, index=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
@@ -33,6 +36,7 @@ class Design(SQLBase):
 		ForeignKeyConstraint(['category'], ['category.id']),
 	)
 	table_component = Table('design_component',
+		Column('game', 	    Integer,  nullable=False, index=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('amount',    Integer,  nullable=False, default=0),
@@ -70,11 +74,11 @@ class Design(SQLBase):
 		for cid in current+self.categories:
 			if cid in current and not cid in self.categories:
 				# Remove the category
-				results = t.delete((t.c.design==self.id) & (t.c.category==cid)).execute()
+				results = delete(t, (t.c.design==self.id) & (t.c.category==cid)).execute()
 			
 			if cid not in self.categories and cid in current:
 				# Add the category
-				results = t.insert().execute(design=self.id, category=cid)
+				results = insert(t).execute(design=self.id, category=cid)
 
 		# Save the components now
 		t = self.table_components
@@ -93,10 +97,10 @@ class Design(SQLBase):
 			start, end = values
 		
 			if end == None or end < 1:
-				results = t.delete(t.c.design==self.id & t.c.component==cid).execute()
+				results = delete(t, t.c.design==self.id & t.c.component==cid).execute()
 	
 			if start != end:
-				results = t.update().execute(design=self.id, category=cid, amount=amount)
+				results = update(t).execute(design=self.id, category=cid, amount=amount)
 			
 	def set_ignore(self, value):
 		return

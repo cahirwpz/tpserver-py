@@ -3,7 +3,7 @@ Database backed bases for the objects.
 """
 # Module imports
 from sqlalchemy import *
-from tp.server.db import dbconn
+from tp.server.db import *
 
 try:
 	import cPickle as pickle
@@ -50,7 +50,7 @@ class SQLBase(object):
 		"""
 		# FIXME: This gives the last modified for anyone time, not for the specific user.
 		t = cls.table
-		result = dbconn.execute(select([t], order_by=[desc(t.c.time)], limit=1)).fetchall()
+		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['time']
@@ -66,7 +66,7 @@ class SQLBase(object):
 			amount = 2**64
 		
 		t = cls.table
-		result = dbconn.execute(select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start)).fetchall()
+		result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
 
@@ -76,7 +76,7 @@ class SQLBase(object):
 
 		Get the number of records in this table (that the user can see).
 		"""
-		result = dbconn.execute(select([func.count(cls.table.c.time).label('count')])).fetchall()
+		result = select([func.count(cls.table.c.time).label('count')]).execute().fetchall()
 		if len(result) == 0:
 			return 0
 		return result[0]['count']
@@ -122,7 +122,7 @@ class SQLBase(object):
 		"""
 		self.id = id
 		
-		result = dbconn.execute(self.table.select(self.table.c.id==id)).fetchall()
+		result = select([self.table], self.table.c.id==id).execute().fetchall()
 		if len(result) != 1:
 			raise NoSuch("%s does not exists" % id)
 
@@ -146,11 +146,10 @@ class SQLBase(object):
 		
 		# Build SQL query, there must be a better way to do this...
 		if hasattr(self, 'id'):
-			method = self.table.update(self.table.c.id==self.id)
+			method = update(self.table, self.table.c.id==self.id)
 		else:
-			method = self.table.insert()
+			method = insert(self.table)
 
-		# FIXME: This is MySQL specific....
 		arguments = {}
 		for column in self.table.columns:
 			if column.name == 'id' and not hasattr(self, 'id'):
@@ -158,7 +157,7 @@ class SQLBase(object):
 			if hasattr(self, column.name):
 				arguments[column.name] = getattr(self, column.name)
 			
-		result = dbconn.execute(method, **arguments)
+		result = method.execute(**arguments)
 
 		if not hasattr(self, 'id'):
 			self.id = result.last_inserted_ids()[0]
@@ -171,7 +170,7 @@ class SQLBase(object):
 		Removes an object from the database.
 		"""
 		# Remove the common attribute
-		dbconn.execute(self.table.delete(self.table.c.id==self.id))
+		delete(self.table, self.table.c.id==self.id).execute()
 
 	def insert(self):
 		"""\
@@ -227,6 +226,7 @@ class SQLBase(object):
 
 def SQLTypedTable(name):
 	t = Table(name+"_extra",
+		Column('game',	Integer,	 nullable = False, index=True),
 		Column('oid',	Integer,	 nullable = False, index=True, primary_key=True),
 		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
 		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True, quote=True),
@@ -315,7 +315,7 @@ Extra attributes this type defines.
 		self.__upgrade__(self.type)
 
 		# Load the extra properties from the object_extra table
-		results = dbconn.execute(te.select(te.c.oid==self.id)).fetchall()
+		results = select([te], te.c.oid==self.id).execute().fetchall()
 		print results
 		if len(results) > 0:
 			for result in results:
@@ -353,7 +353,7 @@ Extra attributes this type defines.
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
-					dbconn.execute(te.delete(te.c.oid==self.id) & (te.c.name==attribute.name))
+					delete(te, (te.c.oid==self.id) & (te.c.name==attribute.name)).execute()
 					for key, value in getattr(self, attribute.name).items():
 						if not isSimpleType(key):
 							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
@@ -365,19 +365,19 @@ Extra attributes this type defines.
 						else:
 							value = repr(value)
 						
-						dbconn.execute(te.insert(), oid=self.id, name=attribute.name, key=key, value=value)
+						insert(te, oid=self.id, name=attribute.name, key=key, value=value).execute()
 				else:
 					if isSimpleType(attribute.default):
 						value = repr(getattr(self, attribute.name))
 					else:
 						value = pickle.dumps(getattr(self, attribute.name))
 					# Check if attribute exists
-					result = dbconn.execute(select([te], (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key==''))).fetchall()
+					result = select([te], (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute().fetchall()
 					print result
 					if len(result) > 0:
-						dbconn.execute(te.update((te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')), oid=self.id, name=attribute.name, key='', value=value)
+						update(te, (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute(oid=self.id, name=attribute.name, key='', value=value)
 					else:
-						dbconn.execute(te.insert(), oid=self.id, name=attribute.name, key='', value=value)
+						insert(te).execute(oid=self.id, name=attribute.name, key='', value=value)
 		except Exception, e:
 			trans.rollback()
 			raise
@@ -393,7 +393,7 @@ Extra attributes this type defines.
 		"""
 		trans = dbconn.begin()
 		try:
-			dbconn.execute(self.table_extra.delete(), id=self.id)
+			delete(self.table_extra).execute(id=self.id)
 			SQLBase.remove(self)
 		except Exception, e:
 			trans.rollback()
