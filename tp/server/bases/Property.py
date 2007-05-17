@@ -22,6 +22,8 @@ class Property(SQLBase):
 		Column('requirements', Binary,       nullable=False),
 		Column('comment',      Binary,       nullable=False),
 		Column('time',	       DateTime,     nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	table_category = Table('property_category',
 		Column('game', 	    Integer,  nullable=False, index=True),
@@ -31,6 +33,7 @@ class Property(SQLBase):
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['property'], ['property.id']),
 		ForeignKeyConstraint(['category'], ['category.id']),
+		ForeignKeyConstraint(['game'],     ['game.id']),
 	)
 
 	def categories(self):

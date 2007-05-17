@@ -3,7 +3,7 @@ Database backed bases for the objects.
 """
 # Module imports
 from sqlalchemy import *
-from tp.server.db import *
+from tp.server.db import dbconn
 
 try:
 	import cPickle as pickle
@@ -365,7 +365,7 @@ Extra attributes this type defines.
 						else:
 							value = repr(value)
 						
-						insert(te, oid=self.id, name=attribute.name, key=key, value=value).execute()
+						insert(te).execute(oid=self.id, name=attribute.name, key=key, value=value)
 				else:
 					if isSimpleType(attribute.default):
 						value = repr(getattr(self, attribute.name))

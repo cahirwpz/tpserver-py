@@ -27,6 +27,7 @@ from tp.server.bases.Board     import Board
 from tp.server.bases.Category  import Category
 from tp.server.bases.Component import Component
 from tp.server.bases.Design    import Design
+from tp.server.bases.Game      import Game
 from tp.server.bases.Message   import Message
 from tp.server.bases.Object    import Object
 from tp.server.bases.Order     import Order
@@ -483,7 +484,6 @@ class FullServer(netlib.Server):
 		for key, value in netlib.objects.OrderDescs().items():
 			print key, value
 			print value.names
-		
 
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)

@@ -16,6 +16,8 @@ class Category(SQLBase):
 		Column('name',	String(255), nullable = False, index=True),
 		Column('desc',	Binary,      nullable = False),
 		Column('time',	DateTime,    nullable = False, index=True, onupdate=func.current_timestamp()),
+
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
 	def to_packet(self, sequence):

@@ -23,7 +23,8 @@ class Order(SQLTypedBase):
 		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('oid', 'slot'),
-		ForeignKeyConstraint(['oid'], ['object.id']),
+		ForeignKeyConstraint(['oid'],  ['object.id']),
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	Index('idx_order_oidslot', table.c.oid, table.c.slot)
 

@@ -18,6 +18,8 @@ class Component(SQLBase):
 		Column('requirements', Binary, nullable=False),
 		Column('comment', Binary,      nullable=False),
 		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	table_category = Table('component_category',
 		Column('game', 		Integer,  nullable=False, index=True),
@@ -27,6 +29,7 @@ class Component(SQLBase):
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['category'],  ['category.id']),
+		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 	table_property = Table('component_property',
 		Column('game', 		Integer,  nullable=False, index=True),
@@ -37,6 +40,7 @@ class Component(SQLBase):
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['property'],  ['property.id']),
+		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 
 	def categories(self):

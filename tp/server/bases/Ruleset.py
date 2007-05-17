@@ -1,23 +1,37 @@
 
 class Ruleset(object):
+	"""\
+	Rulesets define how gameplay works.
+
+	"""
+
 	name = "Unknown Ruleset"
 
-	def __init__(self, database, name):
-		"""\
-		database - database connection to use
-		name     - unique name of the game, this MUST be unique per server
-		"""
-		self.database = database
-		self.name     = name
-
+	def __init__(self, game):
 		# Now we need to find all the tables and bind it to the correct tables
-		
+		self.game = game
 
-	def game(self, database, name, **kw):
+	def initialise(self):
 		""" 
-		Create a new game of this type.
-		
-		optional arguments which are ruleset specific.
+		Initialise the database with anything needed for this game.
+
+		The ruleset should do things like,
+			- Create any components in the databases
+			- Create any resources in the databases
+			- etc
+
+		This should not add anything to the players universe. Use the populate
+		command for that.
+
+		This command takes no arguments, so it should not do anything which 
+		needs information from the user.
+		"""
+
+	def populate(self, *args, **kw):
+		"""
+		Populate the "universe". It is given a list of arguments.
+
+		All arguments should be documented in the doc string.
 		"""
 		pass
 
@@ -48,17 +62,33 @@ Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
 
 	def turn(self, name):
 		"""
-		Generate a new turn.
+		generate a turn for this ruleset
+
+		For simple rulesets (and some reasonably complicated ones), this default
+		method works.
+
+		This method performs orders and actions in the order dictated via the 
+		orderOfOrders attribute. The program treats actions and orders almost 
+		identically.
+
+		For example, 
+			If orderOfOrders contained,
+				[MoveAction, Nop, (Clean, 'fleetsonly')]
+			The move action would be applied first.
+			Then all NOp orders would be performed.
+			Then the Clean action would be applied with the argument ('fleetsonly')
 		"""
 		# Connect to the database
-		db.begin()
+		trans = dbconn.begin()
 
 		try:
-			# Use the corret database
-			db.query("USE %(database)s", database=sys.argv[1])
+			dbconn.use(self.game)
 			
-			# Clean up any phoney orders
-
+			# FIXME: This won't work as if a move then colonise order occurs,
+			# and the move order completed the colonise order won't be
+			# performed. It also removes the ability for dummy orders to be
+			# removed.
+			#
 			# Get all the orders
 			d = {}
 			OrderGet(Object(0), d)

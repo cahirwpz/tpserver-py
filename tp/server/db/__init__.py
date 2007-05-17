@@ -12,12 +12,10 @@ class Proxy(object):
 		r = sql.select(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			print "Executing a select statement!"
-			if proxy.game == None:
-				return query.execute(**kw)
-
-			for table in self.froms:
-				print "Table", table
-				self.append_whereclause((table.c.game == proxy.game))
+			if proxy.game != None:
+				for table in self.froms:
+					print "Table", table
+					self.append_whereclause((table.c.game == proxy.game))
 			return self._execute(**arguments)
 
 		r._execute = r.execute
@@ -71,8 +69,17 @@ class Proxy(object):
 		return r
 
 	def use(self, db=None):
-		# FIXME: This should look the game ID up in a table
-		self.game = int(db)
+		# Clear the old value
+		self.game = None
+
+		if db != None:
+			from tp.server.bases.Game import Game
+			if isinstance(db, Game):
+				self.game = db.id
+			elif isinstance(db, (str, unicode)):
+				self.game = Game.gameid(db)
+			else:
+				raise SyntaxError("dbconn.use called with a weird argument %s" % db)
 
 	def __getattr__(self, name):
 		if self.engine is None:
@@ -89,6 +96,7 @@ def setup(dbconfig):
 	engine = sql.create_engine(dbconfig, strategy='threadlocal')
 	sql.default_metadata.connect(engine)
 	sql.default_metadata.engine.echo = True
+	
 	sql.default_metadata.create_all()
 
 	dbconn.engine = sql.default_metadata.engine

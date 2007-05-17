@@ -53,155 +53,99 @@ from tp.server.bases.Message import Message
 from tp.server.bases.Object import Object
 
 SIZE = 10000000
-	
-def adduser(game, username, password):
-	fullusername = "%s@%s" % (username, game)
 
-	# Check the user doesn't already exist
-	if User.usernameid(fullusername) != -1:
-		print "User already exists!"
-		return
-
-	print "Adding user %s %s" % (fullusername, password)
-	# Add a new user
-	user = User()
-	user.username = fullusername
-	user.password = password
-	user.insert()
-	print "User has the id:", user.id
-			
-	# Add private message board
-	board = Board()
-	board.id = user.id
-	board.name = "Private message board for %s" % username
-	board.desc = """\
-This board is used so that stuff you own (such as fleets and planets) \
-can inform you of what is happening in the universe. \
+class Commands:
+	def addgame(longname, ruleset, admin, comment):
+		"""\
+		--addgame <ruleset> <name> <admin email> <comment>
+			Add a new game to the server
 """
-	board.save()
-	print "Board has the id:", board.id
+		from tp.server.bases.Game import Game
 
-	# Add the first message
-	message = Message()
-	message.bid = board.id
-	message.slot = -1
-	message.subject = "Welcome to the Universe!"
-	message.body = """\
-Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
-You are currently in the game %s.
-""" % (username, game)
-	message.insert()
-	print "First message has the id:", message.id
+		# Check the game doesn't already exist
+		shortname = Game.munge(longname)
+		try:
+			Game.gameid(shortname)
+			print "That game name is already taken! Please try again with a different or remove that game first."
+			return
+		except KeyError:
+			pass
 
-	# Generate a position for the homeworld...
-	pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
-	print "Putting homeworld at", pos
+		# Okay create a new game then
+		g = Game()
 
-	# Add homesystem
-	homesystem = Object(type='tp.server.rules.base.objects.System')
-	homesystem.name = "%s's System" % username
-	homesystem.size = random.randint(800000, 2000000)
-	homesystem.parent = 0
-	homesystem.posx = pos[0]
-	homesystem.posy = pos[1]
-	homesystem.insert()
-	ReparentOne(homesystem)
-	homesystem.save()
-	print "Homeworld has the id:", homesystem.id
-	
-	# Add homeworld
-	homeworld = Object(type='tp.server.rules.base.objects.Planet')
-	homeworld.name = "%s's Homeworld" % username
-	homeworld.size = 1000
-	homeworld.parent = homesystem.id
-	homeworld.posx = pos[0]+random.randint(1,100)*1000
-	homeworld.posy = pos[1]+random.randint(1,100)*1000
-	homeworld.owner = user.id
-	homeworld.insert()
-	print "Homeworld has the id:", homeworld.id
+		# Check that this is a valid ruleset
+		try:
+			g.ruleset  = ruleset
+		except ImportError, e:
+			print e
+			print "That ruleset does not exist! Please check your spelling or install the correct module."
+			return
 
-	# Add some other planets just for fun!
-	extraplanets = random.randint(0, 5)
-	print "Adding %s planet's for fun!" % extraplanets
+		g.shortname= shortname
+		g.longname = longname
+		g.admin    = admin
+		g.comment  = comment
+		g.turn     = 0
+		g.commandline=" ".join(sys.argv)
+		g.save()
 
-	for planet in range(0, extraplanets):
-		extra = Object(type='tp.server.rules.base.objects.Planet')
-		extra.name = "Planet %s %s" % (username, planet)
-		extra.size = random.randint(1000, 10000)
-		extra.parent = homesystem.id
-		extra.posx = pos[0]+random.randint(1,100)*1000
-		extra.posy = pos[1]+random.randint(1,100)*1000
-		extra.insert()
-		print "Extra planet has the id:", extra.id
+		g.ruleset.initalise()
 
-	# Add inital fleet
-	fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
-	fleet.name = "First Fleet"
-	fleet.size = 1
-	fleet.parent = homeworld.id
-	fleet.posx = homeworld.posx
-	fleet.posy = homeworld.posy
-	fleet.owner = user.id
-	fleet.ships = {1:1}
-	fleet.insert()
-	print "Fleet has the id:", fleet.id
+		print "Game successfully created!"
+		print "You can use the '%s' shortname when running programs in the future." % shortname
+		print
+		print "You probably want to populate the universe now. See the --populate command."
+	addgame = staticmethod(addgame)		
 
-def generate(game, key=-1, min=0, max=12):
-	
-	# FIXME: Assuming that the Universe and the Galaxy exist.
+	def delgame(name):
+		"""\
+		--delgame
+			Remove a game from the server.
+"""
+		from tp.server.bases.Game import Game
 
-	# Create this many systems
-	for i in range(0, random.randint(int(max/2),max)):
-		pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+		# Check the game exists
+		id = Game.gameid(Game.munge(longname))
+		g = Game(id=id)
 		
-		# Add system
-		system = Object(type='tp.server.rules.base.objects.System')
-		system.name = "System %s" % i
-		system.size = random.randint(800000, 2000000)
-		system.posx = pos[0]
-		system.posy = pos[1]
-		system.insert()
-		ReparentOne(system)
-		system.save()
-		print "Created system (%s) with the id: %i" % (system.name, system.id)
-		
-		# In each system create a number of planets
-		for j in range(0, random.randint(min, max)):
-			planet = Object(type='tp.server.rules.base.objects.Planet')
-			planet.name = "Planet %i" % (i*max + j)
-			planet.size = random.randint(1000, 10000)
-			planet.parent = system.id
-			planet.posx = pos[0]+random.randint(1,100)*1000
-			planet.posy = pos[1]+random.randint(1,100)*1000
-			planet.insert()
-			print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+		# Now go around and clean up everything.... but how?
+		pass
+
+	def help(*args, **kw):
+		"""\
+		--help
+			Get help about using this program.
+		"""
+		print """
+This command lets you change things on the local server.
+"""
+
+		for name in dir(Commands):
+			if name.startswith('__'):
+				continue
+			if getattr(Commands, name).__doc__ is None:
+				continue
+
+			print getattr(Commands, name).__doc__.replace('\t\t', '')
+
+	help = staticmethod(help)	
+
 
 def main():
-	# Connect to the database
-	if len(sys.argv) <= 1:
-		print __doc__
+	# Special case for not enough arguments
+	if len(sys.argv) <= 1 or sys.argv[1][:2] != '--':
+		Commands.help()
 		return
 
-	game = sys.argv[1]
-	dbconn.use(game)
 	trans = dbconn.begin()
+
+	cmd = sys.argv[1][2:]
+	if not hasattr(Commands, cmd):
+		cmd = 'help'
+
 	try:
-
-		if sys.argv[2] == "--create":
-			create(game)
-		elif sys.argv[2] == "--delete":
-			delete(game)
-		elif sys.argv[2] == "--generate":
-			generate(game, key=int(sys.argv[3]), min=int(sys.argv[4]), max=int(sys.argv[5]))
-		elif sys.argv[2] == "--adduser":
-			adduser(game, sys.argv[3], sys.argv[4])
-		elif sys.argv[2] == "--deluser":
-			deluser(game, sys.argv[3])
-		else:
-			print "Unknown operation."
-
-#		raise IOError("Testing")
-
+		getattr(Commands, cmd)(*sys.argv[2:])
 	except:
 		print "Rolling back..."
 		trans.rollback()

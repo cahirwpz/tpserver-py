@@ -28,7 +28,8 @@ class Message(SQLBase):
 		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('bid', 'slot'),
-		ForeignKeyConstraint(['bid'], ['board.id']),
+		ForeignKeyConstraint(['bid'],  ['board.id']),
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	Index('idx_message_bidslot', table.c.bid, table.c.slot),
 
@@ -38,8 +39,9 @@ class Message(SQLBase):
 		Column('rid',   Integer, nullable=False, primary_key=True),
 		Column('value', Integer, nullable=False, default=0),
 
-		ForeignKeyConstraint(['mid'], ['message.id']),
-		ForeignKeyConstraint(['rid'], ['reference.id']),
+		ForeignKeyConstraint(['mid'],  ['message.id']),
+		ForeignKeyConstraint(['rid'],  ['reference.id']),
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid),
 

@@ -25,6 +25,8 @@ class Design(SQLBase):
 		Column('owner',     Integer,     nullable=False),
 		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['owner'], ['user.id']),
+		ForeignKeyConstraint(['game'],  ['game.id']),
+
 	)
 	table_category = Table('design_category',
 		Column('game', 	    Integer,  nullable=False, index=True),
@@ -34,6 +36,7 @@ class Design(SQLBase):
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
 		ForeignKeyConstraint(['design'],   ['design.id']),
 		ForeignKeyConstraint(['category'], ['category.id']),
+		ForeignKeyConstraint(['game'],     ['game.id']),
 	)
 	table_component = Table('design_component',
 		Column('game', 	    Integer,  nullable=False, index=True),
@@ -42,8 +45,9 @@ class Design(SQLBase):
 		Column('amount',    Integer,  nullable=False, default=0),
 		Column('comment',   Binary,   nullable=False, default=''),
 		Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
-		ForeignKeyConstraint(['design'],   ['design.id']),
+		ForeignKeyConstraint(['design'],    ['design.id']),
 		ForeignKeyConstraint(['component'], ['component.id']),
+		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 	
 	def load(self, id):

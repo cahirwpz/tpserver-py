@@ -15,7 +15,6 @@ class Object(SQLTypedBase):
 	table = Table('object',
 		Column('game',	    Integer,     nullable=False),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
 		Column('size',      Integer,     nullable=False),
@@ -29,6 +28,7 @@ class Object(SQLTypedBase):
 		Column('time',	    Integer,     nullable=False, index=True),
 
 		ForeignKeyConstraint(['parent'], ['object.id']),
+		ForeignKeyConstraint(['game'],   ['game.id']),
 	)
 	Index('idx_object_position', table.c.posx, table.c.posy, table.c.posz)
 

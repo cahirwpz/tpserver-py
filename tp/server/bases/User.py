@@ -11,13 +11,15 @@ from SQL import SQLBase
 
 class User(SQLBase):
 	table = Table('user',
+		Column('game', 	    Integer,     nullable=False, index=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
 		Column('comment',   Binary,      nullable=False, default=""),
 		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
 
-		UniqueConstraint('username')
+		UniqueConstraint('username', 'game'),
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
 	def usernameid(username, password=None):
