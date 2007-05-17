@@ -5,8 +5,8 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 # Local imports
-from tp.server.db import dbconn
-from tp import netlib
+from tp.server.db import *
+from tp.netlib import objects
 from SQL import SQLBase
 
 class Game(SQLBase):
@@ -75,5 +75,5 @@ class Game(SQLBase):
 	def to_packet(self, sequence):
 		# Preset arguments
 		args = [sequence, self.id, self.username, ""]
-		return netlib.objects.Player(*args)
+		return objects.Player(*args)
 

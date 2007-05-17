@@ -1,41 +1,4 @@
 #! /usr/bin/env python 
-"""
-tool <game> <action> [<arguments>]
-
-This tool lets you do admin type stuff to your server database.
-
-<game>
-	Name of the "game" (which is also equal to the database used by this game).
-
-<action>
-	Action to preform.
-
-	Possible actions include,
-
-	--create
-		Create a new game.
-
-	--delete
-		Delete a game.
-
-	--generate <key> <min number> <max number>
-		Generates a universe for the game. 
-		Will use the key in the random number generator, use -1 to use the 
-		current unix timestamp.
-
-		Will use the max/min numbers as a guide to how many objects to create
-		per system.
-
-		If called with the same key, max, min number the universe should be 
-		exactly the same.
-
-	--adduser <username> <password>
-		Adds a new user to the game.
-	
-	--deluser <username>
-		Removes a user from the game.
-"""
-
 
 import sys
 sys.path.append("/etc/tpserver-py")
@@ -48,9 +11,10 @@ from tp.server.db import dbconn
 from tp.server.bases.Game import Game
 
 class Commands:
+
 	def addgame(longname, ruleset, admin, comment):
 		"""\
-		--addgame <game name> <ruleset> <admin email> <comment>
+		--addgame <game> <ruleset> <admin email> <comment>
 			Add a new game to the server
 """
 		# Check the game doesn't already exist
@@ -117,6 +81,22 @@ class Commands:
 			r.populate(*args, **kw)
 
 	populate = staticmethod(populate)
+
+	def adduser(game, username, password, email=None, comment=None):
+		"""\
+		--player <game> <username> <password> [<email>, <comment>]
+			Add a new player to the game.
+		"""
+		r = Game(longname=game).ruleset
+
+		if comment is None:
+			r.player(username, password)
+		elif email is None:
+			r.player(username, password, email)
+		else:
+			r.player(username, password, email, comment)
+
+	adduser = staticmethod(adduser)
 
 	def help(*args, **kw):
 		"""\

@@ -1,11 +1,20 @@
+"""\
+Ruleset base.
+"""
+# Module imports
+
+# Local imports
+from tp.server.db import *
+from tp.server.bases.User    import User
+from tp.server.bases.Board   import Board
+from tp.server.bases.Message import Message
 
 class Ruleset(object):
 	"""\
 	Rulesets define how gameplay works.
-
 	"""
-
-	name = "Unknown Ruleset"
+	name    = "Unknown Ruleset"
+	version = 'Unknown Version'
 
 	def __init__(self, game):
 		# Now we need to find all the tables and bind it to the correct tables
@@ -35,13 +44,26 @@ class Ruleset(object):
 		"""
 		pass
 
-	def player(self, username):
+	def player(self, username, password, email='Unknown', comment=''):
 		"""
-		Create a player for this game.
+		--player <game> <username> <password> [<email>, <comment>]
+			Create a player for this game.
+
+			The default function creates a new user, a board for the user and adds a
+			welcome message. It returns the newly created user object.
 		"""
+		dbconn.use(self.game)
+
+		user = User()
+		user.username = username
+		user.password = password
+		user.email    = email
+		user.comment  = comment
+		user.save()
+
 		board = Board()
-		board.id = player.id
-		board.name = "Private message board for %s" % player_name
+		board.id = user.id
+		board.name = "Private message board for %s" % username
 		board.desc = """\
 This board is used so that stuff you own (such as fleets and planets) \
 can inform you of what is happening in the universe. \
@@ -50,15 +72,17 @@ can inform you of what is happening in the universe. \
 
 		# Add the first message
 		message = Message()
-		message.bid = board.id
+		message.bid = user.id
 		message.slot = -1
 		message.subject = "Welcome to the Universe!"
 		message.body = """\
 Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
-""" % (player_name)
+\
+This game is currently playing version %s of %s.
+""" % (username, self.version, self.name)
 		message.save()
 
-		return True
+		return user
 
 	def turn(self, name):
 		"""

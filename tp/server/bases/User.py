@@ -45,7 +45,7 @@ class User(SQLBase):
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)
 
-	def game(self):
+	def gamebit(self):
 		return self.username.split("@")[1]
 
 	def to_packet(self, sequence):

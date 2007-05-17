@@ -30,6 +30,8 @@ class Ruleset(RulesetBase):
 	"""
 	Minisec Ruleset...
 	"""
+	name = "Minisec"
+	version = "0.0.1"
 
 	# The order orders and actions occur
 	orderOfOrders = [
@@ -55,6 +57,8 @@ class Ruleset(RulesetBase):
 		dbconn.use(self.game)
 
 		# Need to create the top level universe object...
+
+
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""\
@@ -97,61 +101,40 @@ class Ruleset(RulesetBase):
 				planet.insert()
 				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
-	def spawn_player(player):
+	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
 		"""\
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
+		dbconn.use(self.game)
 
-		player_name = player.username
-
-		board = Board()
-		board.id = player.id
-		board.name = "Private message board for %s" % player_name
-		board.desc = """\
-	This board is used so that stuff you own (such as fleets and planets) \
-	can inform you of what is happening in the universe. \
-	"""
-		board.save()
-
-		# Add the first message
-		message = Message()
-		message.bid = board.id
-		message.slot = -1
-		message.subject = "Welcome to the Universe!"
-		message.body = """\
-	Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
-	""" % (player_name)
-		message.save()
-
+		user = RulesetBase.player(self, username, password, email, comment)
 
 		pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
 
 		system = Object(type='tp.server.rules.base.objects.System')
-		system.name = "%s Solar System" % player_name
+		system.name = "%s Solar System" % username
 		system.parent = 0
 		system.size = random.randint(800000, 2000000)
 		(system.posx, system.posy, junk) = pos
 		ReparentOne(system)
-		system.owner = player.id
+		system.owner = user.id
 		system.save()
 
 		planet = Object(type='tp.server.rules.base.objects.Planet')
-		planet.name = "%s Planet" % player_name
+		planet.name = "%s Planet" % username
 		planet.parent = system.id
 		planet.size = 100
 		planet.posx = system.posx+random.randint(1,100)*1000
 		planet.posy = system.posy+random.randint(1,100)*1000
-		planet.owner = player.id
+		planet.owner = user.id
 		planet.save()
 
 		fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
 		fleet.parent = planet.id
 		fleet.size = 3
-		fleet.name = "%s First Fleet" % player_name
+		fleet.name = "%s First Fleet" % username
 		fleet.ships = {1:3}
 		(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
-		fleet.owner = player.id
+		fleet.owner = user.id
 		fleet.save()
-
-		return True
 
