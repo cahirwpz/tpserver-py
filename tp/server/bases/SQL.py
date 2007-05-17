@@ -3,7 +3,7 @@ Database backed bases for the objects.
 """
 # Module imports
 from sqlalchemy import *
-from tp.server.db import dbconn
+from tp.server.db import *
 
 try:
 	import cPickle as pickle
@@ -101,9 +101,9 @@ class SQLBase(object):
 		Create an object from a network packet.
 		Create an empty object.
 		"""
-		if id != None:
+		if not (id is None):
 			self.load(id)
-		if packet != None:
+		if not (packet is None):
 			self.from_packet(packet)
 
 	def todict(self):
@@ -156,7 +156,8 @@ class SQLBase(object):
 				continue
 			if hasattr(self, column.name):
 				arguments[column.name] = getattr(self, column.name)
-			
+		
+		print method	
 		result = method.execute(**arguments)
 
 		if not hasattr(self, 'id'):

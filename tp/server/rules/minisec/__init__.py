@@ -56,13 +56,23 @@ class Ruleset(RulesetBase):
 
 		# Need to create the top level universe object...
 
-	def populate(self):		
-		dbconn.use(game)
+	def populate(self, seed, system_min, system_max, planet_min, planet_max):
+		"""\
+		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
+		
+			Populate a universe with a number of systems and planets.
+			The number of systems in the universe is dictated by min/max systems.
+			The number of planets per system is dictated by min/max planets.
+		"""
+		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
+
+		dbconn.use(self.game)
 		
 		# FIXME: Assuming that the Universe and the Galaxy exist.
+		random.seed(seed)
 
 		# Create this many systems
-		for i in range(0, random.randint(int(max/2),max)):
+		for i in range(0, random.randint(system_min, system_max)):
 			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
 			
 			# Add system
@@ -77,16 +87,15 @@ class Ruleset(RulesetBase):
 			print "Created system (%s) with the id: %i" % (system.name, system.id)
 			
 			# In each system create a number of planets
-			for j in range(0, random.randint(min, max)):
+			for j in range(0, random.randint(planet_min, planet_max)):
 				planet = Object(type='tp.server.rules.base.objects.Planet')
-				planet.name = "Planet %i" % (i*max + j)
+				planet.name = "Planet %i in %s" % (j, system.name)
 				planet.size = random.randint(1000, 10000)
 				planet.parent = system.id
 				planet.posx = pos[0]+random.randint(1,100)*1000
 				planet.posy = pos[1]+random.randint(1,100)*1000
 				planet.insert()
 				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
-
 
 	def spawn_player(player):
 		"""\

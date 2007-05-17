@@ -23,6 +23,14 @@ class Game(SQLBase):
 		UniqueConstraint('shortname')
 	)
 
+	def __init__(self, id=None, packet=None, shortname=None, longname=None):
+		if not (packet is None) or not (id is None):
+			SQLBase.__init__(self, id=id, packet=packet)
+		if not (shortname is None):
+			SQLBase.__init__(self, id=self.gameid(shortname))
+		if not (longname is None):
+			SQLBase.__init__(self, id=self.gameid(self.munge(longname)))
+
 	def munge(game):
 		"""\
 		Convert a longname into some sort of suitable short name.
@@ -36,7 +44,7 @@ class Game(SQLBase):
 		"""
 		t = Game.table
 		try:
-			result = dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0]
+			return dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0][0]
 		except (KeyError, IndexError), e:
 			raise KeyError("No such game named %s exists!" % game)
 	gameid = staticmethod(gameid)

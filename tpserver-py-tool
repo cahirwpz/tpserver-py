@@ -45,23 +45,14 @@ import random
 
 from tp.server.utils import *
 from tp.server.db import dbconn
-
-from tp.server.utils import ReparentOne
-from tp.server.bases.User import User
-from tp.server.bases.Board import Board
-from tp.server.bases.Message import Message
-from tp.server.bases.Object import Object
-
-SIZE = 10000000
+from tp.server.bases.Game import Game
 
 class Commands:
 	def addgame(longname, ruleset, admin, comment):
 		"""\
-		--addgame <ruleset> <name> <admin email> <comment>
+		--addgame <game name> <ruleset> <admin email> <comment>
 			Add a new game to the server
 """
-		from tp.server.bases.Game import Game
-
 		# Check the game doesn't already exist
 		shortname = Game.munge(longname)
 		try:
@@ -98,19 +89,34 @@ class Commands:
 		print "You probably want to populate the universe now. See the --populate command."
 	addgame = staticmethod(addgame)		
 
-	def delgame(name):
+	def delgame(game):
 		"""\
-		--delgame
+		--delgame <game>
 			Remove a game from the server.
 """
-		from tp.server.bases.Game import Game
 
 		# Check the game exists
-		id = Game.gameid(Game.munge(longname))
-		g = Game(id=id)
+		g = Game(longname=game)
 		
 		# Now go around and clean up everything.... but how?
 		pass
+
+	def populate(game, *args, **kw):
+		"""\
+		--populate <game> --help
+			Find out what arguments populate takes for this game's ruleset.
+
+		--populate <game> <ruleset arguments>
+			Populates will populate a game with "things". What things means
+			depends on the the ruleset.
+"""
+		r = Game(longname=game).ruleset
+		if len(args) == 0 or args[0] == '--help':
+			print r.populate.__doc__.replace('\t\t', '')
+		else:
+			r.populate(*args, **kw)
+
+	populate = staticmethod(populate)
 
 	def help(*args, **kw):
 		"""\
