@@ -18,28 +18,16 @@ def WalkUniverse(top, order, callback, *args, **kw):
 	if order == "after":
 		callback(top, *args, **kw)
 
-def OrderGet(top, d={}):
-	"""
-	Walks around the universe and puts the orders into the given dictionary.
-	"""
+def OrderGet():
+	d = {}
 
-	def o(obj, d=d):
-		if obj.orders() > 0:
-			# Find the first valid order on this object
-			while True:
-				order = Order(obj.id, 0)
+	for id in Order.active():
+		order = Order(id=id)
+		if not d.has_key(order.type):
+			d[order.type] = []
 
-				if False:
-					order = None
-				else:
-					break
-
-			if not d.has_key(order.type):
-				d[order.type] = []
-
-			d[order.type].append(order)
-
-	WalkUniverse(top, "before", o)
+		d[order.type].append(order)
+	return d
 
 def ReparentOne(obj):
 	# Reparent the object
