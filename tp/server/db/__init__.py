@@ -14,7 +14,10 @@ class Proxy(object):
 			print "Executing a select statement!"
 			if proxy.game != None:
 				for table in self.froms:
-					print "Table", table
+					# FIXME: Horrible hack!
+					if table.fullname == "game":
+						continue
+
 					self.append_whereclause((table.c.game == proxy.game))
 			return self._execute(**arguments)
 
@@ -64,12 +67,13 @@ class Proxy(object):
 			return self._execute(**arguments)
 
 		r._execute = r.execute
-		r.execute = execute
+		r.execute  = execute
 		
 		return r
 
 	def use(self, db=None):
 		# Clear the old value
+		old = self.game
 		self.game = None
 
 		if db != None:
@@ -80,6 +84,9 @@ class Proxy(object):
 				self.game = Game.gameid(db)
 			else:
 				raise SyntaxError("dbconn.use called with a weird argument %s" % db)
+
+		# Return the previous value...
+		return old
 
 	def __getattr__(self, name):
 		if self.engine is None:
