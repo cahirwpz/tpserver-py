@@ -67,7 +67,7 @@ class Object(SQLTypedBase):
 		Returns the objects which have a parent of this id.
 		"""
 		t = cls.table
-		results = select([t.c.id, t.c.time], t.c.parent==id).execute().fetchall()
+		results = select([t.c.id, t.c.time], (t.c.parent==id) & (t.c.id != id)).execute().fetchall()
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
