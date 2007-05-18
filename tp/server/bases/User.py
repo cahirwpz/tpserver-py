@@ -62,10 +62,19 @@ class User(SQLBase):
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)
 
-	def gamebit(self):
-		return Game(id=self.game)
+	def game_get(self):
+		return self.__game.id
+	def game_set(self, value):
+		if hasattr(self, '__game'):
+			raise TypeError('The game can not be changed!')
+		self.__game = Game(id=value)
+	game = property(game_get, game_set)
 
-	def to_packet(self, sequence):
+	def playing(self):
+		return self.__game
+	playing = property(playing)
+
+	def to_packet(self, user, sequence):
 		# Preset arguments
 		args = [sequence, self.id, self.username, ""]
 		return netlib.objects.Player(*args)
