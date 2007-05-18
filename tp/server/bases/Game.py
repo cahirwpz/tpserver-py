@@ -5,9 +5,10 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 # Local imports
+from tp.server.bases.SQL import SQLBase, NoSuch
+
 from tp.server.db import *
 from tp.netlib import objects
-from SQL import SQLBase
 
 class Game(SQLBase):
 	table = Table('game',
@@ -42,11 +43,12 @@ class Game(SQLBase):
 		"""\
 		Get the id of a game from a short name.
 		"""
+		dbconn.use()
 		t = Game.table
 		try:
 			return dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0][0]
 		except (KeyError, IndexError), e:
-			raise KeyError("No such game named %s exists!" % game)
+			raise NoSuch("No such game named %s exists!" % game)
 	gameid = staticmethod(gameid)
 
 	def ruleset_get(self):
@@ -70,10 +72,4 @@ class Game(SQLBase):
 		self.rulesetname = value
 
 	ruleset = property(ruleset_get, ruleset_set)
-	
-
-	def to_packet(self, sequence):
-		# Preset arguments
-		args = [sequence, self.id, self.username, ""]
-		return objects.Player(*args)
 

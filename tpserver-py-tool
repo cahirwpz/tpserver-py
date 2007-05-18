@@ -98,6 +98,18 @@ class Commands:
 
 	adduser = staticmethod(adduser)
 
+	def turn(game, number=1):
+		"""\
+		--turn <game> [<number>]
+			Generate <number> turns. Number defaults to one.
+		"""
+		r = Game(longname=game).ruleset
+		
+		for i in range(0, number):
+			r.turn()
+
+	turn = staticmethod(turn)
+
 	def help(*args, **kw):
 		"""\
 		--help

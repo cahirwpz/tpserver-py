@@ -2,12 +2,17 @@
 Ruleset base.
 """
 # Module imports
+import sys
+from types import TupleType
 
 # Local imports
 from tp.server.db import *
 from tp.server.bases.User    import User
 from tp.server.bases.Board   import Board
 from tp.server.bases.Message import Message
+from tp.server.bases.Object  import Object
+
+from tp.server.utils import OrderGet
 
 class Ruleset(object):
 	"""\
@@ -84,7 +89,7 @@ This game is currently playing version %s of %s.
 
 		return user
 
-	def turn(self, name):
+	def turn(self):
 		"""
 		generate a turn for this ruleset
 
@@ -114,10 +119,9 @@ This game is currently playing version %s of %s.
 			# removed.
 			#
 			# Get all the orders
-			d = {}
-			OrderGet(Object(0), d)
-
-			for action in config.order:
+			d = OrderGet()
+			for action in self.orderOfOrders:
+				print action
 				if type(action) == TupleType:
 					action, args = action[0], action[1:]
 				else:
@@ -145,8 +149,8 @@ This game is currently playing version %s of %s.
 			# Reparent the universe
 			
 		except:
-			db.rollback()
+			dbconn.rollback()
 			raise
 		else:
-			db.commit()
+			dbconn.commit()
 
