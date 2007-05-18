@@ -91,7 +91,7 @@ class SQLBase(object):
 		return id
 	realid = classmethod(realid)
 
-	def __init__(self, id=None, packet=None):
+	def __init__(self, id=None):
 		"""\
 		SQLObject(id)
 		SQLObject(packet)
@@ -103,8 +103,6 @@ class SQLBase(object):
 		"""
 		if not (id is None):
 			self.load(id)
-		if not (packet is None):
-			self.from_packet(packet)
 
 	def todict(self):
 		"""\
@@ -191,18 +189,26 @@ class SQLBase(object):
 		"""
 		raise NotImplimented("This method has not been implimented.")
 
-	def from_packet(self, packet):
+	def from_packet(cls, user, packet):
 		"""\
-		from_packet(packet)
+		from_packet(game, packet)
 
-		Makes an object out of a Thousand Parsec packet.
+		Makes an server object out of a Thousand Parsec packet.
 		"""
+		# Create an empty object
+		self = cls()
+
+		# Populate it with values from the packet
 		for key, value in packet.__dict__.items():
 			# Ignore special attributes
 			if key.startswith("_"):
 				continue
 
 			setattr(self, key, value)
+
+		# Return the newly created object
+		return self
+	from_packet = staticmethod(from_packet)
 
 	def allowed(self, user):
 		"""\
@@ -289,6 +295,9 @@ Extra attributes this type defines.
 		if typeno != None:
 			type = self.types[typeno].__module__
 
+	def __init__(self, id=None, type=None):
+		if id != None:
+			SQLBase.__init__(self, id)
 		if type != None:
 			self.type = type
 
@@ -403,16 +412,20 @@ Extra attributes this type defines.
 			trans.commit()
 			pass
 
-	def from_packet(self, packet):
+	def from_packet(cls, user, packet):
 		"""\
 		from_packet(packet)
 
 		Makes an object out of a Thousand Parsec packet.
 		"""
-		self.__upgrade__(typeno=packet.type)
-
-		for key, value in packet.__dict__.items():
+		# Get the mapping
+		map = getattr(user.playing.ruleset, cls.__name__.lower() + 'map')
 		
+		# Create an instance of this object
+		self = map[packet.type]()
+
+		# FIXME: This is probably bad...
+		for key, value in packet.__dict__.items():
 			# Ignore special attributes
 			if key.startswith("_") or key == "type":
 				continue
@@ -424,6 +437,8 @@ Extra attributes this type defines.
 					getattr(self, "fn_"+key)(value)
 			else:
 				setattr(self, key, value)
+		return self
+	from_packet = staticmethod(from_packet)
 
 	def to_packet(self, sequence, args):
 		for attribute in self.attributes.values():

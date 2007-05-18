@@ -71,7 +71,7 @@ class Object(SQLTypedBase):
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
-	def __init__(self, id=None, packet=None, type=None, typeno=None):
+	def __init__(self, id=None, type=None):
 		self.name = "Unknown object"
 		self.size = 0
 		self.posx = 0
@@ -82,7 +82,7 @@ class Object(SQLTypedBase):
 		self.velz = 0
 		self.parent = 0
 
-		SQLTypedBase.__init__(self, id, packet, type, typeno)
+		SQLTypedBase.__init__(self, id, type)
 
 	def protect(self, user):
 		o = SQLBase.protect(self, user)

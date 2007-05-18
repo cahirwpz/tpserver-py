@@ -22,8 +22,63 @@ class Ruleset(object):
 	version = 'Unknown Version'
 
 	def __init__(self, game):
-		# Now we need to find all the tables and bind it to the correct tables
+		"""\
+		Initialise a ruleset.
+		"""
 		self.game = game
+		self.setup()
+
+	def setup(self):
+		"""
+		Sets up the game after a restart.
+
+		All orders needed by the module should be imported and registered with
+		the ruleset.
+
+		All objected needed by the module should be imported and registered with 
+		the ruleset.
+
+		By default it will setup all orders in the orderOfOrders.
+		"""
+		self.ordermap = {}
+		for action in self.orderOfOrders:
+			if type(action) == TupleType:
+				action, args = action[0], action[1:]
+			else:
+				args = tuple()
+			
+			name = str(action.__name__)
+			if "orders" in name:
+				order = getattr(action, name.split('.')[-1])
+
+				if name in [x.__module__ for x in self.ordermap.values()]:
+					continue
+
+				if not hasattr(order, 'typeno'):
+					typeno = len(self.ordermap) + 1
+				else:
+					typeno = order.typeno
+
+				if self.ordermap.has_key(typeno):
+					raise TypeError('Two orders (%s and %s) have conflicting type numbers!' % (self.ordermap[typeno].__module__, order.__module__))
+
+				self.ordermap[typeno] = order 
+		pprint.pprint(self.ordermap)
+
+		self.objectmap = {}
+
+	def typeno(self, cls):
+		"""
+		Returns the typeno for a class.
+		"""
+		# FIXME: There should be a better way to do this
+		for typeno, order in self.ordermap.items():
+			if str(order.__module__) == str(cls.__module__):
+				return typeno
+		for typeno, order in self.objectmap.items():
+			if str(order.__module__) == str(cls.__module__):
+				return typeno
+		
 
 	def initialise(self):
 		""" 

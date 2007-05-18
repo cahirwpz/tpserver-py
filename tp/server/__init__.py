@@ -347,7 +347,7 @@ class FullConnection(netlib.ServerConnection):
 			return True
 
 		try:
-			order = Order(packet=packet)
+			order = Order.from_packet(self.user, packet)
 			
 			# Are we allowed to do this?
 			if not order.object.allowed(self.user):
@@ -400,10 +400,7 @@ class FullConnection(netlib.ServerConnection):
 			return True
 
 		try:
-			# Mangle the board id
-			packet.id = Board.mangleid(packet.id, self.user.id)
-
-			message = Message(packet=packet)
+			message = Message.from_packet(self.user, packet)
 			message.insert()
 			self._send(netlib.objects.OK(packet.sequence, "Message added."))
 		except NoSuch:
@@ -499,12 +496,14 @@ class FullServer(netlib.Server):
 	def __init__(self, *args, **kw):
 		netlib.Server.__init__(self, *args, **kw)
 
-		# Load all the order descriptions and print them out.
-		Order.load_all()
-		for key, value in netlib.objects.OrderDescs().items():
-			print key, value
-			print value.names
+		# Remove any order mapping from the network libray...
+		netlib.objects.OrderDescs().clear()
 
+		# Setup all the Games (specifically the order mappings)
+		for id, time in Game.ids():
+			Game(id).ruleset.setup()
+		print netlib.objects.OrderDescs()
+	
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
 		for connection in self.connections:

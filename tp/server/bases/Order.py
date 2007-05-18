@@ -77,10 +77,6 @@ class Order(SQLTypedBase):
 		# FIXME: This should send a correct last modified time
 		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments, 0)
 	desc_packet = classmethod(desc_packet)
-	
-	def load_all(cls):
-		"""\
-		Order.load_all()
 
 		Loads all the possible order types from the database.
 		"""
@@ -88,13 +84,14 @@ class Order(SQLTypedBase):
 			cls.desc_packet(0, id).register()
 	load_all = classmethod(load_all)
 
-	def __init__(self, oid=None, slot=None, packet=None, type=None, typeno=None, id=None):
+	def __init__(self, oid=None, slot=None, type=None, id=None):
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
 		else:
 			id = None
-			
-		SQLTypedBase.__init__(self, id, packet, type, typeno)
+		
+		self.worked = 0
+		SQLTypedBase.__init__(self, id, type)
 
 	def allowed(self, user):
 		# FIXME: This is a hack.
@@ -162,7 +159,6 @@ class Order(SQLTypedBase):
 			raise
 		else:
 			trans.commit()
-			pass
 
 	def to_packet(self, sequence):
 		# Preset arguments
@@ -171,14 +167,14 @@ class Order(SQLTypedBase):
 		print self, args
 		return netlib.objects.Order(*args)
 
-	def from_packet(self, packet):
-		self.worked = 0
+	def from_packet(cls, user, packet):
+		self = SQLTypedBase.from_packet(cls, user, packet)
 
 		self.oid = packet.id
-		self.slot = packet.slot
-		SQLTypedBase.from_packet(self, packet)
-
 		del self.id
+
+		return self
+	from_packet = classmethod(from_packet)
 
 	def __str__(self):
 		if hasattr(self, 'id'):
