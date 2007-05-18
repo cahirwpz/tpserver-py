@@ -11,6 +11,7 @@ class MergeFleet(Order):
 	"""\
 Merge two fleets together.
 """
+	typeno = 4
 
 	attributes = {\
 		'fleet': Order.Attribute("fleet", -1, 'protected', type=netlib.objects.constants.ARG_OBJECT, 
@@ -93,6 +94,3 @@ The merge order has been removed.
 				self.fleet = -1
 
 			return 
-			
-MergeFleet.typeno = 4
-Order.types[MergeFleet.typeno] = MergeFleet

@@ -25,6 +25,7 @@ class Move(Order):
 	"""\
 Move to a point in space.
 """
+	typeno = 1
 
 	attributes = {\
 		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.constants.ARG_ABS_COORD, 
@@ -97,6 +98,3 @@ Move to a point in space.
 
 	def resources(self):
 		return []
-
-Move.typeno = 1
-Order.types[Move.typeno] = Move

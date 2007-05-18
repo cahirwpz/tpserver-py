@@ -6,9 +6,10 @@ class NOp(Order):
 	"""\
 Wait around and do nothing...
 """
+	typeno = 0
 
 	attributes = {\
-		'wait': Order.Attribute("wait", 0, 'public', type=netlib.objects.constants.ARG_TIME, 
+		'wait': Order.Attribute("wait", 0, 'protected', type=netlib.objects.constants.ARG_TIME, 
 				desc="How long to wait for.")
 	}
 	
@@ -25,6 +26,6 @@ Wait around and do nothing...
 
 	def resources(self):
 		return []
-
-NOp.typeno = 0
-Order.types[NOp.typeno] = NOp
+	
+	def fn_wait(self):
+		return self.wait, -1

@@ -12,6 +12,7 @@ class SplitFleet(Order):
 	"""\
 Split some ships into a new fleet.
 """
+	typeno = 3
 
 	attributes = {\
 		'call': Order.Attribute("call", "New Fleet", 'protected', type=netlib.objects.constants.ARG_STRING, 
@@ -79,6 +80,3 @@ Split some ships into a new fleet.
 				pass
 
 			self.ships = ships
-
-SplitFleet.typeno = 3
-Order.types[SplitFleet.typeno] = SplitFleet

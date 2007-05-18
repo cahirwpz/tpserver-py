@@ -7,6 +7,7 @@ class Mine(Order):
 	"""\
 Turn a mineable resource into a surface resource.
 """
+	typeno = 6
 
 	attributes = {\
 		'resource': Order.Attribute("resource", 0, 'public', type=netlib.objects.constants.ARG_RANGE, 
@@ -24,5 +25,3 @@ Turn a mineable resource into a surface resource.
 	def resources(self):
 		return []
 
-Mine.typeno = 6
-Order.types[Mine.typeno] = Mine

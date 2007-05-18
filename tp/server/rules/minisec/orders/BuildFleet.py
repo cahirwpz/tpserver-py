@@ -10,6 +10,7 @@ from tp.server.rules.minisec.objects.Fleet import Fleet
 class BuildFleet(Order):
 	"""\
 Build a new star ship fleet."""
+	typeno = 2
 
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
@@ -93,6 +94,3 @@ It consists of:
 				pass
 
 			self.ships = ships
-
-BuildFleet.typeno = 2
-Order.types[BuildFleet.typeno] = BuildFleet

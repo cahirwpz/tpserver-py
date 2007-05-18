@@ -12,6 +12,7 @@ class Colonise(Order):
 	"""\
 Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 """
+	typeno = 5
 
 	attributes = {\
 	}
@@ -73,6 +74,3 @@ Colonisation of %s <b>succeded</b>.""" % (planet.name,)
 
 	def resources(self):
 		return []
-
-Colonise.typeno = 5
-Colonise.types[Colonise.typeno] = Colonise
