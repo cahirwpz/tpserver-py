@@ -2,6 +2,7 @@
 Ruleset base.
 """
 # Module imports
+import pprint
 import sys
 from types import TupleType
 
@@ -14,6 +15,7 @@ from tp.server.bases.Object  import Object
 
 from tp.server.utils import OrderGet
 
+# FIXME: These should be singltons
 class Ruleset(object):
 	"""\
 	Rulesets define how gameplay works.

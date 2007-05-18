@@ -138,10 +138,10 @@ class Object(SQLTypedBase):
 		else:
 			return tuple()
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		# Preset arguments
 		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders(), self.time]
-		SQLTypedBase.to_packet(self, sequence, args)
+		SQLTypedBase.to_packet(self, user, sequence, args)
 		print self, args
 		return netlib.objects.Object(*args)
 

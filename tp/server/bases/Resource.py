@@ -26,7 +26,7 @@ class Resource(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		return netlib.objects.Resource(sequence, self.id, self.name_singular, self.name_pludesc, Resource.number(self.id))
 
 	def id_packet(cls):

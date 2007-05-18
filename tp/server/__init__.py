@@ -21,7 +21,7 @@ from tp import netlib
 constants = netlib.objects.constants
 
 # Base objects
-from tp.server.bases.SQL       import NoSuch
+from tp.server.bases.SQL       import NoSuch, PermissionDenied
 from tp.server.bases.Board     import Board
 from tp.server.bases.Category  import Category
 from tp.server.bases.Component import Component
@@ -44,17 +44,35 @@ class FullConnection(netlib.ServerConnection):
 		netlib.ServerConnection.__init__(self, *args, **kw)
 		self.user = None
 
+	def user_get(self):
+		return self.__user
+
+	def user_set(self, value):
+		print "Setting user...", value
+		if value is None:
+			self.__user  = None
+			self.game    = None		
+			self.ruleset = None
+
+		elif isinstance(value, User):
+			self.__user  = value
+			self.game    = value.playing
+			self.ruleset = value.playing.ruleset
+		else:
+			raise TypeError("User value must either be None or a user object!")
+	user = property(user_get, user_set)
+
 	def check(self, packet):
 		"""
 		Checks if the user is logged in and the turns are not currently been processed.
 		"""
-		if self.user == None:
+		if self.user is None:
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, 
 							"You need to be logged in to use this functionality."))
 			return False
-
-		# Reset the database connection
-		db.dbconn.use(db=self.user.gamebit())
+	
+		# Tell the database which game to examine	
+		db.dbconn.use(db=self.game)
 
 		# Check that the database isn't currently locked for turn processing
 #		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
@@ -64,6 +82,30 @@ class FullConnection(netlib.ServerConnection):
 #			return False
 
 		return True
+
+	def _description_error(self, p):
+		"""
+		Orders/Objects which are describable are ruleset specific. 
+		
+		We deliberately don't register the Orders/Objects with the network
+		library. Instead we catch them here and use the descriptions in the
+		ruleset.
+	
+		This works because you need to logged in to access any of the
+		describable functionality.
+		"""
+		if self.user is None:
+			self._send(objects.Fail(p.sequence, constants.FAIL_TEMP, 
+									"You must be logged in to use this functionality."))
+			return True
+
+		# FIXME: Should check if this is an Order or Object
+		if not (p.type in self.ruleset.ordermap):
+			self._send(objects.Fail(p.sequence, constants.FAIL_FRAME, 
+									"Packet doesn't match a type which I can describe."))
+		else:
+			print "The packet was described by ", self.ruleset.ordermap[p.type].packet(p.type)
+			p.process(p._data, force=self.ruleset.ordermap[p.type].packet(p.type))
 
 	def OnGetWithID(self, packet, type):
 		"""\
@@ -75,8 +117,6 @@ class FullConnection(netlib.ServerConnection):
 		type - The class used in processing, it must have the following
 			type.realid(user, id)                - Get the real id for this object
 			type(realid)                         - Creates the object
-			typeinstance.allowed(user)           - Is the user allowed to see this object
-			typeinstance.protect(user)           - Protect the object against this user
 			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 		"""
 		if not self.check(packet):
@@ -89,20 +129,12 @@ class FullConnection(netlib.ServerConnection):
 
 		for id in packet.ids:
 			try:
-				# Get the real id of the object
-				id = type.realid(self.user, id)
-				
-				o = type(id)
+				o = type(type.realid(self.user, id))
+				self._send(o.to_packet(self.user, packet.sequence))
 
-				# Is the user allowed to access this object?
-				if not o.allowed(self.user):
-					print "ERROR: No permission for %s with id %s." % (type, id)
-					self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
-				else:
-					# Protect certain details from a user (ie if can see only some of the object)
-					o = o.protect(self.user)
-					self._send(o.to_packet(packet.sequence))
-
+			except PermissionDenied:
+				print "ERROR: No permission for %s with id %s." % (type, id)
+				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
 			except NoSuch:
 				print "ERROR: No such %s with id %s." % (type, id)
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
@@ -162,8 +194,6 @@ class FullConnection(netlib.ServerConnection):
 					
 		type - The class used in processing, it must have the following
 			type(realid, slot)                   - Creates the object
-			typeinstance.allowed(user)           - Is the user allowed to see this object
-			typeinstance.protect(user)           - Protect the object against this user
 			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 
 		container - The class that contains the other class
@@ -180,16 +210,11 @@ class FullConnection(netlib.ServerConnection):
 		for slot in packet.slots:
 			try:
 				o = type(id, slot)
+				self._send(o.to_packet(self.user, packet.sequence))
 
-				# Is the user allowed to access this object?
-				if not o.allowed(self.user):
-					print "ERROR: No permission for %s with id %s." % (type, id)
-					self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
-				else:
-					# Protect certain details from a user (ie if can see only some of the object)
-					o = o.protect(self.user)
-					self._send(o.to_packet(packet.sequence))
-
+			except PermissionDenied:
+				print "ERROR: No permission for %s with id %s." % (type, id)
+				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such %s." % type))
 			except NoSuch:
 				print "ERROR: No such %s with id %s, %s." % (type, id, slot)
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
@@ -216,7 +241,6 @@ class FullConnection(netlib.ServerConnection):
 		db.dbconn.use()
 		
 		if config.usercreation:
-
 			try:
 				username, game = User.split(packet.username)
 			except TypeError, e:
@@ -237,10 +261,7 @@ class FullConnection(netlib.ServerConnection):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
 				return True
 
-			account = User(None, packet)
-			account.username = userpart
-
-			g.ruleset.player(username, account.password, account.email, account.comment)
+			g.ruleset.player(username, packet.password, packet.email, packet.comment)
 
 			self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
 			return True
@@ -271,7 +292,7 @@ class FullConnection(netlib.ServerConnection):
 		if pid == -1:
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
 		else:
-			self.user = User(id=pid)
+			self.user = User(id=pid) 
 			self._send(netlib.objects.OK(packet.sequence, "Login Ok!"))
 			
 		return True
@@ -292,7 +313,7 @@ class FullConnection(netlib.ServerConnection):
 		self._send(netlib.objects.Sequence(packet.sequence, len(objects)))
 
 		for object in objects:
-			self._send(object.to_packet(packet.sequence))
+			self._send(object.to_packet(self.user, packet.sequence))
 
 	def OnObject_GetID_ByContainer(self, packet):
 		if not self.check(packet):
@@ -306,7 +327,7 @@ class FullConnection(netlib.ServerConnection):
 			return True
 
 		# FIXME: There is a better place to put this class
-		class OrderDesc:
+		class OrderDesc(object):
 			def modified(cls, user):
 				return 0
 			modified = classmethod(modified)
@@ -455,20 +476,17 @@ class FullConnection(netlib.ServerConnection):
 			return True
 
 		try:
-			design = Design(packet=packet)
-			
-			# Are we allowed to do this?
-			if not design.allowed(self.user):
-				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
-				print packet.id, "No Permission"
-			else:	
-				design.save()
-				self._send(design.to_packet(packet.sequence))
-		except ValueError:
+			design = Design.from_packet(self.user, packet)
+			design.save()
+			self._send(design.to_packet(self.user, packet.sequence))
+
+		except PermissionDenied:
+			print packet.id, "No Permission"
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+		except NoSuch:
 			print packet.id, "Adding failed."
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Design adding failed."))
-			
-		except NoSuch:
+		except ValueError:
 			print packet.id, "Adding failed."
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Design adding failed."))
 
@@ -524,6 +542,7 @@ def main():
 			import signal
 
 			signal.signal(signal.SIGUSR1, s.endofturn)
+			signal.signal(signal.SIGUSR2, s.newgame)
 		except ImportError:
 			print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
 

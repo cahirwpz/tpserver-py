@@ -62,13 +62,11 @@ class Message(SQLBase):
 		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
 	number = classmethod(number)
 
-	def __init__(self, id=None, slot=None, packet=None):
+	def __init__(self, id=None, slot=None):
 		SQLBase.__init__(self)
 
 		if id != None and slot != None:
 			self.load(id, slot)
-		if packet != None:
-			self.from_packet(packet)
 
 	def load(self, bid, slot):
 		id = self.realid(bid, slot)
@@ -109,10 +107,14 @@ class Message(SQLBase):
 		# FIXME: The reference system needs to be added and so does the turn
 		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body, 0, [])
 
-	def from_packet(self, packet):
-		SQLBase.from_packet(self, packet)
+	def from_packet(self, user, packet):
+		self = SQLBase.from_packet(cls, user, packet)
+
+		# The ID from the packet is the Board ID.
 		self.bid = self.id
 		del self.id
+
+	from_packet = classmethod(from_packet)
 
 	def __str__(self):
 		return "<Message id=%s bid=%s slot=%s>" % (self.id, self.bid, self.slot)

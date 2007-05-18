@@ -48,7 +48,7 @@ class Property(SQLBase):
 		results = select([t.c.category], t.c.property==self.id).execute().fetchall()
 		return [x['category'] for x in results]
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		# Preset arguments
 		return netlib.objects.Property(sequence, self.id, self.time, self.categories(), self.rank, self.name, self.display_name, self.desc, self.calculate, self.requirements)
 

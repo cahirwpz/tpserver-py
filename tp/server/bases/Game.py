@@ -10,6 +10,8 @@ from tp.server.bases.SQL import SQLBase, NoSuch
 from tp.server.db import *
 from tp.netlib import objects
 
+# FIXME: There should be some way to store the ruleset parameters...
+# FIXME: These should be singltons
 class Game(SQLBase):
 	table = Table('game',
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
@@ -26,9 +28,9 @@ class Game(SQLBase):
 		UniqueConstraint('shortname')
 	)
 
-	def __init__(self, id=None, packet=None, shortname=None, longname=None):
-		if not (packet is None) or not (id is None):
-			SQLBase.__init__(self, id=id, packet=packet)
+	def __init__(self, id=None, shortname=None, longname=None):
+		if not id is None:
+			SQLBase.__init__(self, id=id)
 		if not (shortname is None):
 			SQLBase.__init__(self, id=self.gameid(shortname))
 		if not (longname is None):
@@ -55,7 +57,7 @@ class Game(SQLBase):
 
 	def ruleset_get(self):
 		"""\
-		Return the Ruleset this game uses.
+		Return the Ruleset (object) this game uses.
 		""" 
 		try:
 			return self.__ruleset

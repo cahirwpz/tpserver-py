@@ -59,17 +59,19 @@ class Board(SQLBase):
 		
 		Get the last ids for this (that the user can see).
 		"""
-		if amount == -1:
-			amount = 2**64
-		
 		t = cls.table
-		result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
+		if amount == -1:
+			result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
+							order_by=[desc(t.c.time)], offset=start).execute().fetchall()
+		else:
+			result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
 							order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(cls.mangleid(x['id']), x['time']) for x in result] 
 	ids = classmethod(ids)
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		b = Board.mangleid(self.id)
+
 		m = Message.number(self.id)
 		print "--------------------------- Board", b, "Message", m
 		print repr([sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time])

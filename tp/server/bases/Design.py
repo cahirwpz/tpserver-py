@@ -352,12 +352,12 @@ class Design(SQLBase):
 		self._check = (total_okay, "\n".join(total_feedback))
 		return total_okay, "\n".join(total_feedback)
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		# FIXME: The calculate function gets called 3 times when we convert to a packet
 		print (sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
 
-	def from_packet(self, packet):
+	def from_packet(self, user, packet):
 		# Check the design meets a few guide lines
 		
 		# FIXME: Check each component exists and the amount is posative

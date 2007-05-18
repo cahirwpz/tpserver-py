@@ -38,6 +38,9 @@ def quickimport(s):
 class NoSuch(Exception):
 	pass
 
+class PermissionDenied(Exception):
+	pass
+
 class SQLBase(object):
 	"""\
 	A class which stores it's data in a SQL database.
@@ -56,17 +59,17 @@ class SQLBase(object):
 		return result[0]['time']
 	modified = classmethod(modified)
 
-	def ids(cls, user, start, amount):
+	def ids(cls, user=None, start=0, amount=-1):
 		"""\
-		ids(user, start, amount) -> [id, ...]
+		ids([user, start, amount]) -> [id, ...]
 		
 		Get the last ids for this (that the user can see).
 		"""
-		if amount == -1:
-			amount = 2**64
-		
 		t = cls.table
-		result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
+		if amount == -1:
+			result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], offset=start).execute().fetchall()
+		else:
+			result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], offset=start, limit=amount).execute().fetchall()
 		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
 
@@ -125,16 +128,16 @@ class SQLBase(object):
 			raise NoSuch("%s does not exists" % id)
 
 		print repr(result[0])
-		self.__dict__.update(result[0])
-		# FIXME: HACK!
-		for name in self.__dict__:
-			value = self.__dict__[name]
-			if isinstance(value, buffer):
-				self.__dict__[name] = str(value)
-			elif isinstance(value, array):
-				self.__dict__[name] = value.tostring()
 
-	def save(self):
+		for key, value in result[0].items():
+			if isinstance(value, buffer):
+				value = str(value)
+			elif isinstance(value, array):
+				value = value.tostring()
+
+			setattr(self, key, value)
+
+	def save(self, forceinsert=False):
 		"""\
 		save()
 
@@ -143,10 +146,12 @@ class SQLBase(object):
 		self.time = time.time()
 		
 		# Build SQL query, there must be a better way to do this...
-		if hasattr(self, 'id'):
-			method = update(self.table, self.table.c.id==self.id)
-		else:
+		if forceinsert or not hasattr(self, 'id'):
+			print "insert"
 			method = insert(self.table)
+		else:
+			print "update"
+			method = update(self.table, self.table.c.id==self.id)
 
 		arguments = {}
 		for column in self.table.columns:
@@ -155,7 +160,6 @@ class SQLBase(object):
 			if hasattr(self, column.name):
 				arguments[column.name] = getattr(self, column.name)
 		
-		print method	
 		result = method.execute(**arguments)
 
 		if not hasattr(self, 'id'):
@@ -177,17 +181,18 @@ class SQLBase(object):
 
 		Inserts an object into the database.
 		"""
-		if hasattr(self, "id"):
-			del self.id
-		self.save()
+		self.save(forceinsert=True)
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		"""\
-		to_packet(sequence) -> netlib.Packet
+		to_packet(user, sequence) -> netlib.Packet
 
 		Returns a Thousand Parsec network packet using the sequence number.
 		"""
-		raise NotImplimented("This method has not been implimented.")
+		# FIXME: There is a possibility that this leaks information...
+		if not self.allowed(user):
+			raise PermissionDenied("You are not allowed to access that.")
+		return self.protect(user)
 
 	def from_packet(cls, user, packet):
 		"""\
@@ -216,8 +221,7 @@ class SQLBase(object):
 
 		Returns a boolean which tells if a user can even see this object.
 		"""
-		return copy.deepcopy(self)
-
+		return True
 
 	def protect(self, user):
 		"""\
@@ -228,9 +232,6 @@ class SQLBase(object):
 		"""
 		return copy.deepcopy(self)
 
-	def __repr__(self):
-		return self.__str__()
-
 def SQLTypedTable(name):
 	t = Table(name+"_extra",
 		Column('game',	Integer,	 nullable = False, index=True),
@@ -238,7 +239,8 @@ def SQLTypedTable(name):
 		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
 		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True, quote=True),
 		Column('value',	Binary),
-#		Column('time',	DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		#Column('time',	DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		#Column('time',	Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		# Extra properties
 		ForeignKeyConstraint(['oid'], [name+'.id']),
@@ -257,8 +259,6 @@ class SQLTypedBase(SQLBase):
 	A class which stores it's data in a SQL database.
 	It also has a subclass associated with it which stores extra data.
 	"""
-	types = {}
-
 	attributes = {}
 	attributes__doc__ = """\
 Extra attributes this type defines.
@@ -280,29 +280,24 @@ Extra attributes this type defines.
 			return copy.deepcopy(self._default)
 		default = property(get_default)
 
-	def __init__(self, id=None, packet=None, type=None, typeno=None):
-		if hasattr(self, "typeno"):
-			typeno = self.typeno
-	
-		if id == None and packet == None and type == None and typeno == None:
-			raise ValueError("Can not create an object without type.")
+	def type_get(self):
+		return self.__class__.__module__
+	def type_set(self, type):
+#		if self.__class__ != SQLTypedBase:
+#			raise TypeError('Can not set the type a second time!')
+		self.__class__ = quickimport(type)		
+		self.__upgrade__()
 
-		SQLBase.__init__(self, id, packet)
-
-		self.__upgrade__(type, typeno)
-
-	def __upgrade__(self, type=None, typeno=None):
-		if typeno != None:
-			type = self.types[typeno].__module__
+	type = property(type_get, type_set)
 
 	def __init__(self, id=None, type=None):
 		if id != None:
 			SQLBase.__init__(self, id)
 		if type != None:
 			self.type = type
+		self.defaults()
 
-			self.__class__ = quickimport(self.type)
-		
+	def __upgrade__(self):
 		self.defaults()
 
 	def defaults(self):
@@ -322,8 +317,6 @@ Extra attributes this type defines.
 		te = self.table_extra
 		SQLBase.load(self, id)
 			
-		self.__upgrade__(self.type)
-
 		# Load the extra properties from the object_extra table
 		results = select([te], te.c.oid==self.id).execute().fetchall()
 		print results
@@ -349,7 +342,7 @@ Extra attributes this type defines.
 					
 				setattr(self, name, value)
 
-	def save(self, preserve=True):
+	def save(self, preserve=True, forceinsert=False):
 		"""\
 		save()
 
@@ -359,7 +352,7 @@ Extra attributes this type defines.
 
 		te = self.table_extra
 		try:
-			SQLBase.save(self)
+			SQLBase.save(self, forceinsert)
 
 			for attribute in self.attributes.values():
 				if type(attribute.default) is types.DictType:
@@ -440,7 +433,7 @@ Extra attributes this type defines.
 		return self
 	from_packet = staticmethod(from_packet)
 
-	def to_packet(self, sequence, args):
+	def to_packet(self, user, sequence, args):
 		for attribute in self.attributes.values():
 			if attribute.level == "public":
 				value = getattr(self, attribute.name)

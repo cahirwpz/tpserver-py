@@ -7,7 +7,7 @@ from sqlalchemy import *
 # Local imports
 from tp.server.db import *
 from tp import netlib
-from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
+from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport, NoSuch
 from tp.server.db import dbconn
 
 from config import admin
@@ -30,8 +30,6 @@ class Order(SQLTypedBase):
 	Index('idx_order_oidslot', table.c.oid, table.c.slot)
 
 	table_extra = SQLTypedTable('orders')
-
-	types = {}
 
 	def realid(cls, oid, slot):
 		"""\
@@ -57,32 +55,43 @@ class Order(SQLTypedBase):
 		return select([func.count(t.c.id).label('count')], t.c.oid==oid).execute().fetchall()[0]['count']
 	number = classmethod(number)
 
+	def active(cls, type=None):
+		"""\
+		Order.active(type) -> ids
+
+		Returns the ids of the given type which are in slot 0.
+		"""
+		t = cls.table
+		if type is None:
+			s = select([t.c.id], t.c.slot==0)
+		else:
+			s = select([t.c.id], (t.c.slot==0) & (t.c.type in type))
+		return s.execute().fetchall()
+	active = classmethod(active)
+
 	def desc_packet(cls, sequence, typeno):
 		"""\
 		Order.desc_packet(sequence, typeno)
 
 		Builds an order description packet for the specified order type.
 		"""
-		# Pull out the arguments
-		if not cls.types.has_key(typeno):
-			raise NoSuch("No such order type.")
-
-		order = cls(typeno=typeno)
-		
 		arguments = []
-		for attribute in order.attributes.values():
+		for attribute in cls.attributes.values():
 			if attribute.level != 'private':
 				arguments.append((attribute.name, attribute.type, attribute.desc))
 
 		# FIXME: This should send a correct last modified time
-		return netlib.objects.OrderDesc(sequence, typeno, order.__class__.__name__, order.__class__.__doc__, arguments, 0)
+		return netlib.objects.OrderDesc(sequence, typeno, cls.__name__, cls.__doc__, arguments, 0)
 	desc_packet = classmethod(desc_packet)
 
-		Loads all the possible order types from the database.
+	def packet(cls, typeno):
 		"""
-		for id in cls.types.keys():
-			cls.desc_packet(0, id).register()
-	load_all = classmethod(load_all)
+		Return the class needed to create a packet for this type of order.
+		"""
+		# This is given a typeno because different rulesets may have different
+		# typeno for the same Order type.
+		return cls.desc_packet(0, typeno).build()
+	packet = classmethod(packet)
 
 	def __init__(self, oid=None, slot=None, type=None, id=None):
 		if oid != None and slot != None:
@@ -160,12 +169,14 @@ class Order(SQLTypedBase):
 		else:
 			trans.commit()
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
+		typeno = user.playing.ruleset.typeno(self)
+
 		# Preset arguments
-		args = [sequence, self.oid, self.slot, self.typeno, self.turns(), self.resources()]
-		SQLTypedBase.to_packet(self, sequence, args)
+		args = [sequence, self.oid, self.slot, typeno, self.turns(), self.resources()]
+		SQLTypedBase.to_packet(self, user, sequence, args)
 		print self, args
-		return netlib.objects.Order(*args)
+		return self.packet(typeno)(*args)
 
 	def from_packet(cls, user, packet):
 		self = SQLTypedBase.from_packet(cls, user, packet)
@@ -178,9 +189,9 @@ class Order(SQLTypedBase):
 
 	def __str__(self):
 		if hasattr(self, 'id'):
-			return "<Order type=%s id=%s oid=%s slot=%s>" % (self.typeno, self.id, self.oid, self.slot)
+			return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
 		else:
-			return "<Order type=%s id=XX oid=%s slot=%s>" % (self.typeno, self.oid, self.slot)
+			return "<Order type=%s id=XX oid=%s slot=%s>" % (self.type, self.oid, self.slot)
 
 	def turns(self, turns=0):
 		"""\

@@ -21,7 +21,7 @@ class Category(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
-	def to_packet(self, sequence):
+	def to_packet(self, user, sequence):
 		# Preset arguments
 		return netlib.objects.Category(sequence, self.id, self.time, self.name, self.desc)
 	
