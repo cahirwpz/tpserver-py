@@ -20,7 +20,8 @@ class Resource(SQLBase):
 		Column('desc',         Binary,   nullable=False),
 		Column('weight',       Integer,  nullable=False, default=0),
 		Column('size',         Integer,  nullable=False, default=0),
-		Column('time',	       DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		#Column('time',	       DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	       Integer,  nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)

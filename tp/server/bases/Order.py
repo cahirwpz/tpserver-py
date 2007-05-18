@@ -20,7 +20,8 @@ class Order(SQLTypedBase):
 		Column('oid',       Integer,     nullable=True),
 		Column('slot',      Integer,     nullable=False),
 		Column('worked',    Integer,     nullable=False),
-		Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		#Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('oid', 'slot'),
 		ForeignKeyConstraint(['oid'],  ['object.id']),

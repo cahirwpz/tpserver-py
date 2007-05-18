@@ -25,7 +25,8 @@ class Message(SQLBase):
 		Column('slot',	  Integer,     nullable=False),
 		Column('subject', String(255), nullable=False, index=True),
 		Column('body',    Binary,      nullable=False),
-		Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		#Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	  Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		UniqueConstraint('bid', 'slot'),
 		ForeignKeyConstraint(['bid'],  ['board.id']),
@@ -38,6 +39,8 @@ class Message(SQLBase):
 		Column('mid',   Integer, nullable=False, primary_key=True),
 		Column('rid',   Integer, nullable=False, primary_key=True),
 		Column('value', Integer, nullable=False, default=0),
+		#Column('time',	DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	Integer, nullable=False, index=True, onupdate=func.current_timestamp()),
 
 		ForeignKeyConstraint(['mid'],  ['message.id']),
 		ForeignKeyConstraint(['rid'],  ['reference.id']),
