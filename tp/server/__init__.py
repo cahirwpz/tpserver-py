@@ -17,7 +17,6 @@ except ImportError:
 import config
 from config import dbconfig
 
-
 from tp import netlib
 constants = netlib.objects.constants
 
@@ -55,7 +54,7 @@ class FullConnection(netlib.ServerConnection):
 			return False
 
 		# Reset the database connection
-		db.dbconn.use(db=self.user.domain())
+		db.dbconn.use(db=self.user.gamebit())
 
 		# Check that the database isn't currently locked for turn processing
 #		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
@@ -130,7 +129,7 @@ class FullConnection(netlib.ServerConnection):
 
 		print "Getting IDs with ", packet.key, packet.start, packet.amount
 
-		key = type.modified(self.user)
+		key   = long(type.modified(self.user))
 		total = type.amount(self.user)
 		
 		if packet.key != -1 and key != packet.key:
@@ -146,8 +145,9 @@ class FullConnection(netlib.ServerConnection):
 			left = 0
 		else:
 			left = total - (packet.start+packet.amount)
-		
+
 		ids = type.ids(self.user, packet.start, packet.amount)
+		print key, total, left, ids
 		self._send(type.id_packet()(packet.sequence, key, left, ids))
 
 		return True
@@ -213,31 +213,35 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnAccount(self, packet):
-		#db.query("USE tp")
+		db.dbconn.use()
 		
 		if config.usercreation:
-			username = packet.username
-			if username.find('@') == -1:
-				#return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
-				#	"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
-				username += "@tp"
+
+			try:
+				username, game = User.split(packet.username)
+			except TypeError, e:
+				print e
+				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
+					"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
 			
-			# FIXME: Need to check that the game is a valid game..
-			userpart, game = username.split('@', 1)
-			if not game in config.games:
+			try:
+				g = Game(shortname=game)
+			except KeyError, e:
+				print e
 				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
 					"The game you specified is not valid.\nUsernames should be of the form <username>@<game>."))
 
 			# Check the username is not in use?
-			pid = User.usernameid(username)
+			pid = User.usernameid(g, username)
 			if pid != -1:
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
 				return True
 
 			account = User(None, packet)
-			account.username = username
-			account.save()
-			config.ruleset.spawn_player(account)
+			account.username = userpart
+
+			g.ruleset.player(username, account.password, account.email, account.comment)
+
 			self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
 			return True
 
@@ -245,9 +249,25 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnLogin(self, packet):
-		# We need username and password
-		pid = User.usernameid(packet.username, packet.password)
-	
+		db.dbconn.use()
+
+		try:
+			username, game = User.split(packet.username)
+		except TypeError, e:
+			print e
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
+				"Did not specify which game you want to join.\nUsernames should be of the form <username>@<game>."))
+			return True
+
+		try:
+			g = Game(shortname=game)
+		except KeyError, e:
+			print e
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, 
+				"The game you specified is not valid.\nUsernames should be of the form <username>@<game>."))
+			return True
+
+		pid = User.usernameid(g, username, packet.password)	
 		if pid == -1:
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Login incorrect or unknown username!"))
 		else:
