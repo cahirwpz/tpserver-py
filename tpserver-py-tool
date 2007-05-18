@@ -8,6 +8,7 @@ import random
 
 from tp.server.utils import *
 from tp.server.db import dbconn
+from tp.server.bases.SQL  import NoSuch
 from tp.server.bases.Game import Game
 
 class Commands:
@@ -23,7 +24,7 @@ class Commands:
 			Game.gameid(shortname)
 			print "That game name is already taken! Please try again with a different or remove that game first."
 			return
-		except KeyError:
+		except NoSuch:
 			pass
 
 		# Okay create a new game then
