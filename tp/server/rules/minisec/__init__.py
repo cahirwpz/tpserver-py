@@ -2,11 +2,9 @@
 from tp.server.utils import ReparentOne
 from tp.server.db import dbconn
 
-from tp.server.bases.Board import Board
+from tp.server.bases.Board   import Board
 from tp.server.bases.Message import Message
-from tp.server.bases.Object import Object
-
-import random
+from tp.server.bases.Object  import Object
 
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
@@ -24,6 +22,8 @@ import orders.BuildFleet as BuildFleet
 import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
+
+import random
 
 SIZE = 10000000
 class Ruleset(RulesetBase):
@@ -57,8 +57,15 @@ class Ruleset(RulesetBase):
 		dbconn.use(self.game)
 
 		# Need to create the top level universe object...
-
-
+		universe = Object(type='tp.server.rules.base.objects.Universe')
+		universe.id     = 0
+		universe.name   = "The Universe"
+		universe.size   = SIZE
+		universe.parent = 0
+		universe.posx   = 0
+		universe.posy   = 0
+		universe.turn   = 0
+		universe.insert()
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""\
