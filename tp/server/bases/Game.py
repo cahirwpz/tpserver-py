@@ -77,7 +77,7 @@ class Game(SQLBase):
 		Get the id of a game from a short name.
 		"""
 		try:
-			return self.__cache[game].id
+			return Game.__cache[game].id
 		except KeyError:
 			pass
 
