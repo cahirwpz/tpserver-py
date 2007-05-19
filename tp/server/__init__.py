@@ -5,6 +5,7 @@ Network Thousand Parsec server.
 import copy
 import pickle
 import time
+import datetime
 import socket
 
 # Try to speed up things..
@@ -160,8 +161,8 @@ class FullConnection(netlib.ServerConnection):
 			return True
 
 		print "Getting IDs with ", packet.key, packet.start, packet.amount
-
-		key   = long(type.modified(self.user))
+		
+		key   = long(type.modified(self.user).strftime('%s'))
 		total = type.amount(self.user)
 		
 		if packet.key != -1 and key != packet.key:
@@ -329,7 +330,7 @@ class FullConnection(netlib.ServerConnection):
 		# FIXME: There is a better place to put this class
 		class OrderDesc(object):
 			def modified(cls, user):
-				return 0
+				return datetime.datetime.fromtimestamp(0)
 			modified = classmethod(modified)
 			
 			def amount(cls, user):
