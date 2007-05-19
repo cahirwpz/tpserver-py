@@ -333,11 +333,11 @@ class FullConnection(netlib.ServerConnection):
 			modified = classmethod(modified)
 			
 			def amount(cls, user):
-				return len(Order.types.keys())
+				return len(user.playing.ruleset.ordermap.keys())
 			amount = classmethod(amount)
 			
 			def ids(cls, user, start, amount):
-				return [(id, 0) for id in Order.types.keys()[start:amount]]
+				return [(id, 0) for id in user.playing.ruleset.ordermap.keys()[start:amount]]
 			ids = classmethod(ids)
 		
 			def id_packet(cls):
