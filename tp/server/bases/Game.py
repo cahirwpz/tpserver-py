@@ -2,6 +2,7 @@
 Resources require to build stuff.
 """
 # Module imports
+import weakref
 from sqlalchemy import *
 
 # Local imports
@@ -28,13 +29,41 @@ class Game(SQLBase):
 		UniqueConstraint('shortname'),
 	)
 
-	def __init__(self, id=None, shortname=None, longname=None):
+	__cache = weakref.WeakValueDictionary()
+	def __new__(cls, id=None, shortname=None, longname=None):
+		# Try and return the object from the cache instead...
+		if not id is None:
+			try:
+				return cls.__cache[id]
+			except KeyError:
+				pass
+
+		if not longname is None:
+			shortname = cls.munge(longname)
+
+		if not shortname is None:
+			try:
+				return cls.__cache[shortname]
+			except KeyError:
+				pass
+		
+		# Call the __init__ method of the super class
+		self = SQLBase.__new__(cls)
 		if not id is None:
 			SQLBase.__init__(self, id=id)
 		if not (shortname is None):
 			SQLBase.__init__(self, id=self.gameid(shortname))
 		if not (longname is None):
 			SQLBase.__init__(self, id=self.gameid(self.munge(longname)))
+
+		# Short the object in the cache
+		cls.__cache[self.id]        = self
+		cls.__cache[self.shortname] = self
+
+		return self
+
+	def __init__(self, *args, **kw):
+		pass
 
 	def munge(game):
 		"""\
@@ -47,6 +76,11 @@ class Game(SQLBase):
 		"""\
 		Get the id of a game from a short name.
 		"""
+		try:
+			return self.__cache[game].id
+		except KeyError:
+			pass
+
 		dbconn.use()
 		t = Game.table
 		try:
