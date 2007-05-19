@@ -7,8 +7,6 @@ class Proxy(object):
 		self.game   = None
 
 	def select(self, *a, **kw):
-		print "Creating a select statment"
-
 		r = sql.select(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			print "Executing a select statement!"
@@ -27,8 +25,6 @@ class Proxy(object):
 		return r
 
 	def insert(self, *a, **kw):
-		print "Creating a insert statment"
-
 		r = sql.insert(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			print "Executing a insert statement!"
@@ -42,8 +38,6 @@ class Proxy(object):
 		return r
 
 	def update(self, *a, **kw):
-		print "Creating a update statment"
-
 		r = sql.update(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			print "Executing a update statement!"
@@ -57,8 +51,6 @@ class Proxy(object):
 		return r
 
 	def delete(self, *a, **kw):
-		print "Creating a delete statment"
-
 		r = sql.delete(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			print "Executing a delete statement!"
