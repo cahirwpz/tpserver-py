@@ -7,6 +7,7 @@ Following bugs need to be fixed:
 	- IDs are incremental, they should be random
 	- Change the class.__init__(id=id) method to a class.from_db(id) factory method (so
       it is like the from_packet method).
+	- Make the system force InnoDB on MySQL.
 
 Still need to be done:
 		Orders don't take into account the effect of previous orders.
