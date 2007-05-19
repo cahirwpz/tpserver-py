@@ -13,6 +13,10 @@ from tp.server.db import dbconn
 from config import admin
 
 class Order(SQLTypedBase):
+	"""
+	No description.
+	"""
+
 	table = Table('orders',
 		Column('game', 	    Integer,     nullable=False, index=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
