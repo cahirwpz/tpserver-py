@@ -20,8 +20,8 @@ class Order(SQLTypedBase):
 		Column('oid',       Integer,     nullable=False, index=True),
 		Column('slot',      Integer,     nullable=False, index=True),
 		Column('worked',    Integer,     nullable=False),
-		#Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		UniqueConstraint('oid', 'slot'),
 		ForeignKeyConstraint(['oid'],  ['object.id']),
@@ -124,7 +124,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				t = self.table
-				update(t, (t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot+1)
+				update(t, (t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot+1))
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
@@ -158,7 +158,7 @@ class Order(SQLTypedBase):
 		try:
 			# Move the other orders down
 			t = self.table
-			t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=t.c.slot-1)
+			t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot-1))
 
 			self.object.save()
 			SQLTypedBase.remove(self)

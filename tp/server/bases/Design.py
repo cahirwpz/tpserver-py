@@ -23,8 +23,9 @@ class Design(SQLBase):
 		Column('name',	    String(255), nullable=False, index=True),
 		Column('desc',      Binary,      nullable=False),
 		Column('owner',     Integer,     nullable=False),
-		#Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
 		ForeignKeyConstraint(['owner'], ['user.id']),
 		ForeignKeyConstraint(['game'],  ['game.id']),
 
@@ -34,8 +35,9 @@ class Design(SQLBase):
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
-		#Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,  nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime, nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
 		ForeignKeyConstraint(['design'],   ['design.id']),
 		ForeignKeyConstraint(['category'], ['category.id']),
 		ForeignKeyConstraint(['game'],     ['game.id']),
@@ -46,8 +48,9 @@ class Design(SQLBase):
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('amount',    Integer,  nullable=False, default=0),
 		Column('comment',   Binary,   nullable=False, default=''),
-		#Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,  nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime, nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
 		ForeignKeyConstraint(['design'],    ['design.id']),
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['game'],      ['game.id']),

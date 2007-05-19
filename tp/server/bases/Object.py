@@ -25,8 +25,8 @@ class Object(SQLTypedBase):
 		Column('vely',      Integer,     nullable=False, default=0),
 		Column('velz',      Integer,     nullable=False, default=0),
 		Column('parent',    Integer,     nullable=True),
-		#Column('time',	     DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		ForeignKeyConstraint(['parent'], ['object.id']),
 		ForeignKeyConstraint(['game'],   ['game.id']),

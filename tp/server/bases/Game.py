@@ -22,10 +22,10 @@ class Game(SQLBase):
 		Column('comment',   Binary,      nullable=False, default=""), 		# A generic comment
 		Column('turn',	    Integer,     nullable=False), 					# The current turn of the game
 		Column('commandline', Binary,    nullable=False), 					# The command line used to create the game
-		#Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
-		UniqueConstraint('shortname')
+		UniqueConstraint('shortname'),
 	)
 
 	def __init__(self, id=None, shortname=None, longname=None):

@@ -18,8 +18,8 @@ class User(SQLBase):
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
 		Column('comment',   Binary,      nullable=False, default=""),
-		#Column('time',	    DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		UniqueConstraint('username', 'game'),
 		ForeignKeyConstraint(['game'], ['game.id']),

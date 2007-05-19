@@ -143,8 +143,9 @@ class SQLBase(object):
 
 		Saves a thing to the database.
 		"""
-		self.time = time.time()
-		
+		if hasattr(self, 'time'):
+			del self.time
+
 		# Build SQL query, there must be a better way to do this...
 		if forceinsert or not hasattr(self, 'id'):
 			print "insert"
@@ -234,16 +235,17 @@ class SQLBase(object):
 
 def SQLTypedTable(name):
 	t = Table(name+"_extra",
-		Column('game',	Integer,	 nullable = False, index=True),
-		Column('oid',	Integer,	 nullable = False, index=True, primary_key=True),
-		Column('name',	String(255), default='', nullable = False, index=True, primary_key=True),
-		Column('key',	String(255), default='', nullable = False, index=True, primary_key=True, quote=True),
+		Column('game',	Integer,	 nullable=False, index=True),
+		Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
+		Column('name',	String(255), default='', nullable=False, index=True, primary_key=True),
+		Column('key',	String(255), default='', nullable=False, index=True, primary_key=True, quote=True),
 		Column('value',	Binary),
-		#Column('time',	DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		#Column('time',	Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	DateTime, nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		# Extra properties
-		ForeignKeyConstraint(['oid'], [name+'.id']),
+		ForeignKeyConstraint(['oid'],  [name+'.id']),
+		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	# Index on the ID and name
 	Index('idx_'+name+'xtr_idname', t.c.oid, t.c.name)

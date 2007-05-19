@@ -17,8 +17,8 @@ class Component(SQLBase):
 		Column('desc',    Binary,      nullable=False),
 		Column('requirements', Binary, nullable=False),
 		Column('comment', Binary,      nullable=False),
-		#Column('time',	  DateTime,    nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	  Integer,     nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	  DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
@@ -27,8 +27,9 @@ class Component(SQLBase):
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
-		#Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,  nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime, nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['category'],  ['category.id']),
 		ForeignKeyConstraint(['game'],      ['game.id']),
@@ -39,8 +40,9 @@ class Component(SQLBase):
 		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('value',     Binary,   nullable=False, default=''),
 		Column('comment',   Binary,   nullable=False, default=''),
-		#Column('time',	    DateTime, nullable=False, index=True, onupdate=func.current_timestamp()),
-		Column('time',	    Integer,  nullable=False, index=True, onupdate=func.current_timestamp()),
+		Column('time',	    DateTime, nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
 		ForeignKeyConstraint(['component'], ['component.id']),
 		ForeignKeyConstraint(['property'],  ['property.id']),
 		ForeignKeyConstraint(['game'],      ['game.id']),
