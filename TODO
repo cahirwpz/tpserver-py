@@ -9,6 +9,10 @@ Following bugs need to be fixed:
       it is like the from_packet method).
 	- Make the system force InnoDB on MySQL.
 
+	- Impliment a "sliding window" object to reduce number of requests.
+
+	- Create a lock in the database when doing turn processing.
+
 Still need to be done:
 		Orders don't take into account the effect of previous orders.
 
