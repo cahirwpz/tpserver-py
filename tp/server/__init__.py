@@ -539,8 +539,9 @@ class FullServer(netlib.Server):
 	
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
-		for connection in self.connections:
-			connection._send(packet)
+		for connection in self.connections.values():
+			if isinstance(connection, FullConnection):
+				connection._send(packet)
 
 	def newgame(self, sig, frame):
 		already = [lock.game for lock in self.locks]
