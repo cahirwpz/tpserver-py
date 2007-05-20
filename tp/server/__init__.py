@@ -76,11 +76,10 @@ class FullConnection(netlib.ServerConnection):
 		db.dbconn.use(db=self.game)
 
 		# Check that the database isn't currently locked for turn processing
-#		result = db.query("SELECT COUNT(type) FROM `lock` WHERE type = 'turn'")
-#		if len(result) > 0:
-#			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, 
-#								"Turns are currently been processed, please try again soon."))
-#			return False
+		if Lock.locked('processing'):
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_TEMP, 
+								"Turn is currently been processed, please try again soon."))
+			return False
 
 		return True
 
@@ -519,8 +518,15 @@ class FullServer(netlib.Server):
 		netlib.objects.OrderDescs().clear()
 
 		# Setup all the Games (specifically the order mappings)
+		self.locks = []
 		for id, time in Game.ids():
-			Game(id).ruleset.setup()
+			g = Game(id)
+			g.ruleset.setup()
+
+			# Create a lock for this game
+			db.dbconn.use(g)
+			self.locks.append(Lock.new('serving'))
+
 		print netlib.objects.OrderDescs()
 	
 	def endofturn(self, sig, frame):
@@ -546,12 +552,6 @@ def main():
 			signal.signal(signal.SIGUSR2, s.newgame)
 		except ImportError:
 			print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
-
-		# Import all the order_desc from the database
-		Order.load_all()
-		for key, value in netlib.objects.OrderDescs().items():
-			print key, value
-			print value.names
 
 		s.serve_forever()
 

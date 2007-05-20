@@ -173,12 +173,11 @@ This game is currently playing version %s of %s.
 """ % (username, self.version, self.name)
 			message.save()
 
+			trans.commit()
 			return user
 		except:
-			dbconn.rollback()
+			trans.rollback()
 			raise
-		else:
-			dbconn.commit()
 
 	def turn(self):
 		"""
@@ -200,7 +199,7 @@ This game is currently playing version %s of %s.
 		"""
 		# Create a turn processing lock
 		dbconn.use(self.game)
-		lock = Lock.new('turn')
+		lock = Lock.new('processing')
 
 		# Connect to the database
 		trans = dbconn.begin()
@@ -239,9 +238,9 @@ This game is currently playing version %s of %s.
 				sys.stdout.write("\n")
 
 			# Reparent the universe
+
+			trans.commit()
 		except:
 			dbconn.rollback()
 			raise
-		else:
-			dbconn.commit()
 

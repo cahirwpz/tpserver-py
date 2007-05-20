@@ -134,12 +134,10 @@ class Order(SQLTypedBase):
 			
 			self.save()
 
+			trans.commit()
 		except Exception, e:
 			trans.rollback()
 			raise
-		else:
-			trans.commit()
-			pass
 
 	def save(self):
 		trans = dbconn.begin()
@@ -150,12 +148,11 @@ class Order(SQLTypedBase):
 				if id != -1:
 					self.id = id
 			SQLTypedBase.save(self)
+
+			trans.commit()
 		except Exception, e:
 			trans.rollback()
 			raise
-		else:
-			trans.commit()
-			pass
 
 	def remove(self):
 		trans = dbconn.begin()
@@ -167,11 +164,10 @@ class Order(SQLTypedBase):
 			self.object.save()
 			SQLTypedBase.remove(self)
 
+			trans.commit()
 		except Exception, e:
 			trans.rollback()
 			raise
-		else:
-			trans.commit()
 
 	def to_packet(self, user, sequence):
 		typeno = user.playing.ruleset.typeno(self)

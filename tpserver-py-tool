@@ -9,7 +9,7 @@ import random
 from tp.server.utils import *
 from tp.server.db import dbconn
 from tp.server.bases.SQL  import NoSuch
-from tp.server.bases.Game import Game
+from tp.server.bases.Game import Game, Lock
 
 class Commands:
 
@@ -129,6 +129,24 @@ This command lets you change things on the local server.
 			print getattr(Commands, name).__doc__.replace('\t\t', '')
 
 	help = staticmethod(help)	
+
+	def status(*args, **kw):
+		"""
+		--status
+			Lists the games and locks in the database.
+		"""
+		for id, modtime in Game.ids():
+			g = Game(id)
+			dbconn.use(g)
+			print g
+
+			locks = Lock.ids()
+			if len(locks) > 0:
+				for id, modtime in locks:
+					print '\t', Lock(id)			
+			else:
+				print '\t No locks'
+	status = staticmethod(status)
 
 
 def main():

@@ -68,12 +68,11 @@ class Ruleset(RulesetBase):
 			universe.posy   = 0
 			universe.turn   = 0
 			universe.insert()
-		except:
-			dbconn.rollback()
-			raise
-		else:
-			dbconn.commit()
 
+			trans.commit()
+		except:
+			trans.rollback()
+			raise
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""\
@@ -117,11 +116,11 @@ class Ruleset(RulesetBase):
 					planet.posy = pos[1]+random.randint(1,100)*1000
 					planet.insert()
 					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
+			trans.commit()
 		except:
-			dbconn.rollback()
+			trans.rollback()
 			raise
-		else:
-			dbconn.commit()
 
 	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
 		"""\
@@ -131,7 +130,6 @@ class Ruleset(RulesetBase):
 	
 		trans = dbconn.begin()
 		try:
-
 			user = RulesetBase.player(self, username, password, email, comment)
 
 			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
@@ -162,9 +160,9 @@ class Ruleset(RulesetBase):
 			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
 			fleet.owner = user.id
 			fleet.save()
+
+			trans.commit()
 		except:
-			dbconn.rollback()
+			trans.rollback()
 			raise
-		else:
-			dbconn.commit()
 

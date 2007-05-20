@@ -23,7 +23,7 @@ class Lock(SQLBase):
 		Serving - This program is serving the database 
 		Turn    - This program is processing a turn
 	"""
-	types = ['serving', 'turn']
+	types = ['serving', 'processing']
 
 	table = Table('lock',
 		Column('game',	    Integer,     nullable=False, index=True), 		# Game this lock is for
@@ -59,8 +59,21 @@ class Lock(SQLBase):
 	new = classmethod(new)
 
 	def __del__(self):
-		if self.local and hasattr(self, 'id'):
-			self.remove()
+		if hasattr(self, 'id'):
+			if hasattr(self, 'local') and self.local:
+				self.remove()
+
+	def __str__(self):
+		if not hasattr(self, 'id'):
+			id = '(new)'
+		else:
+			id = self.id
+		return "<Lock-%s %s by %s-%s>" % (id, self.locktype, self.host, self.pid) 
+
+	def locked(type):
+		t = Lock.table
+		return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
+	locked = staticmethod(locked)
 
 class Game(SQLBase):
 	table = Table('game',
@@ -162,4 +175,10 @@ class Game(SQLBase):
 		self.rulesetname = value
 
 	ruleset = property(ruleset_get, ruleset_set)
+
+	def __str__(self):
+		if hasattr(self, 'id'):
+			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.shortname, self.longname, self.turn)
+		else:
+			return "<Game-(new) %s (%s) turn-%i>" % (self.shortname, self.longname, self.turn)
 

@@ -378,12 +378,11 @@ Extra attributes this type defines.
 						update(te, (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute(oid=self.id, name=attribute.name, key='', value=value)
 					else:
 						insert(te).execute(oid=self.id, name=attribute.name, key='', value=value)
+			
+			trans.commit()
 		except Exception, e:
 			trans.rollback()
 			raise
-		else:
-			trans.commit()
-			pass
 
 	def remove(self):
 		"""\
@@ -395,12 +394,11 @@ Extra attributes this type defines.
 		try:
 			delete(self.table_extra).execute(id=self.id)
 			SQLBase.remove(self)
+
+			trans.commit()
 		except Exception, e:
 			trans.rollback()
 			raise
-		else:
-			trans.commit()
-			pass
 
 	def from_packet(cls, user, packet):
 		"""\
