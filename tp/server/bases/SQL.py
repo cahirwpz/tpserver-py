@@ -127,8 +127,6 @@ class SQLBase(object):
 		if len(result) != 1:
 			raise NoSuch("%s does not exists" % id)
 
-		print repr(result[0])
-
 		for key, value in result[0].items():
 			if isinstance(value, buffer):
 				value = str(value)
@@ -148,10 +146,8 @@ class SQLBase(object):
 
 		# Build SQL query, there must be a better way to do this...
 		if forceinsert or not hasattr(self, 'id'):
-			print "insert"
 			method = insert(self.table)
 		else:
-			print "update"
 			method = update(self.table, self.table.c.id==self.id)
 
 		arguments = {}
@@ -165,7 +161,8 @@ class SQLBase(object):
 
 		if not hasattr(self, 'id'):
 			self.id = result.last_inserted_ids()[0]
-			print "Newly inserted id is", self.id
+			if default_metadata.engine.echo:
+				print "Newly inserted id is", self.id
 
 	def remove(self):
 		"""\
@@ -321,7 +318,6 @@ Extra attributes this type defines.
 			
 		# Load the extra properties from the object_extra table
 		results = select([te], te.c.oid==self.id).execute().fetchall()
-		print results
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']
@@ -378,7 +374,6 @@ Extra attributes this type defines.
 						value = pickle.dumps(getattr(self, attribute.name))
 					# Check if attribute exists
 					result = select([te], (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute().fetchall()
-					print result
 					if len(result) > 0:
 						update(te, (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute(oid=self.id, name=attribute.name, key='', value=value)
 					else:

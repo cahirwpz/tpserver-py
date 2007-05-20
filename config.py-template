@@ -8,6 +8,9 @@ except ImportError:
 #dbconfig = "mysql://tp:tp-password@localhost/tp"
 dbconfig = "sqlite:///tp.db"
 
+# Output all the SQL statements
+dbecho = False
+
 # Admin users
 admin = (1,)
 

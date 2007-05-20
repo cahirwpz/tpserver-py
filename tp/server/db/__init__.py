@@ -9,7 +9,6 @@ class Proxy(object):
 	def select(self, *a, **kw):
 		r = sql.select(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
-			print "Executing a select statement!"
 			if proxy.game != None:
 				for table in self.froms:
 					# FIXME: Horrible hack!
@@ -27,7 +26,6 @@ class Proxy(object):
 	def insert(self, *a, **kw):
 		r = sql.insert(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
-			print "Executing a insert statement!"
 			if not proxy.game is None:
 				arguments['game'] = proxy.game
 			return self._execute(**arguments)
@@ -40,7 +38,6 @@ class Proxy(object):
 	def update(self, *a, **kw):
 		r = sql.update(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
-			print "Executing a update statement!"
 			if not proxy.game is None:
 				arguments['game'] = proxy.game
 			return self._execute(**arguments)
@@ -53,7 +50,6 @@ class Proxy(object):
 	def delete(self, *a, **kw):
 		r = sql.delete(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
-			print "Executing a delete statement!"
 			if not proxy.game is None:
 				self.whereclause &= (self.table.c.game == proxy.game)
 			return self._execute(**arguments)
@@ -91,10 +87,10 @@ insert = dbconn.insert
 update = dbconn.update
 delete = dbconn.delete
 
-def setup(dbconfig):
+def setup(dbconfig, echo=False):
 	engine = sql.create_engine(dbconfig, strategy='threadlocal')
 	sql.default_metadata.connect(engine)
-	sql.default_metadata.engine.echo = True
+	sql.default_metadata.engine.echo = echo
 	
 	sql.default_metadata.create_all()
 
