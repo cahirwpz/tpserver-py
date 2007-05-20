@@ -56,16 +56,24 @@ class Ruleset(RulesetBase):
 		"""
 		dbconn.use(self.game)
 
-		# Need to create the top level universe object...
-		universe = Object(type='tp.server.rules.base.objects.Universe')
-		universe.id     = 0
-		universe.name   = "The Universe"
-		universe.size   = SIZE
-		universe.parent = 0
-		universe.posx   = 0
-		universe.posy   = 0
-		universe.turn   = 0
-		universe.insert()
+		trans = dbconn.begin()
+		try:
+			# Need to create the top level universe object...
+			universe = Object(type='tp.server.rules.base.objects.Universe')
+			universe.id     = 0
+			universe.name   = "The Universe"
+			universe.size   = SIZE
+			universe.parent = 0
+			universe.posx   = 0
+			universe.posy   = 0
+			universe.turn   = 0
+			universe.insert()
+		except:
+			dbconn.rollback()
+			raise
+		else:
+			dbconn.commit()
+
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""\
@@ -78,70 +86,85 @@ class Ruleset(RulesetBase):
 		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
 
 		dbconn.use(self.game)
-		
-		# FIXME: Assuming that the Universe and the Galaxy exist.
-		random.seed(seed)
+	
+		trans = dbconn.begin()
+		try:
+			# FIXME: Assuming that the Universe and the Galaxy exist.
+			random.seed(seed)
 
-		# Create this many systems
-		for i in range(0, random.randint(system_min, system_max)):
-			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
-			
-			# Add system
-			system = Object(type='tp.server.rules.base.objects.System')
-			system.name = "System %s" % i
-			system.size = random.randint(800000, 2000000)
-			system.posx = pos[0]
-			system.posy = pos[1]
-			system.insert()
-			ReparentOne(system)
-			system.save()
-			print "Created system (%s) with the id: %i" % (system.name, system.id)
-			
-			# In each system create a number of planets
-			for j in range(0, random.randint(planet_min, planet_max)):
-				planet = Object(type='tp.server.rules.base.objects.Planet')
-				planet.name = "Planet %i in %s" % (j, system.name)
-				planet.size = random.randint(1000, 10000)
-				planet.parent = system.id
-				planet.posx = pos[0]+random.randint(1,100)*1000
-				planet.posy = pos[1]+random.randint(1,100)*1000
-				planet.insert()
-				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+			# Create this many systems
+			for i in range(0, random.randint(system_min, system_max)):
+				pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+				
+				# Add system
+				system = Object(type='tp.server.rules.base.objects.System')
+				system.name = "System %s" % i
+				system.size = random.randint(800000, 2000000)
+				system.posx = pos[0]
+				system.posy = pos[1]
+				system.insert()
+				ReparentOne(system)
+				system.save()
+				print "Created system (%s) with the id: %i" % (system.name, system.id)
+				
+				# In each system create a number of planets
+				for j in range(0, random.randint(planet_min, planet_max)):
+					planet = Object(type='tp.server.rules.base.objects.Planet')
+					planet.name = "Planet %i in %s" % (j, system.name)
+					planet.size = random.randint(1000, 10000)
+					planet.parent = system.id
+					planet.posx = pos[0]+random.randint(1,100)*1000
+					planet.posy = pos[1]+random.randint(1,100)*1000
+					planet.insert()
+					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+		except:
+			dbconn.rollback()
+			raise
+		else:
+			dbconn.commit()
 
 	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
 		"""\
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
 		dbconn.use(self.game)
+	
+		trans = dbconn.begin()
+		try:
 
-		user = RulesetBase.player(self, username, password, email, comment)
+			user = RulesetBase.player(self, username, password, email, comment)
 
-		pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
 
-		system = Object(type='tp.server.rules.base.objects.System')
-		system.name = "%s Solar System" % username
-		system.parent = 0
-		system.size = random.randint(800000, 2000000)
-		(system.posx, system.posy, junk) = pos
-		ReparentOne(system)
-		system.owner = user.id
-		system.save()
+			system = Object(type='tp.server.rules.base.objects.System')
+			system.name = "%s Solar System" % username
+			system.parent = 0
+			system.size = random.randint(800000, 2000000)
+			(system.posx, system.posy, junk) = pos
+			ReparentOne(system)
+			system.owner = user.id
+			system.save()
 
-		planet = Object(type='tp.server.rules.base.objects.Planet')
-		planet.name = "%s Planet" % username
-		planet.parent = system.id
-		planet.size = 100
-		planet.posx = system.posx+random.randint(1,100)*1000
-		planet.posy = system.posy+random.randint(1,100)*1000
-		planet.owner = user.id
-		planet.save()
+			planet = Object(type='tp.server.rules.base.objects.Planet')
+			planet.name = "%s Planet" % username
+			planet.parent = system.id
+			planet.size = 100
+			planet.posx = system.posx+random.randint(1,100)*1000
+			planet.posy = system.posy+random.randint(1,100)*1000
+			planet.owner = user.id
+			planet.save()
 
-		fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
-		fleet.parent = planet.id
-		fleet.size = 3
-		fleet.name = "%s First Fleet" % username
-		fleet.ships = {1:3}
-		(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
-		fleet.owner = user.id
-		fleet.save()
+			fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
+			fleet.parent = planet.id
+			fleet.size = 3
+			fleet.name = "%s First Fleet" % username
+			fleet.ships = {1:3}
+			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
+			fleet.owner = user.id
+			fleet.save()
+		except:
+			dbconn.rollback()
+			raise
+		else:
+			dbconn.commit()
 

@@ -2,12 +2,14 @@
 Ruleset base.
 """
 # Module imports
+import time
 import pprint
 import sys
 from types import TupleType
 
 # Local imports
 from tp.server.db import *
+from tp.server.bases.Game    import Game, Lock
 from tp.server.bases.User    import User
 from tp.server.bases.Board   import Board
 from tp.server.bases.Message import Message
@@ -120,6 +122,7 @@ class Ruleset(object):
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
+		pass
 
 	def populate(self, *args, **kw):
 		"""
@@ -139,35 +142,43 @@ class Ruleset(object):
 		"""
 		dbconn.use(self.game)
 
-		user = User()
-		user.username = username
-		user.password = password
-		user.email    = email
-		user.comment  = comment
-		user.save()
+		trans = dbconn.begin()
+		try:
 
-		board = Board()
-		board.id = user.id
-		board.name = "Private message board for %s" % username
-		board.desc = """\
+			user = User()
+			user.username = username
+			user.password = password
+			user.email    = email
+			user.comment  = comment
+			user.save()
+
+			board = Board()
+			board.id = user.id
+			board.name = "Private message board for %s" % username
+			board.desc = """\
 This board is used so that stuff you own (such as fleets and planets) \
 can inform you of what is happening in the universe. \
 """
-		board.save()
+			board.save()
 
-		# Add the first message
-		message = Message()
-		message.bid = user.id
-		message.slot = -1
-		message.subject = "Welcome to the Universe!"
-		message.body = """\
+			# Add the first message
+			message = Message()
+			message.bid = user.id
+			message.slot = -1
+			message.subject = "Welcome to the Universe!"
+			message.body = """\
 Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
 \
 This game is currently playing version %s of %s.
 """ % (username, self.version, self.name)
-		message.save()
+			message.save()
 
-		return user
+			return user
+		except:
+			dbconn.rollback()
+			raise
+		else:
+			dbconn.commit()
 
 	def turn(self):
 		"""
@@ -187,12 +198,14 @@ This game is currently playing version %s of %s.
 			Then all NOp orders would be performed.
 			Then the Clean action would be applied with the argument ('fleetsonly')
 		"""
+		# Create a turn processing lock
+		dbconn.use(self.game)
+		lock = Lock.new('turn')
+
 		# Connect to the database
 		trans = dbconn.begin()
 
 		try:
-			dbconn.use(self.game)
-			
 			# FIXME: This won't work as if a move then colonise order occurs,
 			# and the move order completed the colonise order won't be
 			# performed. It also removes the ability for dummy orders to be
@@ -201,7 +214,6 @@ This game is currently playing version %s of %s.
 			# Get all the orders
 			d = OrderGet()
 			for action in self.orderOfOrders:
-				print action
 				if type(action) == TupleType:
 					action, args = action[0], action[1:]
 				else:
@@ -209,25 +221,24 @@ This game is currently playing version %s of %s.
 				
 				name = str(action.__name__)
 				if "orders" in name:
-					sys.stdout.write(r"[01;32m")
-					print name, args
-					sys.stdout.write(r"[00m")
+					green("%s - Starting with" % name, args)
 				
-					if not d.has_key(name):
-						continue
+					if d.has_key(name):
+						for order in d[name]:
+							order.do(*args)
 
-					for order in d[name]:
-						order.do(*args)
+					green("%s - Finished" % name)
 			
 				elif "actions" in name:
-					sys.stdout.write(r"[01;34m")
-					print name, args
-					sys.stdout.write(r"[00m")
+					blue("%s - Starting with" % name, args)
 				
 					__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
+
+					blue("%s - Finished" % name)
 			
+				sys.stdout.write("\n")
+
 			# Reparent the universe
-			
 		except:
 			dbconn.rollback()
 			raise

@@ -1,18 +1,67 @@
 """\
-Resources require to build stuff.
+Classes for dealing with games hosted on the machine.
 """
 # Module imports
 import weakref
+import os, socket
 from sqlalchemy import *
 
 # Local imports
+from tp.server.db.enum import Enum
 from tp.server.bases.SQL import SQLBase, NoSuch
 
 from tp.server.db import *
 from tp.netlib import objects
 
 # FIXME: There should be some way to store the ruleset parameters...
-# FIXME: These should be singltons
+
+class Lock(SQLBase):
+	"""
+	Each server can add different types of locks to each game.
+
+	The following lock types are supported:
+		Serving - This program is serving the database 
+		Turn    - This program is processing a turn
+	"""
+	types = ['serving', 'turn']
+
+	table = Table('lock',
+		Column('game',	    Integer,     nullable=False, index=True), 		# Game this lock is for
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+		Column('locktype',  Enum(types), nullable=False, index=True),       # Locktype
+		Column('host',      String(255), nullable=False, index=True),       # Hostname of the process is running on
+		Column('pid',       Integer,     nullable=False, index=True), 		# PID of the process with the lock
+		Column('time',	    DateTime,    nullable=False, index=True, 		# Last time the lock was updated
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
+		ForeignKeyConstraint(['game'], ['game.id']),
+	)
+
+	def new(cls, type):
+		"""
+		Create a new lock of the given type.
+
+		When a lock goes out of scope it will remove itself from the database.
+		"""
+		self = cls()
+		self.local = True
+
+		if not type in Lock.types:
+			raise TypeError('Lock type can only be one of %s' % Lock.types)
+
+		print socket.gethostname()
+		print os.getpid()
+		self.locktype = type
+		self.pid      = os.getpid()
+		self.host     = socket.gethostname()
+		self.save()
+		return self
+	new = classmethod(new)
+
+	def __del__(self):
+		if self.local and hasattr(self, 'id'):
+			self.remove()
+
 class Game(SQLBase):
 	table = Table('game',
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
