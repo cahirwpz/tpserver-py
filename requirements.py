@@ -41,7 +41,7 @@ def tostr(ver1):
 		s += "."+str(a)
 	return s[1:]
 
-netlib_version = (0, 2, 2)
+netlib_version = (0, 2, 3)
 try:
 	import tp.netlib
 	print " * Thousand Parsec Protocol Library Version", tp.netlib.__version__
