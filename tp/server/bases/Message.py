@@ -10,7 +10,7 @@ from tp import netlib
 from SQL import SQLBase
 
 table_types = Table('reference',
-	Column('game', 	Integer,     nullable=False, index=True),
+	Column('game', 	Integer,     nullable=False, index=True, primary_key=True),
 	Column('id',    Integer,     nullable=False, primary_key=True),
 	Column('value', Integer,     nullable=False, index=True),
 	Column('desc',  Binary,      nullable=False),
@@ -19,7 +19,7 @@ table_types = Table('reference',
 
 class Message(SQLBase):
 	table = Table('message',
-		Column('game', 	  Integer,     nullable=False, index=True),
+		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('bid',	  Integer,     nullable=False, index=True),
 		Column('slot',	  Integer,     nullable=False),
@@ -35,7 +35,7 @@ class Message(SQLBase):
 	Index('idx_message_bidslot', table.c.bid, table.c.slot),
 
 	table_references = Table('message_references',
-		Column('game', 	Integer,  nullable=False),
+		Column('game', 	Integer,  nullable=False, primary_key=True),
 		Column('mid',   Integer,  nullable=False, primary_key=True),
 		Column('rid',   Integer,  nullable=False, primary_key=True),
 		Column('value', Integer,  nullable=False, default=0),

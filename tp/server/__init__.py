@@ -506,7 +506,6 @@ class FullConnection(netlib.ServerConnection):
 		return netlib.ServerConnection._send(self, *args, **kw)
 
 class FullServer(netlib.Server):
-	# FIXME: Should start a thread for checking the database for locks...
 	# FIXME: Should start a thread for ZeroConf registration...
 	handler = FullConnection
 	debug = True

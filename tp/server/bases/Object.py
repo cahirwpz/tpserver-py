@@ -13,7 +13,7 @@ from Order import Order
 
 class Object(SQLTypedBase):
 	table = Table('object',
-		Column('game',	    Integer,     nullable=False),
+		Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
@@ -28,6 +28,7 @@ class Object(SQLTypedBase):
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
+		UniqueConstraint('id', 'game'),
 		ForeignKeyConstraint(['parent'], ['object.id']),
 		ForeignKeyConstraint(['game'],   ['game.id']),
 	)

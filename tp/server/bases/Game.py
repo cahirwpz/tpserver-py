@@ -26,7 +26,7 @@ class Lock(SQLBase):
 	types = ['serving', 'processing']
 
 	table = Table('lock',
-		Column('game',	    Integer,     nullable=False, index=True), 		# Game this lock is for
+		Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('locktype',  Enum(types), nullable=False, index=True),       # Locktype
 		Column('host',      String(255), nullable=False, index=True),       # Hostname of the process is running on
@@ -55,10 +55,12 @@ class Lock(SQLBase):
 		self.pid      = os.getpid()
 		self.host     = socket.gethostname()
 		self.save()
+		print "Creating lock", self, hasattr(self, 'local') and self.local
 		return self
 	new = classmethod(new)
 
 	def __del__(self):
+		print "Removing lock", self, hasattr(self, 'local') and self.local
 		if hasattr(self, 'id'):
 			if hasattr(self, 'local') and self.local:
 				self.remove()

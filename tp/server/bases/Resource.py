@@ -11,7 +11,7 @@ from SQL import SQLBase
 
 class Resource(SQLBase):
 	table = Table('resource',
-		Column('game', 	       Integer,  nullable=False, index=True),
+		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('namesingular', Binary,   nullable=False),
 		Column('nameplural',   Binary,   nullable=False),

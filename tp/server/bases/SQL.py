@@ -144,25 +144,38 @@ class SQLBase(object):
 		if hasattr(self, 'time'):
 			del self.time
 
-		# Build SQL query, there must be a better way to do this...
-		if forceinsert or not hasattr(self, 'id'):
-			method = insert(self.table)
-		else:
-			method = update(self.table, self.table.c.id==self.id)
+		trans = dbconn.begin()
+		try:
+			arguments = {}
 
-		arguments = {}
-		for column in self.table.columns:
-			if column.name == 'id' and not hasattr(self, 'id'):
-				continue
-			if hasattr(self, column.name):
-				arguments[column.name] = getattr(self, column.name)
-		
-		result = method.execute(**arguments)
+			# Build SQL query, there must be a better way to do this...
+			if forceinsert or not hasattr(self, 'id'):
+				method = insert(self.table)
+	
+				id = select([func.max(self.table.c.id+1)], limit=1).execute().fetchall()[0][0]
+				if id is None:
+					id = 0
+				arguments['id'] = id
+			else:
+				method = update(self.table, self.table.c.id==self.id)
 
-		if not hasattr(self, 'id'):
-			self.id = result.last_inserted_ids()[0]
-			if default_metadata.engine.echo:
-				print "Newly inserted id is", self.id
+			for column in self.table.columns:
+				if column.name == 'id' and not hasattr(self, 'id'):
+					continue
+				if hasattr(self, column.name):
+					arguments[column.name] = getattr(self, column.name)
+			
+			result = method.execute(**arguments)
+
+			if not hasattr(self, 'id'):
+				self.id = id
+				if default_metadata.engine.echo:
+					print "Newly inserted id is", self.id
+
+			trans.commit()
+		except:
+			trans.rollback()
+			raise
 
 	def remove(self):
 		"""\
@@ -232,10 +245,10 @@ class SQLBase(object):
 
 def SQLTypedTable(name):
 	t = Table(name+"_extra",
-		Column('game',	Integer,	 nullable=False, index=True),
+		Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
 		Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
-		Column('name',	String(255), default='', nullable=False, index=True, primary_key=True),
-		Column('key',	String(255), default='', nullable=False, index=True, primary_key=True, quote=True),
+		Column('name',	String(255), nullable=False, index=True, primary_key=True),
+		Column('key',	String(255), nullable=True,  index=True, primary_key=True, quote=True),
 		Column('value',	Binary),
 		Column('time',	DateTime, nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
@@ -245,8 +258,8 @@ def SQLTypedTable(name):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	# Index on the ID and name
-	Index('idx_'+name+'xtr_idname', t.c.oid, t.c.name)
-	Index('idx_'+name+'xtr_idnamevalue', t.c.oid, t.c.name, t.c.key)
+	Index('idx_'+name+'xtr_idname', t.c.game, t.c.oid, t.c.name)
+	Index('idx_'+name+'xtr_idnamevalue', t.c.game, t.c.oid, t.c.name, t.c.key)
 
 	t._name = name
 

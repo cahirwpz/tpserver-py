@@ -11,7 +11,7 @@ from SQL import SQLBase
 
 class Component(SQLBase):
 	table = Table('component',
-		Column('game', 	  Integer,     nullable=False, index=True),
+		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	  String(255), nullable=False, index=True),
 		Column('desc',    Binary,      nullable=False),
@@ -23,7 +23,7 @@ class Component(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 	table_category = Table('component_category',
-		Column('game', 		Integer,  nullable=False, index=True),
+		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
@@ -35,7 +35,7 @@ class Component(SQLBase):
 		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 	table_property = Table('component_property',
-		Column('game', 		Integer,  nullable=False, index=True),
+		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('value',     Binary,   nullable=False, default=''),

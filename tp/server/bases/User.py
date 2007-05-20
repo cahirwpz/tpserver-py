@@ -13,7 +13,7 @@ from SQL import SQLBase
 
 class User(SQLBase):
 	table = Table('user',
-		Column('game', 	    Integer,     nullable=False, index=True),
+		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),

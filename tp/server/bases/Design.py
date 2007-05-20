@@ -18,7 +18,7 @@ import pyscheme as scheme
 
 class Design(SQLBase):
 	table = Table('design',
-		Column('game', 	    Integer,     nullable=False, index=True),
+		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	    String(255), nullable=False, index=True),
 		Column('desc',      Binary,      nullable=False),
@@ -31,7 +31,7 @@ class Design(SQLBase):
 
 	)
 	table_category = Table('design_category',
-		Column('game', 	    Integer,  nullable=False, index=True),
+		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('comment',   Binary,   nullable=False, default=''),
@@ -43,7 +43,7 @@ class Design(SQLBase):
 		ForeignKeyConstraint(['game'],     ['game.id']),
 	)
 	table_component = Table('design_component',
-		Column('game', 	    Integer,  nullable=False, index=True),
+		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('amount',    Integer,  nullable=False, default=0),

@@ -18,7 +18,7 @@ class Order(SQLTypedBase):
 	"""
 
 	table = Table('orders',
-		Column('game', 	    Integer,     nullable=False, index=True),
+		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('oid',       Integer,     nullable=False, index=True),
