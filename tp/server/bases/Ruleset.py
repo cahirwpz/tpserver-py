@@ -15,6 +15,29 @@ from tp.server.bases.Object  import Object
 
 from tp.server.utils import OrderGet
 
+def blue(*args):
+	sys.stdout.write(r"[01;34m")
+	for a in args:
+		print a,
+	print
+	sys.stdout.write(r"[00m")
+
+def green(*args):
+	sys.stdout.write(r"[01;32m")
+	for a in args:
+		print a,
+	print
+	sys.stdout.write(r"[00m")
+
+def red(*args):
+	sys.stdout.write(r"[01;31m")
+	for a in args:
+		print a,
+	print
+	sys.stdout.write(r"[00m")
+	
+
+
 # FIXME: These should be singltons
 class Ruleset(object):
 	"""\
