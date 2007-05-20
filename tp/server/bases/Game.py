@@ -56,11 +56,14 @@ class Game(SQLBase):
 		if not (longname is None):
 			SQLBase.__init__(self, id=self.gameid(self.munge(longname)))
 
-		# Short the object in the cache
-		cls.__cache[self.id]        = self
-		cls.__cache[self.shortname] = self
+		if (id, shortname, longname) == (None, None, None):
+			return self
+		else:
+			# Short the object in the cache
+			cls.__cache[self.id]        = self
+			cls.__cache[self.shortname] = self
 
-		return self
+			return self
 
 	def __init__(self, *args, **kw):
 		pass
