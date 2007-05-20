@@ -16,7 +16,7 @@ except ImportError:
 
 # Local imports
 import config
-from config import dbconfig
+from config import dbconfig, dbecho
 
 from tp import netlib
 constants = netlib.objects.constants
@@ -36,9 +36,9 @@ from tp.server.bases.User      import User
 from tp.server.bases.Resource  import Resource
 
 # Database setup
-from sqlalchemy import *
 from tp.server import db
-db.setup(dbconfig)
+db.setup(dbconfig, dbecho)
+from sqlalchemy import *
 
 class FullConnection(netlib.ServerConnection):
 	def __init__(self, *args, **kw):
