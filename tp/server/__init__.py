@@ -527,34 +527,31 @@ class FullServer(netlib.Server):
 			db.dbconn.use(g)
 			self.locks.append(Lock.new('serving'))
 
-		print netlib.objects.OrderDescs()
+		try:
+			import signal
+
+			print "Setup UNIX signalling"
+			signal.signal(signal.SIGUSR1, self.endofturn)
+ 			print " SIGUSR1 should be used after turn generation to notify clients"
+			signal.signal(signal.SIGUSR2, self.newgame)
+ 			print " SIGUSR2 should be used after adding a new game"
+		except ImportError:
+			print "Unable to set up UNIX signalling."
 	
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
 		for connection in self.connections:
 			connection._send(packet)
 
-def main():
-	port = 6923
-	while True:
-		try:
-			s = FullServer("", port, port+1)
-			print "Used port", port
-		except socket.error, e:
-			print e, "This port in use...", port
-			port += 1
-			continue
-		
-		try:
-			import signal
+	def newgame(self, sig, frame):
+		already = [lock.game for lock in self.locks]
+		for id, time in Game.ids():
+			if id in already:
+				continue
 
-			signal.signal(signal.SIGUSR1, s.endofturn)
-			signal.signal(signal.SIGUSR2, s.newgame)
-		except ImportError:
-			print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
+			g = Game(id)
+			g.ruleset.setup()
 
-		s.serve_forever()
-
-if __name__ == "__main__":
-	main()
-
+			# Create a lock for this game
+			db.dbconn.use(g)
+			self.locks.append(Lock.new('serving'))
