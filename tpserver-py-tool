@@ -135,6 +135,8 @@ This command lets you change things on the local server.
 		--status
 			Lists the games and locks in the database.
 		"""
+		import sqlalchemy
+		sqlalchemy.default_metadata.engine.echo = False
 		for id, modtime in Game.ids():
 			g = Game(id)
 			dbconn.use(g)
