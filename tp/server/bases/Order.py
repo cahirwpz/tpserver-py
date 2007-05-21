@@ -126,7 +126,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				t = self.table
-				update(t, (t.c.slot >= self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot+1))
+				update(t, (t.c.slot >= bindparam('s')) & (t.c.oid==bindparam('o')), {'slot': t.c.slot+1}).execute(s=self.slot, o=self.oid)
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
@@ -157,7 +157,7 @@ class Order(SQLTypedBase):
 		try:
 			# Move the other orders down
 			t = self.table
-			t.update((t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot-1))
+			update(t, (t.c.slot >= bindparam('s')) & (t.c.oid==bindparam('o')), {'slot': t.c.slot-1}).execute(s=self.slot, o=self.oid)
 
 			self.object.save()
 			SQLTypedBase.remove(self)
