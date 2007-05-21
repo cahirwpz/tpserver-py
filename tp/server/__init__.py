@@ -352,10 +352,11 @@ class FullConnection(netlib.ServerConnection):
 
 		self._send(netlib.objects.Sequence(packet.sequence, len(packet.ids)))
 
+		mapping = self.user.playing.ruleset.ordermap
 		for id in packet.ids:
 			try:
-				self._send(Order.desc_packet(packet.sequence, id))
-			except NoSuch:
+				self._send(mapping[id].desc_packet(packet.sequence, id))
+			except (KeyError, NoSuch):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
 
 		return True
