@@ -120,6 +120,7 @@ class Object(SQLTypedBase):
 
 		Returns the valid order types for this object.
 		"""
+		# FIXME: This probably isn't good
 		if not hasattr(self, "_ordertypes"):
 			self._ordertypes = []
 			for type in self.orderclasses:
@@ -143,7 +144,6 @@ class Object(SQLTypedBase):
 		# Preset arguments
 		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders(), self.time]
 		SQLTypedBase.to_packet(self, user, sequence, args)
-		print self, args
 		return netlib.objects.Object(*args)
 
 	def id_packet(cls):
