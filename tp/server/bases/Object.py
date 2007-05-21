@@ -7,7 +7,6 @@ from sqlalchemy import *
 # Local imports
 from tp.server.db import *
 from tp import netlib
-from config import admin
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from Order import Order
 

@@ -11,7 +11,4 @@ dbconfig = "sqlite:///tp.db"
 # Output all the SQL statements
 dbecho = False
 
-# Admin users
-admin = (1,)
-
 usercreation = True

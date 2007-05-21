@@ -10,8 +10,6 @@ from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport, NoSuch
 from tp.server.db import dbconn
 
-from config import admin
-
 class Order(SQLTypedBase):
 	"""
 	No description.
@@ -108,7 +106,7 @@ class Order(SQLTypedBase):
 
 	def allowed(self, user):
 		# FIXME: This is a hack.
-		return (user.id in admin) or (hasattr(self.object, "owner") and self.object.owner == user.id)
+		return (hasattr(self.object, "owner") and self.object.owner == user.id)
 
 	def object(self):
 		if not hasattr(self, "_object"):
@@ -128,7 +126,7 @@ class Order(SQLTypedBase):
 			elif self.slot <= number:
 				# Need to move all the other orders down
 				t = self.table
-				update(t, (t.c.slot>=self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot+1))
+				update(t, (t.c.slot >= self.slot) & (t.c.oid==self.oid)).execute(slot=(t.c.slot+1))
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
 			
