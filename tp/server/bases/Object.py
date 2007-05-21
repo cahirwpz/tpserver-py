@@ -86,8 +86,10 @@ class Object(SQLTypedBase):
 		SQLTypedBase.__init__(self, id, type)
 
 	def protect(self, user):
+		print "Protected!", self, user.id
 		o = SQLBase.protect(self, user)
-		if not (user.id in admin) and (hasattr(self, "owner") and self.owner != user.id):
+		if hasattr(self, "owner") and self.owner != user.id:
+			print self.owner
 			def empty():
 				return 0
 			o.orders = empty
@@ -142,9 +144,14 @@ class Object(SQLTypedBase):
 
 	def to_packet(self, user, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders(), self.time]
-		SQLTypedBase.to_packet(self, user, sequence, args)
-		return netlib.objects.Object(*args)
+		self, args = SQLTypedBase.to_packet(self, user, sequence)
+		return netlib.objects.Object(sequence, self.id, self.typeno, self.name, 
+				self.size, 
+				self.posx, self.posy, self.posz, 
+				self.velx, self.vely, self.velz, 
+				self.contains(), self.ordertypes(), self.orders(), 
+				self.time, 
+				*args)
 
 	def id_packet(cls):
 		return netlib.objects.Object_IDSequence

@@ -170,13 +170,10 @@ class Order(SQLTypedBase):
 			raise
 
 	def to_packet(self, user, sequence):
+		self, args = SQLTypedBase.to_packet(self, user, sequence, args)
+		
 		typeno = user.playing.ruleset.typeno(self)
-
-		# Preset arguments
-		args = [sequence, self.oid, self.slot, typeno, self.turns(), self.resources()]
-		SQLTypedBase.to_packet(self, user, sequence, args)
-		print self, args
-		return self.packet(typeno)(*args)
+		return self.packet(typeno)(sequence, self.oid, self.slot, typeno, self.turns(), self.resources(), *args)
 
 	def from_packet(cls, user, packet):
 		self = SQLTypedBase.from_packet(cls, user, packet)
