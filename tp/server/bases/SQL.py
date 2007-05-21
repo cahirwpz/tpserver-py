@@ -11,6 +11,7 @@ except ImportError:
 	import pickle
 import copy
 import time
+from datetime import datetime
 from array import array
 
 # These types go through repr fine
@@ -55,7 +56,7 @@ class SQLBase(object):
 		t = cls.table
 		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
-			return 0
+			return datetime.fromtimestamp(0)
 		return result[0]['time']
 	modified = classmethod(modified)
 
