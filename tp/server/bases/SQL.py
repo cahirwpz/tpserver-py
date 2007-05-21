@@ -443,6 +443,7 @@ Extra attributes this type defines.
 	from_packet = staticmethod(from_packet)
 
 	def to_packet(self, user, sequence, args):
+		self = SQLBase.to_packet(self, user, sequence)
 		for attribute in self.attributes.values():
 			if attribute.level == "public":
 				value = getattr(self, attribute.name)
@@ -451,4 +452,3 @@ Extra attributes this type defines.
 			else:
 				continue
 			args.append(value)
-
