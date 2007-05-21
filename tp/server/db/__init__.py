@@ -52,7 +52,11 @@ class Proxy(object):
 		r = sql.delete(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			if not proxy.game is None:
-				self.whereclause &= (self.table.c.game == proxy.game)
+				whereclause = (self.table.c.game == proxy.game)
+				if not self.whereclause is None:
+					whereclause &= self.whereclause
+
+				self.whereclause = whereclause
 			return self._execute(**arguments)
 
 		r._execute = r.execute
