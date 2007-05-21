@@ -39,7 +39,8 @@ class Proxy(object):
 		r = sql.update(*a, **kw)
 		def execute(self=r, proxy=self, **arguments):
 			if not proxy.game is None:
-				arguments['game'] = proxy.game
+				self.whereclause &= (self.table.c.game == proxy.game)
+
 			return self._execute(**arguments)
 
 		r._execute = r.execute
