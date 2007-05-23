@@ -16,13 +16,13 @@ class Object(SQLTypedBase):
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
-		Column('size',      Integer,     nullable=False),
-		Column('posx',      Integer,     nullable=False, default=0),
-		Column('posy',      Integer,     nullable=False, default=0),
-		Column('posz',      Integer,     nullable=False, default=0),
-		Column('velx',      Integer,     nullable=False, default=0),
-		Column('vely',      Integer,     nullable=False, default=0),
-		Column('velz',      Integer,     nullable=False, default=0),
+		Column('size',      Integer(64), nullable=False),
+		Column('posx',      Integer(64), nullable=False, default=0),
+		Column('posy',      Integer(64), nullable=False, default=0),
+		Column('posz',      Integer(64), nullable=False, default=0),
+		Column('velx',      Integer(64), nullable=False, default=0),
+		Column('vely',      Integer(64), nullable=False, default=0),
+		Column('velz',      Integer(64), nullable=False, default=0),
 		Column('parent',    Integer,     nullable=True),
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
@@ -48,15 +48,24 @@ class Object(SQLTypedBase):
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
 
 		c = cls.table.c
-		where = (((c.size * c.size) + size**2) >= \
-					(((c.posx-pos[0]) * (c.posx-pos[0])) + \
-					 ((c.posy-pos[1]) * (c.posy-pos[1])) + \
-					 ((c.posz-pos[2]) * (c.posz-pos[2]))))
+
+		bp_x = bindparam('x')
+		bp_y = bindparam('y')
+		bp_z = bindparam('z')
+		bp_s = bindparam('size')
+		where = ((c.size+bp_s) >= \
+					func.abs((c.posx-bp_x)) + \
+					func.abs((c.posy-bp_y)) + \
+					func.abs((c.posz-bp_z)))
+#		where = (((c.size+bp_s)*(c.size+bp_s)) >= \
+#					((c.posx-bp_x) * (c.posx-bp_x)) + \
+#					((c.posy-bp_y) * (c.posy-bp_y)) + \
+#					((c.posz-bp_z) * (c.posz-bp_z)))
 		s = select([c.id, c.time], where)
 		if limit != -1:
 			s.limit = limit
 
-		results = s.execute().fetchall()
+		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
 		return [(x['id'], x['time']) for x in results]
 	bypos = classmethod(bypos)
 
@@ -67,7 +76,10 @@ class Object(SQLTypedBase):
 		Returns the objects which have a parent of this id.
 		"""
 		t = cls.table
-		results = select([t.c.id, t.c.time], (t.c.parent==id) & (t.c.id != id)).execute().fetchall()
+
+		# FIXME: Need to figure out what is going on here..
+		bp_id = bindparam('id')
+		results = select([t.c.id, t.c.time], (t.c.parent==bp_id) & (t.c.id != bp_id)).execute(id=id).fetchall()
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
