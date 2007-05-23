@@ -14,7 +14,9 @@ Build a new star ship fleet."""
 
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
-				desc="Ships to build and launch.")
+					desc="Ships to build and launch."),
+		'name':  Order.Attribute("name",  {}, 'protected', type=netlib.objects.constants.ARG_STRING, 
+					desc="The new fleet's name.")
 	}
 	
 	def do(self):
@@ -94,3 +96,10 @@ It consists of:
 				pass
 
 			self.ships = ships
+
+	def fn_name(self, value=None):
+		if value == None:
+			return (255, self.name)
+		else:
+			self.name = value
+
