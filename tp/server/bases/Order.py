@@ -140,7 +140,9 @@ class Order(SQLTypedBase):
 	def save(self):
 		trans = dbconn.begin()
 		try:
-			self.object.save()	
+			# Update the modtime...
+			self.object.save()
+
 			if not hasattr(self, 'id'):
 				id = self.realid(self.oid, self.slot)
 				if id != -1:
@@ -168,7 +170,7 @@ class Order(SQLTypedBase):
 			raise
 
 	def to_packet(self, user, sequence):
-		self, args = SQLTypedBase.to_packet(self, user, sequence, args)
+		self, args = SQLTypedBase.to_packet(self, user, sequence)
 		
 		typeno = user.playing.ruleset.typeno(self)
 		return self.packet(typeno)(sequence, self.oid, self.slot, typeno, self.turns(), self.resources(), *args)
