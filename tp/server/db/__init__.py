@@ -1,68 +1,78 @@
 
 import sqlalchemy as sql
 
+class Executor(object):
+	def __init__(self, proxy, query):
+		self.proxy = proxy
+
+		self.query     = query
+		query._execute = query.execute
+		query.execute  = self
+
+	def __call__(self, *args, **kw):
+		raise SyntaxError("__adapt__ method not implimented")
+
+class SelectExecutor(Executor):
+	def __call__(self, *args, **kw):
+		query = self.query
+		proxy = self.proxy
+
+		if proxy.game != None:
+			for table in query.froms:
+				# FIXME: Horrible hack!
+				if table.fullname == "game":
+					continue
+
+				query.append_whereclause((table.c.game == proxy.game))
+
+		return query._execute(*args, **kw)
+
+class UpdateDeleteExecutor(Executor):
+	def __call__(self, *args, **kw):
+		query = self.query
+		proxy = self.proxy
+
+		if not proxy.game is None:
+			whereclause = (query.table.c.game == proxy.game)
+			if not query.whereclause is None:
+				whereclause &= query.whereclause
+
+			query.whereclause = whereclause
+		return query._execute(*args, **kw)
+
+UpdateExecutor = UpdateDeleteExecutor
+DeleteExecutor = UpdateDeleteExecutor
+
+class InsertExecutor(Executor):
+	def __call__(self, *args, **kw):
+		query = self.query
+		proxy = self.proxy
+
+		if not proxy.game is None:
+			kw['game'] = proxy.game
+		return query._execute(*args, **kw)
+
+
 class Proxy(object):
 	def __init__(self):
 		self.engine = None
 		self.game   = None
 
 	def select(self, *a, **kw):
-		r = sql.select(*a, **kw)
-		def execute(self=r, proxy=self, **arguments):
-			if proxy.game != None:
-				for table in self.froms:
-					# FIXME: Horrible hack!
-					if table.fullname == "game":
-						continue
-
-					self.append_whereclause((table.c.game == proxy.game))
-			return self._execute(**arguments)
-
-		r._execute = r.execute
-		r.execute = execute
-
-		return r
+		exe = SelectExecutor(self, sql.select(*a, **kw))
+		return exe.query 
 
 	def insert(self, *a, **kw):
-		r = sql.insert(*a, **kw)
-		def execute(self=r, proxy=self, **arguments):
-			if not proxy.game is None:
-				arguments['game'] = proxy.game
-			return self._execute(**arguments)
-
-		r._execute = r.execute
-		r.execute = execute
-
-		return r
+		exe = InsertExecutor(self, sql.insert(*a, **kw))
+		return exe.query 
 
 	def update(self, *a, **kw):
-		r = sql.update(*a, **kw)
-		def execute(self=r, proxy=self, **arguments):
-			if not proxy.game is None:
-				self.whereclause &= (self.table.c.game == proxy.game)
-
-			return self._execute(**arguments)
-
-		r._execute = r.execute
-		r.execute = execute
-
-		return r
+		exe = UpdateExecutor(self, sql.update(*a, **kw))
+		return exe.query 
 
 	def delete(self, *a, **kw):
-		r = sql.delete(*a, **kw)
-		def execute(self=r, proxy=self, **arguments):
-			if not proxy.game is None:
-				whereclause = (self.table.c.game == proxy.game)
-				if not self.whereclause is None:
-					whereclause &= self.whereclause
-
-				self.whereclause = whereclause
-			return self._execute(**arguments)
-
-		r._execute = r.execute
-		r.execute  = execute
-		
-		return r
+		exe = DeleteExecutor(self, sql.delete(*a, **kw))
+		return exe.query 
 
 	def use(self, db=None):
 		# Clear the old value
