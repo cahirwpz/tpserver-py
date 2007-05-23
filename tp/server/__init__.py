@@ -99,13 +99,17 @@ class FullConnection(netlib.ServerConnection):
 									"You must be logged in to use this functionality."))
 			return True
 
+		subtype = p._subtype
+
 		# FIXME: Should check if this is an Order or Object
-		if not (p.type in self.ruleset.ordermap):
+		if not (subtype in self.ruleset.ordermap):
 			self._send(objects.Fail(p.sequence, constants.FAIL_FRAME, 
 									"Packet doesn't match a type which I can describe."))
 		else:
-			print "The packet was described by ", self.ruleset.ordermap[p.type].packet(p.type)
-			p.process(p._data, force=self.ruleset.ordermap[p.type].packet(p.type))
+			print "The packet was described by ", self.ruleset.ordermap[subtype].packet(subtype)
+
+			p.__process__(p._data, force=self.ruleset.ordermap[subtype].packet(subtype))
+			del p._data
 
 	def OnGetWithID(self, packet, type):
 		"""\

@@ -10,7 +10,6 @@ try:
 except ImportError:
 	import pickle
 import copy
-import time
 from datetime import datetime
 from array import array
 
@@ -424,7 +423,7 @@ Extra attributes this type defines.
 		map = getattr(user.playing.ruleset, cls.__name__.lower() + 'map')
 		
 		# Create an instance of this object
-		self = map[packet.type]()
+		self = map[packet._subtype]()
 
 		# FIXME: This is probably bad...
 		for key, value in packet.__dict__.items():
