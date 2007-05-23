@@ -36,9 +36,9 @@ class Fleet(Object, Combattant):
 					'tp.server.rules.base.orders.MergeFleet',
 					'tp.server.rules.base.orders.Colonise',)
 	
-	ship_hp = {0: 2, 1:4, 2:6}
+	ship_hp     = {0: 2, 1:4, 2:6}
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
-	ship_speed = {0: 3*UNIT, 1: 2*UNIT, 2: 1*UNIT}
+	ship_speed  = {0: 3*UNIT, 1: 2*UNIT, 2: 1*UNIT}
 
 	def fn_ships(self, value=None):
 		if value == None:
