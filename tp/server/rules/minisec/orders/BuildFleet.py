@@ -15,7 +15,7 @@ Build a new star ship fleet."""
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
 					desc="Ships to build and launch."),
-		'name':  Order.Attribute("name",  {}, 'protected', type=netlib.objects.constants.ARG_STRING, 
+		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING, 
 					desc="The new fleet's name.")
 	}
 	
@@ -101,5 +101,5 @@ It consists of:
 		if value == None:
 			return (255, self.name)
 		else:
-			self.name = value
+			self.name = value[1]
 
