@@ -25,7 +25,7 @@ class Order(SQLTypedBase):
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
-		UniqueConstraint('oid', 'slot'),
+		#UniqueConstraint('game', 'oid', 'slot'), FIXME: This breaks the update...
 		ForeignKeyConstraint(['oid'],  ['object.id']),
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
