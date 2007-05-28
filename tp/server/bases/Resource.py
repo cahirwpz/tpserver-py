@@ -27,7 +27,10 @@ class Resource(SQLBase):
 	)
 
 	def to_packet(self, user, sequence):
-		return netlib.objects.Resource(sequence, self.id, self.name_singular, self.name_pludesc, Resource.number(self.id))
+		return netlib.objects.Resource(sequence, self.id, 
+					self.namesingular, self.nameplural,
+					self.unitsingular, self.unitplural,
+					self.desc, self.weight, self.size, self.time)
 
 	def id_packet(cls):
 		return netlib.objects.Resource_IDSequence
