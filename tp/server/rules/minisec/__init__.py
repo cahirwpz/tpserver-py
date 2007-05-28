@@ -2,9 +2,10 @@
 from tp.server.utils import ReparentOne
 from tp.server.db import dbconn
 
-from tp.server.bases.Board   import Board
-from tp.server.bases.Message import Message
-from tp.server.bases.Object  import Object
+from tp.server.bases.Board    import Board
+from tp.server.bases.Message  import Message
+from tp.server.bases.Object   import Object
+from tp.server.bases.Resource import Resource
 
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
@@ -68,6 +69,46 @@ class Ruleset(RulesetBase):
 			universe.posy   = 0
 			universe.turn   = 0
 			universe.insert()
+
+			r1 = Resource()
+			r1.namesingular = 'Fruit Tree'
+			r1.nameplural   = 'Fruit Trees'
+			r1.unitsingular = ''
+			r1.unitplural   = ''
+			r1.desc         = 'Trees with lots of fruit on them!'
+			r1.weight       = 10
+			r1.size         = 30
+			r1.insert()
+
+			r2 = Resource()
+			r2.namesingular = 'Weird Artifact'
+			r2.nameplural   = 'Weird Artifacts'
+			r2.unitsingular = ''
+			r2.unitplural   = ''
+			r2.desc         = 'Weird artifacts from a long time ago.'
+			r2.weight       = 5
+			r2.size         = 5
+			r2.insert()
+
+			r3 = Resource()
+			r3.namesingular = 'Rock'
+			r3.nameplural   = 'Rocks'
+			r3.unitsingular = 'ton'
+			r3.unitplural   = 'tons'
+			r3.desc         = 'Rocks - Igneous, Sedimentary, Metamorphic, Oh my!'
+			r3.weight       = 10
+			r3.size         = 1
+			r3.insert()
+
+			r4 = Resource()
+			r4.namesingular = 'Water'
+			r4.nameplural   = 'Water'
+			r4.unitsingular = 'kiloliter'
+			r4.unitplural   = 'kiloliters'
+			r4.desc         = 'That liquid stuff which carbon based life forms need.'
+			r4.weight       = 1
+			r4.size         = 1
+			r4.insert()
 
 			trans.commit()
 		except:
