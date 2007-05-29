@@ -5,7 +5,6 @@ from tp.server.db import dbconn
 from tp.server.bases.Board    import Board
 from tp.server.bases.Message  import Message
 from tp.server.bases.Object   import Object
-from tp.server.bases.Resource import Resource
 
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
@@ -70,46 +69,6 @@ class Ruleset(RulesetBase):
 			universe.turn   = 0
 			universe.insert()
 
-			r1 = Resource()
-			r1.namesingular = 'Fruit Tree'
-			r1.nameplural   = 'Fruit Trees'
-			r1.unitsingular = ''
-			r1.unitplural   = ''
-			r1.desc         = 'Trees with lots of fruit on them!'
-			r1.weight       = 10
-			r1.size         = 30
-			r1.insert()
-
-			r2 = Resource()
-			r2.namesingular = 'Weird Artifact'
-			r2.nameplural   = 'Weird Artifacts'
-			r2.unitsingular = ''
-			r2.unitplural   = ''
-			r2.desc         = 'Weird artifacts from a long time ago.'
-			r2.weight       = 5
-			r2.size         = 5
-			r2.insert()
-
-			r3 = Resource()
-			r3.namesingular = 'Rock'
-			r3.nameplural   = 'Rocks'
-			r3.unitsingular = 'ton'
-			r3.unitplural   = 'tons'
-			r3.desc         = 'Rocks - Igneous, Sedimentary, Metamorphic, Oh my!'
-			r3.weight       = 10
-			r3.size         = 1
-			r3.insert()
-
-			r4 = Resource()
-			r4.namesingular = 'Water'
-			r4.nameplural   = 'Water'
-			r4.unitsingular = 'kiloliter'
-			r4.unitplural   = 'kiloliters'
-			r4.desc         = 'That liquid stuff which carbon based life forms need.'
-			r4.weight       = 1
-			r4.size         = 1
-			r4.insert()
-
 			trans.commit()
 		except:
 			trans.rollback()
@@ -130,16 +89,17 @@ class Ruleset(RulesetBase):
 		trans = dbconn.begin()
 		try:
 			# FIXME: Assuming that the Universe and the Galaxy exist.
-			random.seed(seed)
+			r = random.Random()
+			r.seed(int(seed))
 
 			# Create this many systems
-			for i in range(0, random.randint(system_min, system_max)):
-				pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+			for i in range(0, r.randint(system_min, system_max)):
+				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 				
 				# Add system
 				system = Object(type='tp.server.rules.base.objects.System')
 				system.name = "System %s" % i
-				system.size = random.randint(800000, 2000000)
+				system.size = r.randint(800000, 2000000)
 				system.posx = pos[0]
 				system.posy = pos[1]
 				system.insert()
@@ -148,13 +108,13 @@ class Ruleset(RulesetBase):
 				print "Created system (%s) with the id: %i" % (system.name, system.id)
 				
 				# In each system create a number of planets
-				for j in range(0, random.randint(planet_min, planet_max)):
+				for j in range(0, r.randint(planet_min, planet_max)):
 					planet = Object(type='tp.server.rules.base.objects.Planet')
 					planet.name = "Planet %i in %s" % (j, system.name)
-					planet.size = random.randint(1000, 10000)
+					planet.size = r.randint(1000, 10000)
 					planet.parent = system.id
-					planet.posx = pos[0]+random.randint(1,100)*1000
-					planet.posy = pos[1]+random.randint(1,100)*1000
+					planet.posx = pos[0]+r.randint(1,100)*1000
+					planet.posy = pos[1]+r.randint(1,100)*1000
 					planet.insert()
 					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
@@ -203,6 +163,8 @@ class Ruleset(RulesetBase):
 			fleet.save()
 
 			trans.commit()
+	
+			return (user, system, planet, fleet)
 		except:
 			trans.rollback()
 			raise
