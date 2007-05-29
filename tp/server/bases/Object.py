@@ -83,6 +83,19 @@ class Object(SQLTypedBase):
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
 
+	def bytype(cls, type):
+		"""\
+		bytype(id)
+
+		Returns the objects which have a certain type.
+		"""
+		t = cls.table
+
+		# FIXME: Need to figure out what is going on here..
+		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
+		return [(x['id'], x['time']) for x in results]
+	bytype = classmethod(bytype)
+
 	def __init__(self, id=None, type=None):
 		self.name = "Unknown object"
 		self.size = 0
