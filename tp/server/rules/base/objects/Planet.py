@@ -4,6 +4,9 @@ import random
 from tp.server.bases.Object import Object
 from tp.server.bases.Combattant import Combattant
 
+ACCESSABLE   = 0
+MINABLE      = 1
+INACCESSABLE = 2
 class Planet(Object, Combattant):
 	attributes = { \
 		'owner':     Object.Attribute('owner', -1, 'public'),
@@ -40,15 +43,19 @@ class Planet(Object, Combattant):
 		return (6, 2)[fail]
 
 	def fn_resources(self, value=None):
-		r = random.Random()
-		r.seed(self.id)
-
 		res = []
-		ids = r.sample(range(0, 3), r.randint(0, 3))
-		for id in ids:
-			res.append((id, r.randint(0, 10), r.randint(0, 100), r.randint(0, 1000)))
+		for id, values in self.resources.items():
+			res.append((id, values[0], values[1], values[2]))
 
 		return res
+
+	def resources_add(self, resource, amount, type=ACCESSABLE):
+		if not self.resources.has_key(resource):
+			self.resources[resource] = [0, 0, 0]
+		self.resources[resource][type] += amount
+
+		if self.resources[resource][type] < 0:
+			raise TypeError("Resources some how became negative!")
 
 Planet.typeno = 3
 Object.types[Planet.typeno] = Planet
