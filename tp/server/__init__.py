@@ -505,6 +505,10 @@ class FullConnection(netlib.ServerConnection):
 	def _send(self, *args, **kw):
 		return netlib.ServerConnection._send(self, *args, **kw)
 
+
+import weakref
+servers = weakref.WeakValueDictionary()
+
 class FullServer(netlib.Server):
 	# FIXME: Should start a thread for ZeroConf registration...
 	handler = FullConnection
@@ -512,6 +516,9 @@ class FullServer(netlib.Server):
 
 	def __init__(self, *args, **kw):
 		netlib.Server.__init__(self, *args, **kw)
+
+		# Add us to the server list...
+		servers[__builtins__['id'](self)] = self
 
 		# Remove any order mapping from the network libray...
 		netlib.objects.OrderDescs().clear()
