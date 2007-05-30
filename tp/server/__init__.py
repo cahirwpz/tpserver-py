@@ -15,8 +15,10 @@ except ImportError:
 	pass
 
 # Local imports
+from version import version
+
 import config
-from config import dbconfig, dbecho
+from config import dbconfig, dbecho, servername, serverip
 
 from tp import netlib
 constants = netlib.objects.constants
@@ -220,6 +222,16 @@ class FullConnection(netlib.ServerConnection):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order."))
 
 		return True
+
+	def OnGames_Get(self, p):
+		ids = Game.ids()
+		self._send(netlib.objects.Sequence(p.sequence, len(ids)))
+
+		for id, time in ids:
+			self._send(Game(id).to_packet(p.sequence))
+
+		return True
+
 
 	def OnFeature_Get(self, p):
 		self._send(netlib.objects.Feature(p.sequence, [ \

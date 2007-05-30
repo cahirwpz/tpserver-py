@@ -6,6 +6,8 @@ import weakref
 import os, socket
 from sqlalchemy import *
 
+import md5
+
 # Local imports
 from tp.server.db.enum import Enum
 from tp.server.bases.SQL import SQLBase, NoSuch
@@ -183,4 +185,50 @@ class Game(SQLBase):
 			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.shortname, self.longname, self.turn)
 		else:
 			return "<Game-(new) %s (%s) turn-%i>" % (self.shortname, self.longname, self.turn)
+
+	def key(self):
+		key = md5.md5("%s-%s" % (self.longname, self.time))
+		return key.hexdigest()
+	key = property(key)
+
+	def to_packet(self, sequence):
+		from tp.server import version, servers, servername, serverip
+		print version
+		server_ver = "%s.%s.%s" % version
+
+		print "------------------"
+		print server_ver
+
+		locations = []
+		for server in servers.values():
+			for port in server.ports:
+				locations.append(('tp',       servername, serverip, port))
+				locations.append(('tp+http',  servername, serverip, port))
+			for port in server.sslports:
+				locations.append(('tps',      servername, serverip, port))
+				locations.append(('tp+https', servername, serverip, port))
+
+		print locations
+
+		# Build the optional parameters
+		optional = []
+		# FIXME: Magic Numbers!
+		# Number of players
+		#optional.append((1, '', User.amount(None)))
+		# Number of objects
+		#optional.append((3, '', Object.amount(None)))
+		# Admin email address
+		optional.append((4, self.admin, -1))
+		# Comment
+		optional.append((5, self.comment, -1))
+		# Turn
+		#optional.append((6, '', self.turn))
+
+		print optional
+
+		return objects.Game(sequence, self.longname, self.key, 
+								["0.3", "0.3+"], 
+								server_ver, "tpserver-py", 
+								self.ruleset.name, self.ruleset.version,
+								locations, optional)
 
