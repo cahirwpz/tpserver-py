@@ -9,10 +9,11 @@ from sqlalchemy import *
 import md5
 
 # Local imports
-from tp.server.db.enum import Enum
-from tp.server.bases.SQL import SQLBase, NoSuch
-
 from tp.server.db import *
+from tp.server.db.enum import Enum
+
+from tp.server.bases.SQL  import SQLBase, NoSuch
+
 from tp.netlib import objects
 
 # FIXME: There should be some way to store the ruleset parameters...
@@ -191,13 +192,17 @@ class Game(SQLBase):
 		return key.hexdigest()
 	key = property(key)
 
+	def players(self):
+		olddb = dbconn.use(self)
+		from tp.server.bases.User import User
+		plys = User.amount(None)
+		dbconn.use(olddb)
+		return plys
+	players = property(players)
+
 	def to_packet(self, sequence):
 		from tp.server import version, servers, servername, serverip
-		print version
 		server_ver = "%s.%s.%s" % version
-
-		print "------------------"
-		print server_ver
 
 		locations = []
 		for server in servers.values():
@@ -208,13 +213,11 @@ class Game(SQLBase):
 				locations.append(('tps',      servername, serverip, port))
 				locations.append(('tp+https', servername, serverip, port))
 
-		print locations
-
 		# Build the optional parameters
 		optional = []
 		# FIXME: Magic Numbers!
 		# Number of players
-		#optional.append((1, '', User.amount(None)))
+		optional.append((1, '', self.players))
 		# Number of objects
 		#optional.append((3, '', Object.amount(None)))
 		# Admin email address

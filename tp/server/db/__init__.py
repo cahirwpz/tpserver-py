@@ -70,6 +70,8 @@ class Proxy(object):
 				self.game = db.id
 			elif isinstance(db, (str, unicode)):
 				self.game = Game.gameid(db)
+			elif isinstance(db, int):
+				self.game = db
 			else:
 				raise SyntaxError("dbconn.use called with a weird argument %s" % db)
 
