@@ -73,7 +73,7 @@ class SQLBase(object):
 		return [(x['id'], x['time']) for x in result]
 	ids = classmethod(ids)
 
-	def amount(cls, user):
+	def amount(cls, user=None):
 		"""\
 		amount(user) -> int
 

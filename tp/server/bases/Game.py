@@ -193,12 +193,16 @@ class Game(SQLBase):
 	key = property(key)
 
 	def players(self):
-		olddb = dbconn.use(self)
+		dbconn.use(self)
 		from tp.server.bases.User import User
-		plys = User.amount(None)
-		dbconn.use(olddb)
-		return plys
+		return User.amount()
 	players = property(players)
+
+	def objects(self):
+		dbconn.use(self)
+		from tp.server.bases.Object import Object
+		return Object.amount()
+	objects = property(objects)
 
 	def to_packet(self, sequence):
 		from tp.server import version, servers, servername, serverip
@@ -219,7 +223,7 @@ class Game(SQLBase):
 		# Number of players
 		optional.append((1, '', self.players))
 		# Number of objects
-		#optional.append((3, '', Object.amount(None)))
+		optional.append((3, '', self.objects))
 		# Admin email address
 		optional.append((4, self.admin, -1))
 		# Comment
