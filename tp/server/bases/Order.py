@@ -68,7 +68,7 @@ class Order(SQLTypedBase):
 			s = select([t.c.id], t.c.slot==0)
 		else:
 			s = select([t.c.id], (t.c.slot==0) & (t.c.type in type))
-		return s.execute().fetchall()
+		return [x[0] for x in s.execute().fetchall()]
 	active = classmethod(active)
 
 	def desc_packet(cls, sequence, typeno):
@@ -98,8 +98,6 @@ class Order(SQLTypedBase):
 	def __init__(self, oid=None, slot=None, type=None, id=None):
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
-		else:
-			id = None
 		
 		self.worked = 0
 		SQLTypedBase.__init__(self, id, type)

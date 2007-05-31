@@ -212,6 +212,7 @@ This game is currently playing version %s of %s.
 			#
 			# Get all the orders
 			d = OrderGet()
+			print d
 			for action in self.orderOfOrders:
 				if type(action) == TupleType:
 					action, args = action[0], action[1:]
@@ -225,6 +226,8 @@ This game is currently playing version %s of %s.
 					if d.has_key(name):
 						for order in d[name]:
 							order.do(*args)
+					else:
+						print "No orders of that type avaliable.."
 
 					green("%s - Finished" % name)
 			
