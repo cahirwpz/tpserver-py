@@ -4,6 +4,7 @@ import random
 from tp.server.db import dbconn
 
 from tp.server.bases.Object   import Object
+from tp.server.bases.Design   import Design
 from tp.server.bases.Resource import Resource
 
 from tp.server.rules.base.objects import Planet
@@ -135,6 +136,33 @@ class Ruleset(MinisecRuleset):
 			r.weight       = 0
 			r.size         = 100000
 			r.insert()
+
+
+			########################################################################
+
+			d = Design()
+			d.name  = "Scout"
+			d.desc  = "A fast light ship with advanced sensors."
+			d.owner = -1
+			d.categories = []
+			d.components = []
+			d.insert()
+	
+			d = Design()
+			d.name  = "Frigate"
+			d.desc  = "A general purpose ship with weapons and ability to colonise new planets."
+			d.owner = -1
+			d.categories = []
+			d.components = []
+			d.insert()
+
+			d = Design()
+			d.name  = "Battleship"
+			d.desc  = "A heavy ship who's main purpose is to blow up other ships."
+			d.owner = -1
+			d.categories = []
+			d.components = []
+			d.insert()
 
 			trans.commit()
 		except:

@@ -19,11 +19,19 @@ class SelectExecutor(Executor):
 
 		if proxy.game != None:
 			for table in query.froms:
-				# FIXME: Horrible hack!
-				if table.fullname == "game":
-					continue
+				if isinstance(table, sql.Table):
+					# FIXME: Horrible hack!
+					if table.fullname == "game":
+						continue
 
-				query.append_whereclause((table.c.game == proxy.game))
+					query.append_whereclause((table.c.game == proxy.game))
+				elif isinstance(table, sql.Join):
+					for table in set(table._get_from_objects()[1:]):
+						# FIXME: Horrible hack!
+						if table.fullname == "game":
+							continue
+
+						query.append_whereclause((table.c.game == proxy.game))
 
 		return query._execute(*args, **kw)
 
@@ -51,7 +59,6 @@ class InsertExecutor(Executor):
 		if not proxy.game is None:
 			kw['game'] = proxy.game
 		return query._execute(*args, **kw)
-
 
 class Proxy(object):
 	def __init__(self):

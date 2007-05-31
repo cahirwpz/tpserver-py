@@ -70,13 +70,13 @@ class Design(SQLBase):
 		# Load the properties now
 		self.components = self.get_components()
 
-	def save(self):
+	def save(self, forceinsert=False):
 		"""\
 		save()
 
 		Saves a thing to the database.
 		"""
-		SQLBase.save(self)
+		SQLBase.save(self, forceinsert)
 
 		# Save the categories now
 		t = self.table_category
@@ -91,7 +91,7 @@ class Design(SQLBase):
 				results = insert(t).execute(design=self.id, category=cid)
 
 		# Save the components now
-		t = self.table_components
+		t = self.table_component
 		current = self.get_components()
 		
 		ct = {}
