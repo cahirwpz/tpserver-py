@@ -389,6 +389,26 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
+	def OnOrder_Probe(self, packet):
+		print "OnOrder_Probe...."
+		if not self.check(packet):
+			return True
+
+		try:
+			order = Order.from_packet(self.user, packet)
+			
+			# Are we allowed to do this?
+			if not order.object.allowed(self.user):
+				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+				print packet.id, packet.slot, "No Permission"
+			else:	
+				self._send(order.to_packet(self.user, packet.sequence))
+		except NoSuch:
+			print packet.id, packet.slot, "Probe failed."
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Order probe failed."))
+
+		return True
+
 	def OnOrder_Remove(self, packet):
 		if not self.check(packet):
 			return True

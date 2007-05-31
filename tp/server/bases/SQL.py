@@ -437,6 +437,10 @@ Extra attributes this type defines.
 				elif self.attributes[key].level == 'protected':
 					getattr(self, "fn_"+key)(value)
 			else:
+				if hasattr(self, key):
+					print "Ekk! Tried to set %s but it already existed (%s)" % (key, getattr(self, key))
+					continue
+
 				setattr(self, key, value)
 		return self
 	from_packet = staticmethod(from_packet)
