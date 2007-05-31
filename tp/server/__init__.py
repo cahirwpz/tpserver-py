@@ -540,6 +540,8 @@ class FullServer(netlib.Server):
 		for id, time in Game.ids():
 			g = Game(id)
 			g.ruleset.setup()
+			
+			print g.to_zeroconf()
 
 			# Create a lock for this game
 			db.dbconn.use(g)
