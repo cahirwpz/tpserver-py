@@ -369,6 +369,7 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
+		print "OnOrder_Insert...."
 		if not self.check(packet):
 			return True
 
@@ -387,7 +388,6 @@ class FullConnection(netlib.ServerConnection):
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
 		return True
-	OnOrder = OnOrder_Insert
 
 	def OnOrder_Remove(self, packet):
 		if not self.check(packet):
