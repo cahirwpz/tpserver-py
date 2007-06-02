@@ -195,9 +195,7 @@ class Ruleset(MinisecRuleset):
 			r = random.Random()
 			r.seed(int(seed))
 
-			print "planets!!!", Object.bytype('tp.server.rules.base.objects.Planet')
 			for planetid, time in Object.bytype('tp.server.rules.base.objects.Planet'):
-				print "-->planet", planetid, time
 				planet = Object(id=planetid)
 
 				ids = r.sample(range(1, 4), r.randint(0, 3))
