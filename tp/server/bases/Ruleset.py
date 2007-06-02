@@ -159,7 +159,7 @@ class Ruleset(object):
 This board is used so that stuff you own (such as fleets and planets) \
 can inform you of what is happening in the universe. \
 """
-			board.save()
+			board.insert()
 
 			# Add the first message
 			message = Message()
@@ -171,7 +171,7 @@ Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
 \
 This game is currently playing version %s of %s.
 """ % (username, self.version, self.name)
-			message.save()
+			message.insert()
 
 			trans.commit()
 			return user
