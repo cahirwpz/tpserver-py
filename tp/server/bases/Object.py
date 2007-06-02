@@ -38,7 +38,8 @@ class Object(SQLTypedBase):
 	types = {}
 	orderclasses = {}
 
-	def bypos(cls, pos, size=0, limit=-1, orderby="time, size DESC"):
+	bypos_size = [asc(table.c.size)]
+	def bypos(cls, pos, size=0, limit=-1, orderby=None):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
 
@@ -61,7 +62,10 @@ class Object(SQLTypedBase):
 #					((c.posx-bp_x) * (c.posx-bp_x)) + \
 #					((c.posy-bp_y) * (c.posy-bp_y)) + \
 #					((c.posz-bp_z) * (c.posz-bp_z)))
-		s = select([c.id, c.time], where)
+		if orderby is None:
+			orderby = [asc(c.time), desc(c.size)]
+
+		s = select([c.id, c.time], where, order_by=orderby)
 		if limit != -1:
 			s.limit = limit
 
