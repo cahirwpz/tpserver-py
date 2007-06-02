@@ -22,6 +22,7 @@ import orders.BuildFleet as BuildFleet
 import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
+import actions.Turn as Turn
 
 import random
 
@@ -48,6 +49,7 @@ class Ruleset(RulesetBase):
 			Heal, 				# Repair any ships orbiting a friendly planet
 			Win, 				# Figure out if there is any winner
 			NOp, 				# NOp needs to occur last
+			Turn, 				# Increase the Universe's "Turn" value
 	]
 
 	def initalise(self):
