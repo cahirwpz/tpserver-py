@@ -45,7 +45,7 @@ Build a new star ship fleet."""
 		fleet.owner = builder.owner
 		fleet.ships = self.ships
 		fleet.insert()
-		fleet.name = "Fleet %i" % fleet.id
+		fleet.name = self.name
 		fleet.save()
 
 		message = Message()
