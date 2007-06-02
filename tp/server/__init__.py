@@ -49,7 +49,6 @@ class FullConnection(netlib.ServerConnection):
 		return self.__user
 
 	def user_set(self, value):
-		print "Setting user...", value
 		if value is None:
 			self.__user  = None
 			self.game    = None		
@@ -341,6 +340,8 @@ class FullConnection(netlib.ServerConnection):
 			amount = classmethod(amount)
 			
 			def ids(cls, user, start, amount):
+				if amount== -1:
+					amount = len(user.playing.ruleset.ordermap)
 				return [(id, 0) for id in user.playing.ruleset.ordermap.keys()[start:amount]]
 			ids = classmethod(ids)
 		
@@ -359,7 +360,8 @@ class FullConnection(netlib.ServerConnection):
 		mapping = self.user.playing.ruleset.ordermap
 		for id in packet.ids:
 			try:
-				self._send(mapping[id].desc_packet(packet.sequence, id))
+				od = mapping[id].desc_packet(packet.sequence, id)
+				self._send(od)
 			except (KeyError, NoSuch):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
 
@@ -369,7 +371,6 @@ class FullConnection(netlib.ServerConnection):
 		return self.OnGetWithIDandSlot(packet, Order, Object)
 
 	def OnOrder_Insert(self, packet):
-		print "OnOrder_Insert...."
 		if not self.check(packet):
 			return True
 
@@ -390,7 +391,6 @@ class FullConnection(netlib.ServerConnection):
 		return True
 
 	def OnOrder_Probe(self, packet):
-		print "OnOrder_Probe...."
 		if not self.check(packet):
 			return True
 
