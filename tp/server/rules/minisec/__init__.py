@@ -135,12 +135,16 @@ class Ruleset(RulesetBase):
 		try:
 			user = RulesetBase.player(self, username, password, email, comment)
 
-			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+			# FIXME: Hack! This however means that player x will always end up in the same place..
+			r = random.Random()
+			r.seed(user.id)
+
+			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 
 			system = Object(type='tp.server.rules.base.objects.System')
 			system.name = "%s Solar System" % username
 			system.parent = 0
-			system.size = random.randint(800000, 2000000)
+			system.size = r.randint(800000, 2000000)
 			(system.posx, system.posy, junk) = pos
 			ReparentOne(system)
 			system.owner = user.id
@@ -150,8 +154,8 @@ class Ruleset(RulesetBase):
 			planet.name = "%s Planet" % username
 			planet.parent = system.id
 			planet.size = 100
-			planet.posx = system.posx+random.randint(1,100)*1000
-			planet.posy = system.posy+random.randint(1,100)*1000
+			planet.posx = system.posx+r.randint(1,100)*1000
+			planet.posy = system.posy+r.randint(1,100)*1000
 			planet.owner = user.id
 			planet.save()
 
