@@ -1,9 +1,6 @@
 Fully python server. Uses a database backend.
 
 Following bugs need to be fixed:
-	- IDs from different virtual servers are interleaved. Every virtual server
-	  should have it's own ID set.
-
 	- IDs are incremental, they should be random
 	- Change the class.__init__(id=id) method to a class.from_db(id) factory method (so
       it is like the from_packet method).
@@ -11,7 +8,7 @@ Following bugs need to be fixed:
 
 	- Impliment a "sliding window" object to reduce number of requests.
 
-	- Create a lock in the database when doing turn processing.
+	- Impliment the view stuff which is described in the "How Stuff Works" document.
 
 Still need to be done:
 		Orders don't take into account the effect of previous orders.
