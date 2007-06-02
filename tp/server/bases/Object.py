@@ -125,11 +125,10 @@ class Object(SQLTypedBase):
 
 	def remove(self):
 		# FIXME: Need to remove associated orders in a better way
-		t = Order.table
-		t.delete(oid==self.id)
+		#delete(Order.table).execute(oid=self.id)
 		# Remove any parenting on this object.
 		t = Object.table
-		update(t, parent==self.id).execute(t.c.parent==0)
+		update(t, t.c.parent==self.id, {t.c.parent: 0}).execute()
 		SQLTypedBase.remove(self)
 	
 	def orders(self):

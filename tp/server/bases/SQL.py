@@ -184,7 +184,7 @@ class SQLBase(object):
 		Removes an object from the database.
 		"""
 		# Remove the common attribute
-		delete(self.table, self.table.c.id==self.id).execute()
+		delete(self.table, self.table.c.id==bindparam('id')).execute(id=self.id)
 
 	def insert(self):
 		"""\
@@ -405,7 +405,8 @@ Extra attributes this type defines.
 		"""
 		trans = dbconn.begin()
 		try:
-			delete(self.table_extra).execute(id=self.id)
+			t = self.table_extra
+			delete(t, t.c.oid==bindparam('id')).execute(id=self.id)
 			SQLBase.remove(self)
 
 			trans.commit()
