@@ -29,6 +29,7 @@ Build a new star ship fleet."""
 		if self.turns() > 1:
 			# Add another year to worked...
 			self.worked += 1
+			print "Worked %s, %s left until built." % (self.worked, self.turns())
 			self.save()
 			return
 			
