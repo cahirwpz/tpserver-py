@@ -154,7 +154,7 @@ class SQLBase(object):
 	
 				id = select([func.max(self.table.c.id+1)], limit=1).execute().fetchall()[0][0]
 				if id is None:
-					id = 0
+					id = 1
 				arguments['id'] = id
 			else:
 				method = update(self.table, self.table.c.id==self.id)
