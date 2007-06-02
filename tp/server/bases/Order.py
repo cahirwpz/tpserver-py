@@ -16,13 +16,13 @@ class Order(SQLTypedBase):
 	"""
 
 	table = Table('orders',
-		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('type',	    String(255), nullable=False, index=True),
-		Column('oid',       Integer,     nullable=False, index=True),
-		Column('slot',      Integer,     nullable=False, index=True),
-		Column('worked',    Integer,     nullable=False),
-		Column('time',	    DateTime,    nullable=False, index=True,
+		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
+		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
+		Column('type',	  String(255), nullable=False, index=True),
+		Column('oid',     Integer,     nullable=False, index=True),
+		Column('slot',    Integer,     nullable=False, index=True),
+		Column('worked',  Integer,     nullable=False),
+		Column('time',	  DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		#UniqueConstraint('game', 'oid', 'slot'), FIXME: This breaks the update...
@@ -33,6 +33,9 @@ class Order(SQLTypedBase):
 
 	table_extra = SQLTypedTable('orders')
 
+	"""\
+	The realid class method starts here... 
+	"""
 	def realid(cls, oid, slot):
 		"""\
 		Order.realid(objectid, slot) -> id
@@ -40,7 +43,7 @@ class Order(SQLTypedBase):
 		Returns the database id for the order found on object at slot.
 		"""
 		t = cls.table
-		result = select([t], (t.c.oid==oid) & (t.c.slot==slot)).execute().fetchall()
+		result = select([t.c.id], (t.c.oid==oid) & (t.c.slot==slot)).execute().fetchall()
 		if len(result) != 1:
 			return -1
 		else:
@@ -58,7 +61,7 @@ class Order(SQLTypedBase):
 	number = classmethod(number)
 
 	def active(cls, type=None):
-		"""\
+		"""
 		Order.active(type) -> ids
 
 		Returns the ids of the given type which are in slot 0.
@@ -72,7 +75,7 @@ class Order(SQLTypedBase):
 	active = classmethod(active)
 
 	def desc_packet(cls, sequence, typeno):
-		"""\
+		"""
 		Order.desc_packet(sequence, typeno)
 
 		Builds an order description packet for the specified order type.
@@ -95,10 +98,13 @@ class Order(SQLTypedBase):
 		return cls.desc_packet(0, typeno).build()
 	packet = classmethod(packet)
 
+	"""\
+	The init method starts here... 
+	"""
 	def __init__(self, oid=None, slot=None, type=None, id=None):
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
-		
+
 		self.worked = 0
 		SQLTypedBase.__init__(self, id, type)
 
@@ -117,17 +123,16 @@ class Order(SQLTypedBase):
 		trans = dbconn.begin()
 		try:
 			t = self.table
-		
+
 			number = self.number(self.oid)
 			if self.slot == -1:
 				self.slot = number
 			elif self.slot <= number:
 				# Need to move all the other orders down
-				t = self.table
 				update(t, (t.c.slot >= bindparam('s')) & (t.c.oid==bindparam('o')), {'slot': t.c.slot+1}).execute(s=self.slot, o=self.oid)
 			else:
 				raise NoSuch("Cannot insert to that slot number.")
-			
+
 			self.save()
 
 			trans.commit()
@@ -145,6 +150,7 @@ class Order(SQLTypedBase):
 				id = self.realid(self.oid, self.slot)
 				if id != -1:
 					self.id = id
+
 			SQLTypedBase.save(self)
 
 			trans.commit()
