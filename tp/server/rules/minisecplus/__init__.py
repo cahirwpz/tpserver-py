@@ -3,9 +3,12 @@ import random
 
 from tp.server.db import dbconn
 
-from tp.server.bases.Object   import Object
-from tp.server.bases.Design   import Design
-from tp.server.bases.Resource import Resource
+from tp.server.bases.Object    import Object
+from tp.server.bases.Resource  import Resource
+from tp.server.bases.Category  import Category
+from tp.server.bases.Property  import Property
+from tp.server.bases.Component import Component
+from tp.server.bases.Design    import Design
 
 from tp.server.rules.base.objects import Planet
 from tp.server.rules.minisec      import Ruleset as MinisecRuleset
@@ -140,28 +143,193 @@ class Ruleset(MinisecRuleset):
 
 			########################################################################
 
+			c = Category()
+			c.name = 'Misc'
+			c.desc = "Things which dont fit into any other category."
+			c.insert()
+
+			c = Category()
+			c.name = 'Production'
+			c.desc = "Things which deal with the production of stuff."
+			c.insert()
+
+			c = Category()
+			c.name = 'Combat'
+			c.desc = "Things which deal with combat between ships."
+			c.insert()
+			
+			c = Category()
+			c.name = 'Designs'
+			c.desc = "A category which has all the designs."
+			c.insert()
+
+			# Create the properties that a design might have
+			p = Property()
+			p.categories = [Category.byname('Misc')]
+			p.name = "speed"
+			p.displayname = "Speed"
+			p.desc = "The maximum number of parsecs the ship can move each turn."
+			p.calculate   = """\
+(lambda (design bits) 
+	(let ((n (apply + bits)))
+		(cons n (string-append (number->string (/ n 1000000)) " kpcs"))))
+"""
+			p.insert()
+ 
+			p = Property()
+			p.categories = [Category.byname('Production')]
+			p.name = "cost"
+			p.displayname = "Cost"
+			p.desc = "The number of components needed to build the ship"
+			p.calculate   = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n (string-append (number->string n) " turns")) ) )
+"""
+			p.insert()
+	
+			p = Property()
+			p.categories = [Category.byname('Combat')]
+			p.name = "hp"
+			p.displayname = "Hit Points"
+			p.desc = "The amount of damage the ship can take."
+			p.calculate   = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n (string-append (number->string n) " HP"))))
+"""
+			p.insert()
+	
+			p = Property()
+			p.categories = [Category.byname('Combat')]
+			p.name = "backup-damage"
+			p.displayname = "Backup Damage"
+			p.desc = "The amount of damage that the ship will do when using it's backup weapon. (IE When it draws a battle round.)"
+			p.calculate   = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n (string-append (number->string n) " HP"))))
+"""
+			p.insert()
+	
+			p = Property()
+			p.categories = [Category.byname('Combat')]
+			p.name = "primary-damage"
+			p.displayname = "Primary Damage"
+			p.desc = "The amount of damage that the ship will do when using it's primary weapon. (IE When it wins a battle round.)"
+			p.calculate    = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n (string-append (number->string n) " HP"))))
+"""
+			p.insert()
+
+			p = Property()
+			p.categories = [Category.byname('Misc')]
+			p.name = "escape"
+			p.displayname = "Escape Chance"
+			p.desc = "The chance the ship has of escaping from battle."
+			p.calculate    = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n (string-append (number->string (* n 100)) " %"))))
+"""
+			p.insert()
+
+			p = Property()
+			p.categories = [Category.byname('Misc')]
+			p.name = "colonise"
+			p.displayname = "Can Colonise Planets"
+			p.desc = "Can the ship colonise planets/"
+			p.calculate = """\
+(lambda (design bits) 
+	(let ((n (apply + bits))) 
+		(cons n 
+			(if (> n 1) "Yes" "No"))))
+"""
+			p.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Combat')]
+			c.name = "Missile"
+			c.desc = "Missile which does 1HP of damage."
+			c.properties  = {}
+			c.properties[Property.byname('primary-damage')] = None
+			c.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Combat')]
+			c.name = "Laser"
+			c.desc = "Lasers which do 1HP of damage."
+			c.properties  = {}
+			c.properties[Property.byname('backup-damage')] = """(lambda (design) 0.25)"""
+			c.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Combat')]
+			c.name = "Armor Plate"
+			c.desc = "Armor Plate which absorbes 1HP of damage."
+			c.properties  = {}
+			c.properties[Property.byname('hp')] = None
+			c.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Misc')]
+			c.name = "Colonisation Pod"
+			c.desc = "A part which allows a ship to colonise a planet."
+			c.properties  = {}
+			c.properties[Property.byname('colonise')] = None
+			c.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Misc')]
+			c.name = "Escape Thrusters"
+			c.desc = "A part which allows a ship to escape combat."
+			c.properties  = {}
+			c.properties[Property.byname('escape')] = """(lambda (design) 0.25)"""
+			c.insert()
+
+			c = Component()
+			c.categories = [Category.byname('Misc')]
+			c.name = "Primary Engine"
+			c.desc = "A part which allows a ship to move through space."
+			c.properties  = {}
+			c.properties[Property.byname('speed')] = """(lambda (design) 1000000)"""
+			c.insert()
+
 			d = Design()
 			d.name  = "Scout"
 			d.desc  = "A fast light ship with advanced sensors."
 			d.owner = -1
-			d.categories = []
+			d.categories = [Category.byname('Misc')]
 			d.components = []
+			d.components.append((Component.byname('Escape Thrusters'), 4))
+			d.components.append((Component.byname('Armor Plate'),      2))
+			d.components.append((Component.byname('Primary Engine'),   5))
 			d.insert()
 	
 			d = Design()
 			d.name  = "Frigate"
 			d.desc  = "A general purpose ship with weapons and ability to colonise new planets."
 			d.owner = -1
-			d.categories = []
+			d.categories = [Category.byname('Misc')]
 			d.components = []
+			d.components.append((Component.byname('Armor Plate'),      4))
+			d.components.append((Component.byname('Primary Engine'),   2))
+			d.components.append((Component.byname('Colonisation Pod'), 1))
+			d.components.append((Component.byname('Missile'),          2))
 			d.insert()
 
 			d = Design()
 			d.name  = "Battleship"
 			d.desc  = "A heavy ship who's main purpose is to blow up other ships."
 			d.owner = -1
-			d.categories = []
+			d.categories = [Category.byname('Misc')]
 			d.components = []
+			d.components.append((Component.byname('Armor Plate'),      6))
+			d.components.append((Component.byname('Primary Engine'),   3))
+			d.components.append((Component.byname('Missile'),          3))
+			d.components.append((Component.byname('Laser'),            4))
 			d.insert()
 
 			trans.commit()

@@ -15,8 +15,8 @@ class Component(SQLBase):
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	  String(255), nullable=False, index=True),
 		Column('desc',    Binary,      nullable=False),
-		Column('requirements', Binary, nullable=False),
-		Column('comment', Binary,      nullable=False),
+		Column('requirements', Binary, nullable=False, default="""(lambda (design) (cons #t ""))"""),
+		Column('comment', Binary,      nullable=False, default=''),
 		Column('time',	  DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
@@ -38,7 +38,7 @@ class Component(SQLBase):
 		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
-		Column('value',     Binary,   nullable=False, default=''),
+		Column('value',     Binary,   nullable=False, default='(lambda (design) 1)'),
 		Column('comment',   Binary,   nullable=False, default=''),
 		Column('time',	    DateTime, nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
@@ -48,7 +48,12 @@ class Component(SQLBase):
 		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 
-	def categories(self):
+	def byname(cls, name):
+		c = cls.table.c
+		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+	byname = classmethod(byname)
+
+	def get_categories(self):
 		"""\
 		categories() -> [id, ...]
 
@@ -58,9 +63,9 @@ class Component(SQLBase):
 		results = select([t.c.category], t.c.component==self.id).execute().fetchall()
 		return [x['category'] for x in results]
 
-	def properties(self):
+	def get_properties(self):
 		"""\
-		properties() -> [(id, value), ...]
+		get_properties() -> [(id, value), ...]
 
 		Returns the properties the component has.
 		"""
@@ -81,8 +86,8 @@ class Component(SQLBase):
 		return None
 
 	def to_packet(self, user, sequence):
-		print "to_packet", [self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties()]
-		return netlib.objects.Component(sequence, self.id, self.time, self.categories(), self.name, self.desc, self.requirements, self.properties())
+		print "to_packet", [self.id, self.time, self.categories, self.name, self.desc, self.requirements, self.properties]
+		return netlib.objects.Component(sequence, self.id, self.time, self.categories, self.name, self.desc, self.requirements, self.properties)
 
 	def id_packet(cls):
 		return netlib.objects.Component_IDSequence
@@ -90,4 +95,54 @@ class Component(SQLBase):
 
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)
+
+	def load(self, id):
+		"""\
+		load(id)
+
+		Loads a thing from the database.
+		"""
+		SQLBase.load(self, id)
+
+		# Load the categories now
+		self.categories = self.get_categories()
+
+		# Load the properties now
+		self.properties = self.get_properties()
+	
+	def save(self, forceinsert=False):
+		"""\
+		save()
+
+		Saves a thing to the database.
+		"""
+		SQLBase.save(self, forceinsert)
+
+		# Save the categories now
+		t = self.table_category
+		current = self.get_categories()
+		for cid in current+self.categories:
+			if (cid in current) and (not cid in self.categories):
+				# Remove the category
+				results = delete(t, (t.c.component==self.id) & (t.c.category==cid)).execute()
+			
+			if (not cid in current) and (cid in self.categories):
+				# Add the category
+				results = insert(t).execute(component=self.id, category=cid)
+
+		# Save the Properties now
+		t = self.table_property
+		current = self.get_properties()
+		for cid in current+self.properties.keys():
+			if (cid in current) and (not cid in self.properties.keys()):
+				# Remove the category
+				results = delete(t, (t.c.component==self.id) & (t.c.property==cid)).execute()
+			
+			elif (not cid in current) and (cid in self.properties.keys()):
+				# Add the category
+				results = insert(t).execute(component=self.id, property=cid, value=self.properties[cid])
+
+			else:
+				# Update the property
+				results = update(t, (t.c.component==self.id) & (t.c.property==cid)).execute(component=self.id, property=cid, value=self.properties[cid])
 

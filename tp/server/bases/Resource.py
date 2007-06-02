@@ -26,6 +26,11 @@ class Resource(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	def byname(cls, name):
+		c = cls.table.c
+		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+	byname = classmethod(byname)
+
 	def to_packet(self, user, sequence):
 		return netlib.objects.Resource(sequence, self.id, 
 					self.namesingular, self.nameplural,
