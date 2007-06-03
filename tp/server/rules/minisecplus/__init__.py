@@ -1,7 +1,10 @@
 
+import os.path
+import csv
 import random
+import pprint
 
-from tp.server.db import dbconn
+from tp.server.db import dbconn, convert
 
 from tp.server.bases.Object    import Object
 from tp.server.bases.Resource  import Resource
@@ -12,6 +15,7 @@ from tp.server.bases.Design    import Design
 
 from tp.server.rules.base.objects import Planet
 from tp.server.rules.minisec      import Ruleset as MinisecRuleset
+
 
 class Ruleset(MinisecRuleset):
 	"""
@@ -24,122 +28,30 @@ class Ruleset(MinisecRuleset):
 	name = "Minisec+"
 	version = "0.0.1"
 
+	files = os.path.join(os.path.dirname(__file__), "other")
+
 	def initalise(self, seed=None):
 		"""\
 		Minisec 
 		"""
+
 		dbconn.use(self.game)
 
 		trans = dbconn.begin()
 		try:
 			MinisecRuleset.initalise(self)
 
-			# Add a bunch of "dummy" resources for "flair"
-			r1 = Resource()
-			r1.id           = 1
-			r1.namesingular = 'Fruit Tree'
-			r1.nameplural   = 'Fruit Trees'
-			r1.unitsingular = ''
-			r1.unitplural   = ''
-			r1.desc         = 'Trees with lots of fruit on them!'
-			r1.weight       = 10
-			r1.size         = 30
-			r1.insert()
+			reader = csv.DictReader(open(os.path.join(self.files, "resources.csv"), "r"))
+			for row in reader:
+				r = Resource()
+				for name, cell in row.iteritems():
+					if cell is '':
+						continue
+					setattr(r, name, convert(getattr(Resource.table.c, name), cell))
 
-			r2 = Resource()
-			r2.id           = 2
-			r2.namesingular = 'Weird Artifact'
-			r2.nameplural   = 'Weird Artifacts'
-			r2.unitsingular = ''
-			r2.unitplural   = ''
-			r2.desc         = 'Weird artifacts from a long time ago.'
-			r2.weight       = 5
-			r2.size         = 5
-			r2.insert()
+				pprint.pprint(r.__dict__)
 
-			r3 = Resource()
-			r3.id           = 3
-			r3.namesingular = 'Rock'
-			r3.nameplural   = 'Rocks'
-			r3.unitsingular = 'ton'
-			r3.unitplural   = 'tons'
-			r3.desc         = 'Rocks - Igneous, Sedimentary, Metamorphic, Oh my!'
-			r3.weight       = 10
-			r3.size         = 1
-			r3.insert()
-
-			r4 = Resource()
-			r4.id           = 4
-			r4.namesingular = 'Water'
-			r4.nameplural   = 'Water'
-			r4.unitsingular = 'kiloliter'
-			r4.unitplural   = 'kiloliters'
-			r4.desc         = 'That liquid stuff which carbon based life forms need.'
-			r4.weight       = 1
-			r4.size         = 1
-			r4.insert()
-
-
-			# These resources are actually useful
-			# ==========================================================
-			# Ship Parts
-			# ----------------------------------------
-			r = Resource()
-			r.namesingular = 'Scout Part'
-			r.nameplural   = 'Scout Parts'
-			r.unitsingular = ''
-			r.unitplural   = ''
-			r.desc         = 'Parts which can be used to construct a scout ship.'
-			r.weight       = 1
-			r.size         = 1
-			r.insert()
-
-			r = Resource()
-			r.namesingular = 'Frigate Part'
-			r.nameplural   = 'Frigate Parts'
-			r.unitsingular = ''
-			r.unitplural   = ''
-			r.desc         = 'Parts which can be used to construct a frigate ship.'
-			r.weight       = 1
-			r.size         = 1
-			r.insert()
-
-			r = Resource()
-			r.namesingular = 'Battleship Part'
-			r.nameplural   = 'Battleship Parts'
-			r.unitsingular = ''
-			r.unitplural   = ''
-			r.desc         = 'Parts which can be used to construct a battleship ship.'
-			r.weight       = 1
-			r.size         = 1
-			r.insert()
-
-			# Homeworld indicator
-			# ----------------------------------------
-			r = Resource()
-			r.id = 10
-			r.namesingular = 'Empire Capital'
-			r.nameplural   = ''
-			r.unitsingular = ''
-			r.unitplural   = ''
-			r.desc         = 'The center of someone\'s intergalactic empire!'
-			r.weight       = 0
-			r.size         = 100000
-			r.insert()
-
-			# Planet Age indicator
-			# ----------------------------------------
-			r = Resource()
-			r.id = 11
-			r.namesingular = 'House'
-			r.nameplural   = 'Housing'
-			r.unitsingular = ''
-			r.unitplural   = ''
-			r.desc         = 'The basic place for people to live in.'
-			r.weight       = 0
-			r.size         = 100000
-			r.insert()
-
+				r.insert()
 
 			########################################################################
 

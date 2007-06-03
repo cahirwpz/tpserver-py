@@ -103,6 +103,16 @@ class Proxy(object):
 			raise AttributeError("No such attribute %s" % name)
 		return getattr(self.engine, name)
 
+
+mapping = {
+	sql.Integer  : int,
+}
+def convert(column, value):
+	try:
+		return mapping[column.type](value)
+	except KeyError:
+		return value
+
 dbconn = Proxy()
 select = dbconn.select
 insert = dbconn.insert
