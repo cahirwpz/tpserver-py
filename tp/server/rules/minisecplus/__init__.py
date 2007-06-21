@@ -53,27 +53,16 @@ class Ruleset(MinisecRuleset):
 
 				r.insert()
 
-			########################################################################
 
-			c = Category()
-			c.name = 'Misc'
-			c.desc = "Things which dont fit into any other category."
-			c.insert()
+			reader = csv.DictReader(open(os.path.join(self.files, "categories.csv"), "r"))
+			for row in reader:
+				c = Category()
+				for name, cell in row.iteritems():
+					setattr(c, name, cell)
 
-			c = Category()
-			c.name = 'Production'
-			c.desc = "Things which deal with the production of stuff."
-			c.insert()
+				pprint.pprint(c.__dict__)
 
-			c = Category()
-			c.name = 'Combat'
-			c.desc = "Things which deal with combat between ships."
-			c.insert()
-			
-			c = Category()
-			c.name = 'Designs'
-			c.desc = "A category which has all the designs."
-			c.insert()
+				c.insert()
 
 			# Create the properties that a design might have
 			p = Property()
