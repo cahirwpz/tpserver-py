@@ -1,10 +1,10 @@
 
 from tp.server.utils import ReparentOne
-from tp.server.db import dbconn
+from tp.server.db import dbconn, convert
 
-from tp.server.bases.Board   import Board
-from tp.server.bases.Message import Message
-from tp.server.bases.Object  import Object
+from tp.server.bases.Board    import Board
+from tp.server.bases.Message  import Message
+from tp.server.bases.Object   import Object
 
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
@@ -22,6 +22,7 @@ import orders.BuildFleet as BuildFleet
 import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
+import actions.Turn as Turn
 
 import random
 
@@ -48,6 +49,7 @@ class Ruleset(RulesetBase):
 			Heal, 				# Repair any ships orbiting a friendly planet
 			Win, 				# Figure out if there is any winner
 			NOp, 				# NOp needs to occur last
+			Turn, 				# Increase the Universe's "Turn" value
 	]
 
 	def initalise(self):
@@ -89,16 +91,17 @@ class Ruleset(RulesetBase):
 		trans = dbconn.begin()
 		try:
 			# FIXME: Assuming that the Universe and the Galaxy exist.
-			random.seed(seed)
+			r = random.Random()
+			r.seed(int(seed))
 
 			# Create this many systems
-			for i in range(0, random.randint(system_min, system_max)):
-				pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+			for i in range(0, r.randint(system_min, system_max)):
+				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 				
 				# Add system
 				system = Object(type='tp.server.rules.base.objects.System')
 				system.name = "System %s" % i
-				system.size = random.randint(800000, 2000000)
+				system.size = r.randint(800000, 2000000)
 				system.posx = pos[0]
 				system.posy = pos[1]
 				system.insert()
@@ -107,13 +110,13 @@ class Ruleset(RulesetBase):
 				print "Created system (%s) with the id: %i" % (system.name, system.id)
 				
 				# In each system create a number of planets
-				for j in range(0, random.randint(planet_min, planet_max)):
+				for j in range(0, r.randint(planet_min, planet_max)):
 					planet = Object(type='tp.server.rules.base.objects.Planet')
 					planet.name = "Planet %i in %s" % (j, system.name)
-					planet.size = random.randint(1000, 10000)
+					planet.size = r.randint(1000, 10000)
 					planet.parent = system.id
-					planet.posx = pos[0]+random.randint(1,100)*1000
-					planet.posy = pos[1]+random.randint(1,100)*1000
+					planet.posx = pos[0]+r.randint(1,100)*1000
+					planet.posy = pos[1]+r.randint(1,100)*1000
 					planet.insert()
 					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
@@ -132,12 +135,16 @@ class Ruleset(RulesetBase):
 		try:
 			user = RulesetBase.player(self, username, password, email, comment)
 
-			pos = random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000, random.randint(SIZE*-1, SIZE)*1000
+			# FIXME: Hack! This however means that player x will always end up in the same place..
+			r = random.Random()
+			r.seed(user.id)
+
+			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 
 			system = Object(type='tp.server.rules.base.objects.System')
 			system.name = "%s Solar System" % username
 			system.parent = 0
-			system.size = random.randint(800000, 2000000)
+			system.size = r.randint(800000, 2000000)
 			(system.posx, system.posy, junk) = pos
 			ReparentOne(system)
 			system.owner = user.id
@@ -147,8 +154,8 @@ class Ruleset(RulesetBase):
 			planet.name = "%s Planet" % username
 			planet.parent = system.id
 			planet.size = 100
-			planet.posx = system.posx+random.randint(1,100)*1000
-			planet.posy = system.posy+random.randint(1,100)*1000
+			planet.posx = system.posx+r.randint(1,100)*1000
+			planet.posy = system.posy+r.randint(1,100)*1000
 			planet.owner = user.id
 			planet.save()
 
@@ -162,6 +169,8 @@ class Ruleset(RulesetBase):
 			fleet.save()
 
 			trans.commit()
+	
+			return (user, system, planet, fleet)
 		except:
 			trans.rollback()
 			raise

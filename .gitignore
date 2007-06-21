@@ -9,3 +9,5 @@ html
 tp/netlib
 tp.db
 config.py
+doc/testing.db
+create.sh

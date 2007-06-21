@@ -14,9 +14,9 @@ class Resource(SQLBase):
 		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('namesingular', Binary,   nullable=False),
-		Column('nameplural',   Binary,   nullable=False),
-		Column('unitsingular', Binary,   nullable=False),
-		Column('unitplural',   Binary,   nullable=False),
+		Column('nameplural',   Binary,   nullable=False, default=''),
+		Column('unitsingular', Binary,   nullable=False, default=''),
+		Column('unitplural',   Binary,   nullable=False, default=''),
 		Column('desc',         Binary,   nullable=False),
 		Column('weight',       Integer,  nullable=False, default=0),
 		Column('size',         Integer,  nullable=False, default=0),
@@ -26,8 +26,16 @@ class Resource(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	def byname(cls, name):
+		c = cls.table.c
+		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+	byname = classmethod(byname)
+
 	def to_packet(self, user, sequence):
-		return netlib.objects.Resource(sequence, self.id, self.name_singular, self.name_pludesc, Resource.number(self.id))
+		return netlib.objects.Resource(sequence, self.id, 
+					self.namesingular, self.nameplural,
+					self.unitsingular, self.unitplural,
+					self.desc, self.weight, self.size, self.time)
 
 	def id_packet(cls):
 		return netlib.objects.Resource_IDSequence

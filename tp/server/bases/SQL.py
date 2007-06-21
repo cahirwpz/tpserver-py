@@ -10,7 +10,7 @@ try:
 except ImportError:
 	import pickle
 import copy
-import time
+from datetime import datetime
 from array import array
 
 # These types go through repr fine
@@ -55,7 +55,7 @@ class SQLBase(object):
 		t = cls.table
 		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
 		if len(result) == 0:
-			return 0
+			return datetime.fromtimestamp(0)
 		return result[0]['time']
 	modified = classmethod(modified)
 
@@ -154,7 +154,7 @@ class SQLBase(object):
 	
 				id = select([func.max(self.table.c.id+1)], limit=1).execute().fetchall()[0][0]
 				if id is None:
-					id = 0
+					id = 1
 				arguments['id'] = id
 			else:
 				method = update(self.table, self.table.c.id==self.id)
@@ -184,7 +184,7 @@ class SQLBase(object):
 		Removes an object from the database.
 		"""
 		# Remove the common attribute
-		delete(self.table, self.table.c.id==self.id).execute()
+		delete(self.table, self.table.c.id==bindparam('id')).execute(id=self.id)
 
 	def insert(self):
 		"""\
@@ -405,7 +405,8 @@ Extra attributes this type defines.
 		"""
 		trans = dbconn.begin()
 		try:
-			delete(self.table_extra).execute(id=self.id)
+			t = self.table_extra
+			delete(t, t.c.oid==bindparam('id')).execute(id=self.id)
 			SQLBase.remove(self)
 
 			trans.commit()
@@ -423,7 +424,7 @@ Extra attributes this type defines.
 		map = getattr(user.playing.ruleset, cls.__name__.lower() + 'map')
 		
 		# Create an instance of this object
-		self = map[packet.type]()
+		self = map[packet._subtype]()
 
 		# FIXME: This is probably bad...
 		for key, value in packet.__dict__.items():
@@ -437,11 +438,18 @@ Extra attributes this type defines.
 				elif self.attributes[key].level == 'protected':
 					getattr(self, "fn_"+key)(value)
 			else:
+				if hasattr(self, key):
+					print "Ekk! Tried to set %s but it already existed (%s)" % (key, getattr(self, key))
+					continue
+
 				setattr(self, key, value)
 		return self
 	from_packet = staticmethod(from_packet)
 
-	def to_packet(self, user, sequence, args):
+	def to_packet(self, user, sequence):
+		self = SQLBase.to_packet(self, user, sequence)
+
+		args = []
 		for attribute in self.attributes.values():
 			if attribute.level == "public":
 				value = getattr(self, attribute.name)
@@ -450,4 +458,4 @@ Extra attributes this type defines.
 			else:
 				continue
 			args.append(value)
-
+		return self, args

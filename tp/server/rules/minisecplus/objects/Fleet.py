@@ -7,9 +7,38 @@ from tp.server.bases.Object import Object
 from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
 
-SPEED = 300000000
+UNIT = 300000000
+
+class ShipTypes(type):
+	def ship_types(self):
+		t = Design.table 
+		results = select([t.c.id, t.c.name, t.c.owner]).execute().fetchall()
+
+		r = {}
+		for x in results:
+			r[x['id']] = x['name']
+
+		return r
+	ship_types = property(ship_types)
+	
+	def ship_hp(self):
+		# FIXME: Should look up the hp...
+		pass
+	ship_hp = property(ship_hp)
+
+	def ship_damage(self):
+		# FIXME: Should look up the damage...
+		pass
+	ship_damage = property(ship_damage)
+
+	def ship_speed(self):
+		# FIXME: Should look up the speed...
+		pass
+	ship_speed = property(ship_speed)
 
 class Fleet(Object, Combattant):
+	__metaclass__ = ShipTypes
+	
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
@@ -21,12 +50,6 @@ class Fleet(Object, Combattant):
 					'tp.server.rules.base.orders.MergeFleet',
 					'tp.server.rules.base.orders.Colonise',)
 	
-	# In MiniSec, these are all hard coded
-	ship_types  = {0: 'Scout', 1: 'Frigate', 2: 'Battleship'}
-	ship_hp     = {0: 2, 1:4, 2:6}
-	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
-	ship_speed  = {0: 3*SPEED, 1: 2*SPEED, 2: 1*SPEED}
-
 	def fn_ships(self, value=None):
 		if value == None:
 			return self.ships.items()

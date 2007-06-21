@@ -45,16 +45,16 @@ Move to a point in space.
 			# Make sure that we haven't missed the object
 			if (obj.velx, obj.vely, obj.velz) != (0,0,0):
 				if xd*obj.velx < 0 or yd*obj.vely < 0 or zd*obj.velz < 0:
-					print "Object %i has overshot destination %s to (%i, %i, %i)" % \
-						(obj.id, self.pos, obj.velx, obj.vely, obj.velz)
+					print "Object %i (%s) has overshot destination %s to (%i, %i, %i)" % \
+						(obj.id, obj.name, self.pos, obj.velx, obj.vely, obj.velz)
 					obj.posx, obj.posy, obj.posz = self.pos
 					ReparentOne(obj)
 					obj.save()
 	
 			# Have we reached our destination?
 			if self.pos == (obj.posx, obj.posy, obj.posz):
-				print "Object %i has arrived at destination (%i, %i, %i)" % \
-						(obj.id, obj.posx, obj.posy, obj.posz)
+				print "Object %i (%s) has arrived at destination (%i, %i, %i)" % \
+						(obj.id, obj.name, obj.posx, obj.posy, obj.posz)
 				obj.velx = obj.vely = obj.velz = 0
 				obj.save()
 				
@@ -72,7 +72,10 @@ Move to a point in space.
 		
 		elif action == 'prepare':
 			distance = math.sqrt(xd**2 + yd**2 + zd**2)
-				
+			
+			if distance == 0:
+				return
+	
 			# Set the velocity so we are moving towards self.pos at speed
 			velx = away(closest(speed * xd/distance, xd))
 			vely = away(closest(speed * yd/distance, yd))

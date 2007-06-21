@@ -12,6 +12,16 @@ from tp.server.bases.SQL  import NoSuch
 from tp.server.bases.Game import Game, Lock
 
 class Commands:
+	def rulesets(*args):
+		"""\
+		--rulesets
+			Prints out the currently installed rulesets.
+"""
+		import tp.server.rules as rules
+		for R in rules.rulesets().values():
+			print '-----------------------------------------'
+			rules.prettyprint(R)
+	rulesets = classmethod(rulesets)
 
 	def addgame(longname, ruleset, admin, comment):
 		"""\

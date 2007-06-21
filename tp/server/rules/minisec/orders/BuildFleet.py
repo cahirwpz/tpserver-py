@@ -14,7 +14,9 @@ Build a new star ship fleet."""
 
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
-				desc="Ships to build and launch.")
+					desc="Ships to build and launch."),
+		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING, 
+					desc="The new fleet's name.")
 	}
 	
 	def do(self):
@@ -27,6 +29,7 @@ Build a new star ship fleet."""
 		if self.turns() > 1:
 			# Add another year to worked...
 			self.worked += 1
+			print "Worked %s, %s left until built." % (self.worked, self.turns())
 			self.save()
 			return
 			
@@ -42,7 +45,7 @@ Build a new star ship fleet."""
 		fleet.owner = builder.owner
 		fleet.ships = self.ships
 		fleet.insert()
-		fleet.name = "Fleet %i" % fleet.id
+		fleet.name = self.name
 		fleet.save()
 
 		message = Message()
@@ -94,3 +97,10 @@ It consists of:
 				pass
 
 			self.ships = ships
+
+	def fn_name(self, value=None):
+		if value == None:
+			return (255, self.name)
+		else:
+			self.name = value[1]
+

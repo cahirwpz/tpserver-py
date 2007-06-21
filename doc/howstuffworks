@@ -1,0 +1,192 @@
+
+Thousand Parsec servers need to store quite a complete history of what a
+player can see. This is further complicated by the fact that each player
+might not have the latest information and should not see the newest
+changes.
+
+This is my proposal for how to solve this problem in a space efficient way.
+I am going to assume that you are using a SQL database to store the data.
+
+Object Data
+---------------------------------------------------
+The first thing that is needs, the object table must be a "log". This means
+that to updating an object is done by inserting a new record. To get the
+view of the universe at any point in time, it's a simple query based on
+modification time. 
+
+For example, say we had the following
+	CREATE TABLE object (
+			modtime INTEGER NOT NULL, 
+			id      INTEGER NOT NULL, 
+			name    VARCHAR(255) NOT NULL
+	);
+	INSERT INTO object VALUES (0, 1, 'Object 1');
+	INSERT INTO object VALUES (0, 2, 'Object 2');
+	INSERT INTO object VALUES (1, 1, 'New Object 1');
+
+This basically describes a universe with two objects. At turn 1, the name
+attribute of the object changed from "Object 1" to "New Object 1".
+
+We then do a
+	SELECT MAX(modtime),name FROM object GROUP BY id; 
+		MAX(modtime)|name
+		0|Object 2
+		1|New Object 1
+
+As we can see, we are getting the correct names. This operation is also
+extremely fast if both modtime and id are indexed.
+
+If was wanted to see what the universe looked like at point in the past, we
+just use a WHERE clause on the modtime.
+
+	SELECT MAX(modtime),name FROM object WHERE modtime <= 0 GROUP BY id; 
+		MAX(modtime)|name
+		0|Object 1
+		0|Object 2
+
+Again we are getting the correct names.
+
+Player Views
+---------------------------------------------------
+That is all and good, but a player can only see parts of the universe
+(because of Fog of War). We don't want to store a complete copy of the
+universe for each player however.
+
+We are going to create a tables like this. We need some way to unquiely
+reference rows in the object table. Most databases have some type of "Row
+OID", but for simplicity in this example, we'll just create it as our
+primary key.
+
+	CREATE TABLE object (
+			rowid   INTEGER NOT NULL,
+			modtime INTEGER NOT NULL, 
+			id      INTEGER NOT NULL, 
+			name    VARCHAR(255) NOT NULL
+        PRIMARY KEY (id), 
+	);
+
+
+	CREATE TABLE view (
+        playerid  INTEGER NOT NULL, 
+		modtime   INTEGER NOT NULL,
+		rowid INTEGER NOT NULL,
+		PRIMARY KEY (playerid, rowid),
+         FOREIGN KEY(rowid) REFERENCES object (rowid), 
+	);
+
+Each turn, we insert a row into view for each object which has been updated that
+turn which the player can see. When inserting into the view table, we figure out
+the correct row id by select the maximum modtime from object. 
+
+Turn 0
+-------------------------------
+We add our objects, 
+	INSERT INTO object VALUES (0, 0, 1, 'Object 1');
+	INSERT INTO object VALUES (1, 0, 2, 'Object 2');
+
+Now if player zero can see object 1 at turn zero we insert a reference
+between the player and the object at that time.
+
+	INSERT INTO view VALUES (0, 0, (SELECT MAX(rowid) FROM object WHERE id=1));
+
+Turn 1
+-------------------------------
+We update object 1 and add another new object.
+	INSERT INTO object VALUES (2, 1, 1, 'New Name Object 1');
+	INSERT INTO object VALUES (3, 1, 3, 'New Object');
+
+Now if the player has discovered object 2 and can still see object 1 this turn,
+we insert two values into the view table.
+
+	INSERT INTO view VALUES (0, 1, (SELECT MAX(rowid) FROM object WHERE id=1));
+	INSERT INTO view VALUES (0, 1, (SELECT MAX(rowid) FROM object WHERE id=2));
+
+Turn 2
+-------------------------------
+We update object 1 again and add another new object.
+	INSERT INTO object VALUES (4, 2, 1, 'Another Name Object 1');
+	INSERT INTO object VALUES (5, 2, 4, 'New Object 2');
+
+Now if the player can no longer see object 1 but has discovered the "new object
+2" we insert a single values into the view table.
+
+	INSERT INTO view VALUES (0, 2, (SELECT MAX(rowid) FROM object WHERE id=4));
+
+
+Looking at the result
+-------------------------------
+
+Okay, now the player wants to know his most current information. To get this we
+join the view table to the object table and select the max value from
+view.modtime.
+
+	SELECT
+		MAX(view.modtime), object.name 
+	FROM
+		view
+	JOIN
+		object ON view.rowid = object.rowid
+	WHERE
+		view.playerid = 0
+	GROUP BY 
+		object.id
+
+What the player should see is,
+	- Object 1     @ Turn 1
+	- Object 2     @ Turn 1
+	- New Object 2 @ Turn 2
+
+Which is exactly what we see,
+	MAX(view.modtime)|object.name
+	1|New Name Object 1
+	1|Object 2
+	2|New Object 2
+
+But we also need to tell the difference between the following cases,
+	- We don't have any new information about this object
+	- The object hasn't changed
+
+To do this we join the table to the object table again
+
+	SELECT
+		MAX(view.modtime) AS modtime, o1.name AS name, (o1.modtime == o2.modtime) AS current
+	FROM
+		view
+	JOIN
+		object AS o1 ON view.rowid = o1.rowid
+	JOIN
+		(SELECT MAX(object.modtime) AS modtime, id FROM object GROUP BY id) AS o2 ON o2.id = o1.id
+	WHERE
+		view.playerid = 0
+	GROUP BY 
+		o1.id
+
+What did the player see at turn 0 however? We again just limit the modtime,
+however on the view table - not on the object table.
+
+	SELECT
+		MAX(view.modtime) AS modtime, o1.name AS name, (o1.modtime == o2.modtime) AS current
+	FROM
+		view
+	JOIN
+		object AS o1 ON view.rowid = o1.rowid
+	JOIN
+		(SELECT MAX(object.modtime) AS modtime, id FROM object WHERE modtime <= 1 GROUP BY id) AS o2 ON o2.id = o1.id
+	WHERE
+		view.playerid = 0 
+	AND
+		view.modtime <= 1
+	GROUP BY 
+		o1.id
+
+So what about partial results?
+-------------------------------
+
+To do partial results, we are going to add an "overrides" table. We then do a
+join to this table.
+
+Then use the "IF(ISNULL(override.<xxx>), object.<xxx>, override.<xxx>)" SQL.
+This isn't as bad as it seems at first, because these IF's only run on the final
+result.
+
+This can also be used for doing "incorrect" data.

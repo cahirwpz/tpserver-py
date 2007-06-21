@@ -31,7 +31,7 @@ def OrderGet():
 
 def ReparentOne(obj):
 	# Reparent the object
-	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby="size ASC")
+	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby=Object.bypos_size)
 	print "Possible parents", parents
 	
 	obj.parent = 0

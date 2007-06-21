@@ -70,28 +70,28 @@ class Design(SQLBase):
 		# Load the properties now
 		self.components = self.get_components()
 
-	def save(self):
+	def save(self, forceinsert=False):
 		"""\
 		save()
 
 		Saves a thing to the database.
 		"""
-		SQLBase.save(self)
+		SQLBase.save(self, forceinsert)
 
 		# Save the categories now
 		t = self.table_category
 		current = self.get_categories()
 		for cid in current+self.categories:
-			if cid in current and not cid in self.categories:
+			if (cid in current) and (not cid in self.categories):
 				# Remove the category
 				results = delete(t, (t.c.design==self.id) & (t.c.category==cid)).execute()
 			
-			if cid not in self.categories and cid in current:
+			if (not cid in current) and (cid in self.categories):
 				# Add the category
 				results = insert(t).execute(design=self.id, category=cid)
 
 		# Save the components now
-		t = self.table_components
+		t = self.table_component
 		current = self.get_components()
 		
 		ct = {}
@@ -106,11 +106,11 @@ class Design(SQLBase):
 		for cid, values in ct.items():
 			start, end = values
 		
-			if end == None or end < 1:
-				results = delete(t, t.c.design==self.id & t.c.component==cid).execute()
-	
 			if start != end:
-				results = update(t).execute(design=self.id, category=cid, amount=amount)
+				if start != None:
+					results = delete(t, (t.c.design==self.id) & (t.c.component==cid)).execute()
+				if end != None and end > 0:
+					results = insert(t).execute(design=self.id, component=cid, amount=end)
 			
 	def set_ignore(self, value):
 		return
@@ -279,7 +279,8 @@ class Design(SQLBase):
 					bits_scheme += " " + str(bit).replace('L', '')
 				bits_scheme += ")"
 				print "In scheme that is", bits_scheme
-				
+			
+				print """(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)	
 				total = i.eval(scheme.parse("""(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)))
 				value, display = scheme.pair.car(total), scheme.pair.cdr(total)
 

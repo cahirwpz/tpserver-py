@@ -159,7 +159,7 @@ class Ruleset(object):
 This board is used so that stuff you own (such as fleets and planets) \
 can inform you of what is happening in the universe. \
 """
-			board.save()
+			board.insert()
 
 			# Add the first message
 			message = Message()
@@ -171,7 +171,7 @@ Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
 \
 This game is currently playing version %s of %s.
 """ % (username, self.version, self.name)
-			message.save()
+			message.insert()
 
 			trans.commit()
 			return user
@@ -212,6 +212,7 @@ This game is currently playing version %s of %s.
 			#
 			# Get all the orders
 			d = OrderGet()
+			print d
 			for action in self.orderOfOrders:
 				if type(action) == TupleType:
 					action, args = action[0], action[1:]
@@ -225,6 +226,8 @@ This game is currently playing version %s of %s.
 					if d.has_key(name):
 						for order in d[name]:
 							order.do(*args)
+					else:
+						print "No orders of that type avaliable.."
 
 					green("%s - Finished" % name)
 			

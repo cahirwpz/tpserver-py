@@ -1,0 +1,8 @@
+game,id,name,displayname,desc,rank,calculate,requirements,comment,time
+1,1,speed,Speed,"The maximum number of parsecs the ship can move each turn.",127,"file:other/scheme/kpcs.scm",,"","2007-06-02 18:17:29"
+1,2,cost,Cost,"The number of components needed to build the ship",127,"file:other/scheme/turns.scm",,"","2007-06-02 18:17:29"
+1,3,hp,"Hit Points","The amount of damage the ship can take.",127,"file:other/scheme/hp.scm",,"","2007-06-02 18:17:29"
+1,4,backup-damage,"Backup Damage","The amount of damage that the ship will do when using it's backup weapon. (IE When it draws a battle round.)",127,"file:other/scheme/hp.scm",,"","2007-06-02 18:17:29"
+1,5,primary-damage,"Primary Damage","The amount of damage that the ship will do when using it's primary weapon. (IE When it wins a battle round.)",127,"file:other/scheme/hp.scm",,"","2007-06-02 18:17:29"
+1,6,escape,"Escape Chance","The chance the ship has of escaping from battle.",127,"file:other/scheme/percent.scm",,"","2007-06-02 18:17:29"
+1,7,colonise,"Can Colonise Planets","Can the ship colonise planets/",127,"file:other/scheme/yesno.scm",,"","2007-06-02 18:17:29"

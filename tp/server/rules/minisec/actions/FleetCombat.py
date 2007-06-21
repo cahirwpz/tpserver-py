@@ -168,7 +168,6 @@ class Side(object):
 					index = damages.index(smallest)
 					break
 				except ValueError, e:
-					print e
 					pass
 
 			if index == -1:
@@ -299,7 +298,7 @@ class BattleXML(object):
 		self.rounds = SubElement(self.root, "rounds")
 
 	def init(self, side):
-		self.sides.append(Element("side", name=side.owner))
+		self.sides.append(Element("side", id=side.owner))
 		sidexml = self.sides[-1]
 
 		for type, amount in enumerate(side.ships.combine()):
@@ -316,7 +315,7 @@ class BattleXML(object):
 				typexml.text = side.ships.names[type]
 
 	def round(self):
-		self.rounds.append(Element('round', no=str(len(self.rounds))))
+		self.rounds.append(Element('round', number=str(len(self.rounds))))
 
 	def log(self, s):
 		logxml = Element('log')

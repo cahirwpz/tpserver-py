@@ -27,5 +27,8 @@ Wait around and do nothing...
 	def resources(self):
 		return []
 	
-	def fn_wait(self):
-		return self.wait, -1
+	def fn_wait(self, value=None):
+		if value is None:
+			return self.wait, -1
+		else:
+			self.wait = value[0]

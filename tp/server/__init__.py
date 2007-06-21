@@ -51,7 +51,6 @@ class FullConnection(netlib.ServerConnection):
 		return self.__user
 
 	def user_set(self, value):
-		print "Setting user...", value
 		if value is None:
 			self.__user  = None
 			self.game    = None		
@@ -101,13 +100,17 @@ class FullConnection(netlib.ServerConnection):
 									"You must be logged in to use this functionality."))
 			return True
 
+		subtype = p._subtype
+
 		# FIXME: Should check if this is an Order or Object
-		if not (p.type in self.ruleset.ordermap):
+		if not (subtype in self.ruleset.ordermap):
 			self._send(objects.Fail(p.sequence, constants.FAIL_FRAME, 
 									"Packet doesn't match a type which I can describe."))
 		else:
-			print "The packet was described by ", self.ruleset.ordermap[p.type].packet(p.type)
-			p.process(p._data, force=self.ruleset.ordermap[p.type].packet(p.type))
+			print "The packet was described by ", self.ruleset.ordermap[subtype].packet(subtype)
+
+			p.__process__(p._data, force=self.ruleset.ordermap[subtype].packet(subtype))
+			del p._data
 
 	def OnGetWithID(self, packet, type):
 		"""\
@@ -349,6 +352,8 @@ class FullConnection(netlib.ServerConnection):
 			amount = classmethod(amount)
 			
 			def ids(cls, user, start, amount):
+				if amount== -1:
+					amount = len(user.playing.ruleset.ordermap)
 				return [(id, 0) for id in user.playing.ruleset.ordermap.keys()[start:amount]]
 			ids = classmethod(ids)
 		
@@ -364,10 +369,12 @@ class FullConnection(netlib.ServerConnection):
 
 		self._send(netlib.objects.Sequence(packet.sequence, len(packet.ids)))
 
+		mapping = self.user.playing.ruleset.ordermap
 		for id in packet.ids:
 			try:
-				self._send(Order.desc_packet(packet.sequence, id))
-			except NoSuch:
+				od = mapping[id].desc_packet(packet.sequence, id)
+				self._send(od)
+			except (KeyError, NoSuch):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "No such order type."))
 
 		return True
@@ -394,7 +401,25 @@ class FullConnection(netlib.ServerConnection):
 			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Order adding failed."))
 
 		return True
-	OnOrder = OnOrder_Insert
+
+	def OnOrder_Probe(self, packet):
+		if not self.check(packet):
+			return True
+
+		try:
+			order = Order.from_packet(self.user, packet)
+			
+			# Are we allowed to do this?
+			if not order.object.allowed(self.user):
+				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Permission denied."))
+				print packet.id, packet.slot, "No Permission"
+			else:	
+				self._send(order.to_packet(self.user, packet.sequence))
+		except NoSuch:
+			print packet.id, packet.slot, "Probe failed."
+			self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_NOSUCH, "Order probe failed."))
+
+		return True
 
 	def OnOrder_Remove(self, packet):
 		if not self.check(packet):
@@ -560,8 +585,9 @@ class FullServer(netlib.Server):
 	
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
-		for connection in self.connections:
-			connection._send(packet)
+		for connection in self.connections.values():
+			if isinstance(connection, FullConnection):
+				connection._send(packet)
 
 	def newgame(self, sig, frame):
 		already = [lock.game for lock in self.locks]

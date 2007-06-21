@@ -16,13 +16,13 @@ class Object(SQLTypedBase):
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
 		Column('name',      Binary,      nullable=False),
-		Column('size',      Integer,     nullable=False),
-		Column('posx',      Integer,     nullable=False, default=0),
-		Column('posy',      Integer,     nullable=False, default=0),
-		Column('posz',      Integer,     nullable=False, default=0),
-		Column('velx',      Integer,     nullable=False, default=0),
-		Column('vely',      Integer,     nullable=False, default=0),
-		Column('velz',      Integer,     nullable=False, default=0),
+		Column('size',      Integer(64), nullable=False),
+		Column('posx',      Integer(64), nullable=False, default=0),
+		Column('posy',      Integer(64), nullable=False, default=0),
+		Column('posz',      Integer(64), nullable=False, default=0),
+		Column('velx',      Integer(64), nullable=False, default=0),
+		Column('vely',      Integer(64), nullable=False, default=0),
+		Column('velz',      Integer(64), nullable=False, default=0),
 		Column('parent',    Integer,     nullable=True),
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
@@ -38,7 +38,8 @@ class Object(SQLTypedBase):
 	types = {}
 	orderclasses = {}
 
-	def bypos(cls, pos, size=0, limit=-1, orderby="time, size DESC"):
+	bypos_size = [asc(table.c.size)]
+	def bypos(cls, pos, size=0, limit=-1, orderby=None):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
 
@@ -48,15 +49,27 @@ class Object(SQLTypedBase):
 		pos = long(pos[0]), long(pos[1]), long(pos[2])
 
 		c = cls.table.c
-		where = (((c.size * c.size) + size**2) >= \
-					(((c.posx-pos[0]) * (c.posx-pos[0])) + \
-					 ((c.posy-pos[1]) * (c.posy-pos[1])) + \
-					 ((c.posz-pos[2]) * (c.posz-pos[2]))))
-		s = select([c.id, c.time], where)
+
+		bp_x = bindparam('x')
+		bp_y = bindparam('y')
+		bp_z = bindparam('z')
+		bp_s = bindparam('size')
+		where = ((c.size+bp_s) >= \
+					func.abs((c.posx-bp_x)) + \
+					func.abs((c.posy-bp_y)) + \
+					func.abs((c.posz-bp_z)))
+#		where = (((c.size+bp_s)*(c.size+bp_s)) >= \
+#					((c.posx-bp_x) * (c.posx-bp_x)) + \
+#					((c.posy-bp_y) * (c.posy-bp_y)) + \
+#					((c.posz-bp_z) * (c.posz-bp_z)))
+		if orderby is None:
+			orderby = [asc(c.time), desc(c.size)]
+
+		s = select([c.id, c.time], where, order_by=orderby)
 		if limit != -1:
 			s.limit = limit
 
-		results = s.execute().fetchall()
+		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
 		return [(x['id'], x['time']) for x in results]
 	bypos = classmethod(bypos)
 
@@ -67,9 +80,25 @@ class Object(SQLTypedBase):
 		Returns the objects which have a parent of this id.
 		"""
 		t = cls.table
-		results = select([t.c.id, t.c.time], (t.c.parent==id) & (t.c.id != id)).execute().fetchall()
+
+		# FIXME: Need to figure out what is going on here..
+		bp_id = bindparam('id')
+		results = select([t.c.id, t.c.time], (t.c.parent==bp_id) & (t.c.id != bp_id)).execute(id=id).fetchall()
 		return [(x['id'], x['time']) for x in results]
 	byparent = classmethod(byparent)
+
+	def bytype(cls, type):
+		"""\
+		bytype(id)
+
+		Returns the objects which have a certain type.
+		"""
+		t = cls.table
+
+		# FIXME: Need to figure out what is going on here..
+		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
+		return [(x['id'], x['time']) for x in results]
+	bytype = classmethod(bytype)
 
 	def __init__(self, id=None, type=None):
 		self.name = "Unknown object"
@@ -85,8 +114,10 @@ class Object(SQLTypedBase):
 		SQLTypedBase.__init__(self, id, type)
 
 	def protect(self, user):
+		print "Protected!", self, user.id
 		o = SQLBase.protect(self, user)
-		if not (user.id in admin) and (hasattr(self, "owner") and self.owner != user.id):
+		if hasattr(self, "owner") and self.owner != user.id:
+			print self.owner
 			def empty():
 				return 0
 			o.orders = empty
@@ -98,11 +129,10 @@ class Object(SQLTypedBase):
 
 	def remove(self):
 		# FIXME: Need to remove associated orders in a better way
-		t = Order.table
-		t.delete(oid==self.id)
+		#delete(Order.table).execute(oid=self.id)
 		# Remove any parenting on this object.
 		t = Object.table
-		update(t, parent==self.id).execute(t.c.parent==0)
+		update(t, t.c.parent==self.id, {t.c.parent: 0}).execute()
 		SQLTypedBase.remove(self)
 	
 	def orders(self):
@@ -119,6 +149,7 @@ class Object(SQLTypedBase):
 
 		Returns the valid order types for this object.
 		"""
+		# FIXME: This probably isn't good
 		if not hasattr(self, "_ordertypes"):
 			self._ordertypes = []
 			for type in self.orderclasses:
@@ -140,10 +171,14 @@ class Object(SQLTypedBase):
 
 	def to_packet(self, user, sequence):
 		# Preset arguments
-		args = [sequence, self.id, self.typeno, self.name, self.size, self.posx, self.posy, self.posz, self.velx, self.vely, self.velz, self.contains(), self.ordertypes(), self.orders(), self.time]
-		SQLTypedBase.to_packet(self, user, sequence, args)
-		print self, args
-		return netlib.objects.Object(*args)
+		self, args = SQLTypedBase.to_packet(self, user, sequence)
+		return netlib.objects.Object(sequence, self.id, self.typeno, self.name, 
+				self.size, 
+				self.posx, self.posy, self.posz, 
+				self.velx, self.vely, self.velz, 
+				self.contains(), self.ordertypes(), self.orders(), 
+				self.time, 
+				*args)
 
 	def id_packet(cls):
 		return netlib.objects.Object_IDSequence
