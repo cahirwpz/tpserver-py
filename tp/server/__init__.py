@@ -18,7 +18,7 @@ except ImportError:
 from version import version
 
 import config
-from config import dbconfig, dbecho, servername, serverip
+from config import dbconfig, dbecho, servername, serverip, metaserver
 
 from tp import netlib
 constants = netlib.objects.constants
@@ -560,28 +560,41 @@ class FullServer(netlib.Server):
 		# Remove any order mapping from the network libray...
 		netlib.objects.OrderDescs().clear()
 
-		# Setup all the Games (specifically the order mappings)
-		self.locks = []
-		for id, time in Game.ids():
-			g = Game(id)
-			g.ruleset.setup()
-			
-			print g.to_zeroconf()
-
-			# Create a lock for this game
-			db.dbconn.use(g)
-			self.locks.append(Lock.new('serving'))
-
 		try:
 			import signal
+
+			# Make sure this thread gets these signals...
+			signal.signal(signal.SIGTERM, self.exit)
+			#signal.signal(signal.SIGKILL, self.exit)
+			signal.signal(signal.SIGINT,  self.exit)
 
 			print "Setup UNIX signalling"
 			signal.signal(signal.SIGUSR1, self.endofturn)
  			print " SIGUSR1 should be used after turn generation to notify clients"
-			signal.signal(signal.SIGUSR2, self.newgame)
+			signal.signal(signal.SIGUSR2, self.newgames)
  			print " SIGUSR2 should be used after adding a new game"
 		except ImportError:
 			print "Unable to set up UNIX signalling."
+
+		# The thread for discovering this server
+		from discover import DiscoverServer
+		self.discover = DiscoverServer(metaserver)
+		self.discover.start()
+
+		# Register all the games..
+		self.locks = []
+		self.newgames()
+
+	def exit(self, *args, **kw):
+		# Remove the locks
+		del self.locks
+
+		# Close the discover threads
+		self.discover.exit()
+		
+		# Exit this thread...
+		import sys
+		sys.exit()
 	
 	def endofturn(self, sig, frame):
 		packet = netlib.objects.TimeRemaining(0, 0)
@@ -589,15 +602,21 @@ class FullServer(netlib.Server):
 			if isinstance(connection, FullConnection):
 				connection._send(packet)
 
-	def newgame(self, sig, frame):
+	def newgames(self, *args, **kw):
+		# Setup all the Games (specifically the order mappings)
 		already = [lock.game for lock in self.locks]
 		for id, time in Game.ids():
 			if id in already:
 				continue
 
+			# Setup the game
 			g = Game(id)
 			g.ruleset.setup()
+
+			# Make the game discoverable	
+			self.discover.GameAdd(g.to_discover())
 
 			# Create a lock for this game
 			db.dbconn.use(g)
 			self.locks.append(Lock.new('serving'))
+

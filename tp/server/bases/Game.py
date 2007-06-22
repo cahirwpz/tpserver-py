@@ -15,7 +15,7 @@ from tp.server.db.enum import Enum
 from tp.server.bases.SQL  import SQLBase, NoSuch
 
 from tp.netlib import objects
-from tp.netlib.discover.game import Game as ZeroconfGame
+from tp.netlib.discover.game import Game as DiscoverGame
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -189,6 +189,7 @@ class Game(SQLBase):
 			return "<Game-(new) %s (%s) turn-%i>" % (self.shortname, self.longname, self.turn)
 
 	def key(self):
+		# FIXME: This probably isn't very secure...
 		key = md5.md5("%s-%s" % (self.longname, self.time))
 		return key.hexdigest()
 	key = property(key)
@@ -240,8 +241,8 @@ class Game(SQLBase):
 								self.ruleset.name, self.ruleset.version,
 								locations, optional)
 
-	def to_zeroconf(self):
-		g = ZeroconfGame(self.longname)
+	def to_discover(self):
+		g = DiscoverGame(self.longname)
 
 		from tp.server import version, servers, servername, serverip
 
