@@ -19,13 +19,6 @@ def main():
 				port += 1
 				continue
 			
-			try:
-				import signal
-
-				signal.signal(signal.SIGUSR1, s.endofturn)
-			except ImportError:
-				print "Unable to set up UNIX signalling, SIGUSR1 will not cause turn generation!"
-
 			s.serve_forever()
 	except KeyboardInterrupt:
 		# FIXME: Should notify clients, or should at least explicitely
