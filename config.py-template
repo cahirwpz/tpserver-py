@@ -12,17 +12,20 @@ dbconfig = "sqlite:///tp.db"
 
 # Output all the SQL statements
 dbecho = False
-#dbecho = False
+#dbecho = True
 
 # Server Connection configuration
 #---------------------------------------------------	
+import socket
+
 # The DNS servername of this server
 #  The lines below will try and autodetect it.
-import socket
-#servername = socket.gethostbyaddr(socket.gethostname())[0]
-servername = 'mithro.dyndns.org'
+servername = socket.gethostbyaddr(socket.gethostname())[0]
+#  You can also set it manually with the line below
+#servername = 'mithro.dyndns.org'
 serverip   = socket.gethostbyaddr(servername)[-1][0]
 
 # Register on the metaserver give below.
 # To disable metaserver registration, set this to None.
-metaserver = "http://localhost"
+metaserver = None
+#metaserver = "http://metaserver.thousandparsec.net"
