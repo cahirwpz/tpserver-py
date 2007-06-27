@@ -1,7 +1,7 @@
 """
 
 def produce(<factory type>):
-	for each planets which have this resource type:
+	for each planets which have this factory type:
 
 		mark factory as fully utilised
 
@@ -25,10 +25,17 @@ def produce(<factory type>):
 				if active != number of factories:
 					clear fully utilised counter...
 
+				if active == zero:
+					set non-utilised
+
 		if factory is fully utilised: 
 			increase the number of factories
-
+		if factory is non-utilised:
+			decrease the number of factories
 
 Find all Factories which require no inputs.
 
 """
+
+
+
