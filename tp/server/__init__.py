@@ -579,7 +579,6 @@ class FullServer(netlib.Server):
 		# The thread for discovering this server
 		from discover import DiscoverServer
 		self.discover = DiscoverServer(metaserver)
-		self.discover.start()
 
 		# Register all the games..
 		self.locks = []
@@ -620,3 +619,9 @@ class FullServer(netlib.Server):
 			db.dbconn.use(g)
 			self.locks.append(Lock.new('serving'))
 
+	def serve_forever(self):
+		# Start the discover threads..
+		self.discover.start()
+
+		netlib.Server.serve_forever(self)
+				
