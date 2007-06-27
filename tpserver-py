@@ -1,5 +1,11 @@
 #! /usr/bin/env python
 
+import os.path
+if not os.path.exists('config.py'):
+	print "WARNING: No config.py found, setting one up for you."
+	import shutil
+	shutil.copy('config.py-template', 'config.py')
+
 import sys, socket
 sys.path.append(".")
 sys.path.append("/etc/tpserver-py")
@@ -15,6 +21,10 @@ def main():
 				s = FullServer("", port, port+1)
 				print "Used port", port
 			except socket.error, e:
+				if e == (99, 'Cannot assign requested address'):
+					print e
+					break
+
 				print e, "This port in use...", port
 				port += 1
 				continue
