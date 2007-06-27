@@ -7,7 +7,7 @@ from sqlalchemy import *
 # Local imports
 from tp.server.db import *
 from tp import netlib
-from SQL import SQLBase
+from SQL import SQLBase, NoSuch
 
 class Resource(SQLBase):
 	table = Table('resource',
@@ -28,7 +28,10 @@ class Resource(SQLBase):
 
 	def byname(cls, name):
 		c = cls.table.c
-		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+		try:
+			return select([c.id], (c.namesingular == name) | (c.nameplural == name), limit=1).execute().fetchall()[0]['id']
+		except IndexError:
+			raise NoSuch("No object with name (either singular or plural) %s" % name)
 	byname = classmethod(byname)
 
 	def to_packet(self, user, sequence):
