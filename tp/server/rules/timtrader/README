@@ -1,0 +1,75 @@
+TIM Trader is a simple game where the idea is to accumulate as much wealth as
+possible. You do this by moving goods around the universe.
+
+
+Some planets have "sources"   which produce various raw goods.
+Some planets have "factories" which take goods and turn them into other goods. 
+Some planets have "consumers" which just use up various goods.
+
+Your movement of goods around the universe has certain effects.
+ - If all (required) goods are supplied to a consumer, the consumer will grow
+   and demand more goods per turn.
+ - If all (required) goods are supplied to a factory, the factory will grow and
+   be able to convert more goods per turn. 
+ - If all (required) goods are purchased from a source, the source will grow and
+   produce more goods per turn.
+
+The inverse is also true. A factory may close down on a planet if not supplied
+with any resources, it will reopen on a new random planet.
+
+You need to be careful that you don't cause a planet to depopulate it's raw
+resources. Some sources such as fishing will get their resources from the
+planet's population of fish, depleting the number.
+
+Random Events
+----------------------------------------------------------------------------------
+ - Fire,     Destroys X factories on a planet
+ - Disease,  Destroys X animals/crops on a planet
+ - Asteroid, Wipes out everything apart from X people
+ - Strike 1, No production on planet
+ - Strike 2, No unload/load on planet
+ - Mutiny,   One ship becomes a pirate ship of the same armour/weapons (can not
+             effect ships with no weapons)
+
+
+
+Turn Processing
+----------------------------------------------------------------------------------
+ - Random events occur 		- actions/Random.py
+This has to occur here, as it may effect the ability to unload/load from certain
+planets.
+        
+ - All ships unload 		- orders/Unload.py
+Unload has to occur before load so that in a single turn goods can be
+transferred from one ship to another.
+        
+ - Loose check performed 	- actions/Loose.py
+Check person has more then negative 10,000 credits.
+Occurs here as this is the time the person will have the most credits.
+        	
+ - All ships load (A) 		- orders/Load.py
+First phase of loading, allows loading of goods which already exist before
+industry has a chance to use them. Useful for using planets as storage
+drop-off/pick-up points.
+        
+ - Movement occurs 			- orders/Move.py
+This has to occur somewhere after load (A) so a ship can do (unload current
+goods, load ready goods, move towards next location).
+ 
+ - Production occurs 		- actions/Economy.py
+Converts goods from one type to another. This should occur before consumption as
+it could produce something consumption needs.
+
+ - Consumption occurs 		- actions/Economy.py
+
+ - Growth/Decay occurs 		- actions/Economy.py
+Number of consumers (including factories) increases if constant supply of goods
+for X turns.  Number of consumers (including factories) decreases if no supply
+of goods for X turns. If number of factories becomes zero, industry moves to new
+planet at random.
+        
+ - All ships load (B) 		- orders/Load.py
+Second phase of loading, allows loading of goods which were produced that turn.
+
+ - ?Cost? of each item at each planet is calculated.
+
