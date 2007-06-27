@@ -21,7 +21,9 @@ class DiscoverServer(Server):
 
 	def start(self):
 		self.local.start()
-		self.remote.start()
+
+		if not self.remote.server is None:
+			self.remote.start()
 
 	def exit(self):
 		self.local.exit()
