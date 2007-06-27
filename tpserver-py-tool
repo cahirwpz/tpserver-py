@@ -56,7 +56,7 @@ class Commands:
 		g.commandline=" ".join(sys.argv)
 		g.save()
 
-		g.ruleset.initalise()
+		g.ruleset.initialise()
 
 		print "Game successfully created!"
 		print "You can use the '%s' shortname when running programs in the future." % shortname

@@ -52,7 +52,7 @@ class Ruleset(RulesetBase):
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 
-	def initalise(self):
+	def initialise(self):
 		"""\
 		Minisec 
 		"""

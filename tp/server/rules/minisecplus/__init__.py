@@ -30,7 +30,7 @@ class Ruleset(MinisecRuleset):
 
 	files = os.path.join(os.path.dirname(__file__), "other")
 
-	def initalise(self, seed=None):
+	def initialise(self, seed=None):
 		"""\
 		Minisec 
 		"""
@@ -39,7 +39,7 @@ class Ruleset(MinisecRuleset):
 
 		trans = dbconn.begin()
 		try:
-			MinisecRuleset.initalise(self)
+			MinisecRuleset.initialise(self)
 
 			reader = csv.DictReader(open(os.path.join(self.files, "resources.csv"), "r"))
 			for row in reader:
