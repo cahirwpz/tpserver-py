@@ -48,8 +48,6 @@ class Ruleset(RulesetBase):
 						continue
 					setattr(r, name, convert(getattr(Resource.table.c, name), cell))
 
-				pprint.pprint(r.__dict__)
-
 				r.insert()
 
 			for factory in ProducersConsumers.loadfile():
@@ -67,21 +65,12 @@ class Ruleset(RulesetBase):
 				r.desc  = "Converts\n"
 				for product in factory.products:
 					# FIXME: Should also display if usage of this resource is required to grow....
-					r.desc += "%s -> %s" % product
+					r.desc += "\t%s -> %s" % product
 
 				r.weight = 1000
 				r.size   = 1000
 
-
-			reader = csv.DictReader(open(os.path.join(self.files, "categories.csv"), "r"))
-			for row in reader:
-				c = Category()
-				for name, cell in row.iteritems():
-					setattr(c, name, cell)
-
-				pprint.pprint(c.__dict__)
-
-				c.insert()
+				r.insert()
 
 			trans.commit()
 		except:
@@ -108,7 +97,51 @@ class Ruleset(RulesetBase):
 		dbconn.use(self.game)
 		trans = dbconn.begin()
 		try:
-			RulesetBase.populate(self, seed, system_min, system_max, planet_min, planet_max)
+			RulesetBase.populate(self, seed)
+
+			# FIXME: Assuming that the Universe and the Galaxy exist.
+			r = random.Random()
+			r.seed(int(seed))
+
+			# Create the actual systems and planets.
+			for i in range(0, r.randint(system_min, system_max)):
+				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+				
+				# Add system
+				system = Object(type='tp.server.rules.base.objects.System')
+				system.name = "System %s" % i
+				system.size = r.randint(800000, 2000000)
+				system.posx = pos[0]
+				system.posy = pos[1]
+				system.insert()
+				ReparentOne(system)
+				system.save()
+				print "Created system (%s) with the id: %i" % (system.name, system.id)
+				
+				# In each system create a number of planets
+				for j in range(0, r.randint(planet_min, planet_max)):
+					planet = Object(type='tp.server.rules.base.objects.Planet')
+					planet.name = "Planet %i in %s" % (j, system.name)
+					planet.size = r.randint(1000, 10000)
+					planet.parent = system.id
+					planet.posx = pos[0]+r.randint(1,100)*1000
+					planet.posy = pos[1]+r.randint(1,100)*1000
+					planet.insert()
+					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
+			# FIXME: Add minerals Iron, Uranium
+			# Add a smattering of minerals 
+			# Add a mine to each planet which has minerals
+
+			# FIXME: Add growing resources
+			# Add a smattering of breeding grounds
+			# Add a smattering of the same stocks
+			# Add 1 fishery/slaughter house to each location
+
+			# FIXME: Add a other industries in random locations
+
+			# FIXME: Add a bunch of cities
+
 
 			# Add a random smattering of resources to planets...
 			r = random.Random()
