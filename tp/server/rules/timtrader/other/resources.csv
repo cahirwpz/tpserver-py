@@ -1,5 +1,7 @@
 "namesingular","nameplural","unitsingular","unitplural","desc","weight","size","transportable"
+,"Resources a player has",,,,,,
 "Header Quarter",,,,"The famous head quarters for a big trading conglomerate.",0,0,FALSE
+"Credit","Credits",,,"The root of all evil, money.",0,0,FALSE
 ,"Resources which Grow",,,,,,
 "Fish","Fish",,,"Things which swim in the sea.",1,1,FALSE
 "Bovine","Bovines",,,"Four legged animals which are good eatin.",1,1,FALSE
