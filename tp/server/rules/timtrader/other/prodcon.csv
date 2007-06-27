@@ -1,7 +1,7 @@
 "Factory Name","Maximum","Description","Requirement","Produce","Growth","Notes"
-"Fish Breading Ground",1,"Magic spot which spawns new fish.","1 fish",,FALSE,"These are so that you can't remove all bovines totally from the universe. "
+"Fish Breading Ground",1,"Magic spot which spawns new fish.",,"1 fish",FALSE,"These are so that you can't remove all bovines totally from the universe. "
 "Fish","1,000,000",,"2 fish","3 fish",FALSE,"Fish will multiple in numbers by themselves – this is what this represents (they multiple quite quickly)."
-"Bovine Breading Ground",1,"Magic spot which spawns new bovines.","1 bovine",,FALSE,"These are so that you can't remove all bovines totally from the universe. "
+"Bovine Breading Ground",1,"Magic spot which spawns new bovines.",,"1 bovine",FALSE,"These are so that you can't remove all bovines totally from the universe. "
 "Bovine","100,000",,"10 bovine","11 bovine",FALSE,"Bovines will multiple in numbers by themselves – this is what this represents"
 "Slaughter House",,"Where bovines are slaughtered and turned into meat. Can be more efficient if supplied with machinery.","1 bovine","10 meat",TRUE,
 ,,,"1 bovine and 1 machinery","20 meat",FALSE,

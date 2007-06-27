@@ -7,5 +7,5 @@ class Planet(PlanetBase):
 	def factories(self):
 		# Figure out the number of factories on this planet from the resource list.
 		pass
-
+	factories = property(factories)
 

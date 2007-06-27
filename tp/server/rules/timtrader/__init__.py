@@ -6,6 +6,7 @@ import pprint
 
 from tp.server.db import dbconn, convert
 
+from tp.server.bases.SQL 	   import NoSuch
 from tp.server.bases.Object    import Object
 from tp.server.bases.Resource  import Resource
 from tp.server.bases.Category  import Category
@@ -13,6 +14,10 @@ from tp.server.bases.Property  import Property
 from tp.server.bases.Component import Component
 from tp.server.bases.Design    import Design
 from tp.server.bases.Ruleset   import Ruleset as RulesetBase
+
+import tp.server.rules.base.orders.NOp as NOp
+import tp.server.rules.base.actions.Move as MoveAction
+import tp.server.rules.minisec.actions.Turn as Turn
 
 class Ruleset(RulesetBase):
 	"""
@@ -25,32 +30,43 @@ class Ruleset(RulesetBase):
 	version = "0.0.1"
 
 	files = os.path.join(os.path.dirname(__file__), "other")
+	# The order orders and actions occur
+	orderOfOrders = [
+			NOp, 				# NOp needs to occur last
+			Turn, 				# Increase the Universe's "Turn" value
+	]
 
-	def initalise(self, seed=None):
+	def initialise(self, seed=None):
 		"""\
 		TIM Trader
 		"""
-
 		dbconn.use(self.game)
 
 		trans = dbconn.begin()
 		try:
-			RulesetBase.initalise(self)
-
 			# Create all the resources, they consist of,
 			#   - One resource for each resource specified in resources.csv
 			#   - One resource for each factory specified  in prodcon.csv
 			reader = csv.DictReader(open(os.path.join(self.files, "resources.csv"), "r"))
 			for row in reader:
+				if row['namesingular'] is '':
+					continue
+
 				r = Resource()
 				for name, cell in row.iteritems():
 					if cell is '':
 						continue
-					setattr(r, name, convert(getattr(Resource.table.c, name), cell))
+					try:
+						setattr(r, name, convert(getattr(Resource.table.c, name), cell))
+					except AttributeError, e:
+						# FIXME: These shouldn't really occur...
+						pass
 
 				r.insert()
 
-			for factory in ProducersConsumers.loadfile():
+			import ProducersConsumers
+			for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
+				# FIXME: Make these auto generated resources much nicer...
 				# Ignore the special case factories which are also goods.
 				try:
 					Resource.byname(factory.name)
@@ -120,7 +136,7 @@ class Ruleset(RulesetBase):
 				
 				# In each system create a number of planets
 				for j in range(0, r.randint(planet_min, planet_max)):
-					planet = Object(type='tp.server.rules.base.objects.Planet')
+					planet = Object(type='tp.server.rules.timtrader.objects.Planet')
 					planet.name = "Planet %i in %s" % (j, system.name)
 					planet.size = r.randint(1000, 10000)
 					planet.parent = system.id
@@ -172,7 +188,8 @@ class Ruleset(RulesetBase):
 			user = RulesetBase.player(self, username, password, email, comment)
 
 			# Get the player's planet object and add the empire capital
-			planet.resources_add(Resource.byname('Homeworld') 1)
+			planet.resources_add(Resource.byname('Header Quarter'), 1)
+			planet.resources_add(Resource.byname('Credit'), 10000)
 			planet.save()
 
 			trans.commit()

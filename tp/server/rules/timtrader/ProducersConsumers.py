@@ -57,7 +57,7 @@ class Factory(object):
 		self.products = []
 
 	def add(self, requirements, produce):
-		self.products.append(requirements, produce)
+		self.products.append((requirements, produce))
 
 def split(s):
 	r = None
@@ -79,11 +79,11 @@ def split(s):
 
 	return r
 
-def loadfile():
+def loadfile(name):
 	"""
 	loadfile -> factories, goods
 	"""
-	reader = csv.DictReader(open(os.path.join("other", "prodcon.csv"), "r"))
+	reader = csv.DictReader(open(name, "r"))
 
 	factories = []
 
@@ -139,6 +139,8 @@ if __name__ == "__main__":
 	reader = csv.DictReader(open(os.path.join("other", "resources.csv"), "r"))
 	resources = set()
 	for row in reader:
+		if row['namesingular'] is '':
+			continue
 		resources.add(row['namesingular'])
 
 	inresource = resources - goods

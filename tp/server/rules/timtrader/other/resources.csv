@@ -1,30 +1,31 @@
-"namesingular","nameplural","unitsingular","unitplural","desc","weight","size","transportable",,,,
-"Header Quarter",,,,"The famous head quarters for a big trading conglomerate.",0,0,FALSE,,,,
-,,,,,,,,,,,
-"Fish","Fish",,,"Things which swim in the sea.",1,1,FALSE,,,,
-"Bovine","Bovines",,,"Four legged animals which are good eatin.",1,1,FALSE,,,,
-,,,,,,,,,,,
-"Fish Fillets","Fish Fillets","kt","kt","The good part of the fish for eating.",1,1,TRUE,,,,
-"Meat","Meat","kt","kt","A unprocessed food source.",1,1,TRUE,,,,
-"Wheat","Wheat","kt","kt","A grain which is used to make food.",1,1,TRUE,,,,
-"Canned Food","Canned Food","kt","kt","Food processed and canned for people to eat.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Fish Guts","Fish Guts","kt","kt","All the horrible left over parts of the fish.",1,1,TRUE,,,,
-"Fertiliser","Fertiliser","kt","kt","Fertiliser for making things grow.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Antimatter","Antimatter","kt","kt","The power source of the galactic empire.",1,1,TRUE,,,,
-"Machinery","Machinery","kt","kt","For making light work of hard jobs.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Waste","Waste","kt","kt","All the left over bits.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Uranium","Uranium","kt","kt","A heavy metal used in weapons.",1,1,TRUE,,,," "
-,,,,,,,,,,,
-"Iron","Iron","kt","kt","The basic component to make steel.",1,1,TRUE,,,,
-"Steel","Steel","kt","kt","Basic component of most structures.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Armour","Armour","part","parts","For protecting ships.",1,1,TRUE,,,,
-"Engine","Engines","part","parts","For making ships go!",1,1,TRUE,,,,
-"Weapon","Weapons","part","parts","A ship component for destroying other ships.",1,1,TRUE,,,,
-"Pod","Pods","part","parts","Large metal structures used in cargo holds and engines.",1,1,TRUE,,,,
-,,,,,,,,,,,
-"Passenger","Passengers",,,"People who want to go somewhere.",1,1,TRUE,,,,
+"namesingular","nameplural","unitsingular","unitplural","desc","weight","size","transportable"
+"Header Quarter",,,,"The famous head quarters for a big trading conglomerate.",0,0,FALSE
+,"Resources which Grow",,,,,,
+"Fish","Fish",,,"Things which swim in the sea.",1,1,FALSE
+"Bovine","Bovines",,,"Four legged animals which are good eatin.",1,1,FALSE
+,"Mineable Resources",,,,,,
+"Uranium","Uranium","kt","kt","A heavy metal used in weapons.",1,1,TRUE
+"Iron","Iron","kt","kt","The basic component to make steel.",1,1,TRUE
+,,,,,,,
+"Fish Fillets","Fish Fillets","kt","kt","The good part of the fish for eating.",1,1,TRUE
+"Meat","Meat","kt","kt","A unprocessed food source.",1,1,TRUE
+"Wheat","Wheat","kt","kt","A grain which is used to make food.",1,1,TRUE
+"Canned Food","Canned Food","kt","kt","Food processed and canned for people to eat.",1,1,TRUE
+,,,,,,,
+,,,,,,,
+"Fish Guts","Fish Guts","kt","kt","All the horrible left over parts of the fish.",1,1,TRUE
+"Fertiliser","Fertiliser","kt","kt","Fertiliser for making things grow.",1,1,TRUE
+,,,,,,,
+"Antimatter","Antimatter","kt","kt","The power source of the galactic empire.",1,1,TRUE
+"Machinery","Machinery","kt","kt","For making light work of hard jobs.",1,1,TRUE
+,,,,,,,
+"Waste","Waste","kt","kt","All the left over bits.",1,1,TRUE
+,,,,,,,
+"Steel","Steel","kt","kt","Basic component of most structures.",1,1,TRUE
+,,,,,,,
+"Armour","Armour","part","parts","For protecting ships.",1,1,TRUE
+"Engine","Engines","part","parts","For making ships go!",1,1,TRUE
+"Weapon","Weapons","part","parts","A ship component for destroying other ships.",1,1,TRUE
+"Pod","Pods","part","parts","Large metal structures used in cargo holds and engines.",1,1,TRUE
+,,,,,,,
+"Passenger","Passengers",,,"People who want to go somewhere.",1,1,TRUE
