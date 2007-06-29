@@ -235,7 +235,6 @@ class FullConnection(netlib.ServerConnection):
 
 		return True
 
-
 	def OnFeature_Get(self, p):
 		self._send(netlib.objects.Feature(p.sequence, [ \
 			constants.FEATURE_HTTP_THIS,

@@ -8,7 +8,6 @@ from tp.server.db import dbconn, convert
 
 from tp.server.bases.SQL 	   import NoSuch
 from tp.server.bases.Object    import Object
-from tp.server.bases.Resource  import Resource
 from tp.server.bases.Category  import Category
 from tp.server.bases.Property  import Property
 from tp.server.bases.Component import Component
@@ -19,6 +18,8 @@ import tp.server.rules.base.orders.NOp as NOp
 import tp.server.rules.base.actions.Move as MoveAction
 import tp.server.rules.minisec.actions.Turn as Turn
 
+from bases.Resource import Resource
+	
 class Ruleset(RulesetBase):
 	"""
 	TIM Trader Ruleset.
@@ -68,25 +69,26 @@ class Ruleset(RulesetBase):
 			for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
 				# FIXME: Make these auto generated resources much nicer...
 				# Ignore the special case factories which are also goods.
+				print "--------->", factory.name
 				try:
-					Resource.byname(factory.name)
-					continue
+					r = Resource(Resource.byname(factory.name))
+					r.desc += "\n"
 				except NoSuch:
-					pass
+					r = Resource()
+					r.namesingular = factory.name
+					r.nameplural   = factory.name
+					r.desc         = ""				
+					r.weight = 1000
+					r.size   = 1000
 
-				r = Resource()
-				r.namesingular = factory.name
-				r.nameplural   = factory.name
-				
-				r.desc  = "Converts\n"
+				r.desc  += "Converts"
 				for product in factory.products:
 					# FIXME: Should also display if usage of this resource is required to grow....
-					r.desc += "\t%s -> %s" % product
+					r.desc += "\n\t%s -> %s" % product
 
-				r.weight = 1000
-				r.size   = 1000
+				r.products = [str(x) for x in factory.products]
 
-				r.insert()
+				r.save()
 
 			trans.commit()
 		except:
@@ -114,6 +116,10 @@ class Ruleset(RulesetBase):
 		trans = dbconn.begin()
 		try:
 			RulesetBase.populate(self, seed)
+
+			r = Resource(Resource.byname('Ship Parts Factory'))
+			print r.products
+			raise IOError('not ready...')
 
 			# FIXME: Assuming that the Universe and the Galaxy exist.
 			r = random.Random()

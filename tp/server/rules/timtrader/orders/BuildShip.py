@@ -81,7 +81,7 @@ A new ship (%s) has been built and is orbiting %s.
 					if r.categories in cid:
 						raise NoSuch()
 				except NoSuch:
-					raise ValueError("Invalid ship part selected")
+					raise ValueError("Invalid ship part selected.")
 				parts[rid] = number
 
 			self.parts = parts

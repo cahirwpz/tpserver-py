@@ -89,9 +89,10 @@ def loadfile(name):
 
 	factory = None
 	for row in reader:
-		if factory is None or factory.name != row['Factory Name']:
-			factory = Factory(row['Factory Name'], row['Description'], row['Maximum'])
-			factories.append(factory)
+		if len(row['Factory Name']) > 0:
+			if factory is None or factory.name != row['Factory Name']:
+				factory = Factory(row['Factory Name'], row['Description'], row['Maximum'])
+				factories.append(factory)
 
 		requirement = split(row['Requirement'])	
 		produce     = split(row['Produce'])	
