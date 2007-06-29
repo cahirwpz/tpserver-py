@@ -152,6 +152,7 @@ class SQLBase(object):
 			if forceinsert or not hasattr(self, 'id'):
 				method = insert(self.table)
 	
+				# FIXME: This is bad!
 				id = select([func.max(self.table.c.id+1)], limit=1).execute().fetchall()[0][0]
 				if id is None:
 					id = 1
@@ -299,7 +300,6 @@ Extra attributes this type defines.
 #			raise TypeError('Can not set the type a second time!')
 		self.__class__ = quickimport(type)		
 		self.__upgrade__()
-
 	type = property(type_get, type_set)
 
 	def __init__(self, id=None, type=None):
@@ -330,7 +330,7 @@ Extra attributes this type defines.
 		SQLBase.load(self, id)
 			
 		# Load the extra properties from the object_extra table
-		results = select([te], te.c.oid==self.id).execute().fetchall()
+		results = select([te], te.c.oid==self.id, [te.c.name, te.c.key]).execute().fetchall()
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']
@@ -346,6 +346,15 @@ Extra attributes this type defines.
 					getattr(self, name)[eval(key)] = eval(str(value))
 					continue
 			
+				elif type(attribute.default) is types.ListType:
+					if not hasattr(self, name):
+						setattr(self, name, [])
+
+					if len(getattr(self, name)) != eval(key):
+						raise TypeError('Some how you managed to get a list which is missing an element!')
+
+					getattr(self, name).append(eval(str(value)))
+					continue
 				elif isSimpleType(attribute.default):
 					value = eval(str(value))
 				else:
@@ -366,9 +375,15 @@ Extra attributes this type defines.
 			SQLBase.save(self, forceinsert)
 
 			for attribute in self.attributes.values():
-				if type(attribute.default) is types.DictType:
+				if type(attribute.default) in (types.DictType, types.ListType):
 					delete(te, (te.c.oid==self.id) & (te.c.name==attribute.name)).execute()
-					for key, value in getattr(self, attribute.name).items():
+
+					if type(attribute.default) is types.ListType:
+						items = enumerate(getattr(self, attribute.name))
+					else:
+						items = getattr(self, attribute.name).iteritems()
+
+					for key, value in items:
 						if not isSimpleType(key):
 							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
 						else:
