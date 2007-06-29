@@ -7,12 +7,13 @@ from sqlalchemy import *
 # Local imports
 from tp.server.db import *
 from tp import netlib
-from SQL import SQLBase
+from SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
-class Component(SQLBase):
+class Component(SQLTypedBase):
 	table = Table('component',
 		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
+		Column('type',	  String(255), nullable=False, index=True),
 		Column('name',	  String(255), nullable=False, index=True),
 		Column('desc',    Binary,      nullable=False),
 		Column('requirements', Binary, nullable=False, default="""(lambda (design) (cons #t ""))"""),
@@ -22,6 +23,8 @@ class Component(SQLBase):
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
+	table_extra = SQLTypedTable('component')
+
 	table_category = Table('component_category',
 		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
@@ -102,7 +105,7 @@ class Component(SQLBase):
 
 		Loads a thing from the database.
 		"""
-		SQLBase.load(self, id)
+		SQLTypedBase.load(self, id)
 
 		# Load the categories now
 		self.categories = self.get_categories()
@@ -116,7 +119,7 @@ class Component(SQLBase):
 
 		Saves a thing to the database.
 		"""
-		SQLBase.save(self, forceinsert)
+		SQLTypedBase.save(self, forceinsert)
 
 		# Save the categories now
 		t = self.table_category

@@ -7,12 +7,13 @@ from sqlalchemy import *
 # Local imports
 from tp.server.db import *
 from tp import netlib
-from SQL import SQLBase, NoSuch
+from SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
-class Resource(SQLBase):
+class Resource(SQLTypedBase):
 	table = Table('resource',
 		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
+		Column('type',	       String(255), nullable=False, index=True),
 		Column('namesingular', Binary,   nullable=False),
 		Column('nameplural',   Binary,   nullable=False, default=''),
 		Column('unitsingular', Binary,   nullable=False, default=''),
@@ -25,11 +26,12 @@ class Resource(SQLBase):
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
+	table_extra = SQLTypedTable('resource')
 
 	def byname(cls, name):
 		c = cls.table.c
 		try:
-			return select([c.id], (c.namesingular == name) | (c.nameplural == name), limit=1).execute().fetchall()[0]['id']
+			return select([c.id], c.namesingular == name, limit=1).execute().fetchall()[0]['id']
 		except IndexError:
 			raise NoSuch("No object with name (either singular or plural) %s" % name)
 	byname = classmethod(byname)

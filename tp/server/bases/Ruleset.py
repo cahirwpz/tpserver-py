@@ -37,8 +37,6 @@ def red(*args):
 		print a,
 	print
 	sys.stdout.write(r"[00m")
-	
-
 
 # FIXME: These should be singltons
 class Ruleset(object):
@@ -105,7 +103,6 @@ class Ruleset(object):
 		for typeno, order in self.objectmap.items():
 			if str(order.__module__) == str(cls.__module__):
 				return typeno
-		
 
 	def initialise(self):
 		""" 
