@@ -19,7 +19,9 @@ class Good(object):
 		return Or_(self, other)
 
 	def __str__(self):
-		return "<%s %s>" % (self.amount, self.name)
+		return "%s %s" % (self.amount, self.name)
+	def __repr__(self):
+		return 'Good(%r, %r)' % (self.amount, self.name)
 
 	def components(self):
 		return [self.name,]
@@ -32,6 +34,8 @@ class Compound(object):
 	
 	def __str__(self):
 		return "%s %s %s" % (self.left, self.type, self.right)
+	def __repr__(self):
+		return '(%r, %r)' % (self.left, self.right)
 
 	def __and__(self, other):
 		return And_(self, other)
@@ -43,10 +47,16 @@ class Compound(object):
 		return self.left.components()+self.right.components()
 
 class And_(Compound):
-	type = 'AND'
+	type = 'and'
+
+	def __repr__(self):
+		return 'And_'+Compound.__repr__(self)
 
 class Or_(Compound):
-	type = 'OR'
+	type = 'or'
+
+	def __repr__(self):
+		return 'Or_'+Compound.__repr__(self)
 
 class Factory(object):
 	def __init__(self, name, desc, maximum=-1):
@@ -58,6 +68,11 @@ class Factory(object):
 
 	def add(self, requirements, produce):
 		self.products.append((requirements, produce))
+
+	def __str__(self):
+		return '<Factory %s %s %s>' % (self.name, self.desc, self.maximum)
+	def __repr__(self):
+		return 'Factory(%r, %r, %r)' % (self.name, self.desc, self.maximum)
 
 def split(s):
 	r = None

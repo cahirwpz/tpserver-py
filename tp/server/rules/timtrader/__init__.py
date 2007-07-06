@@ -69,7 +69,6 @@ class Ruleset(RulesetBase):
 			for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
 				# FIXME: Make these auto generated resources much nicer...
 				# Ignore the special case factories which are also goods.
-				print "--------->", factory.name
 				try:
 					r = Resource(Resource.byname(factory.name))
 					r.desc += "\n"
@@ -86,8 +85,7 @@ class Ruleset(RulesetBase):
 					# FIXME: Should also display if usage of this resource is required to grow....
 					r.desc += "\n\t%s -> %s" % product
 
-				r.products = [str(x) for x in factory.products]
-
+				r.products = factory.products
 				r.save()
 
 			trans.commit()
@@ -119,6 +117,7 @@ class Ruleset(RulesetBase):
 
 			r = Resource(Resource.byname('Ship Parts Factory'))
 			print r.products
+			print 
 			raise IOError('not ready...')
 
 			# FIXME: Assuming that the Universe and the Galaxy exist.
