@@ -31,3 +31,5 @@
 "Pod","Pods","part","parts","Large metal structures used in cargo holds and engines.",1,1,TRUE
 ,,,,,,,
 "Passenger","Passengers",,,"People who want to go somewhere.",1,1,TRUE
+,,,,,,,
+"Goods","Goods","kt","kt","Goods",1,1,TRUE
