@@ -63,6 +63,8 @@ class Ruleset(RulesetBase):
 						# FIXME: These shouldn't really occur...
 						pass
 
+				r.transportable = bool(row['transportable'])
+
 				r.insert()
 
 			import ProducersConsumers
@@ -110,19 +112,19 @@ class Ruleset(RulesetBase):
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
+		# Convert arguments to integers
+		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
+
 		dbconn.use(self.game)
 		trans = dbconn.begin()
 		try:
 			RulesetBase.populate(self, seed)
 
 			r = Resource(Resource.byname('Ship Parts Factory'))
-			print r.products
-			print 
-			raise IOError('not ready...')
 
 			# FIXME: Assuming that the Universe and the Galaxy exist.
 			r = random.Random()
-			r.seed(int(seed))
+			r.seed(seed)
 
 			# Create the actual systems and planets.
 			for i in range(0, r.randint(system_min, system_max)):
@@ -150,32 +152,37 @@ class Ruleset(RulesetBase):
 					planet.insert()
 					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
-			# FIXME: Add minerals Iron, Uranium
-			# Add a smattering of minerals 
-			# Add a mine to each planet which has minerals
+					# FIXME: Add minerals Iron, Uranium
+					mine = False
+					for mineral in minerals:
+						# Does this planet have this mineral
+						if r.random()*100 > mineral.probability:
+							# Add a smattering of minerals 
+							planet.resources_add(id, r.randint(0, mineral.density), Planet.MINEABLE)
+							mine = True
 
-			# FIXME: Add growing resources
-			# Add a smattering of breeding grounds
-			# Add a smattering of the same stocks
-			# Add 1 fishery/slaughter house to each location
+					# Add a mine to each planet which has minerals
+					if mine:
+						planet.resources_add(Resource.byname('Mine'), 1, Planet.ACCESSABLE)
+						
+					# FIXME: Add growing resources
+					for grow in growing:
+						if r.random()*100 > grow.probability:
+							# Add a smattering of breeding grounds
+							planet.resources_add(Resource.byname(''), 1, Planet.ACCESSABLE)
+							
+							# Add a smattering of the same stocks
+							planet.resources_add(Resource.byname(''), r.randint(0, grow.density), Planet.MINEABLE)
+						
 
-			# FIXME: Add a other industries in random locations
+							# Add 1 fishery/slaughter house to each location
 
-			# FIXME: Add a bunch of cities
+					# FIXME: Add a other industries in random locations
+					for factory in factories:
+						pass
 
-
-			# Add a random smattering of resources to planets...
-			r = random.Random()
-			r.seed(int(seed))
-
-			for planetid, time in Object.bytype('tp.server.rules.base.objects.Planet'):
-				planet = Object(id=planetid)
-
-				# FIXME: This needs to use the prop
-				ids = r.sample(range(1, 4), r.randint(0, 3))
-				for id in ids:
-					planet.resources_add(id, r.randint(0, 10),   Planet.ACCESSABLE)
-				planet.save()
+					# FIXME: Add a bunch of cities					
+					planet.save()
 
 			trans.commit()
 		except:

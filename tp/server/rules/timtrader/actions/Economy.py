@@ -1,6 +1,8 @@
 """
 
-def produce(<factory type>):
+for each resource 
+	if not resource is factory:
+		continue
 	for each planets which have this factory type:
 
 		mark factory as fully utilised
@@ -37,5 +39,10 @@ Find all Factories which require no inputs.
 
 """
 
-import ProducerConsumers
+from tp.server.rules.timtrader.bases.Resource import Resource
 
+def do():
+	for rid in Resource.factories():
+		r = Resource(rid)
+
+		# Find all planets which have this resource.	
