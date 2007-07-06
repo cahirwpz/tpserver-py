@@ -15,7 +15,7 @@ from array import array
 
 # These types go through repr fine
 import types
-types.SimpleTypes = [types.BooleanType, types.ComplexType, types.FloatType, 
+types.SimpleTypes = [types.NoneType, types.BooleanType, types.ComplexType, types.FloatType, 
 					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
 types.SimpleCompoundTypes = [types.ListType, types.TupleType]
 
