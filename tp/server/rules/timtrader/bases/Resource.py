@@ -29,12 +29,13 @@ class Resource(ResourceBase):
 	# Get all resources which are transportable
 
 	def transportables(cls):
-		"""\
-		ids([user, start, amount]) -> [id, ...]
-		
-		Get the last ids for this (that the user can see).
-		"""
 		te = cls.table_extra
 		result = select([te.c.oid], (te.c.name=='transportable') & (te.c.value=='True')).execute().fetchall()
 		return [x[0] for x in result]
 	transportables = classmethod(transportables)
+
+	def factories(cls):
+		te = cls.table_extra
+		result = select([te.c.oid], (te.c.name=='_products'), distinct=True).execute().fetchall()
+		return [x[0] for x in result]
+	factories = classmethod(factories)
