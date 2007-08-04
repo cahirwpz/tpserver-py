@@ -548,7 +548,7 @@ servers = weakref.WeakValueDictionary()
 class FullServer(netlib.Server):
 	# FIXME: Should start a thread for ZeroConf registration...
 	handler = FullConnection
-	debug = True
+	debug = config.socketecho
 
 	def __init__(self, *args, **kw):
 		netlib.Server.__init__(self, *args, **kw)
@@ -595,7 +595,7 @@ class FullServer(netlib.Server):
 		sys.exit()
 	
 	def endofturn(self, sig, frame):
-		packet = netlib.objects.TimeRemaining(0, 0)
+		packet = netlib.objects.TimeRemaining(0, -1)
 		for connection in self.connections.values():
 			if isinstance(connection, FullConnection):
 				connection._send(packet)
