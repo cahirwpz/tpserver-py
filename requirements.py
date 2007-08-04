@@ -61,8 +61,29 @@ except (ImportError, KeyError), e:
 		notfound.append('SQLAlchemy')
 
 try:
-	import elementtree.ElementTree
-	print " * Element Tree installed."
+	ET = None
+	errors = []
+	try:
+		import elementtree.ElementTree as ET
+	except ImportError, e:
+		errors.append(e)
+	try:
+		import cElementTree as ET
+	except ImportError:
+		errors.append(e)
+	try:
+		import lxml.etree as ET
+	except ImportError:
+		errors.append(e)
+	try:
+		import xml.etree.ElementTree as ET
+	except ImportError:
+		errors.append(e)
+
+	if ET is None:
+		raise ImportError(str(errors))
+
+	print " * An Element Tree version is installed (%s)." % ET.__name__
 except (ImportError, KeyError), e:
 	if system == "debian-based":
 		notfound.append("python-elementtree")

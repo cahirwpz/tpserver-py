@@ -271,7 +271,28 @@ class Stats(dict):
 			self[src]['killed'][i] += v
 			self[dst]['lost'][i]   += v
 
-from elementtree.ElementTree import Element, SubElement, tostring
+# Need to find an ElementTree implimentation!
+ET = None
+errors = []
+try:
+	import elementtree.ElementTree as ET
+except ImportError, e:
+	errors.append(e)
+try:
+	import cElementTree as ET
+except ImportError:
+	errors.append(e)
+try:
+	import lxml.etree as ET
+except ImportError:
+	errors.append(e)
+try:
+	import xml.etree.ElementTree as ET
+except ImportError:
+	errors.append(e)
+if ET is None:
+	raise ImportError(str(errors))
+
 def indent(elem, level=0):
 	"""
 	Simple helper function to indent an ElementTree before outputing it.
@@ -293,58 +314,58 @@ class BattleXML(object):
 	A class to output BattleXML data.
 	"""
 	def __init__(self):
-		self.root = Element('battle', version='0.0.1', media='minisec')
-		self.sides  = SubElement(self.root, "sides")
-		self.rounds = SubElement(self.root, "rounds")
+		self.root = ET.Element('battle', version='0.0.1', media='minisec')
+		self.sides  = ET.SubElement(self.root, "sides")
+		self.rounds = ET.SubElement(self.root, "rounds")
 
 	def init(self, side):
-		self.sides.append(Element("side", id=side.owner))
+		self.sides.append(ET.Element("side", id=side.owner))
 		sidexml = self.sides[-1]
 
 		for type, amount in enumerate(side.ships.combine()):
 			for index in range(0, amount):
 				entityid = side.name(type, index)
 
-				sidexml.append(Element("entity", id=entityid))
+				sidexml.append(ET.Element("entity", id=entityid))
 				entityxml = sidexml[-1]
 				
-				namexml = SubElement(entityxml, "name")
+				namexml = ET.SubElement(entityxml, "name")
 				namexml.text = entityid
 
-				typexml = SubElement(entityxml, "type")
+				typexml = ET.SubElement(entityxml, "type")
 				typexml.text = side.ships.names[type]
 
 	def round(self):
-		self.rounds.append(Element('round', number=str(len(self.rounds))))
+		self.rounds.append(ET.Element('round', number=str(len(self.rounds))))
 
 	def log(self, s):
-		logxml = Element('log')
+		logxml = ET.Element('log')
 		logxml.text = s
 		self.rounds[-1].append(logxml)
 
 	def fire(self, src, dst):
-		self.rounds[-1].append(Element("fire"))
+		self.rounds[-1].append(ET.Element("fire"))
 		firexml = self.rounds[-1][-1]
 
-		firexml.append(Element("source", ref=src))
-		firexml.append(Element("destination", ref=dst))
+		firexml.append(ET.Element("source", ref=src))
+		firexml.append(ET.Element("destination", ref=dst))
 
 	def damage(self, ref, amount):
-		self.rounds[-1].append(Element("damage"))
+		self.rounds[-1].append(ET.Element("damage"))
 		damagexml = self.rounds[-1][-1]
 		
-		damagexml.append(Element("reference", ref=ref))
-		damagexml.append(Element("amount"))
+		damagexml.append(ET.Element("reference", ref=ref))
+		damagexml.append(ET.Element("amount"))
 		amountxml = damagexml[-1]
 		amountxml.text = str(amount)
 
 	def death(self, ref):
-		self.rounds[-1].append(Element("death"))
-		self.rounds[-1][-1].append(Element("reference", ref=ref))
+		self.rounds[-1].append(ET.Element("death"))
+		self.rounds[-1][-1].append(ET.Element("reference", ref=ref))
 
 	def output(self):
 		indent(self.root)
-		return tostring(self.root)
+		return ET.tostring(self.root)
 
 def combat(working, bxmloutput=None):
 	working = list(working)

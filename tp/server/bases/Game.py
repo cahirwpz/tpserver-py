@@ -176,7 +176,8 @@ class Game(SQLBase):
 			raise TypeError('A ruleset can only be set once!')
 		try:
 			exec("from tp.server.rules.%s import Ruleset" % value)
-		except ImportError:	
+		except ImportError, e:	
+			print e
 			raise ImportError("This game references a ruleset which doesn't exist anymore! Please reinstall the ruleset.")
 		self.rulesetname = value
 
