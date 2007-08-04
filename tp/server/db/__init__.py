@@ -115,6 +115,10 @@ def convert(column, value):
 	except KeyError:
 		return value
 
+# FIXME: Horrible, horrible hack!
+import datetime
+sql.func.current_timestamp = datetime.datetime.now
+
 dbconn = Proxy()
 select = dbconn.select
 insert = dbconn.insert
