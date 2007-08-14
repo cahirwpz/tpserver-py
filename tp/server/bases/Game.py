@@ -95,7 +95,7 @@ class Event(SQLBase):
 		Game Added
 		Game Removed
 	"""
-	types = ['endofterm', 'gameadd', 'gameremoved', 'gameupdated']
+	types = ['endofturn', 'gameadd', 'gameremoved', 'gameupdated']
 
 	table = Table('event',
 		Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
@@ -104,6 +104,22 @@ class Event(SQLBase):
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
+
+	def new(cls, game, eventtype):
+		if not eventtype in Event.types:
+			raise ArgumentError("Event type must be %r not %s" % (self.types, eventtype))
+
+		# Create a new event object
+		if not isinstance(game, Game):
+			raise ArgumentError("First argument must be an ID or a game object!")
+
+		dbconn.use(game)
+		e = Event()
+		e.eventtype = eventtype
+		e.insert()
+
+		return e
+	new = classmethod(new)
 
 	def latest(cls, game):
 		"""\
