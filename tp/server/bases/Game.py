@@ -111,16 +111,18 @@ class Event(SQLBase):
 			raise ArgumentError("Event type must be %r not %s" % (self.types, eventtype))
 
 		# Create a new event object
-		if game != None and not isinstance(game, Game):
-			raise ArgumentError("First argument must be an ID or a game object!")
+		if game != None and not isinstance(game, (Game, int, long)):
+			raise TypeError("Second argument must be an ID or a game object not %r!" % game)
 
 		e = Event()
 		e.eventtype = eventtype
-		if game != None:
+		e.game = game
+		if game != None and isinstance(game, Game):
 			e.game = game.id
-		else:
-			e.game = None
+
+		old = dbconn.use(None)
 		e.insert()
+		dbconn.use(old)
 
 		return e
 	new = classmethod(new)
@@ -129,18 +131,28 @@ class Event(SQLBase):
 		"""\
 		Get the lates Event id.
 		"""
-		dbconn.use(None)
-		c = cls.table.c
-		return select([c.id], order_by=[desc(c.id)], limit=1).execute().fetchall()[0][0]
+		old = dbconn.use(None)
+		try:
+			c = cls.table.c
+			try:
+				return select([c.id], order_by=[desc(c.id)], limit=1).execute().fetchall()[0][0]
+			except IndexError:
+				return -1
+		finally:
+			dbconn.use(old)
 	latest = classmethod(latest)
 
 	def since(cls, id):
 		"""
 		Get all events since a given id.
 		"""
-		dbconn.use(None)
-		c = cls.table.c
-		return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
+		old = dbconn.use(None)
+		try:
+			dbconn.use(None)
+			c = cls.table.c
+			return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
+		finally:
+			dbconn.use(old)
 	since = classmethod(since)
 
 	def __str__(self):
