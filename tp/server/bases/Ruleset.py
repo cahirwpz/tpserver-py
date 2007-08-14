@@ -9,7 +9,7 @@ from types import TupleType
 
 # Local imports
 from tp.server.db import *
-from tp.server.bases.Game    import Game, Lock
+from tp.server.bases.Game    import Game, Lock, Event
 from tp.server.bases.User    import User
 from tp.server.bases.Board   import Board
 from tp.server.bases.Message import Message
@@ -238,6 +238,11 @@ This game is currently playing version %s of %s.
 				sys.stdout.write("\n")
 
 			# Reparent the universe
+
+			# Create a EOT event
+			e = Event()
+			e.eventtype = 'endofturn'
+			e.insert()
 
 			trans.commit()
 		except:

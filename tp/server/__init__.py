@@ -29,7 +29,7 @@ from tp.server.bases.Board     import Board
 from tp.server.bases.Category  import Category
 from tp.server.bases.Component import Component
 from tp.server.bases.Design    import Design
-from tp.server.bases.Game      import Game, Lock
+from tp.server.bases.Game      import Game, Lock, Event
 from tp.server.bases.Message   import Message
 from tp.server.bases.Object    import Object
 from tp.server.bases.Order     import Order
@@ -566,12 +566,6 @@ class FullServer(netlib.Server):
 			signal.signal(signal.SIGTERM, self.exit)
 			#signal.signal(signal.SIGKILL, self.exit)
 			signal.signal(signal.SIGINT,  self.exit)
-
-			print "Setup UNIX signalling"
-			signal.signal(signal.SIGUSR1, self.endofturn)
- 			print " SIGUSR1 should be used after turn generation to notify clients"
-			signal.signal(signal.SIGUSR2, self.newgames)
- 			print " SIGUSR2 should be used after adding a new game"
 		except ImportError:
 			print "Unable to set up UNIX signalling."
 
@@ -579,9 +573,39 @@ class FullServer(netlib.Server):
 		from discover import DiscoverServer
 		self.discover = DiscoverServer(metaserver)
 
-		# Register all the games..
 		self.locks = []
-		self.newgames()
+		self.events= {}
+
+		# Register all the games..
+		self.updategames()
+
+	def poll(self):
+		# Check of any new events
+		for id, latest in self.events.items():
+			g = Game(id)
+
+			# Get any new events..
+			for event in Event.since(g, latest):
+				print 'New Event!!! -->', event
+
+				if hasattr(self, event.eventtype):
+					getattr(self, event.eventtype)(g)
+				
+				latest = event.id
+
+			self.events[id] = latest
+
+	def endofturn(self, game):
+		# Send TimeRemaining Packets
+		packet = netlib.objects.TimeRemaining(0, -1)
+
+		for connection in self.connections.values():
+			if isinstance(connection, FullConnection) and not connection.user is None:
+				if connection.user.game.id != id:
+					continue
+
+				print "Sending EOT to", connection
+				connection._send(packet)
 
 	def exit(self, *args, **kw):
 		# Remove the locks
@@ -594,13 +618,9 @@ class FullServer(netlib.Server):
 		import sys
 		sys.exit()
 	
-	def endofturn(self, sig, frame):
-		packet = netlib.objects.TimeRemaining(0, -1)
-		for connection in self.connections.values():
-			if isinstance(connection, FullConnection):
-				connection._send(packet)
+	def updategames(self, *args, **kw):
+		# FIXME: This doesn't remove games when removed :/
 
-	def newgames(self, *args, **kw):
 		# Setup all the Games (specifically the order mappings)
 		already = [lock.game for lock in self.locks]
 		for id, time in Game.ids():
@@ -618,9 +638,13 @@ class FullServer(netlib.Server):
 			db.dbconn.use(g)
 			self.locks.append(Lock.new('serving'))
 
+			# Add the game to the event queue
+			self.events[id] = Event.latest(g)
+
 	def serve_forever(self):
 		# Start the discover threads..
 		self.discover.start()
 
-		netlib.Server.serve_forever(self)
+		# Need to wake up to check for things like EOT
+		netlib.Server.serve_forever(self, 400)
 

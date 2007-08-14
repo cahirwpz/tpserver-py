@@ -81,6 +81,56 @@ class Lock(SQLBase):
 		return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
 	locked = staticmethod(locked)
 
+class Event(SQLBase):
+	"""
+	Sometimes 'Events' occur. This table stores them.
+
+	When a server starts up it reads the latest event id from the table. 
+	It then checks periodicly that no id greater then the current on has been
+	added to the table.
+
+	Events can be the following types,
+		End of Turn
+
+		Game Added
+		Game Removed
+	"""
+	types = ['endofterm', 'gameadd', 'gameremoved', 'gameupdated']
+
+	table = Table('event',
+		Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+		Column('eventtype', Enum(types), nullable=False, index=True),       # Locktype
+
+		ForeignKeyConstraint(['game'], ['game.id']),
+	)
+
+	def latest(cls, game):
+		"""\
+		Object.bypos([x, y, z], size) -> [Object, ...]
+
+		Return all objects which are centered inside a sphere centerd on
+		size and radius of size.
+		"""
+		dbconn.use(game)
+		c = cls.table.c
+		return select([c.id], order_by=[desc(c.id)], limit=1).execute().fetchall()[0][0]
+	latest = classmethod(latest)
+
+	def since(cls, game, id):
+		dbconn.use(game)
+		c = cls.table.c
+		return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
+	since = classmethod(since)
+
+	def __str__(self):
+		if not hasattr(self, 'id'):
+			id = '(new)'
+		else:
+			id = self.id
+		return "<Event-%s %s>" % (id, self.eventtype) 
+	__repr__ = __str__
+
 class Game(SQLBase):
 	table = Table('game',
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
