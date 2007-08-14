@@ -119,7 +119,16 @@ class Ruleset(object):
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
-		pass
+		dbconn.use(self.game)
+
+		trans = dbconn.begin()
+		try:
+			Event.new('gameadd', self.game)
+
+			trans.commit()
+		except:
+			trans.rollback()
+			raise
 
 	def update(self):
 		"""

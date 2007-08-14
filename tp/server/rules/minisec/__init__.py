@@ -60,6 +60,8 @@ class Ruleset(RulesetBase):
 
 		trans = dbconn.begin()
 		try:
+			RulesetBase.initialise(self)
+
 			# Need to create the top level universe object...
 			universe = Object(type='tp.server.rules.base.objects.Universe')
 			universe.id     = 0

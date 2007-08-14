@@ -45,6 +45,8 @@ class Ruleset(RulesetBase):
 
 		trans = dbconn.begin()
 		try:
+			RulesetBase.initialise(self)
+
 			# Create all the resources, they consist of,
 			#   - One resource for each resource specified in resources.csv
 			#   - One resource for each factory specified  in prodcon.csv
