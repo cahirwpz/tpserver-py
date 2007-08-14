@@ -64,9 +64,10 @@ class Lock(SQLBase):
 	new = classmethod(new)
 
 	def __del__(self):
-		print "Removing lock", self, hasattr(self, 'local') and self.local
 		if hasattr(self, 'id'):
 			if hasattr(self, 'local') and self.local:
+				dbconn.use(self.game)
+				print "Removing lock", self, hasattr(self, 'local') and self.local
 				self.remove()
 
 	def __str__(self):
@@ -74,7 +75,7 @@ class Lock(SQLBase):
 			id = '(new)'
 		else:
 			id = self.id
-		return "<Lock-%s %s by %s-%s>" % (id, self.locktype, self.host, self.pid) 
+		return "<Lock-%s,%s %s by %s-%s>" % (id, self.game, self.locktype, self.host, self.pid) 
 
 	def locked(type):
 		t = Lock.table
