@@ -563,9 +563,9 @@ class FullServer(netlib.Server):
 			import signal
 
 			# Make sure this thread gets these signals...
-			signal.signal(signal.SIGTERM, self.exit)
+			signal.signal(signal.SIGTERM, self.shutdown)
 			#signal.signal(signal.SIGKILL, self.exit)
-			signal.signal(signal.SIGINT,  self.exit)
+			signal.signal(signal.SIGINT,  self.shutdown)
 		except ImportError:
 			print "Unable to set up UNIX signalling."
 
@@ -573,27 +573,44 @@ class FullServer(netlib.Server):
 		from discover import DiscoverServer
 		self.discover = DiscoverServer(metaserver)
 
-		self.locks = []
-		self.events= {}
+		self.events = Event.latest()
 
 		# Register all the games..
-		self.updategames()
+		self.locks  = []
+		for id, time in Game.ids():
+			self.gameadd(Game(id))
 
 	def poll(self):
-		# Check of any new events
-		for id, latest in self.events.items():
-			g = Game(id)
+		# Get any new events..
+		for event in Event.since(self.events):
+			print 'New Event!!! -->', event
 
-			# Get any new events..
-			for event in Event.since(g, latest):
-				print 'New Event!!! -->', event
+			if hasattr(self, event.eventtype):
+				try:
+					getattr(self, event.eventtype)(Game(event.game))
+				except Exception, e:
+					print e
+			
+			self.events = event.id
 
-				if hasattr(self, event.eventtype):
-					getattr(self, event.eventtype)(g)
-				
-				latest = event.id
+	def gameadd(self, g):
+		already = [lock.game for lock in self.locks]
+		if g.id in already:
+			print "Got gameadd event for a game I already have a lock on!"
+			return
 
-			self.events[id] = latest
+		# Setup the game
+		g.ruleset.setup()
+
+		# Make the game discoverable	
+		self.discover.GameAdd(g.to_discover())
+
+		# Create a lock for this game
+		db.dbconn.use(g)
+		self.locks.append(Lock.new('serving'))
+
+	def gameremove(self, g):
+		pass
 
 	def endofturn(self, game):
 		# Send TimeRemaining Packets
@@ -601,13 +618,13 @@ class FullServer(netlib.Server):
 
 		for connection in self.connections.values():
 			if isinstance(connection, FullConnection) and not connection.user is None:
-				if connection.user.game.id != id:
+				if connection.user.game != game.id:
 					continue
 
 				print "Sending EOT to", connection
 				connection._send(packet)
 
-	def exit(self, *args, **kw):
+	def shutdown(self, *args, **kw):
 		# Remove the locks
 		del self.locks
 
@@ -618,29 +635,6 @@ class FullServer(netlib.Server):
 		import sys
 		sys.exit()
 	
-	def updategames(self, *args, **kw):
-		# FIXME: This doesn't remove games when removed :/
-
-		# Setup all the Games (specifically the order mappings)
-		already = [lock.game for lock in self.locks]
-		for id, time in Game.ids():
-			if id in already:
-				continue
-
-			# Setup the game
-			g = Game(id)
-			g.ruleset.setup()
-
-			# Make the game discoverable	
-			self.discover.GameAdd(g.to_discover())
-
-			# Create a lock for this game
-			db.dbconn.use(g)
-			self.locks.append(Lock.new('serving'))
-
-			# Add the game to the event queue
-			self.events[id] = Event.latest(g)
-
 	def serve_forever(self):
 		# Start the discover threads..
 		self.discover.start()

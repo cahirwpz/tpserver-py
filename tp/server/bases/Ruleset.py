@@ -240,7 +240,7 @@ This game is currently playing version %s of %s.
 			# Reparent the universe
 
 			# Create a EOT event
-			Event.new(self.game, 'endofturn')
+			Event.new('endofturn', self.game)
 
 			trans.commit()
 		except:

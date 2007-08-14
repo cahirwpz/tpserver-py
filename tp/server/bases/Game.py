@@ -95,46 +95,49 @@ class Event(SQLBase):
 		Game Added
 		Game Removed
 	"""
-	types = ['endofturn', 'gameadd', 'gameremoved', 'gameupdated']
+	types = ['shutdown', 'endofturn', 'gameadd', 'gameremoved', 'gameupdated']
 
 	table = Table('event',
-		Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('eventtype', Enum(types), nullable=False, index=True),       # Locktype
+		Column('game',	    Integer,     nullable=True,  index=True),
+		Column('eventtype', Enum(types), nullable=False, index=True),
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
-	def new(cls, game, eventtype):
+	def new(cls, eventtype, game=None):
 		if not eventtype in Event.types:
 			raise ArgumentError("Event type must be %r not %s" % (self.types, eventtype))
 
 		# Create a new event object
-		if not isinstance(game, Game):
+		if game != None and not isinstance(game, Game):
 			raise ArgumentError("First argument must be an ID or a game object!")
 
-		dbconn.use(game)
 		e = Event()
 		e.eventtype = eventtype
+		if game != None:
+			e.game = game.id
+		else:
+			e.game = None
 		e.insert()
 
 		return e
 	new = classmethod(new)
 
-	def latest(cls, game):
+	def latest(cls):
 		"""\
-		Object.bypos([x, y, z], size) -> [Object, ...]
-
-		Return all objects which are centered inside a sphere centerd on
-		size and radius of size.
+		Get the lates Event id.
 		"""
-		dbconn.use(game)
+		dbconn.use(None)
 		c = cls.table.c
 		return select([c.id], order_by=[desc(c.id)], limit=1).execute().fetchall()[0][0]
 	latest = classmethod(latest)
 
-	def since(cls, game, id):
-		dbconn.use(game)
+	def since(cls, id):
+		"""
+		Get all events since a given id.
+		"""
+		dbconn.use(None)
 		c = cls.table.c
 		return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
 	since = classmethod(since)
@@ -144,7 +147,7 @@ class Event(SQLBase):
 			id = '(new)'
 		else:
 			id = self.id
-		return "<Event-%s %s>" % (id, self.eventtype) 
+		return "<Event-%s (Game - %s) %s>" % (id, self.game, self.eventtype) 
 	__repr__ = __str__
 
 class Game(SQLBase):
