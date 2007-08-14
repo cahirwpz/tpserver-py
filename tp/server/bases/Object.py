@@ -114,7 +114,6 @@ class Object(SQLTypedBase):
 		SQLTypedBase.__init__(self, id, type)
 
 	def protect(self, user):
-		print "Protected!", self, user.id
 		o = SQLBase.protect(self, user)
 		if hasattr(self, "owner") and self.owner != user.id:
 			print self.owner

@@ -127,8 +127,6 @@ class FullConnection(netlib.ServerConnection):
 		if not self.check(packet):
 			return True
 
-		print "Getting stuff with ids", packet.ids
-		
 		if len(packet.ids) != 1:
 			self._send(netlib.objects.Sequence(packet.sequence, len(packet.ids)))
 
@@ -164,8 +162,6 @@ class FullConnection(netlib.ServerConnection):
 		if not self.check(packet):
 			return True
 
-		print "Getting IDs with ", packet.key, packet.start, packet.amount
-		
 		key   = long(type.modified(self.user).strftime('%s'))
 		total = type.amount(self.user)
 		
@@ -184,7 +180,6 @@ class FullConnection(netlib.ServerConnection):
 			left = total - (packet.start+packet.amount)
 
 		ids = type.ids(self.user, packet.start, packet.amount)
-		print key, total, left, ids
 		self._send(type.id_packet()(packet.sequence, key, left, ids))
 
 		return True

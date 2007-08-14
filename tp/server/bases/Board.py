@@ -73,8 +73,6 @@ class Board(SQLBase):
 		b = Board.mangleid(self.id)
 
 		m = Message.number(self.id)
-		print "--------------------------- Board", b, "Message", m
-		print repr([sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time])
 		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time)
 
 	def id_packet(cls):
