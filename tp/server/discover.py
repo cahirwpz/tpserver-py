@@ -2,8 +2,9 @@
 import threading
 
 from tp.netlib.discover.server import Server
-from tp.netlib.discover import LocalServer as LocalServerB
-from tp.netlib.discover import RemoteServer as RemoteServerB
+from tp.netlib.discover.servers import LocalServer  as LocalServerB
+from tp.netlib.discover.servers import RemoteServer as RemoteServerB
+
 class LocalServer(LocalServerB, threading.Thread):
 	def __init__(self, *args, **kw):
 		threading.Thread.__init__(self)
