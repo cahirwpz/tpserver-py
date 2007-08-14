@@ -173,6 +173,10 @@ class SQLBase(object):
 				if default_metadata.engine.echo:
 					print "Newly inserted id is", self.id
 
+			if not hasattr(self, 'game'):
+				if dbconn.game != None:
+					self.game = dbconn.game
+
 			trans.commit()
 		except:
 			trans.rollback()
