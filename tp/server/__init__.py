@@ -623,4 +623,4 @@ class FullServer(netlib.Server):
 		self.discover.start()
 
 		netlib.Server.serve_forever(self)
-				
+
