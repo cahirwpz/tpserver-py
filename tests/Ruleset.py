@@ -92,3 +92,11 @@ class TestRuleset2(object):
 		ln = self.__class__.__name__
 		r = Game(shortname=ln).ruleset
 		r.turn()
+	
+	def test_update(self):
+		"""
+		Tests that the ruleset update method runs..
+		"""
+		ln = self.__class__.__name__
+		r = Game(shortname=ln).ruleset
+		r.update()

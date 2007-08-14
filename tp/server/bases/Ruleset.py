@@ -121,6 +121,12 @@ class Ruleset(object):
 		"""
 		pass
 
+	def update(self):
+		"""
+		Update an in progress game with the data that is current only disk.
+		"""
+		pass
+
 	def populate(self, *args, **kw):
 		"""
 		Populate the "universe". It is given a list of arguments.
