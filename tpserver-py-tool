@@ -37,31 +37,42 @@ class Commands:
 		except NoSuch:
 			pass
 
-		# Okay create a new game then
-		g = Game()
-
-		# Check that this is a valid ruleset
 		try:
-			g.ruleset  = ruleset
-		except ImportError, e:
+			trans = dbconn.begin()
+
+			# Okay create a new game then
+			g = Game()
+
+			# Check that this is a valid ruleset
+			try:
+				g.ruleset  = ruleset
+			except ImportError, e:
+				print e
+				print "That ruleset does not exist! Please check your spelling or install the correct module."
+				return
+
+			g.shortname= shortname
+			g.longname = longname
+			g.admin    = admin
+			g.comment  = comment
+			g.turn     = 0
+			g.commandline=" ".join(sys.argv)
+			g.save()
+
+			g.ruleset.initialise()
+
+			trans.commit()
+
+			print "Game successfully created!"
+			print "You can use the '%s' shortname when running programs in the future." % shortname
+			print
+			print "You probably want to populate the universe now. See the --populate command."
+		except Exception, e:
+			trans.rollback()
+
+			print "An error occured when adding the game, no changes to the database have been made.."
 			print e
-			print "That ruleset does not exist! Please check your spelling or install the correct module."
-			return
 
-		g.shortname= shortname
-		g.longname = longname
-		g.admin    = admin
-		g.comment  = comment
-		g.turn     = 0
-		g.commandline=" ".join(sys.argv)
-		g.save()
-
-		g.ruleset.initialise()
-
-		print "Game successfully created!"
-		print "You can use the '%s' shortname when running programs in the future." % shortname
-		print
-		print "You probably want to populate the universe now. See the --populate command."
 	addgame = staticmethod(addgame)		
 
 	def delgame(game):
