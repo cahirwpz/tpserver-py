@@ -43,11 +43,20 @@ class Ruleset(RulesetBase):
 		"""\
 		TIM Trader
 		"""
-		dbconn.use(self.game)
-
 		trans = dbconn.begin()
 		try:
 			RulesetBase.initialise(self)
+
+			# Need to create the top level universe object...
+			universe = Object(type='tp.server.rules.base.objects.Universe')
+			universe.id     = 0
+			universe.name   = "The Universe"
+			universe.size   = SIZE
+			universe.parent = 0
+			universe.posx   = 0
+			universe.posy   = 0
+			universe.turn   = 0
+			universe.insert()
 
 			# Create all the resources, they consist of,
 			#   - One resource for each resource specified in resources.csv
