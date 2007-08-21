@@ -56,6 +56,8 @@ class TestRuleset1(object):
 
 		g.ruleset.initialise()
 
+		# FIXME: Check that a universe object exists with ID == 0
+
 class TestRuleset2(object):
 	"""
 	This test does some rudimentary tests to make sure a ruleset has some basic

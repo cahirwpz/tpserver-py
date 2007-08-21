@@ -1,7 +1,7 @@
 
 import random
 
-from tp.server.rules.bases.Planet import Planet as PlanetBase
+from tp.server.rules.base.objects.Planet import Planet as PlanetBase
 
 class Planet(PlanetBase):
 	def factories(self):

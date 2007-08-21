@@ -4,6 +4,7 @@ import csv
 import random
 import pprint
 
+from tp.server.utils import ReparentOne
 from tp.server.db import dbconn, convert
 
 from tp.server.bases.SQL 	   import NoSuch
@@ -20,6 +21,7 @@ import tp.server.rules.minisec.actions.Turn as Turn
 
 from bases.Resource import Resource
 	
+SIZE = 10000000
 class Ruleset(RulesetBase):
 	"""
 	TIM Trader Ruleset.
@@ -97,13 +99,7 @@ class Ruleset(RulesetBase):
 			trans.rollback()
 			raise
 
-
 		# FIXME: Need to populate the database with the MiniSec design stuff,
-		#  - Firepower
-		#  - Armor/HP
-		#  - Speed
-		#  - Sensors (scouts ability to disappear)....
-		pass
 
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
@@ -201,10 +197,43 @@ class Ruleset(RulesetBase):
 		try:
 			user = RulesetBase.player(self, username, password, email, comment)
 
+			# FIXME: Hack! This however means that player x will always end up in the same place..
+			r = random.Random()
+			r.seed(user.id)
+
+			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+
+			system = Object(type='tp.server.rules.base.objects.System')
+			system.name = "%s Solar System" % username
+			system.parent = 0
+			system.size = r.randint(800000, 2000000)
+			(system.posx, system.posy, junk) = pos
+			ReparentOne(system)
+			system.owner = user.id
+			system.save()
+
+			planet = Object(type='tp.server.rules.timtrader.objects.Planet')
+			planet.name = "%s Planet" % username
+			planet.parent = system.id
+			planet.size = 100
+			planet.posx = system.posx+r.randint(1,100)*1000
+			planet.posy = system.posy+r.randint(1,100)*1000
+			planet.owner = user.id
+
 			# Get the player's planet object and add the empire capital
 			planet.resources_add(Resource.byname('Header Quarter'), 1)
 			planet.resources_add(Resource.byname('Credit'), 10000)
+
 			planet.save()
+
+			fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
+			fleet.parent = planet.id
+			fleet.size = 3
+			fleet.name = "%s First Fleet" % username
+			fleet.ships = {1:3}
+			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
+			fleet.owner = user.id
+			fleet.save()
 
 			trans.commit()
 		except:
