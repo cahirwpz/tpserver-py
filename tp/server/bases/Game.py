@@ -290,8 +290,9 @@ class Game(SQLBase):
 	objects = property(objects)
 
 	def to_packet(self, sequence):
-		from tp.server import version, servers, servername, serverip
-		server_ver = "%s.%s.%s" % version
+		from tp.server.server  import servers, servername, serverip
+		from tp.server.version import version
+		server_ver = "%s.%s.%s" % version[0:3]
 
 		locations = []
 		for server in servers.values():
@@ -327,12 +328,13 @@ class Game(SQLBase):
 	def to_discover(self):
 		g = DiscoverGame(self.longname)
 
-		from tp.server import version, servers, servername, serverip
+		from tp.server.server  import servers, servername, serverip
+		from tp.server.version import version
 
 		required = {}
 		required['key']     = self.key
 		required['tp']      = "0.3,0.3+"
-		required['server']  = "%s.%s.%s" % version
+		required['server']  = "%s.%s.%s" % version[0:3]
 		required['sertype'] = "tpserver-py"
 		required['rule']    = self.ruleset.name
 		required['rulever'] = self.ruleset.version

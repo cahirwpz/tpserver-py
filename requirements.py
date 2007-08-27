@@ -3,6 +3,7 @@
 # This file checks you have installed the requirements for tpclient-pywx 
 # It can be run as standalone but is also run by the client at startup
 
+
 notfound    = []
 recommended = []
 
@@ -41,62 +42,101 @@ def tostr(ver1):
 		s += "."+str(a)
 	return s[1:]
 
-netlib_version = (0, 2, 3)
+print "My information:"
+print "---------------------------------------------------------------"
+from tp.server import version
 try:
-	import tp.netlib
-	print " * Thousand Parsec Protocol Library Version", tp.netlib.__version__
-	if not cmp(netlib_version, tp.netlib.__version__):
-		raise ImportError("Thousand Parsec Network Library (libtpproto-py) is too old")
+	print "My version", version.version_str+'+'+version.version_target_str, "(git %s)" % version.version_git
+except AttributeError:
+	print "My version", version.version_str
+print "Running from ", os.path.dirname(os.path.join(os.path.abspath(__file__)))
+print
 
-except (ImportError, KeyError), e:
+print "Checking requirements:"
+print "---------------------------------------------------------------"
+
+netlib_version = (0, 2, 2)
+print
+try:
+	print " * Looking for Thousand Parsec Protocol Library,"
+	import tp.netlib
+
+	print "    Thousand Parsec Protocol Library Version", tp.netlib.__version__ 
+	print "       (installed at %s)" % tp.netlib.__installpath__
+	try:
+		from tp.netlib.version import version_git
+		print "       (git %s)" % version_git
+	except ImportError:
+		pass
+
+	if not cmp(netlib_version, tp.netlib.__version__):
+		raise ImportError("Thousand Parsec Network Library (libtpproto-py) is to old")
+
+except Exception, e:
+	print e
 	notfound.append("tp.netlib > " + tostr(netlib_version))
 
+print
 try:
+	print " * Looking for SQLAlchemy,"
+
 	import sqlalchemy
-	print " * SQLAlchemy installed."
-except (ImportError, KeyError), e:
+	print "    SQLAlchemy installed version", sqlalchemy.__version__ 
+except Exception, e:
+	print e
+
 	if system == "debian-based":
 		notfound.append("python-sqlalchemy")
 	else:
 		notfound.append('SQLAlchemy')
 
+print
 try:
+	print " * Looking for ElementTree implimentation,"
+
 	ET = None
 	errors = []
 	try:
 		import elementtree.ElementTree as ET
-	except ImportError, e:
+	except Exception, e:
 		errors.append(e)
 	try:
 		import cElementTree as ET
-	except ImportError:
+	except Exception, e:
 		errors.append(e)
 	try:
 		import lxml.etree as ET
-	except ImportError:
+	except Exception, e:
 		errors.append(e)
 	try:
 		import xml.etree.ElementTree as ET
-	except ImportError:
+	except Exception, e:
 		errors.append(e)
 
 	if ET is None:
 		raise ImportError(str(errors))
 
-	print " * An Element Tree version is installed (%s)." % ET.__name__
-except (ImportError, KeyError), e:
+	print "    An Element Tree version is installed (%s)." % ET.__name__
+except Exception, e:
+	print e
+
 	if system == "debian-based":
 		notfound.append("python-elementtree")
 	else:
 		notfound.append("ElementTree")
 
+print
 import __builtin__
 try:
+	print " * Looking for gettext,"
 	import gettext
 	
 	gettext.install("tpserver-py")
 	__builtin__._ = gettext.gettext	
-except ImportError, e:
+	print "    Found gettext."
+except Exception, e:
+	print e
+
 	def _(s):
 		return s
 	__builtin__._ = _
@@ -107,55 +147,142 @@ except ImportError, e:
 	else:
 		recommended.append(("Python with gettext enabled.", reason))
 
+print
 try:
+	print " * Looking for SQLite,"
+
 	import pysqlite2
-	print " * SQLite support installed."
-except ImportError, e:
+	from pysqlite2 import dbapi2 as sqlite
+	versions = list(sqlite.sqlite_version_info)+list(sqlite.version_info)
+	print "      SQLite support installed, version %s.%s.%s (DPI version %s.%s.%s)" % tuple(versions)
+except Exception, e:
+	print e
+
 	reason = "Installing sqlite is the smallest database supported."
 	if system == "debian-based":
 		recommended.append(("python-pysqlite2", reason))
 	else:
 		recommended.append(("pysqlite2", reason))
 
+print
 try:
+	print " * Looking for MySQL support,"
+
 	import MySQLdb
-	print " * MySQL support installed."
-except ImportError, e:
+	print "      MySQL support installed, version", MySQLdb.__version__
+except Exception, e:
+	print e
+
 	reason = "A supported scalable database engine."
 	if system == "debian-based":
 		recommended.append(("python-mysql", reason))
 	else:
 		recommended.append(("Python MySQLdb", reason))
 
+print
 try:
+	print " * Looking for SSL support,"
 	try:
 		import pyOpenSSL
-	except ImportError, e:
+
+	except Exception, e:
+		print e
+
 		# Maybe it's using a different name
 		import OpenSSL as pyOpenSSL
-	print " * Python OpenSSL support installed."
-except ImportError, e:
+	print "      SSL support found, provided by", pyOpenSSL
+except Exception, e:
+	print e
+
 	reason = "Installing pyOpenSSL allows encrypted connections."
 	if system == "debian-based":
 		recommended.append(("python-pyopenssl", reason))
 	else:
 		recommended.append(("pyOpenSSL", reason))
 
-if len(notfound) > 0:
+print
+print "Checking config file:"
+print "---------------------------------------------------------------"
+
+import os.path
+if not os.path.exists('config.py'):
+	print "WARNING: No config.py found, setting one up for you."
+	import shutil
+	shutil.copy('config.py-template', 'config.py')
+
+import socket
+try:
+	import sys
+	sys.path.insert(0, "/etc/tpserver-py")
+	sys.path.insert(0, ".")
+	import config
+
+	config.dbconfig
+	config.dbecho
+	config.servername
+	config.serverip
+	config.socketecho
+	config.metaserver
+
+	print " * Configuration seems okay"
+except socket.error, e:
+	print e[1]
 	print
+	print "The config file was unable to figure out your hostname."
+	print " Please set both 'serverip' and 'servername' values in config.py manually."
+	sys.exit(1)
+except AttributeError, e:
+	print e
+	print
+	print "You seem to be missing a required configuration value."
+	print " Please check the case and spelling of all values."
+	sys.exit(1)
+except Exception, e:
+	print e
+	print
+	print "There is an unknown problem with your config file."
+	print " Please check the file carefully."
+	sys.exit(1)
+
+
+if len(notfound) > 0 or len(recommended) > 0:
+	print
+	print "Possible problems found:"
+	print "---------------------------------------------------------------"
+
+if len(notfound) > 0:
 	print "The following requirements where not met:"
 	for module in notfound:
-		print '\t', module
-
-if len(recommended) > 0:
+		print '    ', module
 	print
+
+import os, pprint
+try:
+	COLS = int(os.environ["COLUMNS"])
+except (KeyError, ValueError):
+	try:
+		import struct, fcntl, sys, termios
+		COLS = struct.unpack('hh', fcntl.ioctl(sys.stdout, termios.TIOCGWINSZ, '1234'))[1]
+	except:
+		COLS = 80
+
+ALIGN = 25
+if len(recommended) > 0:
 	print "The following recommended modules where not found:"
 	for module, reason in recommended:
-		if len(module+',') > 16:
-			i = '\t'
-		else:
-			i = '\t\t'
-		print '\t', module + ',', i, reason
+		
+		lines = [""]
+		lines[-1] += '    %s,' % module
+		lines[-1] += ' ' * (ALIGN-len(lines[-1]))
+
+		for word in reason.split(" "):
+			if (len(lines[-1]) + len(word) + 1) > COLS:
+				lines.append(' '*ALIGN)
+
+			lines[-1] += word + " "
+
+		print
+		print "\n".join(lines)
 
 # Check for an apt-get based system,
 if system == "debian-based":
@@ -174,6 +301,7 @@ command as root:
 		print """
 To install the modules recommended for full functionality, run the following
 command as root:
+
 	apt-get install %s
 """ % " ".join(zip(*recommended)[0])
 
