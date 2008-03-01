@@ -15,6 +15,7 @@ from tp.server.bases.Game import Game, Lock
 
 
 class Commands:
+	@classmethod
 	def rulesets(*args):
 		"""\
 		--rulesets
@@ -24,8 +25,8 @@ class Commands:
 		for R in rules.rulesets().values():
 			print '-----------------------------------------'
 			rules.prettyprint(R)
-	rulesets = classmethod(rulesets)
 
+	@staticmethod
 	def addgame(longname, ruleset, admin, comment):
 		"""\
 		--addgame <game> <ruleset> <admin email> <comment>
@@ -76,8 +77,7 @@ class Commands:
 			print "An error occured when adding the game, no changes to the database have been made.."
 			print e
 
-	addgame = staticmethod(addgame)		
-
+	@staticmethod
 	def delgame(game):
 		"""\
 		--delgame <game>
@@ -90,6 +90,7 @@ class Commands:
 		# Now go around and clean up everything.... but how?
 		pass
 
+	@staticmethod
 	def populate(game, *args, **kw):
 		"""\
 		--populate <game> --help
@@ -105,9 +106,8 @@ class Commands:
 		else:
 			r.populate(*args, **kw)
 
-	populate = staticmethod(populate)
-
-	def adduser(game, username, password, email=None, comment=None):
+	@staticmethod
+	def player(game, username, password, email=None, comment=None):
 		"""\
 		--player <game> <username> <password> [<email>, <comment>]
 			Add a new player to the game.
@@ -121,8 +121,7 @@ class Commands:
 		else:
 			r.player(username, password, email, comment)
 
-	adduser = staticmethod(adduser)
-
+	@staticmethod
 	def turn(game, number=1):
 		"""\
 		--turn <game> [<number>]
@@ -133,8 +132,7 @@ class Commands:
 		for i in range(0, number):
 			r.turn()
 
-	turn = staticmethod(turn)
-
+	@staticmethod
 	def help(*args, **kw):
 		"""\
 		--help
@@ -152,15 +150,13 @@ This command lets you change things on the local server.
 
 			print getattr(Commands, name).__doc__.replace('\t\t', '')
 
-	help = staticmethod(help)	
-
+	@staticmethod
 	def status(*args, **kw):
 		"""
 		--status
 			Lists the games and locks in the database.
 		"""
 		import sqlalchemy
-		sqlalchemy.default_metadata.engine.echo = False
 		for id, modtime in Game.ids():
 			g = Game(id)
 			dbconn.use(g)
@@ -172,8 +168,6 @@ This command lets you change things on the local server.
 					print '\t', Lock(id)			
 			else:
 				print '\t No locks'
-	status = staticmethod(status)
-
 
 def main():
 	# Special case for not enough arguments
