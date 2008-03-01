@@ -45,6 +45,7 @@ class SQLBase(object):
 	"""\
 	A class which stores it's data in a SQL database.
 	"""
+	@classmethod
 	def modified(cls, user):
 		"""\
 		modified(user) -> unixtime
@@ -57,8 +58,8 @@ class SQLBase(object):
 		if len(result) == 0:
 			return datetime.fromtimestamp(0)
 		return result[0]['time']
-	modified = classmethod(modified)
 
+	@classmethod
 	def ids(cls, user=None, start=0, amount=-1):
 		"""\
 		ids([user, start, amount]) -> [id, ...]
@@ -71,8 +72,8 @@ class SQLBase(object):
 		else:
 			result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], offset=start, limit=amount).execute().fetchall()
 		return [(x['id'], x['time']) for x in result]
-	ids = classmethod(ids)
 
+	@classmethod
 	def amount(cls, user=None):
 		"""\
 		amount(user) -> int
@@ -83,8 +84,8 @@ class SQLBase(object):
 		if len(result) == 0:
 			return 0
 		return result[0]['count']
-	amount = classmethod(amount)
 
+	@classmethod
 	def realid(cls, user, id):
 		"""\
 		realid(user, id) -> id
@@ -92,7 +93,6 @@ class SQLBase(object):
 		Get the real id for an object (from id the user sees).
 		"""
 		return id
-	realid = classmethod(realid)
 
 	def __init__(self, id=None):
 		"""\
@@ -210,6 +210,7 @@ class SQLBase(object):
 			raise PermissionDenied("You are not allowed to access that.")
 		return self.protect(user)
 
+	@staticmethod
 	def from_packet(cls, user, packet):
 		"""\
 		from_packet(game, packet)
@@ -229,7 +230,6 @@ class SQLBase(object):
 
 		# Return the newly created object
 		return self
-	from_packet = staticmethod(from_packet)
 
 	def allowed(self, user):
 		"""\
@@ -433,6 +433,7 @@ Extra attributes this type defines.
 			trans.rollback()
 			raise
 
+	@staticmethod
 	def from_packet(cls, user, packet):
 		"""\
 		from_packet(packet)
@@ -463,7 +464,6 @@ Extra attributes this type defines.
 
 				setattr(self, key, value)
 		return self
-	from_packet = staticmethod(from_packet)
 
 	def to_packet(self, user, sequence):
 		self = SQLBase.to_packet(self, user, sequence)

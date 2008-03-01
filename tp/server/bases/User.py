@@ -25,6 +25,7 @@ class User(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	@staticmethod
 	def usernameid(game, username, password=None):
 		"""\
 		Get the id for a user given a game, username and password.
@@ -41,8 +42,8 @@ class User(SQLBase):
 			return -1
 		else:
 			return result[0]['id']
-	usernameid = staticmethod(usernameid)
 
+	@staticmethod
 	def split(username):
 		"""\
 		Split a username into the user and game parts.
@@ -51,13 +52,12 @@ class User(SQLBase):
 			raise TypeError('The given username is not valid...')
 		
 		return username.split('@', 1)
-	split = staticmethod(split)
 
+	@classmethod
 	def realid(cls, user, pid):
 		if pid == 0:
 			return user.id
 		return pid
-	realid = classmethod(realid)
 
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)

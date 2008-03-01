@@ -39,10 +39,10 @@ class Property(SQLBase):
 		ForeignKeyConstraint(['game'],     ['game.id']),
 	)
 
+	@classmethod
 	def byname(cls, name):
 		c = cls.table.c
 		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
-	byname = classmethod(byname)
 
 	def get_categories(self):
 		"""\
@@ -58,9 +58,9 @@ class Property(SQLBase):
 		# Preset arguments
 		return netlib.objects.Property(sequence, self.id, self.time, self.categories, self.rank, self.name, self.displayname, self.desc, self.calculate, self.requirements)
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Property_IDSequence
-	id_packet = classmethod(id_packet)   
 
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)

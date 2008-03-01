@@ -338,23 +338,23 @@ class FullConnection(netlib.ServerConnection):
 
 		# FIXME: There is a better place to put this class
 		class OrderDesc(object):
+			@classmethod
 			def modified(cls, user):
 				return datetime.datetime.fromtimestamp(0)
-			modified = classmethod(modified)
 			
+			@classmethod
 			def amount(cls, user):
 				return len(user.playing.ruleset.ordermap.keys())
-			amount = classmethod(amount)
-			
+		
+			@classmethod	
 			def ids(cls, user, start, amount):
 				if amount== -1:
 					amount = len(user.playing.ruleset.ordermap)
 				return [(id, 0) for id in user.playing.ruleset.ordermap.keys()[start:amount]]
-			ids = classmethod(ids)
 		
+			@classmethod
 			def id_packet(cls):
 				return netlib.objects.OrderDesc_IDSequence
-			id_packet = classmethod(id_packet)
 
 		return self.OnGetID(packet, OrderDesc)	
 

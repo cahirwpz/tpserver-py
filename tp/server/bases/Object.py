@@ -39,6 +39,8 @@ class Object(SQLTypedBase):
 	orderclasses = {}
 
 	bypos_size = [asc(table.c.size)]
+
+	@classmethod
 	def bypos(cls, pos, size=0, limit=-1, orderby=None):
 		"""\
 		Object.bypos([x, y, z], size) -> [Object, ...]
@@ -71,8 +73,8 @@ class Object(SQLTypedBase):
 
 		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
 		return [(x['id'], x['time']) for x in results]
-	bypos = classmethod(bypos)
 
+	@classmethod
 	def byparent(cls, id):
 		"""\
 		byparent(id)
@@ -85,8 +87,8 @@ class Object(SQLTypedBase):
 		bp_id = bindparam('id')
 		results = select([t.c.id, t.c.time], (t.c.parent==bp_id) & (t.c.id != bp_id)).execute(id=id).fetchall()
 		return [(x['id'], x['time']) for x in results]
-	byparent = classmethod(byparent)
 
+	@classmethod
 	def bytype(cls, type):
 		"""\
 		bytype(id)
@@ -98,7 +100,6 @@ class Object(SQLTypedBase):
 		# FIXME: Need to figure out what is going on here..
 		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
 		return [(x['id'], x['time']) for x in results]
-	bytype = classmethod(bytype)
 
 	def __init__(self, id=None, type=None):
 		self.name = "Unknown object"
@@ -179,9 +180,9 @@ class Object(SQLTypedBase):
 				self.time, 
 				*args)
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Object_IDSequence
-	id_packet = classmethod(id_packet)
 
 	def __str__(self):
 		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)

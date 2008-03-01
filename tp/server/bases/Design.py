@@ -384,9 +384,9 @@ class Design(SQLBase):
 		for key in ["categories", "name", "desc", "owner", "components"]:
 			setattr(self, key, getattr(packet, key))
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Design_IDSequence
-	id_packet = classmethod(id_packet)   
 
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)

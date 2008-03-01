@@ -51,10 +51,10 @@ class Component(SQLTypedBase):
 		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
 
+	@classmethod
 	def byname(cls, name):
 		c = cls.table.c
 		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
-	byname = classmethod(byname)
 
 	def get_categories(self):
 		"""\
@@ -91,9 +91,9 @@ class Component(SQLTypedBase):
 	def to_packet(self, user, sequence):
 		return netlib.objects.Component(sequence, self.id, self.time, self.categories, self.name, self.desc, self.requirements, self.properties)
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Component_IDSequence
-	id_packet = classmethod(id_packet)   
 
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)

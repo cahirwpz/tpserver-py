@@ -36,6 +36,7 @@ class Order(SQLTypedBase):
 	"""\
 	The realid class method starts here... 
 	"""
+	@classmethod
 	def realid(cls, oid, slot):
 		"""\
 		Order.realid(objectid, slot) -> id
@@ -48,8 +49,8 @@ class Order(SQLTypedBase):
 			return -1
 		else:
 			return result[0]['id']
-	realid = classmethod(realid)
 
+	@classmethod
 	def number(cls, oid):
 		"""\
 		Order.number(objectid) -> number
@@ -58,8 +59,8 @@ class Order(SQLTypedBase):
 		"""
 		t = cls.table
 		return select([func.count(t.c.id).label('count')], t.c.oid==oid).execute().fetchall()[0]['count']
-	number = classmethod(number)
 
+	@classmethod
 	def active(cls, type=None):
 		"""
 		Order.active(type) -> ids
@@ -72,8 +73,8 @@ class Order(SQLTypedBase):
 		else:
 			s = select([t.c.id], (t.c.slot==0) & (t.c.type in type))
 		return [x[0] for x in s.execute().fetchall()]
-	active = classmethod(active)
 
+	@classmethod
 	def desc_packet(cls, sequence, typeno):
 		"""
 		Order.desc_packet(sequence, typeno)
@@ -87,8 +88,8 @@ class Order(SQLTypedBase):
 
 		# FIXME: This should send a correct last modified time
 		return netlib.objects.OrderDesc(sequence, typeno, cls.__name__, cls.__doc__, arguments, 0)
-	desc_packet = classmethod(desc_packet)
 
+	@classmethod
 	def packet(cls, typeno):
 		"""
 		Return the class needed to create a packet for this type of order.
@@ -96,7 +97,6 @@ class Order(SQLTypedBase):
 		# This is given a typeno because different rulesets may have different
 		# typeno for the same Order type.
 		return cls.desc_packet(0, typeno).build()
-	packet = classmethod(packet)
 
 	"""\
 	The init method starts here... 
@@ -180,6 +180,7 @@ class Order(SQLTypedBase):
 		print self.packet(typeno)
 		return self.packet(typeno)(sequence, self.oid, self.slot, typeno, self.turns(), self.resources(), *args)
 
+	@classmethod
 	def from_packet(cls, user, packet):
 		self = SQLTypedBase.from_packet(cls, user, packet)
 
@@ -187,7 +188,6 @@ class Order(SQLTypedBase):
 		del self.id
 
 		return self
-	from_packet = classmethod(from_packet)
 
 	def __str__(self):
 		if hasattr(self, 'id'):

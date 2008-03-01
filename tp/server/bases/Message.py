@@ -55,6 +55,7 @@ class Message(SQLBase):
 	"""\
 	The realid class method starts here... 
 	"""
+	@classmethod
 	def realid(cls, bid, slot):
 		"""\
 		Message.realid(boardid, slot) -> id
@@ -67,8 +68,8 @@ class Message(SQLBase):
 			return -1
 		else:
 			return result[0]['id']
-	realid = classmethod(realid)
 
+	@classmethod
 	def number(cls, bid):
 		"""\
 		Message.number(boardid) -> number
@@ -77,7 +78,6 @@ class Message(SQLBase):
 		"""
 		t = cls.table
 		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
-	number = classmethod(number)
 
 	"""\
 	The init method starts here... 
@@ -157,6 +157,7 @@ class Message(SQLBase):
 		# FIXME: The reference system needs to be added and so does the turn
 		return netlib.objects.Message(sequence, self.bid, self.slot, [], self.subject, self.body, 0, [])
 
+	@classmethod
 	def from_packet(cls, user, packet):
 		self = SQLBase.from_packet(cls, user, packet)
 
@@ -164,7 +165,6 @@ class Message(SQLBase):
 		del self.id
 
 		return self
-	from_packet = classmethod(from_packet)
 
 	def __str__(self):
 		if hasattr(self, 'id'):

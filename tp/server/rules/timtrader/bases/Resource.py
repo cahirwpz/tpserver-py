@@ -22,20 +22,20 @@ class Resource(ResourceBase):
 		return o
 	products = property(products_get, products_set)
 
+	@property
 	def factory(self):
 		return len(self._products) > 0
-	factory = property(factory)
 
 	# Get all resources which are transportable
 
+	@classmethod
 	def transportables(cls):
 		te = cls.table_extra
 		result = select([te.c.oid], (te.c.name=='transportable') & (te.c.value=='True')).execute().fetchall()
 		return [x[0] for x in result]
-	transportables = classmethod(transportables)
 
+	@classmethod
 	def factories(cls):
 		te = cls.table_extra
 		result = select([te.c.oid], (te.c.name=='_products'), distinct=True).execute().fetchall()
 		return [x[0] for x in result]
-	factories = classmethod(factories)

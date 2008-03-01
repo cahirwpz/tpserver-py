@@ -28,13 +28,13 @@ class Resource(SQLTypedBase):
 	)
 	table_extra = SQLTypedTable('resource')
 
+	@classmethod
 	def byname(cls, name):
 		c = cls.table.c
 		try:
 			return select([c.id], c.namesingular == name, limit=1).execute().fetchall()[0]['id']
 		except IndexError:
 			raise NoSuch("No object with name (either singular or plural) %s" % name)
-	byname = classmethod(byname)
 
 	def to_packet(self, user, sequence):
 		return netlib.objects.Resource(sequence, self.id, 
@@ -42,9 +42,9 @@ class Resource(SQLTypedBase):
 					self.unitsingular, self.unitplural,
 					self.desc, self.weight, self.size, self.time)
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Resource_IDSequence
-	id_packet = classmethod(id_packet)
 
 	def __str__(self):
 		return "<Resource id=%s>" % (self.id)

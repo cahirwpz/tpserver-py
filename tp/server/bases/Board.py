@@ -22,6 +22,7 @@ class Board(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	@classmethod
 	def realid(cls, user, bid):
 		# Board ID Zero gets map to player id
 		# Board ID != Zero gets mapped to negative
@@ -31,15 +32,15 @@ class Board(SQLBase):
 			return bid * -1
 		else:
 			raise NoSuch("No such board possible...")
-	realid = classmethod(realid)
 
+	@classmethod
 	def mangleid(cls, bid):
 		if bid > 0:
 			return 0
 		else:
 			return bid * -1
-	mangleid = classmethod(mangleid)
 
+	@classmethod
 	def amount(cls, user):
 		"""\
 		amount(user)
@@ -51,8 +52,8 @@ class Board(SQLBase):
 		if len(result) == 0:
 			return 0
 		return result[0]['count']
-	amount = classmethod(amount)
 
+	@classmethod
 	def ids(cls, user, start, amount):
 		"""\
 		ids(user, start, amount)
@@ -67,7 +68,6 @@ class Board(SQLBase):
 			result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
 							order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(cls.mangleid(x['id']), x['time']) for x in result] 
-	ids = classmethod(ids)
 
 	def to_packet(self, user, sequence):
 		b = Board.mangleid(self.id)
@@ -75,9 +75,9 @@ class Board(SQLBase):
 		m = Message.number(self.id)
 		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time)
 
+	@classmethod
 	def id_packet(cls):
 		return netlib.objects.Board_IDSequence
-	id_packet = classmethod(id_packet)
 
 	def __str__(self):
 		return "<Board id=%s>" % (self.id)

@@ -41,6 +41,7 @@ class Lock(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	@classmethod
 	def new(cls, type):
 		"""
 		Create a new lock of the given type.
@@ -61,7 +62,6 @@ class Lock(SQLBase):
 		self.save()
 		print "Creating lock", self, hasattr(self, 'local') and self.local
 		return self
-	new = classmethod(new)
 
 	def __del__(self):
 		if hasattr(self, 'id'):
@@ -77,10 +77,10 @@ class Lock(SQLBase):
 			id = self.id
 		return "<Lock-%s,%s %s by %s-%s>" % (id, self.game, self.locktype, self.host, self.pid) 
 
+	@staticmethod
 	def locked(type):
 		t = Lock.table
 		return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
-	locked = staticmethod(locked)
 
 class Event(SQLBase):
 	"""
@@ -106,6 +106,7 @@ class Event(SQLBase):
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
+	@classmethod
 	def new(cls, eventtype, game=None):
 		if not eventtype in Event.types:
 			raise ArgumentError("Event type must be %r not %s" % (self.types, eventtype))
@@ -125,8 +126,8 @@ class Event(SQLBase):
 		dbconn.use(old)
 
 		return e
-	new = classmethod(new)
 
+	@classmethod
 	def latest(cls):
 		"""\
 		Get the lates Event id.
@@ -140,8 +141,8 @@ class Event(SQLBase):
 				return -1
 		finally:
 			dbconn.use(old)
-	latest = classmethod(latest)
 
+	@classmethod
 	def since(cls, id):
 		"""
 		Get all events since a given id.
@@ -153,7 +154,6 @@ class Event(SQLBase):
 			return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
 		finally:
 			dbconn.use(old)
-	since = classmethod(since)
 
 	def __str__(self):
 		if not hasattr(self, 'id'):
@@ -218,13 +218,14 @@ class Game(SQLBase):
 	def __init__(self, *args, **kw):
 		pass
 
+	@staticmethod
 	def munge(game):
 		"""\
 		Convert a longname into some sort of suitable short name.
 		"""
 		return game.replace(' ', '').strip().lower()
-	munge = staticmethod(munge)
 
+	@staticmethod
 	def gameid(game):
 		"""\
 		Get the id of a game from a short name.
@@ -240,7 +241,6 @@ class Game(SQLBase):
 			return dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0][0]
 		except (KeyError, IndexError), e:
 			raise NoSuch("No such game named %s exists!" % game)
-	gameid = staticmethod(gameid)
 
 	def ruleset_get(self):
 		"""\
