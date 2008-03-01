@@ -1,5 +1,7 @@
 
 import sqlalchemy as sql
+from sqlalchemy.sql.expression import Join
+sql.Join = Join
 
 metadata = sql.MetaData()
 
