@@ -12,7 +12,7 @@ from tp import netlib
 from SQL import SQLBase
 
 class User(SQLBase):
-	table = Table('user',
+	table = Table('user', metadata,
 		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('username',  String(255), nullable=False, index=True),

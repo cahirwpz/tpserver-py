@@ -15,7 +15,7 @@ class Order(SQLTypedBase):
 	No description.
 	"""
 
-	table = Table('orders',
+	table = Table('orders', metadata,
 		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	  String(255), nullable=False, index=True),

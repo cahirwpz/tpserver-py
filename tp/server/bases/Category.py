@@ -10,7 +10,7 @@ from tp import netlib
 from SQL import SQLBase
 
 class Category(SQLBase):
-	table = Table('category',
+	table = Table('category', metadata,
 		Column('game',	Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	String(255), nullable=False, index=True),

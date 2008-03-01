@@ -170,7 +170,7 @@ class SQLBase(object):
 
 			if not hasattr(self, 'id'):
 				self.id = id
-				if default_metadata.engine.echo:
+				if metadata.bind.echo:
 					print "Newly inserted id is", self.id
 
 			if not hasattr(self, 'game'):
@@ -249,7 +249,7 @@ class SQLBase(object):
 		return copy.deepcopy(self)
 
 def SQLTypedTable(name):
-	t = Table(name+"_extra",
+	t = Table(name+"_extra", metadata,
 		Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
 		Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
 		Column('name',	String(255), nullable=False, index=True, primary_key=True),
@@ -334,7 +334,7 @@ Extra attributes this type defines.
 		SQLBase.load(self, id)
 			
 		# Load the extra properties from the object_extra table
-		results = select([te], te.c.oid==self.id, [te.c.name, te.c.key]).execute().fetchall()
+		results = select([te], te.c.oid==self.id, order_by=[te.c.name, te.c.key]).execute().fetchall()
 		if len(results) > 0:
 			for result in results:
 				name, key, value = result['name'], result['key'], result['value']

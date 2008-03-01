@@ -11,7 +11,7 @@ from SQL import SQLBase
 from Message import Message
 
 class Board(SQLBase):
-	table = Table('board',
+	table = Table('board', metadata,
 		Column('game',	Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	String(255), nullable=False, index=True),

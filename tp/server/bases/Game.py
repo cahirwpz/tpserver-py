@@ -29,7 +29,7 @@ class Lock(SQLBase):
 	"""
 	types = ['serving', 'processing']
 
-	table = Table('lock',
+	table = Table('lock', metadata,
 		Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('locktype',  Enum(types), nullable=False, index=True),       # Locktype
@@ -98,7 +98,7 @@ class Event(SQLBase):
 	"""
 	types = ['shutdown', 'endofturn', 'gameadd', 'gameremoved', 'gameupdated']
 
-	table = Table('event',
+	table = Table('event', metadata,
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('game',	    Integer,     nullable=True,  index=True),
 		Column('eventtype', Enum(types), nullable=False, index=True),
@@ -164,7 +164,7 @@ class Event(SQLBase):
 	__repr__ = __str__
 
 class Game(SQLBase):
-	table = Table('game',
+	table = Table('game', metadata,
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('rulesetname', String(255), nullable=False, index=True),       # Ruleset this game uses
 		Column('shortname', String(255), nullable=False, index=True),       # Computer name

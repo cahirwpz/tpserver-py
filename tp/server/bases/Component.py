@@ -10,7 +10,7 @@ from tp import netlib
 from SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
 class Component(SQLTypedBase):
-	table = Table('component',
+	table = Table('component', metadata,
 		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	  String(255), nullable=False, index=True),
@@ -25,7 +25,7 @@ class Component(SQLTypedBase):
 	)
 	table_extra = SQLTypedTable('component')
 
-	table_category = Table('component_category',
+	table_category = Table('component_category', metadata,
 		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
@@ -37,7 +37,7 @@ class Component(SQLTypedBase):
 		ForeignKeyConstraint(['category'],  ['category.id']),
 		ForeignKeyConstraint(['game'],      ['game.id']),
 	)
-	table_property = Table('component_property',
+	table_property = Table('component_property', metadata,
 		Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),
 		Column('property',  Integer,  nullable=False, index=True, primary_key=True),

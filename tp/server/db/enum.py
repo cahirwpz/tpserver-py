@@ -2,7 +2,7 @@
 import sqlalchemy as sql
 from sqlalchemy import *
 
-class Enum(types.Unicode):
+class Enum(sql.types.Unicode):
     
     def __init__(self, values, empty_to_none=False):      
         '''

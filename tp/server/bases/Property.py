@@ -10,7 +10,7 @@ from tp import netlib
 from SQL import SQLBase
 
 class Property(SQLBase):
-	table = Table('property',
+	table = Table('property', metadata,
 		Column('game', 	       Integer,      nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,      nullable=False, index=True, primary_key=True),
 		Column('name',	       String(255),  nullable=False, index=True),
@@ -26,7 +26,7 @@ class Property(SQLBase):
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
-	table_category = Table('property_category',
+	table_category = Table('property_category', metadata,
 		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
 		Column('property',  Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),

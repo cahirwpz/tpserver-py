@@ -10,7 +10,7 @@ from tp import netlib
 from SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
 class Resource(SQLTypedBase):
-	table = Table('resource',
+	table = Table('resource', metadata,
 		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('type',	       String(255), nullable=False, index=True),

@@ -1,6 +1,8 @@
 
 import sqlalchemy as sql
 
+metadata = sql.MetaData()
+
 class Executor(object):
 	def __init__(self, proxy, query):
 		self.proxy = proxy
@@ -42,10 +44,10 @@ class UpdateDeleteExecutor(Executor):
 
 		if not proxy.game is None:
 			whereclause = (query.table.c.game == proxy.game)
-			if not query.whereclause is None:
-				whereclause &= query.whereclause
+			if not query._whereclause is None:
+				whereclause &= query._whereclause
 
-			query.whereclause = whereclause
+			query._whereclause = whereclause
 		return query._execute(*args, **kw)
 
 UpdateExecutor = UpdateDeleteExecutor
@@ -126,10 +128,12 @@ update = dbconn.update
 delete = dbconn.delete
 
 def setup(dbconfig, echo=False):
-	engine = sql.create_engine(dbconfig, strategy='threadlocal')
-	sql.default_metadata.connect(engine)
-	sql.default_metadata.engine.echo = echo
-	
-	sql.default_metadata.create_all()
+	global metadata
 
-	dbconn.engine = sql.default_metadata.engine
+	engine = sql.create_engine(dbconfig, strategy='threadlocal')
+	engine.echo = echo
+
+	metadata.bind = engine
+	metadata.create_all()
+
+	dbconn.engine = engine

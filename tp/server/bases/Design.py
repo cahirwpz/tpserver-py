@@ -17,7 +17,7 @@ from Property import Property
 import pyscheme as scheme
 
 class Design(SQLBase):
-	table = Table('design',
+	table = Table('design', metadata,
 		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('name',	    String(255), nullable=False, index=True),
@@ -30,7 +30,7 @@ class Design(SQLBase):
 		ForeignKeyConstraint(['game'],  ['game.id']),
 
 	)
-	table_category = Table('design_category',
+	table_category = Table('design_category', metadata,
 		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
@@ -42,7 +42,7 @@ class Design(SQLBase):
 		ForeignKeyConstraint(['category'], ['category.id']),
 		ForeignKeyConstraint(['game'],     ['game.id']),
 	)
-	table_component = Table('design_component',
+	table_component = Table('design_component', metadata,
 		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
 		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
 		Column('component', Integer,  nullable=False, index=True, primary_key=True),

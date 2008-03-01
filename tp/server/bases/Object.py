@@ -11,7 +11,7 @@ from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from Order import Order
 
 class Object(SQLTypedBase):
-	table = Table('object',
+	table = Table('object', metadata,
 		Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),

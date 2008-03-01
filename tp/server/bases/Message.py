@@ -8,9 +8,9 @@ from sqlalchemy import *
 from tp.server.db import *
 from tp import netlib
 from SQL import SQLBase
-from tp.server.db import dbconn
+from tp.server.db import dbconn, metadata
 
-table_types = Table('reference',
+table_types = Table('reference', metadata,
 	Column('game', 	Integer,     nullable=False, index=True, primary_key=True),
 	Column('id',    Integer,     nullable=False, primary_key=True),
 	Column('value', Integer,     nullable=False, index=True),
@@ -22,8 +22,7 @@ class Message(SQLBase):
 	"""
 	No description.
 	"""
-
-	table = Table('message',
+	table = Table('message', metadata,
 		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
 		Column('bid',	  Integer,     nullable=False, index=True),
@@ -39,7 +38,7 @@ class Message(SQLBase):
 	)
 	Index('idx_message_bidslot', table.c.bid, table.c.slot),
 
-	table_references = Table('message_references',
+	table_references = Table('message_references', metadata,
 		Column('game', 	Integer,  nullable=False, primary_key=True),
 		Column('mid',   Integer,  nullable=False, primary_key=True),
 		Column('rid',   Integer,  nullable=False, primary_key=True),
