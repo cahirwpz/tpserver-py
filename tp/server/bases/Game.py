@@ -163,6 +163,27 @@ class Event(SQLBase):
 		return "<Event-%s (Game - %s) %s>" % (id, self.game, self.eventtype) 
 	__repr__ = __str__
 
+class Connection(SQLBase):
+	"""\
+	Events regarding connections get recorded in this table.
+
+	The following event types are supported:
+		connect    - A connection is made from an IP address.
+		login      - A person logs in on the connection.
+		disconnect - A connection is terminated.
+	"""
+	types = ['connect', 'login', 'disconnect']
+
+	table = Table('connection', metadata,
+		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+		Column('ip',        String(255), nullable=False, index=True),
+		Column('eventtype', Enum(types), nullable=False, index=True),
+		Column('time',	    DateTime,    nullable=False, index=True,
+			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+
+		UniqueConstraint('shortname'),
+	)
+
 
 class Game(SQLBase):
 	"""
