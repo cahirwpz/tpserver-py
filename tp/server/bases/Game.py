@@ -24,8 +24,8 @@ class Lock(SQLBase):
 	Each server can add different types of locks to each game.
 
 	The following lock types are supported:
-		Serving - This program is serving the database 
-		Turn    - This program is processing a turn
+		Serving    - This program is serving the database.
+		Processing - This program is processing a turn.
 	"""
 	types = ['serving', 'processing']
 
@@ -54,8 +54,6 @@ class Lock(SQLBase):
 		if not type in Lock.types:
 			raise TypeError('Lock type can only be one of %s' % Lock.types)
 
-		print socket.gethostname()
-		print os.getpid()
 		self.locktype = type
 		self.pid      = os.getpid()
 		self.host     = socket.gethostname()
@@ -91,10 +89,12 @@ class Event(SQLBase):
 	added to the table.
 
 	Events can be the following types,
-		End of Turn
+		Shutdown      - Shutdown of a given game is requested (normally before deletion or upgrade).
+		End of Turn   - An end of turn has occurred.
 
-		Game Added
-		Game Removed
+		Game Added    - A new game is added.
+		Game Removed  - A game is removed.
+		Game Updated  - Information about a game is updated.
 	"""
 	types = ['shutdown', 'endofturn', 'gameadd', 'gameremoved', 'gameupdated']
 
@@ -163,7 +163,14 @@ class Event(SQLBase):
 		return "<Event-%s (Game - %s) %s>" % (id, self.game, self.eventtype) 
 	__repr__ = __str__
 
+
 class Game(SQLBase):
+	"""
+	This class represents the various "Games" which exist on the server. 
+
+	It is a "singlton" class, meaning that only one instance exists for each game.
+	"""
+
 	table = Table('game', metadata,
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
 		Column('rulesetname', String(255), nullable=False, index=True),       # Ruleset this game uses
@@ -316,8 +323,6 @@ class Game(SQLBase):
 		optional.append((5, self.comment, -1))
 		# Turn
 		#optional.append((6, '', self.turn))
-
-		print optional
 
 		return objects.Game(sequence, self.longname, '', #self.key, 
 								["0.3", "0.3+"], 
