@@ -5,14 +5,16 @@ sys.path.insert(0, "/etc/tpserver-py")
 sys.path.insert(0, ".")
 import config
 
+import time
 import random
 
 import tp.server.server
 from tp.server.utils import *
 from tp.server.db import dbconn
 from tp.server.bases.SQL  import NoSuch
-from tp.server.bases.Game import Game, Lock
+from tp.server.bases.Game import Game, Lock, Event
 
+import sqlalchemy
 
 class Commands:
 	@classmethod
@@ -87,7 +89,36 @@ class Commands:
 		# Check the game exists
 		g = Game(longname=game)
 		
-		# Now go around and clean up everything.... but how?
+		# Wait for the locks to disappear
+		if Lock.locked(u"serving", g):
+			print "Waiting for servers to finish",
+
+			try:
+				e = Event.new(u"gameremoved", g)
+				e.insert()
+			except sqlalchemy.exceptions.IntegrityError, e:
+				pass
+
+			while Lock.locked(u"serving", g):
+				sys.stdout.write(".")
+				sys.stdout.flush()
+
+				dbconn.commit()
+
+				time.sleep(1)
+			print "\n  all finished"
+
+		dbconn.begin()
+
+		# Remove all the data from all every table
+		from tp.server.db import metadata
+		for table in metadata.tables.values():
+			if "game" in table.c:
+				dbconn.execute(sqlalchemy.delete(table, table.c['game']==g.id))
+
+		g.remove()
+
+		dbconn.rollback()
 		pass
 
 	@staticmethod
@@ -156,7 +187,6 @@ This command lets you change things on the local server.
 		--status
 			Lists the games and locks in the database.
 		"""
-		import sqlalchemy
 		for id, modtime in Game.ids():
 			g = Game(id)
 			dbconn.use(g)

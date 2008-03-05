@@ -605,8 +605,23 @@ class FullServer(netlib.Server):
 		db.dbconn.use(g)
 		self.locks.append(Lock.new('serving'))
 
-	def gameremove(self, g):
-		pass
+	def gameremoved(self, g):
+		toremove = None
+		for lock in self.locks:
+			if lock.game == g.id:
+				toremove = lock
+				break
+		
+		if toremove is None:
+			print "Got gameremoved event for a game I didn't have a lock on!"
+			return
+			
+		self.locks.remove(toremove)
+		del toremove
+
+		db.dbconn.commit()
+
+		print "Game remove!", g
 
 	def endofturn(self, game):
 		# Send TimeRemaining Packets
