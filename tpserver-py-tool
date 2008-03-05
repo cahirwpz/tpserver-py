@@ -199,6 +199,14 @@ This command lets you change things on the local server.
 			else:
 				print '\t No locks'
 
+	@staticmethod
+	def cleanup(*args, **kw):
+		"""\
+		--cleanup
+			Try and remove any stale locks which still exist.
+		"""
+		Lock.cleanup()
+
 def main():
 	# Special case for not enough arguments
 	if len(sys.argv) <= 1 or sys.argv[1][:2] != '--':

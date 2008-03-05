@@ -83,6 +83,14 @@ class Lock(SQLBase):
 		else:
 			return len(dbconn.execute(select([t.c.id], (t.c.locktype==type)&(t.c.game==game.id))).fetchall()) > 0
 
+	@staticmethod
+	def cleanup():
+		t = Lock.table
+		dbconn.execute(delete(t, t.c.host==socket.gethostname()))
+#		locallocks = dbconn.execute(select([t.c.game, t.c.id, t.c.pid, t.c.locktype], t.c.host==socket.gethostname())).fetchall()
+#		for gid, id, pid, locktype in locallocks:
+#			print "%s-%s" % (gid, id), pid, locktype
+
 class Event(SQLBase):
 	"""
 	Sometimes 'Events' occur. This table stores them.
