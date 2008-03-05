@@ -80,11 +80,15 @@ class Commands:
 			print e
 
 	@staticmethod
-	def delgame(game):
+	def delgame(game, force=False):
 		"""\
 		--delgame <game>
 			Remove a game from the server.
 """
+		# Check the user really wants to do this		
+		if force != "--yespleasedo":
+			print "Please use --yespleasedo flag to confirm you actually want to remove %s" % game
+			return
 
 		# Check the game exists
 		g = Game(longname=game)
@@ -118,8 +122,7 @@ class Commands:
 
 		g.remove()
 
-		dbconn.rollback()
-		pass
+		dbconn.commit()
 
 	@staticmethod
 	def populate(game, *args, **kw):
