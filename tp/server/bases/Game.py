@@ -181,7 +181,7 @@ class Connection(SQLBase):
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
-		UniqueConstraint('shortname'),
+		UniqueConstraint('id'),
 	)
 
 
