@@ -76,9 +76,12 @@ class Lock(SQLBase):
 		return "<Lock-%s,%s %s by %s-%s>" % (id, self.game, self.locktype, self.host, self.pid) 
 
 	@staticmethod
-	def locked(type):
+	def locked(type, game=None):
 		t = Lock.table
-		return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
+		if game is None:
+			return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
+		else:
+			return len(dbconn.execute(select([t.c.id], (t.c.locktype==type)&(t.c.game==game.id))).fetchall()) > 0
 
 class Event(SQLBase):
 	"""
