@@ -96,7 +96,7 @@ class Event(SQLBase):
 		Game Removed  - A game is removed.
 		Game Updated  - Information about a game is updated.
 	"""
-	types = ['shutdown', 'endofturn', 'gameadd', 'gameremoved', 'gameupdated']
+	types = ['shutdown', 'endofturn', 'gameadded', 'gameremoved', 'gameupdated']
 
 	table = Table('event', metadata,
 		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),

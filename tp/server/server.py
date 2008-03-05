@@ -574,7 +574,7 @@ class FullServer(netlib.Server):
 		# Register all the games..
 		self.locks  = []
 		for id, time in Game.ids():
-			self.gameadd(Game(id))
+			self.gameadded(Game(id))
 
 	def poll(self):
 		# Get any new events..
@@ -589,10 +589,10 @@ class FullServer(netlib.Server):
 			
 			self.events = event.id
 
-	def gameadd(self, g):
+	def gameadded(self, g):
 		already = [lock.game for lock in self.locks]
 		if g.id in already:
-			print "Got gameadd event for a game I already have a lock on!"
+			print "Got gameadded event for a game I already have a lock on!"
 			return
 
 		# Setup the game
