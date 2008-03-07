@@ -120,7 +120,7 @@ class Event(SQLBase):
 	@classmethod
 	def new(cls, eventtype, game=None):
 		if not eventtype in Event.types:
-			raise ArgumentError("Event type must be %r not %s" % (self.types, eventtype))
+			raise TypeError("Event type must be %r not %s" % (cls.types, eventtype))
 
 		# Create a new event object
 		if game != None and not isinstance(game, (Game, int, long)):
