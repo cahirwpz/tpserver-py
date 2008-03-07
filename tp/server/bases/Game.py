@@ -54,7 +54,7 @@ class Lock(SQLBase):
 		if not type in Lock.types:
 			raise TypeError('Lock type can only be one of %s' % Lock.types)
 
-		self.locktype = type
+		self.locktype = unicode(type)
 		self.pid      = os.getpid()
 		self.host     = socket.gethostname()
 		self.save()
