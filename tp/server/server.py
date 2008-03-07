@@ -618,6 +618,8 @@ class FullServer(netlib.Server):
 		if toremove is None:
 			print "Got gameremoved event for a game I didn't have a lock on!"
 			return
+
+		self.discover.GameRemove(g.to_discover())
 			
 		self.locks.remove(toremove)
 		del toremove
