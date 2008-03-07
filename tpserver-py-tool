@@ -116,7 +116,9 @@ class Commands:
 
 		# Remove all the data from all every table
 		from tp.server.db import metadata
-		for table in metadata.tables.values():
+		for name, table in metadata.tables.items():
+			if name.lower() == "event":
+				continue
 			if "game" in table.c:
 				dbconn.execute(sqlalchemy.delete(table, table.c['game']==g.id))
 
