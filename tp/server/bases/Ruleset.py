@@ -123,7 +123,7 @@ class Ruleset(object):
 
 		trans = dbconn.begin()
 		try:
-			Event.new('gameadd', self.game)
+			Event.new('gameadded', self.game)
 
 			trans.commit()
 		except:
