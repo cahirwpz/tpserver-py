@@ -595,15 +595,18 @@ class FullServer(netlib.Server):
 			print "Got gameadded event for a game I already have a lock on!"
 			return
 
+		# Create a lock for this game
+		db.dbconn.use(g)
+		self.locks.append(Lock.new('serving'))
+		db.dbconn.commit()
+
 		# Setup the game
 		g.ruleset.setup()
 
 		# Make the game discoverable	
 		self.discover.GameAdd(g.to_discover())
 
-		# Create a lock for this game
-		db.dbconn.use(g)
-		self.locks.append(Lock.new('serving'))
+		db.dbconn.commit()
 
 	def gameremoved(self, g):
 		toremove = None
