@@ -93,15 +93,15 @@ class Commands:
 		# Check the game exists
 		g = Game(longname=game)
 		
+		try:
+			e = Event.new(u"gameremoved", g)
+			e.insert()
+		except sqlalchemy.exceptions.IntegrityError, e:
+			pass
+
 		# Wait for the locks to disappear
 		if Lock.locked(u"serving", g):
 			print "Waiting for servers to finish",
-
-			try:
-				e = Event.new(u"gameremoved", g)
-				e.insert()
-			except sqlalchemy.exceptions.IntegrityError, e:
-				pass
 
 			while Lock.locked(u"serving", g):
 				sys.stdout.write(".")
