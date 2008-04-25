@@ -19,7 +19,7 @@ from types import StringTypes
 import re
 def cmp(ver1, ver2):
 	if type(ver2) in StringTypes:
-		ver2 = [int(x) for x in ver2.split('.')]
+		ver2 = [int(re.sub('[^0-9].*','', x)) for x in ver2.split('.')]
 
 	ver2 = list(ver2)
 	for i,x in enumerate(ver2):
@@ -70,18 +70,23 @@ try:
 		pass
 
 	if not cmp(netlib_version, tp.netlib.__version__):
-		raise ImportError("Thousand Parsec Network Library (libtpproto-py) is to old")
+		raise ImportError("Thousand Parsec Network Library (libtpproto-py) is too old")
 
 except Exception, e:
 	print e
 	notfound.append("tp.netlib > " + tostr(netlib_version))
 
 print
+
+sqlalchemy_version = (0, 4, 0)
 try:
 	print " * Looking for SQLAlchemy,"
 
 	import sqlalchemy
 	print "    SQLAlchemy installed version", sqlalchemy.__version__ 
+
+	if not cmp(sqlalchemy_version, sqlalchemy.__version__):
+		raise ImportError("SQLAlchemy version is too old")
 except Exception, e:
 	print e
 
@@ -175,7 +180,7 @@ except Exception, e:
 
 	reason = "A supported scalable database engine."
 	if system == "debian-based":
-		recommended.append(("python-mysql", reason))
+		recommended.append(("python-mysqldb", reason))
 	else:
 		recommended.append(("Python MySQLdb", reason))
 
