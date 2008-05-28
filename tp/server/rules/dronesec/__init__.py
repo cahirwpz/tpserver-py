@@ -18,13 +18,16 @@ import tp.server.rules.base.actions.Win as Win
 
 # Minisec specific imports
 import orders.Move as Move
-import orders.BuildFleet as BuildFleet
+import orders.ProduceDrones as BuildFleet
 import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
 import actions.Turn as Turn
 
 import random
+
+from tp.server.utils.planetGenerator import PlanetGenerator
+
 
 SIZE = 10000000
 class Ruleset(RulesetBase):
@@ -41,7 +44,7 @@ class Ruleset(RulesetBase):
 # Combat
 # Cap planet
 
-
+	seed = 0
 	# The order orders and actions occur
 	orderOfOrders = [
 			BuildFleet, 		# Build all ship
@@ -62,8 +65,8 @@ class Ruleset(RulesetBase):
 
 	def initialise(self):
 		"""\
-		Dronesec 
-		""" 
+		Dronesec
+		"""
 		dbconn.use(self.game)
 
 		trans = dbconn.begin()
@@ -93,38 +96,31 @@ class Ruleset(RulesetBase):
 		    Number of Planets includes player planets
 		    Layouts are currently a blank option. It could be used to determine randomness of map or a special layout to follow.
 		    seed can be set for purposes of saved games. But fully random seeds are also allowed.
-			
+
 		"""
-    
+
 		dbconn.use(self.game)
-	
+
 		trans = dbconn.begin()
-		
+
 		try:
-		
-		  try:
-	  	  Object(id=0).turn = 0
-		  except:
-		    trans.rollback()
-		    raise
-		  
-		  
 			# FIXME: Assuming that the Universe exists
 			r = random.Random()
 			r.seed(int(seed))
 			self.seed = seed
 			PG = PlanetGenerator(theSeed = int(self.seed))
-				
-				# In each system create a number of planets
-				for j in range(0, numPlanets):
-					planet = Object(type='tp.server.rules.base.objects.Planet')
-					planet.name = "%s" % PG.genName()
-					planet.size = r.randint(1000, 10000)
-					planet.parent = system.id
-					planet.posx = pos[0]+r.randint(1,100)*1000
-					planet.posy = pos[1]+r.randint(1,100)*1000
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
+			# In each system create a number of planets
+			for j in range(0, int(numPlanets)):
+				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+				planet = Object(type='tp.server.rules.dronesec.objects.Planet')
+				planet.name = "%s" % PG.genName()
+				planet.size = r.randint(1000, 10000)
+				planet.parent = 0
+				planet.posx = pos[0]+r.randint(1,100)*1000
+				planet.posy = pos[1]+r.randint(1,100)*1000
+				planet.insert()
+				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
 			trans.commit()
 		except:
@@ -136,11 +132,11 @@ class Ruleset(RulesetBase):
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
 		dbconn.use(self.game)
-	
+
 		trans = dbconn.begin()
 		try:
 			user = RulesetBase.player(self, username, password, email, comment)
-      
+
       #First player created will always start at the same position should game be replayed
 			r = random.Random()
 			r.seed(self.seed)
@@ -151,10 +147,10 @@ class Ruleset(RulesetBase):
 
 			planet = Object(type='tp.server.rules.base.objects.Planet')
 			planet.name = "%s Planet" % username
-			planet.parent = system.id
+			planet.parent = 0
 			planet.size = 100
-			planet.posx = system.posx+r.randint(1,100)*1000
-			planet.posy = system.posy+r.randint(1,100)*1000
+			planet.posx = pos[0]
+			planet.posy = pos[1]
 			planet.owner = user.id
 			planet.save()
 
@@ -166,12 +162,12 @@ class Ruleset(RulesetBase):
 			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
 			fleet.owner = user.id
 			fleet.save()
-			
-################			
+
+################
 
 			trans.commit()
-	
-			return (user, system, planet, fleet)
+
+			return (user, planet, fleet)
 		except:
 			trans.rollback()
 			raise
