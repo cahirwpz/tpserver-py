@@ -22,7 +22,7 @@ class PlanetGenerator:
 		syl.close()
 		random.seed(theSeed)
 
-	def genName(self):
+	def genName(self, maxWords =2, maxSyllables = 3):
 		"""/
 		Name Generator
 		theSeed is the seed number used for the number generator.
