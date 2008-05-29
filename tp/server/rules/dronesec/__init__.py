@@ -18,7 +18,7 @@ import tp.server.rules.base.actions.Win as Win
 
 # Minisec specific imports
 import orders.Move as Move
-import orders.ProduceDrones as BuildFleet
+import orders.ProduceDrones as ProduceDrones
 import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
@@ -47,7 +47,7 @@ class Ruleset(RulesetBase):
 	seed = 0
 	# The order orders and actions occur
 	orderOfOrders = [
-			BuildFleet, 		# Build all ship
+			ProduceDrones, 		# Produce all Drones
 			MergeFleet, 		# Merge fleets together
 	    SplitFleet, 		# Split any fleets - this means you can merge then split in one turn
 		  Clean, 				# Clean up fleets which no longer exist
@@ -154,7 +154,7 @@ class Ruleset(RulesetBase):
 			planet.owner = user.id
 			planet.save()
 
-			fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
+			fleet = Object(type='tp.server.rules.dronesec.objects.Drones')
 			fleet.parent = planet.id
 			fleet.size = 3
 			fleet.name = "%s First Fleet" % username

@@ -51,7 +51,7 @@ Build a new drone."""
 		message = Message()
 		message.slot = -1
 		message.bid = builder.owner
-		message.subject = "Fleet built"
+		message.subject = "Drone built"
 
 		message.body = """\
 A new fleet (%s) has been built and is orbiting %s.
@@ -60,21 +60,16 @@ It consists of:
 
 		for type, number in fleet.ships.items():
 			if number > 1:
-				message.body += "%s %ss" % (number, Fleet.ship_types[type])
+				message.body += "%s %ss" % (number, Drone.DP.name[type])
 			else:
-				message.body += "%s %s" % (number, Fleet.ship_types[type])
+				message.body += "%s %s" % (number, Drone.DP.name[type])
 
 		message.insert()
 
 		self.remove()
 
 	def turns(self, turns=0):
-		time = {0:1, 1:2, 2:4}
-
-		for type, number in self.ships.items():
-			turns += time[type] * number
-
-		return turns-self.worked
+		return 0
 
 	def resources(self):
 		return []
@@ -82,7 +77,7 @@ It consists of:
 	def fn_ships(self, value=None):
 		if value == None:
 			returns = []
-			for type, name in Fleet.ship_types.items():
+			for type, name in Drone.DP.name.items():
 				returns.append((type, name, -1))
 			return returns, self.ships.items()
 		else:
@@ -90,7 +85,7 @@ It consists of:
 
 			try:
 				for type, number in value[1]:
-					if not type in Fleet.ship_types.keys():
+					if not type in Drone.DP.name.keys():
 						raise ValueError("Invalid type selected")
 					ships[type] = number
 			except:
