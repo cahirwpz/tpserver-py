@@ -16,16 +16,20 @@ class Drone(Object, Combattant):
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
 
-	orderclasses = ('tp.server.rules.base.orders.NOp',
-					'tp.server.rules.minisec.orders.Move',
-					'tp.server.rules.minisec.orders.SplitFleet',
-					'tp.server.rules.base.orders.MergeFleet',
-					'tp.server.rules.base.orders.Colonise')
+	orderclasses = ('tp.server.rules.base.orders.NOp')
 
 	DP = Dronepedia()
 
 	def fn_ships(self, value=None):
 		if value == None:
 			return self.DP.name.items()
+
+	def fn_name(self, value=None):
+		if value == None:
+			return (255, self.name)
+		else:
+			self.name = value[1]
+
 Drone.typeno = 4
 Object.types[Drone.typeno] = Drone
+
