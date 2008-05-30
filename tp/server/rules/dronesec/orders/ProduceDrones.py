@@ -1,4 +1,3 @@
-
 from tp import netlib
 
 from tp.server.bases.Object import Object
@@ -8,94 +7,99 @@ from tp.server.bases.Message import Message
 from tp.server.rules.dronesec.objects.Drone import Drone
 
 class ProduceDrones(Order):
-	"""\
+  """\
 Build a new drone."""
-	typeno = 2
+  typeno = 2
 
-	attributes = {\
-		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
-					desc="Build Drones."),
-		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING,
-					desc="The new drone's name.")
-	}
+  attributes = {\
+    'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
+          desc="Build Drones."),
+    'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING,
+          desc="The new drone's name.")
+  }
 
-	def do(self):
-		builder = Object(self.oid)
+  def do(self):
+    builder = Object(self.oid)
 
-		if not hasattr(builder, "owner"):
-			print "Could not do a build order because it was on an unownable object."
-			self.remove()
+    if not hasattr(builder, "owner"):
+      print "Could not do a build order because it was on an unownable object."
+      self.remove()
 
-		if self.turns() > 1:
-			# Add another year to worked...
-			self.worked += 1
-			print "Worked %s, %s left until built." % (self.worked, self.turns())
-			self.save()
-			return
+    if self.turns() > 1:
+      # Add another year to worked...
+      self.worked += 1
+      print "Worked %s, %s left until built." % (self.worked, self.turns())
+      self.save()
+      return
 
-		# Build new fleet object
-		fleet = Object(type='tp.server.rules.dronesec.objects.Drone')
+    # Build new fleet object
+    fleet = Object(type='tp.server.rules.dronesec.objects.Drone')
 
-		# Type Fleet
-		fleet.parent = builder.id
-		fleet.posx = builder.posx
-		fleet.posy = builder.posy
-		fleet.posz = builder.posz
-		fleet.size = 1
-		fleet.owner = builder.owner
-		fleet.ships = self.ships
-		fleet.insert()
-		fleet.name = self.name
-		fleet.save()
+    # Type Fleet
+    fleet.parent = builder.id
+    fleet.posx = builder.posx
+    fleet.posy = builder.posy
+    fleet.posz = builder.posz
+    fleet.size = 1
+    fleet.owner = builder.owner
+    fleet.ships = self.ships
+    fleet.insert()
+    fleet.name = self.name
+    fleet.save()
 
-		message = Message()
-		message.slot = -1
-		message.bid = builder.owner
-		message.subject = "Drone built"
+    message = Message()
+    message.slot = -1
+    message.bid = builder.owner
+    message.subject = "Drone built"
 
-		message.body = """\
+    message.body = """\
 A new fleet (%s) has been built and is orbiting %s.
 It consists of:
 """ % (fleet.name, builder.name)
 
-		for type, number in fleet.ships.items():
-			if number > 1:
-				message.body += "%s %ss" % (number, Drone.DP.name[type])
-			else:
-				message.body += "%s %s" % (number, Drone.DP.name[type])
+    for type, number in fleet.ships.items():
+      if number > 1:
+        message.body += "%s %ss" % (number, Drone.DP.name[type])
+      else:
+        message.body += "%s %s" % (number, Drone.DP.name[type])
 
-		message.insert()
+    message.insert()
 
-		self.remove()
+    self.remove()
 
-	def turns(self, turns=0):
-		return 0
+  def turns(self, turns=0):
+    time = {0:1, 1:2, 2:4}
 
-	def resources(self):
-		return []
+    for type, number in self.ships.items():
+      turns += time[type] * number
 
-	def fn_ships(self, value=None):
-		if value == None:
-			returns = []
-			for type, name in Drone.DP.name.items():
-				returns.append((type, name, -1))
-			return returns, self.ships.items()
-		else:
-			ships = {}
+    return turns-self.worked
 
-			try:
-				for type, number in value[1]:
-					if not type in Drone.DP.name.keys():
-						raise ValueError("Invalid type selected")
-					ships[type] = number
-			except:
-				pass
+  def resources(self):
+    return []
 
-			self.ships = ships
+  def fn_ships(self, value=None):
+    if value == None:
+      returns = []
+      for type, name in Drone.DP.name.items():
+        returns.append((type, name, -1))
+      return returns, self.ships.items()
+    else:
+      ships = {}
 
-	def fn_name(self, value=None):
-		if value == None:
-			return (255, self.name)
-		else:
-			self.name = value[1]
+      try:
+        for type, number in value[1]:
+          if not type in Drone.DP.name.keys():
+            raise ValueError("Invalid type selected")
+          ships[type] = number
+      except:
+        pass
+
+      self.ships = ships
+
+  def fn_name(self, value=None):
+    if value == None:
+      return (255, self.name)
+    else:
+      self.name = value[1]
 
