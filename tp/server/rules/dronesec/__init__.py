@@ -55,7 +55,6 @@ class Ruleset(RulesetBase):
     (Move, 'prepare'),  # Set the velocity of objects
     MoveAction,     # Move all the objects about
     (Move, 'finalise'), # Check for objects which may have overshot the destination
-    FleetCombat,     # Perform a combat, ships may have escaped by moving away
     AddResource,    #Add Resource to planet
     Colonise,       # Colonise any planets, ships may have been destoryed or reached their destination
     Clean,         # Remove all empty fleets
