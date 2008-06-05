@@ -14,7 +14,8 @@ class Fleet(Object, Combattant):
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
-	orderclasses = ('tp.server.rules.base.orders.NOp',
+	orderclasses = (
+		'tp.server.rules.base.orders.NOp',
 		)
 
 	DP = Dronepedia()
