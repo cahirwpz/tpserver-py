@@ -4,7 +4,7 @@ from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
 
-from tp.server.rules.dronesec.objects.Drone import Drone
+from tp.server.rules.dronesec.objects.Fleet import Fleet
 
 class ProduceDrones(Order):
 	"""\
@@ -33,7 +33,7 @@ Build a new drone."""
 			return
 
 		# Build new fleet object
-		fleet = Object(type='tp.server.rules.dronesec.objects.Drone')
+		fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
 
 		# Type Fleet
 		fleet.parent = builder.id
@@ -56,12 +56,11 @@ Build a new drone."""
 A new fleet (%s) has been built and is orbiting %s.
 It consists of:
 """ % (fleet.name, builder.name)
-
 		for type, number in fleet.ships.items():
 			if number > 1:
-				message.body += "%s %ss" % (number, Drone.DP.name[type])
+				message.body += "%s %ss" % (number, Fleet.DP.name[type])
 			else:
-				message.body += "%s %s" % (number, Drone.DP.name[type])
+				message.body += "%s %s" % (number, Fleet.DP.name[type])
 
 		message.insert()
 
@@ -81,7 +80,7 @@ It consists of:
 	def fn_ships(self, value=None):
 		if value == None:
 			returns = []
-			for type, name in Drone.DP.name.items():
+			for type, name in Fleet.DP.name.items():
 				returns.append((type, name, -1))
 			return returns, self.ships.items()
 		else:
@@ -89,7 +88,7 @@ It consists of:
 
 			try:
 				for type, number in value[1]:
-					if not type in Drone.DP.name.keys():
+					if not type in Fleet.DP.name.keys():
 						raise ValueError("Invalid type selected")
 					ships[type] = number
 			except:
@@ -99,7 +98,6 @@ It consists of:
 
 	def fn_name(self, value=None):
 		if value == None:
-			return (255, self.name)
+			return "Produce Drones"
 		else:
-			self.name = value[1]
-
+			self.name = "Produce Drones"
