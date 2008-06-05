@@ -119,14 +119,23 @@ class Ruleset(RulesetBase):
 			r.seed(int(seed))
 			self.seed = seed
 			PG = PlanetGenerator(theSeed = int(self.seed))
-
 			# In each system create a number of planets
 			for j in range(0, int(numPlanets)):
+				n = PG.genName()
 				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+				system = Object(type='tp.server.rules.base.objects.System')
+				system.name = "System %s" % n
+				system.size = r.randint(8000, 20000)
+				system.posx = pos[0]
+				system.posy = pos[1]
+				system.insert()
+				ReparentOne(system)
+				system.save()
+
 				planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-				planet.name = "%s" % PG.genName()
+				planet.name = "%s" % n
 				planet.size = r.randint(1000, 10000)
-				planet.parent = 0
+				planet.parent = system.id
 				planet.posx = pos[0]+r.randint(1,100)*1000
 				planet.posy = pos[1]+r.randint(1,100)*1000
 				planet.insert()
@@ -149,13 +158,23 @@ class Ruleset(RulesetBase):
 
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
-			r.seed(self.seed)
+			r.seed(self.seed + user.id)
 			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 	#### Might have planets be created before hand and players join an already existing planet
 
+			system = Object(type='tp.server.rules.base.objects.System')
+			system.name = "%s Solar System" % username
+			system.parent = 0
+			system.size = r.randint(800000, 2000000)
+			(system.posx, system.posy, junk) = pos
+			ReparentOne(system)
+			system.owner = user.id
+			system.save()
+
+
 			planet = Object(type='tp.server.rules.dronesec.objects.Planet')
 			planet.name = "%s Planet" % username
-			planet.parent = 0
+			planet.parent = system.id
 			planet.size = 100
 			planet.posx = pos[0]
 			planet.posy = pos[1]
@@ -174,7 +193,7 @@ class Ruleset(RulesetBase):
 
 			trans.commit()
 
-			return (user, planet, fleet)
+			return (user,system, planet, fleet)
 		except:
 			trans.rollback()
 			raise
