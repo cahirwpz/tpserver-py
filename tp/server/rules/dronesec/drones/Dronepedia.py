@@ -2,6 +2,7 @@
 
 import csv
 import os
+
 class Dronepedia:
 	def __init__(self, f = "drones.csv"):
 		# """Initialize dronepedia.
@@ -21,9 +22,9 @@ class Dronepedia:
 		self.stength= dict()
 		self.weakness = dict()
 		for name, typ, cost, attack, health, speed, strength, weakness in reader:
-			i = self.getId()
-			#hack: It should be checking for the column headers not for id. (In case we use random values instead of sequential ones.
-			if i > 0:
+			##hack: It should be checking for the column headers not for id. (In case we use random values instead of sequential ones.
+			if name != 'Name':
+				i = self.getId()
 				self.id[name] = i
 				self.name[i]= name
 				self.type[i] = typ
@@ -33,8 +34,6 @@ class Dronepedia:
 				self.speed[i]= speed
 				self.stength[i]= strength
 				self.weakness[i] = weakness
-				print self.id
-
 
 	def getId(self):
 	#Possibility: Make IDS randomla
@@ -44,4 +43,3 @@ class Dronepedia:
 			i = 0
 		self.ids.append(i)
 		return i
-

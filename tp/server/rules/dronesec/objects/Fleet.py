@@ -6,8 +6,7 @@ from types import TupleType, ListType
 from tp.server.bases.Object import Object
 from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
-
-SPEED = 300000000
+from tp.server.rules.dronesec.drones.Dronepedia import Dronepedia
 
 class Fleet(Object, Combattant):
 	attributes = { \
@@ -15,17 +14,14 @@ class Fleet(Object, Combattant):
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
 	}
-	orderclasses = ('tp.server.rules.base.orders.NOp', 
-					'tp.server.rules.minisec.orders.Move',
-					'tp.server.rules.minisec.orders.SplitFleet',
-					'tp.server.rules.base.orders.MergeFleet',
-					'tp.server.rules.base.orders.Colonise',)
-	
-	# In MiniSec, these are all hard coded
-	ship_types  = {0: 'Scout', 1: 'Frigate', 2: 'Battleship'}
-	ship_hp     = {0: 2, 1:4, 2:6}
+	orderclasses = ('tp.server.rules.base.orders.NOp',
+		)
+
+	DP = Dronepedia()
+	ship_types  = DP.name
+	ship_hp     = DP.health
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
-	ship_speed  = {0: 3*SPEED, 1: 2*SPEED, 2: 1*SPEED}
+	ship_speed  = DP.speed
 
 	def fn_ships(self, value=None):
 		if value == None:
@@ -40,9 +36,14 @@ class Fleet(Object, Combattant):
 				if type in self.ships.keys():
 					for d in damage:
 						totaldamage += damage
-			
 			return totaldamage
-			
+
+	def fn_name(self, value=None):
+		if value == None:
+			return (255, self.name)
+		else:
+			self.name = value[1]
+
 	def tidy(self):
 		"""\
 		Fix up the ships and damage stuff.
@@ -73,7 +74,7 @@ class Fleet(Object, Combattant):
 		Returns the maximum speed of the fleet.
 		"""
 		return self.ship_speed[max(self.ships.keys())]
-	
+
 	#############################################
 	# Combat functions
 	#############################################
@@ -83,7 +84,7 @@ class Fleet(Object, Combattant):
 		Checks if this object is a can still participate in combat.
 		"""
 		return self.ghost() or self.ships.keys() == [0,]
-		
+
 	def damage_do(self, amount):
 		"""\
 		Damages a fleet. Can be called with either a single
@@ -101,7 +102,7 @@ class Fleet(Object, Combattant):
 		s.sort()
 		s.reverse()
 		t = s[0]
-	
+
 		if not self.damage.has_key(t):
 			self.damage[t] = []
 		damage = self.damage[t]
@@ -115,7 +116,7 @@ class Fleet(Object, Combattant):
 				damage[0] += amount
 		else:
 			damage.append(amount)
-		
+
 		if damage[-1] >= self.ship_hp[t]:
 			self.ships[t] -= 1
 			if self.ships[t] < 1:

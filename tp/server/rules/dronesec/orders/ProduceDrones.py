@@ -1,4 +1,3 @@
-
 from tp import netlib
 
 from tp.server.bases.Object import Object
@@ -69,7 +68,12 @@ It consists of:
 		self.remove()
 
 	def turns(self, turns=0):
-		return 0
+		time = {0:1, 1:2, 2:4}
+
+		for type, number in self.ships.items():
+			turns += time[type] * number
+
+		return turns-self.worked
 
 	def resources(self):
 		return []
