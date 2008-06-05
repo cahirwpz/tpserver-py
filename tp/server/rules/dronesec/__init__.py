@@ -191,9 +191,18 @@ class Ruleset(RulesetBase):
 			fleet.owner = user.id
 			fleet.save()
 
+			overlord = Object(type='tp.server.rules.dronesec.objects.overlord.Fleet')
+			overlord.parent = planet.id
+			overlord.size = 3
+			overlord.name = "%s Overlord" % username
+			overlord.ships = {0:1}
+			(overlord.posx, overlord.posy, overlord.posz) = (planet.posx, planet.posy, planet.posz)
+			overlord.owner = user.id
+			overlord.save()
+
 			trans.commit()
 
-			return (user,system, planet, fleet)
+			return (user,system, planet, fleet, overlord)
 		except:
 			trans.rollback()
 			raise
