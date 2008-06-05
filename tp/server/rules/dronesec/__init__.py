@@ -26,22 +26,26 @@ import actions.Turn as Turn
 
 import random
 
-from tp.server.utils.planetGenerator import PlanetGenerator
-
 SIZE = 10000000
 class Ruleset(RulesetBase):
 	"""
-	Minisec Ruleset...
+	Dronesec Ruleset...
 	"""
-	name = "Minisec"
+	name = "Dronesec"
 	version = "0.0.1"
+
+# Overlord orderss
+# Moves
+# Build Unit
+# Research
+# Combat
+# Cap planet
+
 
 	# The order orders and actions occur
 	orderOfOrders = [
-			BuildFleet, 		# Build all ships
+			BuildFleet, 		# Build all ship
 			MergeFleet, 		# Merge fleets together
-			SplitFleet, 		# Split any fleets - this means you can merge then split in one turn
-			Clean, 				# Clean up fleets which no longer exist
 			(Move, 'prepare'),  # Set the velocity of objects
 			MoveAction, 		# Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
@@ -56,7 +60,7 @@ class Ruleset(RulesetBase):
 
 	def initialise(self):
 		"""\
-		Minisec 
+		Dronesec
 		"""
 		dbconn.use(self.game)
 
@@ -80,80 +84,65 @@ class Ruleset(RulesetBase):
 			trans.rollback()
 			raise
 
-	def populate(self, seed, system_min, system_max, planet_min, planet_max):
+	def populate(self, maptype, numPlanets, numPlayers, maplayout, seed=None):
 		"""\
-		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
-		
-			Populate a universe with a number of systems and planets.
-			The number of systems in the universe is dictated by min/max systems.
-			The number of planets per system is dictated by min/max planets.
-		"""
-		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
+		--populate <game> <Map Type> <number of Planets> <maximunum number of players> <Layout> <seed>
+		    Maptypes so far can be normal, epic, and tug.
+		    Number of Planets includes player planets
+		    Layouts are currently a blank option. It could be used to determine randomness of map or a special layout to follow.
+		    seed can be set for purposes of saved games. But fully random seeds are also allowed.
 
+		"""
 		dbconn.use(self.game)
-	
+
 		trans = dbconn.begin()
+
 		try:
-			# FIXME: Assuming that the Universe and the Galaxy exist.
+
+			try:
+				Object(id=0).turn = 0
+			except:
+				trans.rollback()
+				raise
+			# FIXME: Assuming that the Universe exists
 			r = random.Random()
 			r.seed(int(seed))
-			PG = PlanetGenerator(theSeed = int(seed))
+			self.seed = seed
+			PG = PlanetGenerator(theSeed = int(self.seed))
 
-			# Create this many systems
-			for i in range(0, r.randint(system_min, system_max)):
-				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
-				
-				# Add system
-				system = Object(type='tp.server.rules.base.objects.System')
-				system.name = "System %s" % PG.genName()
-				system.size = r.randint(800000, 2000000)
-				system.posx = pos[0]
-				system.posy = pos[1]
-				system.insert()
-				ReparentOne(system)
-				system.save()
-				print "Created system (%s) with the id: %i" % (system.name, system.id)
-				
 				# In each system create a number of planets
-				for j in range(0, r.randint(planet_min, planet_max)):
-					planet = Object(type='tp.server.rules.base.objects.Planet')
-					planet.name = "Planet %s" % PG.genName()
-					planet.size = r.randint(1000, 10000)
-					planet.parent = system.id
-					planet.posx = pos[0]+r.randint(1,100)*1000
-					planet.posy = pos[1]+r.randint(1,100)*1000
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+			for j in range(0, numPlanets):
+				planet = Object(type='tp.server.rules.base.objects.Planet')
+				planet.name = "%s" % PG.genName()
+				planet.size = r.randint(1000, 10000)
+				planet.parent = system.id
+				planet.posx = pos[0]+r.randint(1,100)*1000
+				planet.posy = pos[1]+r.randint(1,100)*1000
+				planet.insert()
+				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
 			trans.commit()
 		except:
 			trans.rollback()
 			raise
 
-	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
+	def player(self, username, password, email='Unknown', comment='A Dronesec Player'):
 		"""\
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
 		dbconn.use(self.game)
-	
+
 		trans = dbconn.begin()
 		try:
 			user = RulesetBase.player(self, username, password, email, comment)
 
-			# FIXME: Hack! This however means that player x will always end up in the same place..
+			#First player created will always start at the same position should game be replayed
 			r = random.Random()
-			r.seed(user.id)
+			r.seed(self.seed)
 
 			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 
-			system = Object(type='tp.server.rules.base.objects.System')
-			system.name = "%s Solar System" % username
-			system.parent = 0
-			system.size = r.randint(800000, 2000000)
-			(system.posx, system.posy, junk) = pos
-			ReparentOne(system)
-			system.owner = user.id
-			system.save()
+#### Might have planets be created before hand and players join an already existing planet
 
 			planet = Object(type='tp.server.rules.base.objects.Planet')
 			planet.name = "%s Planet" % username
@@ -173,8 +162,10 @@ class Ruleset(RulesetBase):
 			fleet.owner = user.id
 			fleet.save()
 
+################
+
 			trans.commit()
-	
+
 			return (user, system, planet, fleet)
 		except:
 			trans.rollback()
