@@ -1,3 +1,4 @@
+
 from tp import netlib
 
 from tp.server.bases.Object import Object
@@ -14,9 +15,10 @@ Build a new drone."""
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
 					desc="Build Drones."),
-		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING,
+		'name':  Order.Attribute("name", 'New Drones', 'protected', type=netlib.objects.constants.ARG_STRING,
 					desc="The new drone's name.")
 	}
+
 
 	def do(self):
 		builder = Object(self.oid)
@@ -78,10 +80,11 @@ It consists of:
 		return []
 
 	def fn_ships(self, value=None):
+		print value
 		if value == None:
 			returns = []
 			for type, name in Fleet.DP.name.items():
-				returns.append((type, name, -1))
+				returns.append((type, name, 10))
 			return returns, self.ships.items()
 		else:
 			ships = {}
@@ -98,6 +101,6 @@ It consists of:
 
 	def fn_name(self, value=None):
 		if value == None:
-			return "Produce Drones"
+			return (255, self.name)
 		else:
-			self.name = "Produce Drones"
+			self.name = value[1]
