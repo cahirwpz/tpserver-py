@@ -1,10 +1,10 @@
-
 from tp.server.utils import ReparentOne
 from tp.server.db import dbconn, convert
 
 from tp.server.bases.Board    import Board
 from tp.server.bases.Message  import Message
 from tp.server.bases.Object   import Object
+from tp.server.bases.Resource import Resource
 
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
@@ -23,6 +23,7 @@ import orders.SplitFleet as SplitFleet
 import actions.FleetCombat as FleetCombat
 import actions.Heal as Heal
 import actions.Turn as Turn
+import actions.AddResource as AddResource
 
 import random
 
@@ -44,6 +45,8 @@ class Ruleset(RulesetBase):
 # Combat
 # Cap planet
 
+
+
 	seed = 0
 	# The order orders and actions occur
 	orderOfOrders = [
@@ -53,6 +56,7 @@ class Ruleset(RulesetBase):
 			MoveAction, 		# Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
 			FleetCombat, 		# Perform a combat, ships may have escaped by moving away
+			AddResource,		#Add Resource to planet
 			Colonise, 			# Colonise any planets, ships may have been destoryed or reached their destination
 			Clean, 				# Remove all empty fleets
 			Heal, 				# Repair any ships orbiting a friendly planet
@@ -70,7 +74,6 @@ class Ruleset(RulesetBase):
 		trans = dbconn.begin()
 		try:
 			RulesetBase.initialise(self)
-
 			# Need to create the top level universe object...
 			universe = Object(type='tp.server.rules.base.objects.Universe')
 			universe.id     = 0
@@ -81,11 +84,22 @@ class Ruleset(RulesetBase):
 			universe.posy   = 0
 			universe.turn   = 0
 			universe.insert()
+			#initialize Credits resource
+			r = Resource()
+			r.namesingular = "Credit"
+			r.nameplural   = "Credits"
+			r.unitsingular = 'cr'
+			r.unitplural = 'cr'
+			r.desc = "Primary Resource of Drones"
+			r.weight = 0
+			r.size   = 10
+			r.insert()
 
 			trans.commit()
 		except:
 			trans.rollback()
 			raise
+
 
 	def populate(self, maptype, numPlanets, numPlayers, maplayout, seed=None):
 		"""\
@@ -94,7 +108,6 @@ class Ruleset(RulesetBase):
 		    Number of Planets includes player planets
 		    Layouts are currently a blank option. It could be used to determine randomness of map or a special layout to follow.
 		    seed can be set for purposes of saved games. But fully random seeds are also allowed.
-
 		"""
 
 		dbconn.use(self.game)
@@ -138,21 +151,20 @@ class Ruleset(RulesetBase):
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
 			r.seed(self.seed)
-
 			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+	#### Might have planets be created before hand and players join an already existing planet
 
-#### Might have planets be created before hand and players join an already existing planet
-
-			planet = Object(type='tp.server.rules.base.objects.Planet')
+			planet = Object(type='tp.server.rules.dronesec.objects.Planet')
 			planet.name = "%s Planet" % username
 			planet.parent = 0
 			planet.size = 100
 			planet.posx = pos[0]
 			planet.posy = pos[1]
 			planet.owner = user.id
+			planet.resources_add(Resource.byname('Credit'), 100)
 			planet.save()
 
-			fleet = Object(type='tp.server.rules.dronesec.objects.Drones')
+			fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
 			fleet.parent = planet.id
 			fleet.size = 3
 			fleet.name = "%s First Fleet" % username
@@ -162,7 +174,6 @@ class Ruleset(RulesetBase):
 			fleet.save()
 
 			trans.commit()
-
 
 			return (user, planet, fleet)
 		except:
