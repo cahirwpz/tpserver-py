@@ -4,6 +4,7 @@ from tp import netlib
 from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
+from tp.server.bases.Resource import Resource
 
 from tp.server.rules.dronesec.objects.Fleet import Fleet
 
@@ -11,7 +12,6 @@ class ProduceDrones(Order):
 	"""\
 Build a new drone."""
 	typeno = 2
-
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
 					desc="Build Drones."),
@@ -25,6 +25,16 @@ Build a new drone."""
 
 		if not hasattr(builder, "owner"):
 			print "Could not do a build order because it was on an unownable object."
+			self.remove()
+
+		#Check to see if there enough resources
+		res = 0
+		for type, number in self.ships.items():
+			res += int(Fleet.DP.cost[type]) * int(number)
+
+		print res
+		if res > builder.resources[1][0]:
+			print "Not enough resources"
 			self.remove()
 
 		if self.turns() > 1:
@@ -66,18 +76,27 @@ It consists of:
 
 		message.insert()
 
+		#Remove resources for unit
+		builder.resources_add(Resource.byname('Credit'), -res)
+		builder.save()
+
 		self.remove()
 
 	def turns(self, turns=0):
-		time = {0:1, 1:2, 2:4}
-
 		for type, number in self.ships.items():
-			turns += time[type] * number
+			turns += 0 * number
 
 		return turns-self.worked
 
 	def resources(self):
-		return []
+		print "resources"
+		res = 0
+		for type, number in self.ships.items():
+			res += int(Fleet.DP.cost[type]) * int(number)
+			print res
+		r = Resource.byname('Credit')
+		print r, res
+		return [(r,res),]
 
 	def fn_ships(self, value=None):
 		print value
