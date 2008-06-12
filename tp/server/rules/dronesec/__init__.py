@@ -10,21 +10,22 @@ from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
 # Generic Actions
 import tp.server.rules.base.orders.NOp as NOp
-import tp.server.rules.base.orders.MergeFleet as MergeFleet
-import tp.server.rules.base.orders.Colonise as Colonise
-import tp.server.rules.base.actions.Move as MoveAction
+
 import tp.server.rules.base.actions.Clean as Clean
 import tp.server.rules.base.actions.Win as Win
 
-# Minisec specific imports
+# Dronesec specific imports
 import orders.Move as Move
 import orders.ProduceDrones as ProduceDrones
-import orders.SplitFleet as SplitFleet
-import actions.FleetCombat as FleetCombat
+import actions.Move as MoveAction
 import actions.Heal as Heal
 import actions.Turn as Turn
 import actions.AddResource as AddResource
-
+import actions.MoveDrones as MoveDrones
+import actions.SetDestination as SetDestination
+import orders.Repel as Repel
+import orders.Attract as Attract
+import orders.Stop as Stop
 import random
 
 from tp.server.utils.planetGenerator import PlanetGenerator
@@ -50,13 +51,17 @@ class Ruleset(RulesetBase):
 	seed = 0
 	# The order orders and actions occur
 	orderOfOrders = [
+			Attract,			# Attract units
+			Repel,				# Repel units
+			Stop,				# Drones will stop moving
+			SetDestination,		# Sets target location
+			MoveDrones, 		# Move Drones
 			ProduceDrones, 		# Produce all Drones
-			MergeFleet, 		# Merge fleets together
 			(Move, 'prepare'),  # Set the velocity of objects
 			MoveAction, 		# Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
-			AddResource,		#Add Resource to planet
-			Colonise, 			# Colonise any planets, ships may have been destoryed or reached their destination
+
+			AddResource,		# Add Resource to planet
 			Clean, 				# Remove all empty fleets
 			Heal, 				# Repair any ships orbiting a friendly planet
 			Win, 				# Figure out if there is any winner
@@ -122,10 +127,10 @@ class Ruleset(RulesetBase):
 			# In each system create a number of planets
 			for j in range(0, int(numPlanets)):
 				n = PG.genName()
-				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+				pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
 				system = Object(type='tp.server.rules.base.objects.System')
 				system.name = "System %s" % n
-				system.size = r.randint(8000, 20000)
+				system.size = r.randint(800, 2000)
 				system.posx = pos[0]
 				system.posy = pos[1]
 				system.insert()
@@ -134,10 +139,10 @@ class Ruleset(RulesetBase):
 
 				planet = Object(type='tp.server.rules.dronesec.objects.Planet')
 				planet.name = "%s" % n
-				planet.size = r.randint(1000, 10000)
+				planet.size = r.randint(100, 1000)
 				planet.parent = system.id
-				planet.posx = pos[0]+r.randint(1,100)*1000
-				planet.posy = pos[1]+r.randint(1,100)*1000
+				planet.posx = pos[0]+r.randint(1,100)*100
+				planet.posy = pos[1]+r.randint(1,100)*100
 				planet.insert()
 				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
@@ -159,13 +164,13 @@ class Ruleset(RulesetBase):
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
 			r.seed(self.seed + user.id)
-			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+			pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
 	#### Might have planets be created before hand and players join an already existing planet
 
 			system = Object(type='tp.server.rules.base.objects.System')
 			system.name = "%s Solar System" % username
 			system.parent = 0
-			system.size = r.randint(800000, 2000000)
+			system.size = r.randint(8000, 20000)
 			(system.posx, system.posy, junk) = pos
 			ReparentOne(system)
 			system.owner = user.id
