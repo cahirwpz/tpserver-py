@@ -13,6 +13,8 @@ class Fleet(Object, Combattant):
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
 		'damage': Object.Attribute('damage', {}, 'protected'),
+		'target': Object.Attribute('target', (0, 0, 0), 'private'),
+		'ordered': Object.Attribute('ordered', 0, 'private'),
 	}
 	orderclasses = (
 		'tp.server.rules.base.orders.NOp',
