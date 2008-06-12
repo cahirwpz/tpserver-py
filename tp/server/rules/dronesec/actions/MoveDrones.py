@@ -29,7 +29,7 @@ def do(top):
 				distance = math.sqrt(xd**2 + yd**2 + zd**2)
 
 				if distance == 0:
-					pass
+					return
 
 				# Set the velocity so we are moving towards self.pos at speed
 				velx = away(closest(speed * xd/distance, xd))
