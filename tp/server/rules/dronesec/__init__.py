@@ -31,7 +31,7 @@ import random
 from tp.server.utils.planetGenerator import PlanetGenerator
 
 
-SIZE = 10000000
+SIZE = 1000
 class Ruleset(RulesetBase):
 	"""
 	Dronesec Ruleset...
@@ -130,7 +130,7 @@ class Ruleset(RulesetBase):
 				pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
 				system = Object(type='tp.server.rules.base.objects.System')
 				system.name = "System %s" % n
-				system.size = r.randint(800, 2000)
+				system.size = r.randint(80, 200)
 				system.posx = pos[0]
 				system.posy = pos[1]
 				system.insert()
@@ -139,10 +139,10 @@ class Ruleset(RulesetBase):
 
 				planet = Object(type='tp.server.rules.dronesec.objects.Planet')
 				planet.name = "%s" % n
-				planet.size = r.randint(100, 1000)
+				planet.size = r.randint(10, 100)
 				planet.parent = system.id
-				planet.posx = pos[0]+r.randint(1,100)*100
-				planet.posy = pos[1]+r.randint(1,100)*100
+				planet.posx = pos[0]+r.randint(1,10)
+				planet.posy = pos[1]+r.randint(1,10)
 				planet.insert()
 				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
 
@@ -170,7 +170,7 @@ class Ruleset(RulesetBase):
 			system = Object(type='tp.server.rules.base.objects.System')
 			system.name = "%s Solar System" % username
 			system.parent = 0
-			system.size = r.randint(8000, 20000)
+			system.size = r.randint(80, 200)
 			(system.posx, system.posy, junk) = pos
 			ReparentOne(system)
 			system.owner = user.id
