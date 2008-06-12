@@ -12,7 +12,8 @@ class Planet(Object):
 		'resources': Object.Attribute('resources', {}, 'protected'),
 		}
 	orderclasses = ('tp.server.rules.base.orders.NOp',
-		'tp.server.rules.dronesec.orders.ProduceDrones')
+		'tp.server.rules.dronesec.orders.ProduceDrones',
+		)
 
 	def ghost(self):
 		"""\
