@@ -121,9 +121,11 @@ class Ruleset(RulesetBase):
 		try:
 			# FIXME: Assuming that the Universe exists
 			r = random.Random()
-			r.seed(int(seed))
-			self.seed = seed
-			PG = PlanetGenerator(theSeed = int(self.seed))
+			if seed != None:
+				self.seed = int(seed)
+				r.seed(seed)
+
+			PG = PlanetGenerator(theSeed = self.seed)
 			# In each system create a number of planets
 			for j in range(0, int(numPlanets)):
 				n = PG.genName()
