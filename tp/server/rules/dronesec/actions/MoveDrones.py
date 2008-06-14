@@ -24,7 +24,7 @@ def do(top):
 				obj.velx, obj.vely, obj.velz = 0, 0, 0
 			else:
 				##Copy from Move.py
-				speed = int(obj.speed())
+				speed = obj.speed()
 				xd, yd, zd = obj.target[0] - obj.posx, obj.target[1] - obj.posy, obj.target[2] - obj.posz
 				distance = math.sqrt(xd**2 + yd**2 + zd**2)
 
