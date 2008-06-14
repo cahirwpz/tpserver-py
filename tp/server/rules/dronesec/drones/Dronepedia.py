@@ -16,22 +16,26 @@ class Dronepedia:
 		self.name= dict()
 		self.type = dict()
 		self.cost = dict()
+		self.power = dict()
 		self.attack = dict()
+		self.numAttacks = dict()
 		self.health = dict()
 		self.speed= dict()
 		self.stength= dict()
 		self.weakness = dict()
-		for name, typ, cost, attack, health, speed, strength, weakness in reader:
+		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness in reader:
 			##hack: It should be checking for the column headers not for id. (In case we use random values instead of sequential ones.
 			if name != 'Name':
 				i = self.getId()
 				self.id[name] = i
 				self.name[i]= name
 				self.type[i] = typ
-				self.cost[i] = cost
-				self.attack[i] = attack
-				self.health[i] = health
-				self.speed[i]= speed
+				self.cost[i] = int(cost)
+				self.power[i] = int(power)
+				self.attack[i] = int (attack)
+				self.numAttacks[i] = int(numAttacks)
+				self.health[i] = int(health)
+				self.speed[i]= int(speed)
 				self.stength[i]= strength
 				self.weakness[i] = weakness
 
