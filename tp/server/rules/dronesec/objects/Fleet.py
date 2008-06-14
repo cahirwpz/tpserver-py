@@ -26,6 +26,12 @@ class Fleet(Object, Combattant):
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
 	ship_speed  = DP.speed
 
+	def calcPower(self):
+		power = 0
+		for type, no in self.ships.items():
+			power += DP.power[type] * no
+		return power
+
 	def fn_ships(self, value=None):
 		if value == None:
 			return self.ships.items()
