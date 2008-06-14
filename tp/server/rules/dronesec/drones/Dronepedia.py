@@ -24,7 +24,6 @@ class Dronepedia:
 		self.stength= dict()
 		self.weakness = dict()
 		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness in reader:
-			##hack: It should be checking for the column headers not for id. (In case we use random values instead of sequential ones.
 			if name != 'Name':
 				i = self.getId()
 				self.id[name] = i
