@@ -89,13 +89,11 @@ It consists of:
 		return turns-self.worked
 
 	def resources(self):
-		print "resources"
 		res = 0
 		for type, number in self.ships.items():
 			res += int(Fleet.DP.cost[type]) * int(number)
 			print res
 		r = Resource.byname('Credit')
-		print r, res
 		return [(r,res),]
 
 	def fn_ships(self, value=None):
