@@ -31,7 +31,7 @@ def do(top):
 				if distance == 0:
 					return
 
-				# Set the velocity so we are moving towards self.pos at speed
+				# Set the velocity so we are moving towards obj.target at speed
 				velx = away(closest(speed * xd/distance, xd))
 				vely = away(closest(speed * yd/distance, yd))
 				velz = away(closest(speed * zd/distance, zd))
@@ -58,7 +58,7 @@ def do(top):
 					if (obj.velx, obj.vely, obj.velz) != (0,0,0):
 						if xd*obj.velx < 0 or yd*obj.vely < 0 or zd*obj.velz < 0:
 							print "Object %i (%s) has overshot destination %s to (%i, %i, %i)" % \
-								(obj.id, obj.name, self.pos, obj.velx, obj.vely, obj.velz)
+								(obj.id, obj.name, obj.target, obj.velx, obj.vely, obj.velz)
 							obj.posx, obj.posy, obj.posz = obj.target
 							obj.velx, obj.vely, obj.velz = (0,0,0)
 
@@ -66,4 +66,4 @@ def do(top):
 				ReparentOne(obj)
 				obj.save()
 
-	WalkUniverse(top, "after", move)
+	WalkUniverse(top, "before", move)
