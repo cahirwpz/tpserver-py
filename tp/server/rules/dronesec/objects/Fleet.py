@@ -25,11 +25,12 @@ class Fleet(Object, Combattant):
 	ship_hp     = DP.health
 	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
 	ship_speed  = DP.speed
+	ship_power = DP.power
 
 	def calcPower(self):
 		power = 0
 		for type, no in self.ships.items():
-			power += DP.power[type] * no
+			power += self.ship_power[type] * no
 		return power
 
 	def fn_ships(self, value=None):
@@ -82,7 +83,10 @@ class Fleet(Object, Combattant):
 		"""\
 		Returns the maximum speed of the fleet.
 		"""
-		return self.ship_speed[max(self.ships.keys())]
+		types = dict()
+		for ship in self.ships.keys():
+			types[ship] = self.ship_speed[ship]
+		return self.ship_speed[min(types,key = lambda a: types.get(a))]
 
 	#############################################
 	# Combat functions
