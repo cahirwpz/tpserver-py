@@ -20,6 +20,7 @@ import orders.ProduceDrones as ProduceDrones
 import actions.Move as MoveAction
 import actions.Heal as Heal
 import actions.Turn as Turn
+import actions.Capture as Capture
 import actions.AddResource as AddResource
 import actions.MoveDrones as MoveDrones
 import actions.SetDestination as SetDestination
@@ -60,7 +61,7 @@ class Ruleset(RulesetBase):
 			(Move, 'prepare'),  # Set the velocity of objects
 			MoveAction, 		# Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
-
+			Capture, 			# Captures Planets that can be captured
 			AddResource,		# Add Resource to planet
 			Clean, 				# Remove all empty fleets
 			Heal, 				# Repair any ships orbiting a friendly planet
