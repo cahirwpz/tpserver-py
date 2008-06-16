@@ -2,7 +2,8 @@
 Moves any object which has a velocity.
 """
 
-from tp.server.utils import WalkUniverse, ReparentOne
+from tp.server.utils import WalkUniverse
+from tp.server.rules.dronesec.utils import ReparentOne
 
 def do(top):
 	def move(obj):

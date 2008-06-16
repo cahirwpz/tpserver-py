@@ -1,6 +1,7 @@
 import math
 from tp.server.bases.Object import Object
-from tp.server.utils import WalkUniverse, ReparentOne
+from tp.server.utils import WalkUniverse
+from tp.server.rules.dronesec.utils import ReparentOne
 from tp.server.rules.dronesec.objects.Fleet import Fleet as Drone
 
 
@@ -36,17 +37,17 @@ def do(top):
 				vely = away(closest(speed * yd/distance, yd))
 				velz = away(closest(speed * zd/distance, zd))
 
+				if obj.ordered == 2:
+					velx, vely, velz = -velx, -vely, -velz
+
 				if (velx, vely, velz) != (obj.velx, obj.vely, obj.velz):
 					print "Setting velocity of object %i to %r currently at %r destination %r" % (obj.id,
 						(velx, vely, velz),
 						(obj.posx, obj.posy, obj.posz),
 						obj.target)
-					if obj.ordered == 1:
-						obj.velx, obj.vely, obj.velz = velx, vely, velz
-					elif obj.ordered == 2:
-						obj.velx, obj.vely, obj.velz = -velx, -vely, -velz
+					obj.velx, obj.vely, obj.velz = velx, vely, velz
 
-				elif (obj.posx, obj.posy, obj.posz) != obj.target:
+				if (obj.posx, obj.posy, obj.posz) != obj.target:
 					print "Moving object %s from (%s, %s, %s) to (%s, %s, %s)" % (
 						obj.id,
 						obj.posx, obj.posy, obj.posz,
@@ -54,13 +55,14 @@ def do(top):
 
 					obj.posx, obj.posy, obj.posz = obj.posx + obj.velx, obj.posy + obj.vely, obj.posz + obj.velz
 
-					#Check to see if it overshot.
-					if (obj.velx, obj.vely, obj.velz) != (0,0,0):
-						if xd*obj.velx < 0 or yd*obj.vely < 0 or zd*obj.velz < 0:
-							print "Object %i (%s) has overshot destination %s to (%i, %i, %i)" % \
-								(obj.id, obj.name, obj.target, obj.velx, obj.vely, obj.velz)
-							obj.posx, obj.posy, obj.posz = obj.target
-							obj.velx, obj.vely, obj.velz = (0,0,0)
+						#Check to see if it overshot.
+					if obj.ordered ==1:
+						if (obj.velx, obj.vely, obj.velz) != (0,0,0):
+							if xd*obj.velx < 0 or yd*obj.vely < 0 or zd*obj.velz < 0:
+								print "Object %i (%s) has overshot destination %s to (%i, %i, %i)" % \
+									(obj.id, obj.name, obj.target, obj.velx, obj.vely, obj.velz)
+								obj.posx, obj.posy, obj.posz = obj.target
+								obj.velx, obj.vely, obj.velz = (0,0,0)
 
 				# FIXME: This could be dangerous.
 				ReparentOne(obj)
