@@ -16,6 +16,7 @@ Drones move to a point in space.
 		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.constants.ARG_ABS_COORD,
 				desc="Where to go.")
 	}
+
 	def do(self):
 		obj = Object(self.oid)
 		if not hasattr(obj, "command"):
@@ -31,7 +32,7 @@ Drones move to a point in space.
 
 
 	def turns(self, turns=0):
-		return 0
+		return turns
 
 	def resources(self):
 		return []
