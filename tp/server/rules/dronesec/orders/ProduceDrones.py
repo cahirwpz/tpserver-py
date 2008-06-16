@@ -92,7 +92,6 @@ It consists of:
 		res = 0
 		for type, number in self.ships.items():
 			res += int(Fleet.DP.cost[type]) * int(number)
-			print res
 		r = Resource.byname('Credit')
 		return [(r,res),]
 
