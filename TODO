@@ -108,7 +108,9 @@ Supports the following:
 			- Designs check requirements and provide feedback
 			- Designs correctly produce
 	
-Dronesec: Create folder and initial rulset
-          Create dummy units
-          Code production
-
+Dronesec:
+	Fleet Combat
+	Produce Drones as shown in original Document.
+		- Produce Drones should merely set a production ship.
+		- Currently works the same way minisec would.
+	Research
