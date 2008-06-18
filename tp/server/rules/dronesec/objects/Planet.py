@@ -34,7 +34,7 @@ class Planet(Object):
 		self.resources[resource][type] += amount
 
 		if self.resources[resource][type] < 0:
-			raise TypeError("Resources some how became negative!")
+			raise TypeError("Resources somehow became negative!")
 
 Planet.typeno = 3
 Object.types[Planet.typeno] = Planet
