@@ -32,10 +32,10 @@ Build a new drone."""
 		for type, number in self.ships.items():
 			res += int(Fleet.DP.cost[type]) * int(number)
 
-		print res
 		if res > builder.resources[1][0]:
 			print "Not enough resources"
 			self.remove()
+			return
 
 		if self.turns() > 1:
 			# Add another year to worked...
@@ -58,6 +58,7 @@ Build a new drone."""
 		fleet.insert()
 		fleet.name = self.name
 		fleet.save()
+		print "Drone fleet produced at %s using %s resources" % (builder.id, res)
 
 		message = Message()
 		message.slot = -1
