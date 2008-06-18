@@ -12,7 +12,7 @@ class Fleet(Fleetbase):
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
-		'damage': Object.Attribute('damage', {}, 'protected'),
+		'damage': Object.Attribute('damage', 0, 'protected'),
 		'pos' : Object.Attribute('pos', (0,0,0), 'private'),
 		'command' : Object.Attribute('command', 0, 'private'),
 	}

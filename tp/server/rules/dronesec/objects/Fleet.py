@@ -12,7 +12,7 @@ class Fleet(Object, Combattant):
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
-		'damage': Object.Attribute('damage', {}, 'protected'),
+		'damage': Object.Attribute('damage', 0, 'protected'),
 		'target': Object.Attribute('target', (0, 0, 0), 'private'),
 		'ordered': Object.Attribute('ordered', 0, 'private'),
 	}
@@ -23,7 +23,7 @@ class Fleet(Object, Combattant):
 	DP = Dronepedia()
 	ship_types  = DP.name
 	ship_hp     = DP.health
-	ship_damage = {0:(0, 0), 1:(2, 0), 2:(3,1)}
+	ship_damage = DP.attack
 	ship_speed  = DP.speed
 	ship_power = DP.power
 
@@ -33,20 +33,12 @@ class Fleet(Object, Combattant):
 			power += self.ship_power[type] * no
 		return power
 
+	def fn_damage(self, value = None):
+		return int(self.damage)
+
 	def fn_ships(self, value=None):
 		if value == None:
 			return self.ships.items()
-
-	def fn_damage(self, value=None):
-		if value == None:
-			return sum(map(sum, self.damage.values()))
-
-			totaldamage = 0
-			for type, damage in self.damage:
-				if type in self.ships.keys():
-					for d in damage:
-						totaldamage += damage
-			return totaldamage
 
 	def fn_name(self, value=None):
 		if value == None:
@@ -63,11 +55,6 @@ class Fleet(Object, Combattant):
 		for t, number in self.ships.items():
 			if number < 1:
 				del self.ships[t]
-
-		# Check the damage goes to the right place
-		for t, damage in self.damage.items():
-			if not t in self.ships.keys():
-				del self.damage[t]
 
 	def ghost(self):
 		"""\
@@ -98,52 +85,30 @@ class Fleet(Object, Combattant):
 		"""
 		return self.ghost() or self.ships.keys() == [0,]
 
-	def damage_do(self, amount):
+	def damage_do(self):
 		"""\
-		Damages a fleet. Can be called with either a single
-		integer or a tuple of integers.
+		Damages a fleet.
 		"""
-		if type(amount) in (TupleType, ListType):
-			for a in amount:
-				self.damage_do(a)
-			return
 
-		self.tidy()
-
-		# Find the largest ship type.
-		s = self.ships.keys()
-		s.sort()
-		s.reverse()
-		t = s[0]
-
-		if not self.damage.has_key(t):
-			self.damage[t] = []
-		damage = self.damage[t]
-
-		# Condense the damage
-		if len(damage)+1 > self.ships[t]:
-			damage.sort()
-			if damage[0] + amount >= self.ship_hp[t]:
-				damage[-1] += amount
-			else:
-				damage[0] += amount
-		else:
-			damage.append(amount)
-
-		if damage[-1] >= self.ship_hp[t]:
-			self.ships[t] -= 1
-			if self.ships[t] < 1:
-				del self.ships[t]
-			del damage[-1]
+		for type, no in self.ships.items():
+			while self.damage > self.DP.health[type] and self.ships[type] > 0:
+				self.damage -= self.DP.health[type]
+				self.ships[type] -= 1
 
 	def damage_get(self, fail=False):
 		"""\
 		Returns the amount of damage this fleet can do.
 		"""
-		r = []
+		r = 0
 		for type, no in self.ships.items():
-			r.extend([self.ship_damage[type][fail]] * no)
+			r += self.ship_damage[type] * no
 		return r
+
+	def total_health(self):
+		health = 0
+		for type, num in self.ships.items():
+			health += self.DP.health[type] * num
+		return health
 
 Fleet.typeno = 4
 Object.types[Fleet.typeno] = Fleet
