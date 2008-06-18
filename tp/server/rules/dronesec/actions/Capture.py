@@ -34,7 +34,7 @@ def do(top):
 				#Conquerors should not already own the planet
 				if conqueror != obj.owner:
 					if len(checkOwners) > 1:
-						for id, pow in checkOwners:
+						for id, pow in checkOwners.items():
 							if id != conqueror:
 								conqpow -= pow
 					# To Capture a planet a conqueror must have 50 power more
