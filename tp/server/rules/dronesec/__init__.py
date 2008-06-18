@@ -25,6 +25,7 @@ import actions.AddResource as AddResource
 import actions.MoveDrones as MoveDrones
 import actions.SetDestination as SetDestination
 import actions.Automerge as Automerge
+import actions.FleetCombat as FleetCombat
 import orders.Repel as Repel
 import orders.Attract as Attract
 import orders.Stop as Stop
@@ -60,6 +61,7 @@ class Ruleset(RulesetBase):
 			MoveDrones, 		# Move Drones
 			ProduceDrones, 		# Produce all Drones
 			Automerge, 			# Merge Drones of the same type
+			FleetCombat, 		# Combat
 			(Move, 'prepare'),  # Set the velocity of objects
 			MoveAction, 		# Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
