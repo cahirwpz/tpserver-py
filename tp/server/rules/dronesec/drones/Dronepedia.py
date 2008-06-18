@@ -21,7 +21,7 @@ class Dronepedia:
 		self.numAttacks = dict()
 		self.health = dict()
 		self.speed= dict()
-		self.stength= dict()
+		self.strength= dict()
 		self.weakness = dict()
 		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness in reader:
 			if name != 'Name':
@@ -35,7 +35,7 @@ class Dronepedia:
 				self.numAttacks[i] = int(numAttacks)
 				self.health[i] = int(health)
 				self.speed[i]= int(speed)
-				self.stength[i]= strength
+				self.strength[i]= strength
 				self.weakness[i] = weakness
 
 	def getId(self):
