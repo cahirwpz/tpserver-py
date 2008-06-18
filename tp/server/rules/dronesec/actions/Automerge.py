@@ -15,17 +15,17 @@ def do(top):
 				except:
 					print """This fleet has probably already been merged and
 	the server hasn't updated itself yet"""
+				# check: Make sure the ship isn't merging with another player's
+				if fleet.owner == obj.owner:
 				#Make sure that the keys are the same (same types)
 				#also makes sure that the ship isn't trying to merge with itself
-				if fleet.ships.keys() == obj.ships.keys() and fleet.id != obj.id:
-					# Merge the fleets have the same type of ships
-					for type, number in fleet.ships.items():
-						if obj.ships.has_key(type):
-							obj.ships[type] += number
-							fleet.ships[type] -= number
-							#FIXME this will be printed at least twice
-							print "Merging %s's %s with %s" % (obj.id, obj.ship_types[type], fleet.id)
-					fleet.save()
-
+					if fleet.ships.keys() == obj.ships.keys() and fleet.id != obj.id:
+						# Merge the fleets have the same type of ships
+						for type, number in fleet.ships.items():
+							if obj.ships.has_key(type):
+								obj.ships[type] += number
+								fleet.ships[type] -= number
+								print "Merging %s's %s with %s" % (obj.id, obj.ship_types[type], fleet.id)
+						fleet.save()
 			obj.save()
 	WalkUniverse(top, "before",h)
