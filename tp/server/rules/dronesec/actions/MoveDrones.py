@@ -3,6 +3,7 @@ from tp.server.bases.Object import Object
 from tp.server.utils import WalkUniverse
 from tp.server.rules.dronesec.utils import ReparentOne
 from tp.server.rules.dronesec.objects.Fleet import Fleet as Drone
+from tp.server.bases.Message import Message
 
 
 def away(x):
@@ -63,6 +64,20 @@ def do(top):
 									(obj.id, obj.name, obj.target, obj.velx, obj.vely, obj.velz)
 								obj.posx, obj.posy, obj.posz = obj.target
 								obj.velx, obj.vely, obj.velz = (0,0,0)
+
+					# Have we reached our destination?
+					if obj.target == (obj.posx, obj.posy, obj.posz):
+						print "Object %i (%s) has arrived at destination (%i, %i, %i)" % \
+								(obj.id, obj.name, obj.posx, obj.posy, obj.posz)
+						obj.velx = obj.vely = obj.velz = 0
+						# Send a message to the owner that the object has arrived...
+						message = Message()
+						message.bid = obj.owner
+						message.slot = -1
+						message.subject = "%s arrived" % obj.name
+						message.body = """%s has arrive at it's destination (%i, %i, %i).""" % \
+											(obj.name, obj.posx, obj.posy, obj.posz)
+						message.insert()
 
 				# FIXME: This could be dangerous.
 				ReparentOne(obj)
