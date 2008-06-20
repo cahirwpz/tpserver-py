@@ -15,6 +15,7 @@ import tp.server.rules.base.actions.Clean as Clean
 import tp.server.rules.base.actions.Win as Win
 
 # Dronesec specific imports
+import actions.Defeat as Defeat
 import orders.Move as Move
 import orders.ProduceDrones as ProduceDrones
 import actions.Move as MoveAction
@@ -69,6 +70,7 @@ class Ruleset(RulesetBase):
 			AddResource,		# Add Resource to planet
 			Clean, 				# Remove all empty fleets
 			Heal, 				# Repair any ships orbiting a friendly planet
+			Defeat, 				# Remove overlords if a player has no more units
 			Win, 				# Figure out if there is any winner
 			NOp, 				# NOp needs to occur last
 			Turn, 				# Increase the Universe's "Turn" value
@@ -180,7 +182,6 @@ class Ruleset(RulesetBase):
 			system.size = r.randint(80, 200)
 			(system.posx, system.posy, junk) = pos
 			ReparentOne(system)
-			system.owner = user.id
 			system.save()
 
 
