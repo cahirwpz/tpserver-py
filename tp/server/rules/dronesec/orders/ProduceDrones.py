@@ -27,61 +27,66 @@ Build a new drone."""
 			print "Could not do a build order because it was on an unownable object."
 			self.remove()
 
-		#Check to see if there enough resources
-		res = 0
-		for type, number in self.ships.items():
-			res += int(Fleet.DP.cost[type]) * int(number)
+		for type in self.ships.keys():
+			#Check to see if there enough resources
 
-		if res > builder.resources[1][0]:
-			print "Not enough resources"
-			self.remove()
-			return
+			res = 0
+			no = 0
+			no =  int(builder.resources[1][0] / int(Fleet.DP.cost[type]))
+			res = no * int(Fleet.DP.cost[type])
 
-		if self.turns() > 1:
-			# Add another year to worked...
-			self.worked += 1
-			print "Worked %s, %s left until built." % (self.worked, self.turns())
-			self.save()
-			return
+			message = Message()
+			message.slot = -1
+			message.bid = builder.owner
 
-		# Build new fleet object
-		fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
+			#In Theory: This should never be true.
+			if res > builder.resources[1][0]:
+				print "Not enough resources"
+				message.subject = "Not enough resources"
+				message.body = """Drone production at %s halted due to insufficient resources.
+Had %s and needed %s""" % (buider.name, builder.resources[1][0], res)
+				return
 
-		# Type Fleet
-		fleet.parent = builder.id
-		fleet.posx = builder.posx
-		fleet.posy = builder.posy
-		fleet.posz = builder.posz
-		fleet.size = 1
-		fleet.owner = builder.owner
-		fleet.ships = self.ships
-		fleet.insert()
-		fleet.name = self.name
-		fleet.save()
-		print "Drone fleet produced at %s using %s resources" % (builder.id, res)
+			if self.turns() > 1:
+				# Add another year to worked...
+				self.worked += 1
+				print "Worked %s, %s left until built." % (self.worked, self.turns())
+				self.save()
+				return
 
-		message = Message()
-		message.slot = -1
-		message.bid = builder.owner
-		message.subject = "Drone built"
+			# Build new fleet object
+			fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
 
-		message.body = """\
+			# Type Fleet
+			fleet.parent = builder.id
+			fleet.posx = builder.posx
+			fleet.posy = builder.posy
+			fleet.posz = builder.posz
+			fleet.size = 1
+			fleet.owner = builder.owner
+			fleet.ships = {type : no}
+			fleet.insert()
+			fleet.name = " %s %s Fleet" % (self.name , Fleet.DP.name[type])
+			fleet.save()
+			print "Drone fleet produced at %s using %s resources" % (builder.id, res)
+
+			message.subject = "Drone built"
+
+			message.body = """\
 A new fleet (%s) has been built and is orbiting %s.
 It consists of:
 """ % (fleet.name, builder.name)
-		for type, number in fleet.ships.items():
-			if number > 1:
-				message.body += "%s %ss" % (number, Fleet.DP.name[type])
-			else:
-				message.body += "%s %s" % (number, Fleet.DP.name[type])
+			for type, number in fleet.ships.items():
+				if number > 1:
+					message.body += "%s %ss" % (number, Fleet.DP.name[type])
+				else:
+					message.body += "%s %s" % (number, Fleet.DP.name[type])
 
-		message.insert()
+			message.insert()
 
-		#Remove resources for unit
-		builder.resources_add(Resource.byname('Credit'), -res)
-		builder.save()
-
-		self.remove()
+			#Remove resources for unit
+			builder.resources_add(Resource.byname('Credit'), -res)
+			builder.save()
 
 	def turns(self, turns=0):
 		for type, number in self.ships.items():
@@ -101,7 +106,7 @@ It consists of:
 		if value == None:
 			returns = []
 			for type, name in Fleet.DP.name.items():
-				returns.append((type, name, 10))
+				returns.append((type, name, 1))
 			return returns, self.ships.items()
 		else:
 			ships = {}
