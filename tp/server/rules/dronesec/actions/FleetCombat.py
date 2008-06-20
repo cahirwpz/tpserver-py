@@ -75,8 +75,21 @@ def do(top):
 					rInt = rand.randint(0,len(sideTypes[attackedSide][t]) -1)
 					#Fleet deals all of its damage to that fleetl
 					defender = sideTypes[attackedSide][t][rInt]
-					defender[1] += fleet.damage_get()
-					diff = fleet.damage_get() - (defender[0].total_health() - defender[1])
+
+					##Bonus Damage checks
+					damageDone = fleet.damage_get()
+					bonusRatio = 1
+					fleetType = fleet.DP.type[fleet.ships.keys()[0]]
+					if t == fleet.DP.strength[fleet.ships.keys()[0]]:
+						bonusRatio += .25
+					elif t == fleet.DP.weakness[fleet.ships.keys()[0]]:
+						bonusRatio -= .25
+					if defender[0].DP.weakness[defender[0].ships.keys()[0]] == fleetType:
+						bonusRatio += .25
+					elif defender[0].DP.strength[defender[0].ships.keys()[0]] == fleetType:
+						bonusRatio -= .25
+					defender[1] += damageDone * bonusRatio
+					diff = damageDone - (defender[0].total_health() - defender[1])
 					defender[0].damage = defender[1]
 					defender[0].save()
 					while diff > 0:
@@ -107,4 +120,3 @@ def do(top):
 			for fleet in fleets:
 				fleet.damage_do()
 				fleet.save()
-
