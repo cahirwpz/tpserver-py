@@ -34,13 +34,13 @@ class Order(SQLTypedBase):
 	table_extra = SQLTypedTable('orders')
 
 	"""\
-	The realid class method starts here... 
+	The realid class method starts here...
 	"""
 	@classmethod
 	def realid(cls, oid, slot):
 		"""\
 		Order.realid(objectid, slot) -> id
-		
+
 		Returns the database id for the order found on object at slot.
 		"""
 		t = cls.table
@@ -99,7 +99,7 @@ class Order(SQLTypedBase):
 		return cls.desc_packet(0, typeno).build()
 
 	"""\
-	The init method starts here... 
+	The init method starts here...
 	"""
 	def __init__(self, oid=None, slot=None, type=None, id=None):
 		if oid != None and slot != None:
@@ -175,14 +175,36 @@ class Order(SQLTypedBase):
 
 	def to_packet(self, user, sequence):
 		self, args = SQLTypedBase.to_packet(self, user, sequence)
-		
+
 		typeno = user.playing.ruleset.typeno(self)
 		print self.packet(typeno)
 		return self.packet(typeno)(sequence, self.oid, self.slot, typeno, self.turns(), self.resources(), *args)
 
 	@classmethod
 	def from_packet(cls, user, packet):
-		self = SQLTypedBase.from_packet(cls, user, packet)
+		# Get the mapping
+		map = getattr(user.playing.ruleset, cls.__name__.lower() + 'map')
+
+		# Create an instance of this object
+		self = map[packet._subtype]()
+		self.oid = packet.id
+		# FIXME: This is probably bad...
+		for key, value in packet.__dict__.items():
+			# Ignore special attributes
+			if key.startswith("_") or key == "type":
+				continue
+
+			if self.attributes.has_key(key):
+				if self.attributes[key].level == 'public':
+					setattr(self, key, value)
+				elif self.attributes[key].level == 'protected':
+					getattr(self, "fn_"+key)(value)
+			else:
+				if hasattr(self, key):
+					print "Ekk! Tried to set %s but it already existed (%s)" % (key, getattr(self, key))
+					continue
+
+				setattr(self, key, value)
 
 		self.oid = packet.id
 		del self.id
@@ -200,10 +222,10 @@ class Order(SQLTypedBase):
 		Number of turns this order will take to complete.
 		"""
 		return turns + 0
-	
+
 	def resources(self):
 		"""\
 		The resources this order will consume/use. (Negative for producing).
 		"""
 		return []
-		
+
