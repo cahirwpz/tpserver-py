@@ -5,8 +5,9 @@ from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
 from tp.server.bases.Resource import Resource
-
 from tp.server.rules.dronesec.objects.Fleet import Fleet
+
+import tp.server.rules.dronesec.master
 
 class ProduceDrones(Order):
 	"""\
@@ -16,7 +17,7 @@ Build a new drone."""
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
 					desc="Build Drones."),
 		'name':  Order.Attribute("name", 'New Drones', 'protected', type=netlib.objects.constants.ARG_STRING,
-					desc="The new drone's name.")
+					desc="The new drone's name."),
 	}
 
 
@@ -102,10 +103,11 @@ It consists of:
 		return [(r,res),]
 
 	def fn_ships(self, value=None):
-		print value
+		builder = Object(self.oid)
+		Jarvis = tp.server.rules.dronesec.master.Controller()
 		if value == None:
 			returns = []
-			for type, name in Fleet.DP.name.items():
+			for type, name in Jarvis.DA[builder.game].players[builder.owner].items():
 				returns.append((type, name, 1))
 			return returns, self.ships.items()
 		else:

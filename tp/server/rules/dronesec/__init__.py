@@ -30,10 +30,15 @@ import actions.FleetCombat as FleetCombat
 import orders.Repel as Repel
 import orders.Attract as Attract
 import orders.Stop as Stop
+
+import master
+
+
 import random
 
 from tp.server.utils.planetGenerator import PlanetGenerator
 
+Jarvis = master.Controller()
 
 SIZE = 1000
 class Ruleset(RulesetBase):
@@ -49,7 +54,6 @@ class Ruleset(RulesetBase):
 # Research
 # Combat
 # Cap planet
-
 
 
 	seed = 0
@@ -105,6 +109,10 @@ class Ruleset(RulesetBase):
 			r.weight = 0
 			r.size   = 10
 			r.insert()
+
+			Jarvis.cleanGames()
+			Jarvis.addGame(self.game.id)
+
 
 			trans.commit()
 		except:
@@ -213,6 +221,9 @@ class Ruleset(RulesetBase):
 			overlord.owner = user.id
 			overlord.save()
 
+			Jarvis.load()
+			Jarvis.DA[self.game.id].addPlayer(user.id)
+			Jarvis.save()
 			trans.commit()
 
 			return (user,system, planet, fleet, overlord)
