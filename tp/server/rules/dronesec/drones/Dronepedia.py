@@ -23,7 +23,8 @@ class Dronepedia:
 		self.speed= dict()
 		self.strength= dict()
 		self.weakness = dict()
-		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness in reader:
+		self.requirements = dict()
+		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements in reader:
 			if name != 'Name':
 				i = self.getId()
 				self.id[name] = i
@@ -37,6 +38,7 @@ class Dronepedia:
 				self.speed[i]= int(speed)
 				self.strength[i]= strength
 				self.weakness[i] = weakness
+				self.requirements[i] = requirements.strip().split()
 
 	def getId(self):
 	#Possibility: Make IDS randomla
