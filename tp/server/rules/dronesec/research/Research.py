@@ -5,6 +5,8 @@ class Research:
 		self.id = id
 		self.name = name
 		self.abbrev = abbrev
-		self.cost = cost
-		self.requirements = args
+		self.cost = int(cost)
+		self.requirements = []
+		for req in args:
+			self.requirements.extend(req)
 
