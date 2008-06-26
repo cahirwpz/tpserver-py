@@ -58,6 +58,10 @@ class Controller:
 		self.DA[game] = DroneAvailability(game)
 		self.save()
 
+	def addPlayer(self, game, player):
+		self.DA[game].addPlayer(player)
+		self.PL[game].addPlayer(player)
+		self.save()
 
 	def cleanGames(self):
 		for id in self.DP.keys():
