@@ -6,11 +6,6 @@ class DroneAvailability:
 		self.game = game
 
 	def addPlayer(self, id):
-		import tp.server.rules.dronesec.master
-		Jarvis = tp.server.rules.dronesec.master.Controller()
-		self.DP = Jarvis.DP[self.game]
-		self.PL = Jarvis.PL[self.game]
-		self.ML = Jarvis.ML[self.game]
 		if not self.players.has_key(id):
 			self.players[id] = dict()
 			self.buildList(id)
@@ -18,12 +13,22 @@ class DroneAvailability:
 			print "Player already Added"
 
 	def buildList(self, playerId):
-		for id, ship in self.DP.name.items():
-			if len(self.DP.requirements[id]) == 0:
+		import tp.server.rules.dronesec.master
+		Jarvis = tp.server.rules.dronesec.master.Controller()
+		DP = Jarvis.DP[self.game]
+		for id, ship in DP.name.items():
+			if len(DP.requirements[id]) == 0:
 				self.players[playerId][id] = ship
 
 	def addDrone(self, playerID, drone):
+		import tp.server.rules.dronesec.master
+		Jarvis = tp.server.rules.dronesec.master.Controller()
+		DP = Jarvis.DP[self.game]
+		PL = Jarvis.PL[self.game]
+		ML = Jarvis.ML[self.game]
 		if not self.players[playerID].has_key(drone):
-			if ML.masterNames[DP.requirements[drone]] in self.PL.players[playerID]:
-				self.players[playerId][drone] = self.DP.name[drone]
+			for req in DP.requirements[drone]:
+				reqList = ML.masterNames[req]
+			if reqList in PL.players[playerID]:
+				self.players[playerID][drone] = DP.name[drone]
 
