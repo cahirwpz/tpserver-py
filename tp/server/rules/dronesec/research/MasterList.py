@@ -38,10 +38,10 @@ class MasterList:
 				res = UnitType(i, name, abbrev, cost, reqs)
 				res.ship = ship
 				resIds[i] = name
-				resNames[name] = i
+				resNames[abbrev] = i
 				researches[i] = res
 				self.master[i] = res
-				self.masterNames[name] = i
+				self.masterNames[abbrev] = i
 
 		return ResearchType(resIds, resNames, researches)
 
