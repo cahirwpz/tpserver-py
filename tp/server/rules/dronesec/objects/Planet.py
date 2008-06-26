@@ -13,6 +13,7 @@ class Planet(Object):
 		}
 	orderclasses = ('tp.server.rules.base.orders.NOp',
 		'tp.server.rules.dronesec.orders.ProduceDrones',
+		'tp.server.rules.dronesec.orders.Research',
 		)
 
 	def ghost(self):

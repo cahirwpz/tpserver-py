@@ -30,6 +30,7 @@ import actions.FleetCombat as FleetCombat
 import orders.Repel as Repel
 import orders.Attract as Attract
 import orders.Stop as Stop
+import orders.Research as Research
 
 import master
 
@@ -62,6 +63,7 @@ class Ruleset(RulesetBase):
 			Attract,			# Attract units
 			Repel,				# Repel units
 			Stop,				# Drones will stop moving
+			Research, 			# Implements Research Upgrades
 			SetDestination,		# Sets target location
 			MoveDrones, 		# Move Drones
 			ProduceDrones, 		# Produce all Drones
@@ -222,8 +224,7 @@ class Ruleset(RulesetBase):
 			overlord.save()
 
 			Jarvis.load()
-			Jarvis.DA[self.game.id].addPlayer(user.id)
-			Jarvis.save()
+			Jarvis.addPlayer(self.game.id, user.id)
 			trans.commit()
 
 			return (user,system, planet, fleet, overlord)
