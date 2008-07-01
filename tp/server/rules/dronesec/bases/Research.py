@@ -17,7 +17,7 @@ class Research(SQLTypedBase):
 		Column('name',         Binary,   nullable = False),
 		Column('abbrev',       Binary,   nullable=False, default = ''),
 		Column('cost',         Integer,   nullable= False, default= 0),
-		Column('reqs',         Binary,   nullable=False, default = ''),
+		Column('reqs',         PickleType,   nullable=False, default = []),
 		Column('desc',         Binary,   nullable=False, default = 'gah'),
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
@@ -44,10 +44,11 @@ class Research(SQLTypedBase):
 		t = cls.table
 
 		# FIXME: Need to figure out what is going on here..
-		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
-		return [(x['id'], x['time']) for x in results]
+		results = select([t.c.id], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
+		return [(x['id']) for x in results]
+
+
 
 
 	def __str__(self):
 		return "<Research id=%s>" % (self.id)
-
