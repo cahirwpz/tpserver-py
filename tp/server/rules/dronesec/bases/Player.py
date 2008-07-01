@@ -6,7 +6,7 @@ from sqlalchemy import *
 
 from tp.server.db import *
 
-from tp.server.bases.SQL import SQLBase
+from tp.server.bases.SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from tp.server.rules.dronesec.bases.Drone import Drone
 from tp.server.rules.dronesec.bases.Research import Research
 
@@ -14,22 +14,22 @@ class Player(SQLBase):
 	table = Table('player', metadata,
 		Column('game', 	       Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,     nullable=False, index=True, primary_key=True),
-		Column('drones',       Binary,      nullable=False, default={}),
-		Column('research',     Binary,      nullable=False, default=[]),
-		Column('researchLeft', Binary,      nullable=False, default={}),
-		Column('canResearch',  Binary,      nullable=False, default = {}),
+		Column('type',	       Binary, nullable=False, index=True, default = 'Normal'),
+		Column('drones',       PickleType,  nullable=False, default={}),
+		Column('research',     PickleType,  nullable=False, default=[]),
+		Column('researchLeft', PickleType,  nullable=False, default={}),
+		Column('canResearch',  PickleType,  nullable=False, default = {}),
 		Column('time',	       DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
 
-
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)
 
 
-	def __init__(self):
+	def BuildList(self):
 		self.drones = {}
 		self.research = []
 		self.canResearch = {}
@@ -37,7 +37,7 @@ class Player(SQLBase):
 
 		#Build Drones that can be built by this player
 		for id, time in Drone.ids():
-			if len(Drone(id).reqs[id]) == 0:
+			if len(Drone(id).reqs) == 0:
 				self.drones[id]= Drone(id).name
 
 		#Build Researches that can be done by this player
@@ -46,7 +46,6 @@ class Player(SQLBase):
 				if len(Research(id).reqs) == 0:
 					self.canResearch[id] = Research(id).name
 
-				SQL.__init__(self, id)
 
 	def addDrone(self, drone):
 		if not self.drones.has_key(drone):
@@ -78,4 +77,3 @@ class Player(SQLBase):
 		if pid == 0:
 			return user.id
 		return pid
-
