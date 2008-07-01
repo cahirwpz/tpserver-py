@@ -15,7 +15,6 @@ class Drone(SQLBase):
 		Column('game',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('type',	     String(255), nullable=False, index=True),
-		Column('unit',       Binary,    nullable=False, index=True),
 		Column('name',       Binary,   nullable=False, index=True),
 		Column('cost',       Integer,  nullable=False, default=0),
 		Column('power',      Integer,  nullable=False, default=0),
@@ -33,7 +32,6 @@ class Drone(SQLBase):
 
 		UniqueConstraint('id', 'game'),
 		ForeignKeyConstraint(['game'],   ['game.id']),
-
 	)
 
 	@classmethod
@@ -59,5 +57,3 @@ class Drone(SQLBase):
 
 	def __str__(self):
 		return "<Drone id=%s>" % (self.id)
-
-
