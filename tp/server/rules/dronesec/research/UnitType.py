@@ -1,5 +1,7 @@
 
-from Research import Research
+from tp.server.rules.dronesec.bases.Research import Research
 
 class UnitType(Research):
-	ship = None
+	attributes = {\
+		'ship': Research.Attribute('ship', '', 'private'),
+		}
