@@ -8,7 +8,7 @@ from tp.server.bases.Resource import Resource
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
 #from bases.Players import Player
-from tp.server.bases.Drone import Drone
+from bases.Drone import Drone
 #from bases.Research import Research
 
 # Generic Actions
