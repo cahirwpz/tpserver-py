@@ -38,6 +38,11 @@ from tp.server.bases.Property  import Property
 from tp.server.bases.User      import User
 from tp.server.bases.Resource  import Resource
 
+#base objects from Dronesec
+from tp.server.rules.dronesec.bases.Research import Research
+from tp.server.rules.dronesec.bases.Drone import Drone
+from tp.server.rules.dronesec.bases.Player import Player
+
 # Database setup
 from tp.server import db
 db.setup(dbconfig, dbecho)
