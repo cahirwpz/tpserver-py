@@ -5,8 +5,11 @@ from tp.server.bases.Board    import Board
 from tp.server.bases.Message  import Message
 from tp.server.bases.Object   import Object
 from tp.server.bases.Resource import Resource
-
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
+
+#from bases.Players import Player
+from tp.server.bases.Drone import Drone
+#from bases.Research import Research
 
 # Generic Actions
 import tp.server.rules.base.orders.NOp as NOp
@@ -30,9 +33,10 @@ import actions.FleetCombat as FleetCombat
 import orders.Repel as Repel
 import orders.Attract as Attract
 import orders.Stop as Stop
-import orders.Research as Research
+import orders.Research as ResearchOrder
 
 import master
+
 
 
 import random
@@ -63,7 +67,7 @@ class Ruleset(RulesetBase):
 			Attract,			# Attract units
 			Repel,				# Repel units
 			Stop,				# Drones will stop moving
-			Research, 			# Implements Research Upgrades
+			ResearchOrder, 			# Implements Research Upgrades
 			SetDestination,		# Sets target location
 			MoveDrones, 		# Move Drones
 			ProduceDrones, 		# Produce all Drones
@@ -76,7 +80,7 @@ class Ruleset(RulesetBase):
 			AddResource,		# Add Resource to planet
 			Clean, 				# Remove all empty fleets
 			Heal, 				# Repair any ships orbiting a friendly planet
-			Defeat, 				# Remove overlords if a player has no more units
+			Defeat, 			# Remove overlords if a player has no more units
 			Win, 				# Figure out if there is any winner
 			NOp, 				# NOp needs to occur last
 			Turn, 				# Increase the Universe's "Turn" value
@@ -87,7 +91,6 @@ class Ruleset(RulesetBase):
 		Dronesec
 		"""
 		dbconn.use(self.game)
-
 		trans = dbconn.begin()
 		try:
 			RulesetBase.initialise(self)
@@ -111,6 +114,7 @@ class Ruleset(RulesetBase):
 			r.weight = 0
 			r.size   = 10
 			r.insert()
+
 
 			Jarvis.cleanGames()
 			Jarvis.addGame(self.game.id)
@@ -178,7 +182,26 @@ class Ruleset(RulesetBase):
 
 		trans = dbconn.begin()
 		try:
+
 			user = RulesetBase.player(self, username, password, email, comment)
+
+			drone = Drone()
+			drone.id = 2
+			drone.game = self.game.id
+			drone.name = 'haaaa'
+			drone.unit = 'Fighter'
+			drone.cost = 10
+			drone.power = 2
+			drone.attack = 2
+			drone.numAttacks = 2
+			drone.health = 5
+			drone.speed = 100
+			drone.strength = 'Fighter'
+			drone.weakness = 'Fighter'
+			drone.reqs = 'aaa'
+			print 'ha'
+			drone.insert()
+
 
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
@@ -222,6 +245,11 @@ class Ruleset(RulesetBase):
 			(overlord.posx, overlord.posy, overlord.posz) = (planet.posx, planet.posy, planet.posz)
 			overlord.owner = user.id
 			overlord.save()
+
+			players = Player()
+			players.id = user.id
+			players.save()
+
 
 			Jarvis.load()
 			Jarvis.addPlayer(self.game.id, user.id)
