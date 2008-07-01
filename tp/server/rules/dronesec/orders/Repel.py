@@ -4,7 +4,6 @@ from tp import netlib
 from tp.server.bases.Order import Order
 from tp.server.bases.Object import Object
 from tp.server.bases.Message import Message
-from tp.server.rules.dronesec.objects.overlord.Messenger import Messenger
 
 
 class Repel(Order):

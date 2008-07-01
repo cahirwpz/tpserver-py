@@ -6,7 +6,6 @@ from types import TupleType, ListType
 from tp.server.bases.Object import Object
 from tp.server.bases.Design import Design
 from tp.server.rules.dronesec.objects.Fleet import Fleet as Fleetbase
-from Messenger import Messenger as Jarvis
 
 class Fleet(Fleetbase):
 	attributes = { \
