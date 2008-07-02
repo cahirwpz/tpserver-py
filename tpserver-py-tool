@@ -165,7 +165,7 @@ class Commands:
 		"""
 		r = Game(longname=game).ruleset
 		
-		for i in range(0, number):
+		for i in range(0, int(number)):
 			r.turn()
 
 	@staticmethod
