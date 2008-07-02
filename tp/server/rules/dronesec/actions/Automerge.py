@@ -2,6 +2,7 @@ from tp.server.bases.Object import Object
 from tp.server.rules.dronesec.objects.Fleet import Fleet
 from tp.server.utils import WalkUniverse
 from tp.server.bases.Message import Message
+from tp.server.rules.dronesec.bases.Drone import Drone
 
 def do(top):
 
@@ -39,7 +40,7 @@ def do(top):
 							if obj.ships.has_key(type):
 								obj.ships[type] += number
 								fleet.ships[type] -= number
-								print "Merging %s's %s with %s" % (obj.id, obj.ship_types[type], fleet.id)
+								print "Merging %s's %s with %s" % (obj.id, Drone(type).name, fleet.id)
 								# Send a message to the owner that the fleet has merged...
 								message = Message()
 								message.bid = obj.owner
