@@ -204,15 +204,6 @@ class Ruleset(RulesetBase):
 			planet.resources_add(Resource.byname('Credit'), 100)
 			planet.save()
 
-			fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
-			fleet.parent = planet.id
-			fleet.size = 3
-			fleet.name = "%s First Fleet" % username
-			fleet.ships = {1:3}
-			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
-			fleet.owner = user.id
-			fleet.save()
-
 			overlord = Object(type='tp.server.rules.dronesec.objects.overlord.Fleet')
 			overlord.parent = planet.id
 			overlord.size = 3
@@ -228,7 +219,7 @@ class Ruleset(RulesetBase):
 
 			trans.commit()
 
-			return (user,system, planet, fleet, overlord)
+			return (user,system, planet, overlord)
 		except:
 			trans.rollback()
 			raise
