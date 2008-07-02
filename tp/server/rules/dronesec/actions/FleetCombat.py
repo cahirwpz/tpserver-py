@@ -4,8 +4,7 @@ This module impliments combat for Dronesec
 import random
 from tp.server.bases.Message import Message
 from tp.server.utils import WalkUniverse
-from tp.server.rules.dronesec.drones.Dronepedia import Dronepedia
-
+from tp.server.rules.dronesec.bases.Drone import Drone
 
 def do(top):
 	#Get all Fleets
@@ -27,7 +26,6 @@ def do(top):
 	d = {}
 	WalkUniverse(top, "before", h, d)
 
-	DP = Dronepedia()
 	for pos, fleets in d.items():
 		if len(fleets) < 2:
 			continue
@@ -47,7 +45,7 @@ def do(top):
 				sideTypes[fleet.owner] = dict()
 
 			sides[fleet.owner].append(fleet)
-			t = DP.type[fleet.ships.keys()[0]]
+			t = Drone(fleet.ships.keys()[0]).type
 			if not sideTypes[fleet.owner].has_key(t):
 				sideTypes[fleet.owner][t] = []
 
@@ -60,13 +58,15 @@ def do(top):
 		rand = random.Random()
 		for side, fleets in sides.items():
 			for fleet in fleets:
-				for times in range(DP.numAttacks[fleet.ships.keys()[0]]):
+				for times in range(Drone(fleet.ships.keys()[0]).numAttacks):
 					#HACK: Since fleets should have only 1 ship type this should work
 					attackedSide = side
 					while attackedSide == side:
 						attackedSide = rand.randint(1, len(sides.keys()))
-					findType = fleet.DP.strength[fleet.ships.keys()[0]]
-					if sideTypes[attackedSide].has_key(findType):
+					findType = Drone(fleet.ships.keys()[0]).strength
+					if not (findType == 'All' or findType == 'None') \
+						and sideTypes[attackedSide].has_key(findType):
+
 						t = findType
 					else:
 						#If you don't have a bonus then pick a type randomly
@@ -79,14 +79,20 @@ def do(top):
 					##Bonus Damage checks
 					damageDone = fleet.damage_get()
 					bonusRatio = 1
-					fleetType = fleet.DP.type[fleet.ships.keys()[0]]
-					if t == fleet.DP.strength[fleet.ships.keys()[0]]:
+					fleetType = Drone(fleet.ships.keys()[0]).type
+					#Attacker Modifiers
+					if Drone(fleet.ships.keys()[0]).strength == 'All':
 						bonusRatio += .25
-					elif t == fleet.DP.weakness[fleet.ships.keys()[0]]:
+					elif t == Drone(fleet.ships.keys()[0]).strength:
+						bonusRatio += .25
+					elif t == Drone(fleet.ships.keys()[0]).weakness:
 						bonusRatio -= .25
-					if defender[0].DP.weakness[defender[0].ships.keys()[0]] == fleetType:
+					#Defender moodifiers
+					if Drone(defender[0].ships.keys()[0]).weakness == 'All':
 						bonusRatio += .25
-					elif defender[0].DP.strength[defender[0].ships.keys()[0]] == fleetType:
+					elif Drone(defender[0].ships.keys()[0]).weakness == fleetType:
+						bonusRatio += .25
+					elif Drone(defender[0].ships.keys()[0]).strength == fleetType:
 						bonusRatio -= .25
 					defender[1] += damageDone * bonusRatio
 					diff = damageDone - (defender[0].total_health() - defender[1])
@@ -102,7 +108,7 @@ def do(top):
 						defender[0].save()
 
 						#Check to see if the extra damage has been transferred
-						if diff < DP.attack[fleet.ships.keys()[0]]:
+						if diff < Drone(fleet.ships.keys()[0]).attack:
 							diff =0
 							continue
 
