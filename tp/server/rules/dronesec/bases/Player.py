@@ -48,18 +48,27 @@ class Player(SQLBase):
 
 
 	def addDrone(self, drone):
+
 		if not self.drones.has_key(drone):
-			if Drone(id).reqs in self.research:
+			if Research.byname(Drone(drone).reqs) in self.research:
 				self.drones[drone] =Drone(drone).name
 
 
 	def addResearch(self, id):
 		if id not in self.research:
-			self.research.append(research)
+			self.research.append(id)
 		if id in self.researchLeft.keys():
 			del self.researchLeft[id]
 		if id in self.canResearch.keys():
 			del self.canResearch[id]
+
+		posNew = Research.byreq(Research(id).abbrev)
+		for x in posNew:
+			reqList = []
+			for y in Research(x).reqs:
+				reqList.append(Research.byname(y))
+				if reqList in self.research:
+					self.canResearch[x] = Research(x).name
 
 
 	def researchQuota(self, id, payed):
