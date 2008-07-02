@@ -15,7 +15,7 @@ class Drone(SQLBase):
 		Column('game',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('type',	     String(255), nullable=False, index=True),
-		Column('name',       Binary,   nullable=False, index=True),
+		Column('name',       Binary,   nullable=False),
 		Column('cost',       Integer,  nullable=False, default=0),
 		Column('power',      Integer,  nullable=False, default=0),
 		Column('attack',     Integer,  nullable=False, default=0),
@@ -53,6 +53,13 @@ class Drone(SQLBase):
 		results = select([t.c.id, t.c.reqs], (t.c.reqs in bindparam('reqs'))).execute(req=req).fetchall()
 		return [(x['id'], x['reqs']) for x in results]
 
+	@classmethod
+	def byname(cls, name):
+		c = cls.table.c
+		try:
+			return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+		except IndexError:
+			raise NoSuch("No object with abbreviation) %s" % name)
 
 
 	def __str__(self):
