@@ -1,7 +1,8 @@
-#Dronepedia holds the information of all the drones in a cross-referencionable library.
+#Dronepedia loads the Drones to the database for a game.
 
 import csv
 import os
+
 
 class Dronepedia:
 	def __init__(self, f = "drones.csv"):
@@ -11,40 +12,20 @@ class Dronepedia:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/drones"),f)))
 		except:
 			reader = csv.reader(open(f))
-		self.ids = []
-		self.id = dict()
-		self.name= dict()
-		self.type = dict()
-		self.cost = dict()
-		self.power = dict()
-		self.attack = dict()
-		self.numAttacks = dict()
-		self.health = dict()
-		self.speed= dict()
-		self.strength= dict()
-		self.weakness = dict()
-		self.requirements = dict()
 		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements in reader:
 			if name != 'Name':
-				i = self.getId()
-				self.id[name] = i
-				self.name[i]= name
-				self.type[i] = typ
-				self.cost[i] = int(cost)
-				self.power[i] = int(power)
-				self.attack[i] = int (attack)
-				self.numAttacks[i] = int(numAttacks)
-				self.health[i] = int(health)
-				self.speed[i]= int(speed)
-				self.strength[i]= strength
-				self.weakness[i] = weakness
-				self.requirements[i] = requirements.strip().split()
+				from tp.server.rules.dronesec.bases.Drone import Drone
+				drone = Drone()
+				drone.name = name
+				drone.type = typ
+				drone.cost = int(cost)
+				drone.power = int(power)
+				drone.attack = int(attack)
+				drone.numAttacks = int(numAttacks)
+				drone.health = int(health)
+				drone.speed = int(speed)
+				drone.strength = strength
+				drone.weakness = weakness
+				drone.reqs = requirements
+				drone.insert()
 
-	def getId(self):
-	#Possibility: Make IDS randomla
-		try:
-			i = len(self.ids)
-		except:
-			i = 0
-		self.ids.append(i)
-		return i
