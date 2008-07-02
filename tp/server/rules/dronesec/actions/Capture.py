@@ -4,8 +4,8 @@ Captures a Planet
 
 from tp.server.bases.Object import Object
 from tp.server.utils import WalkUniverse
-from tp.server.rules.dronesec.objects.Planet import Planet
-from tp.server.rules.dronesec.objects.Fleet import Fleet as Drone
+from tp.server.rules.dronesec.bases.Drone import Drone
+
 from tp.server.bases.Message import Message
 
 def do(top):
@@ -61,10 +61,10 @@ Capture of %s <b>succeded</b>.""" % (obj.name,)
 								if drone.owner == conqueror and hasattr(drone, 'target'):
 									types = dict()
 									for ship in drone.ships.keys():
-										types[ship] = drone.ship_power[ship]
+										types[ship] = Drone(ship).power
 										removed = min(types,key = lambda a: types.get(a))
 										while powerLoss < 50 and drone.ships[ship] > 0:
-											powerLoss += drone.ship_power[ship]
+											powerLoss += Drone(ship).power
 											drone.ships[ship] -= 1
 										drone.tidy()
 										drone.save()
