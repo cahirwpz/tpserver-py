@@ -85,8 +85,8 @@ class Fleet(Object, Combattant):
 		"""
 
 		for type, no in self.ships.items():
-			while self.damage > self.DP.health[type] and self.ships[type] > 0:
-				self.damage -= self.DP.health[type]
+			while self.damage > Drone(type).health and self.ships[type] > 0:
+				self.damage -= Drone(type).health
 				self.ships[type] -= 1
 
 	def damage_get(self, fail=False):
@@ -95,7 +95,7 @@ class Fleet(Object, Combattant):
 		"""
 		r = 0
 		for type, no in self.ships.items():
-			r += self.ship_damage[type] * no
+			r += Drone(type).attack * no
 		return r
 
 	def total_health(self):
