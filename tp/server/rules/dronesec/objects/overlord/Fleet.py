@@ -30,8 +30,6 @@ class Fleet(Fleetbase):
 		)
 
 	ship_types = {0: 'Overlord'}
-	ship_hp     = {0: 10000}
-	ship_damage = {0:0}
 	ship_speed  = {0: 700}
 
 	#############################################
