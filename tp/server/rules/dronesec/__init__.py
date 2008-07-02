@@ -7,9 +7,10 @@ from tp.server.bases.Object   import Object
 from tp.server.bases.Resource import Resource
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
 
-#from bases.Players import Player
+from bases.Player import Player
 from bases.Drone import Drone
-#from bases.Research import Research
+from bases.Research import Research
+
 
 # Generic Actions
 import tp.server.rules.base.orders.NOp as NOp
@@ -35,15 +36,10 @@ import orders.Attract as Attract
 import orders.Stop as Stop
 import orders.Research as ResearchOrder
 
-import master
-
-
-
 import random
 
 from tp.server.utils.planetGenerator import PlanetGenerator
 
-Jarvis = master.Controller()
 
 SIZE = 1000
 class Ruleset(RulesetBase):
@@ -114,12 +110,10 @@ class Ruleset(RulesetBase):
 			r.weight = 0
 			r.size   = 10
 			r.insert()
-
-
-			Jarvis.cleanGames()
-			Jarvis.addGame(self.game.id)
-
-
+			from drones.Dronepedia import Dronepedia
+			from research.MasterList import MasterList
+			D = Dronepedia()
+			MasterList.loadUnitType()
 			trans.commit()
 		except:
 			trans.rollback()
@@ -185,24 +179,6 @@ class Ruleset(RulesetBase):
 
 			user = RulesetBase.player(self, username, password, email, comment)
 
-			drone = Drone()
-			drone.id = 2
-			drone.game = self.game.id
-			drone.name = 'haaaa'
-			drone.unit = 'Fighter'
-			drone.cost = 10
-			drone.power = 2
-			drone.attack = 2
-			drone.numAttacks = 2
-			drone.health = 5
-			drone.speed = 100
-			drone.strength = 'Fighter'
-			drone.weakness = 'Fighter'
-			drone.reqs = 'aaa'
-			print 'ha'
-			drone.insert()
-
-
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
 			r.seed(self.seed + user.id)
@@ -247,12 +223,9 @@ class Ruleset(RulesetBase):
 			overlord.save()
 
 			players = Player()
-			players.id = user.id
-			players.save()
+			players.BuildList()
+			players.insert()
 
-
-			Jarvis.load()
-			Jarvis.addPlayer(self.game.id, user.id)
 			trans.commit()
 
 			return (user,system, planet, fleet, overlord)
