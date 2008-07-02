@@ -7,7 +7,8 @@ from tp.server.bases.Message import Message
 from tp.server.bases.Resource import Resource
 from tp.server.rules.dronesec.objects.Fleet import Fleet
 
-import tp.server.rules.dronesec.master
+from tp.server.rules.dronesec.bases.Player import Player
+from tp.server.rules.dronesec.bases.Drone import Drone
 
 class ProduceDrones(Order):
 	"""\
@@ -33,8 +34,8 @@ Build a new drone."""
 
 			res = 0
 			no = 0
-			no =  int(builder.resources[1][0] / int(Fleet.DP.cost[type]))
-			res = no * int(Fleet.DP.cost[type])
+			no =  int(builder.resources[1][0] / Drone(type).cost)
+			res = no * Drone(type).cost
 
 			message = Message()
 			message.slot = -1
@@ -67,7 +68,7 @@ Had %s and needed %s""" % (buider.name, builder.resources[1][0], res)
 			fleet.owner = builder.owner
 			fleet.ships = {type : no}
 			fleet.insert()
-			fleet.name = " %s %s Fleet" % (self.name , Fleet.DP.name[type])
+			fleet.name = " %s %s Fleet" % (self.name , Drone(type).name)
 			fleet.save()
 			print "Drone fleet produced at %s using %s resources" % (builder.id, res)
 
@@ -79,9 +80,9 @@ It consists of:
 """ % (fleet.name, builder.name)
 			for type, number in fleet.ships.items():
 				if number > 1:
-					message.body += "%s %ss" % (number, Fleet.DP.name[type])
+					message.body += "%s %ss" % (number, Drone(type).name)
 				else:
-					message.body += "%s %s" % (number, Fleet.DP.name[type])
+					message.body += "%s %s" % (number, Drone(type).name)
 
 			message.insert()
 
@@ -90,24 +91,22 @@ It consists of:
 			builder.save()
 
 	def turns(self, turns=0):
-		for type, number in self.ships.items():
-			turns += 0 * number
-
-		return turns-self.worked
+		return 1
 
 	def resources(self):
-		res = 0
-		for type, number in self.ships.items():
-			res += int(Fleet.DP.cost[type]) * int(number)
-		r = Resource.byname('Credit')
-		return [(r,res),]
+		return []
+##		res = 0
+##		for type, number in self.ships.items():
+##			res += Drone(type).cost * int(number)
+##		r = Resource.byname('Credit')
+##		return [(r,res),]
 
 	def fn_ships(self, value=None):
 		builder = Object(self.oid)
-		Jarvis = tp.server.rules.dronesec.master.Controller()
 		if value == None:
 			returns = []
-			for type, name in Jarvis.DA[builder.game].players[builder.owner].items():
+			print Player(builder.owner).drones.items()
+			for type, name in Player(builder.owner).drones.items():
 				returns.append((type, name, 1))
 			return returns, self.ships.items()
 		else:
@@ -115,7 +114,7 @@ It consists of:
 
 			try:
 				for type, number in value[1]:
-					if not type in Fleet.DP.name.keys():
+					if not type in Player(builder.owner).drones.keys():
 						raise ValueError("Invalid type selected")
 					ships[type] = number
 			except:

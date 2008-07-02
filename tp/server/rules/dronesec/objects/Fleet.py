@@ -6,7 +6,8 @@ from types import TupleType, ListType
 from tp.server.bases.Object import Object
 from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
-from tp.server.rules.dronesec.drones.Dronepedia import Dronepedia
+from tp.server.rules.dronesec.bases.Player import Player
+from tp.server.rules.dronesec.bases.Drone import Drone
 
 class Fleet(Object, Combattant):
 	attributes = { \
@@ -20,17 +21,10 @@ class Fleet(Object, Combattant):
 		'tp.server.rules.base.orders.NOp',
 		)
 
-	DP = Dronepedia()
-	ship_types  = DP.name
-	ship_hp     = DP.health
-	ship_damage = DP.attack
-	ship_speed  = DP.speed
-	ship_power = DP.power
-
 	def calcPower(self):
 		power = 0
 		for type, no in self.ships.items():
-			power += self.ship_power[type] * no
+			power += Drone(type).power * no
 		return power
 
 	def fn_damage(self, value = None):
@@ -72,8 +66,8 @@ class Fleet(Object, Combattant):
 		"""
 		types = dict()
 		for ship in self.ships.keys():
-			types[ship] = self.ship_speed[ship]
-		return self.ship_speed[min(types,key = lambda a: types.get(a))]
+			types[ship] = Drone(ship).speed
+		return Drone(min(types,key = lambda a: types.get(a))).speed
 
 	#############################################
 	# Combat functions
@@ -107,7 +101,7 @@ class Fleet(Object, Combattant):
 	def total_health(self):
 		health = 0
 		for type, num in self.ships.items():
-			health += self.DP.health[type] * num
+			health += Drone(type).health * num
 		return health
 
 Fleet.typeno = 4
