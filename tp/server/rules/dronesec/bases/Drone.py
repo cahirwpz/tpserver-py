@@ -11,7 +11,7 @@ from tp.server.bases.SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimpor
 
 
 class Drone(SQLBase):
-	table = Table('drone', metadata,
+	table = Table('dronesec_drone', metadata,
 		Column('game',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('type',	     String(255), nullable=False, index=True),

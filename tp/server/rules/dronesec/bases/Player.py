@@ -11,7 +11,7 @@ from tp.server.rules.dronesec.bases.Drone import Drone
 from tp.server.rules.dronesec.bases.Research import Research
 
 class Player(SQLBase):
-	table = Table('player', metadata,
+	table = Table('dronesec_player', metadata,
 		Column('game', 	       Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,     nullable=False, index=True, primary_key=True),
 		Column('type',	       Binary, nullable=False, index=True, default = 'Normal'),

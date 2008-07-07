@@ -10,7 +10,7 @@ from tp import netlib
 from tp.server.bases.SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
 class Research(SQLTypedBase):
-	table = Table('research', metadata,
+	table = Table('dronesec_research', metadata,
 		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('type',	    String(255), nullable=False, index=True),
@@ -24,7 +24,7 @@ class Research(SQLTypedBase):
 
 		ForeignKeyConstraint(['game'], ['game.id']),
 	)
-	table_extra = SQLTypedTable('research')
+	table_extra = SQLTypedTable('dronesec_research')
 
 	@classmethod
 	def byname(cls, name):
