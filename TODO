@@ -109,8 +109,17 @@ Supports the following:
 			- Designs correctly produce
 	
 Dronesec:
-	Fleet Combat
-	Produce Drones as shown in original Document.
-		- Produce Drones should merely set a production ship.
-		- Currently works the same way minisec would.
 	Research
+		- Apply any research bonuses.
+		- Implement "Economy" Research
+		- Implement "World/Global" Researchs
+		- Implement "Combat" Research
+	Maps:
+		- Work on a standard map
+		- Implement Different possible map types
+	PlanerGenerator:
+		-Find a way to make the names more... understandable. Less random.
+	
+	Database
+		- Dronesec specific tables should be prepended with dronesec
+		- Find a way to keep the server independent from the rulesets without breaking database loading and deletion.
