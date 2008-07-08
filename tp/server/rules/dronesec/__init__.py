@@ -114,6 +114,7 @@ class Ruleset(RulesetBase):
 			from research.MasterList import MasterList
 			D = Dronepedia()
 			MasterList.loadUnitType()
+			MasterList.loadWorldType()
 			trans.commit()
 		except:
 			trans.rollback()
