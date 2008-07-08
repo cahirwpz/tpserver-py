@@ -8,6 +8,7 @@ from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
 from tp.server.rules.dronesec.bases.Player import Player
 from tp.server.rules.dronesec.bases.Drone import Drone
+from tp.server.rules.dronesec.bases.Research import Research
 
 class Fleet(Object, Combattant):
 	attributes = { \
@@ -25,6 +26,17 @@ class Fleet(Object, Combattant):
 		power = 0
 		for type, no in self.ships.items():
 			power += Drone(type).power * no
+			researches = Research.bytype('tp.server.rules.dronesec.research.WorldType')
+			res = []
+			for x in Player(self.owner).research:
+				if x in researches:
+					res.append(x)
+			researches = res
+			if researches:
+				for id in researches:
+					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).units:
+						power += Research(id).power * no
+
 		return power
 
 	def fn_damage(self, value = None):
@@ -67,7 +79,23 @@ class Fleet(Object, Combattant):
 		types = dict()
 		for ship in self.ships.keys():
 			types[ship] = Drone(ship).speed
-		return Drone(min(types,key = lambda a: types.get(a))).speed
+		slowDrone = min(types,key = lambda a: types.get(a))
+		speed = Drone(slowDrone).speed
+		print "Normal speed was %i" % speed
+		researches = Research.bytype('tp.server.rules.dronesec.research.WorldType')
+		speedRatio = 1
+		res = []
+		for x in Player(self.owner).research:
+			if x in researches:
+				res.append(x)
+		researches = res
+		if researches:
+			for id in researches:
+				if Drone(slowDrone).type in Research(id).types or Drone(slowDrone).name in Research(id).units:
+					speedRatio += Research(id).speedRatio
+					speed += Research(id).speed
+		print "Speed with researches is %i" % (speed * speedRatio)
+		return int(speed * speedRatio)
 
 	#############################################
 	# Combat functions
