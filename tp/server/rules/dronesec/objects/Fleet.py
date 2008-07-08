@@ -19,7 +19,6 @@ class Fleet(Object, Combattant):
 		'ordered': Object.Attribute('ordered', 0, 'private'),
 	}
 	orderclasses = (
-		'tp.server.rules.base.orders.NOp',
 		)
 
 	def calcPower(self):

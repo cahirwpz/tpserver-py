@@ -22,7 +22,6 @@ class Fleet(Fleetbase):
 	## 2 : Repel
 
 	orderclasses = (
-		'tp.server.rules.base.orders.NOp',
 		'tp.server.rules.dronesec.orders.Move',
 		'tp.server.rules.dronesec.orders.Attract',
 		'tp.server.rules.dronesec.orders.Repel',
