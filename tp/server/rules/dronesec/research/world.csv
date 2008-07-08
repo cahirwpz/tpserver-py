@@ -1,1 +1,4 @@
-"Name","Cost","Requirements"
+"Name","Abbreviation","Cost","Requirements","Speed","Speed Ratio","Power","Units Affected","Types Affected"
+"Fighter Propulsion Engines I","fprop1",300,,10,0.2,0,,"Fighter"
+"Bomber Propulsion Engines I","bprop1",400,,10,0,0,,"Bomber"
+"Capital Ship Subwarp Engines I","csprop1",500,,0,0.3,0,,"Capital Ship"
