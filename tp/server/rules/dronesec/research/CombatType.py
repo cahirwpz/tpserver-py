@@ -1,12 +1,12 @@
 
-from Research import Research
+from tp.server.rules.dronesec.bases.Research import Research
 
 class CombatType(Research):
-	damage = 0
-	numAttacks = 0
-	health = 0
-	weakness = ''
-	strength = ''
-	types = None
-	ships = None
-	abilities = None
+
+	attributes = {\
+		'damage': Research.Attribute('damage', 0, 'private'),
+		'numAttacks': Research.Attribute('numAttacks', 0, 'private'),
+		'health': Research.Attribute('health', 0, 'private'),
+		'types': Research.Attribute('types', 0, 'private'),
+		'ships': Research.Attribute('ships', 0, 'private'),
+		}
