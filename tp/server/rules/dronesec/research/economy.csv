@@ -1,1 +1,5 @@
-"Name","Cost","Requirements"
+"Name","Abbreviation","Cost","Requirements","Resource","Resource Ratio","Research Ratio","Research Type"
+"Miner's Guild","mineg",1000,,5,0.1,0,"None"
+"Mining Laser I","minelas1",1500,"mineg",10,0.2,0,"None"
+"Mining Laser II","minelas2",2000,"minelas1",10,0.3,0,"None"
+"Personnel Training","pertrain",3000,"csprop cscol1",0,0,0.4,"WorldType"
