@@ -23,7 +23,7 @@ Build a new drone."""
 		researcher = Object(self.oid)
 
 		if not hasattr(researcher, "owner"):
-			print "Could not do a build orderFit because it was on an unownable object."
+			print "Could not do a build order because it was on an unownable object."
 			self.remove()
 
 		message = Message()
@@ -40,7 +40,20 @@ Build a new drone."""
 			if not player.canResearch.has_key(id):
 				continueFit
 			res = resLeft
-			finished, resLeft = player.researchQuota(id, resLeft)
+			resRatio = 1
+			researches = Res.bytype('tp.server.rules.dronesec.research.EconomyType')
+			res = []
+			for x in Player(researcher.owner).research:
+				if x in researches:
+					res.append(x)
+			researches = res
+			if researches:
+				for i in researches:
+					if Res(id).type.endswith(Res(i).researchTypes):
+						resRatio += Res(i).researchRatio
+
+
+			finished, resLeft = player.researchQuota(id, resLeft, resRatio)
 			totalUsed += res - resLeft
 			if finished:
 				player.addResearch(id)
@@ -86,7 +99,6 @@ You have discovered %s at %s
 		builder = Object(self.oid)
 		if value == None:
 			returns = []
-			print Player(builder.owner).canResearch.items()
 			for type, name in Player(builder.owner).canResearch.items():
 				returns.append((type, name, 1))
 			return returns, self.research.items()

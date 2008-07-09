@@ -71,13 +71,16 @@ class Player(SQLBase):
 					self.canResearch[x] = Research(x).name
 
 
-	def researchQuota(self, id, payed):
+	def researchQuota(self, id, payed, ratio):
 		if id not in self.researchLeft:
 			self.researchLeft[id] = 0
-		self.researchLeft[id] += payed
+		check = self.researchLeft[id] - Research(id).cost
+		if check <= payed * ratio:
+			extra = payed - (check / ratio)
+		self.researchLeft[id] += payed * ratio
 
 		if self.researchLeft[id] >= Research(id).cost:
-			return True, self.researchLeft[id] - Research(id).cost
+			return True, extra
 		else: return False, 0
 
 
