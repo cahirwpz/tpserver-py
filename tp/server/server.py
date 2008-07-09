@@ -240,15 +240,15 @@ class FullConnection(netlib.ServerConnection):
 		self._send(netlib.objects.Feature(p.sequence, [ \
 			constants.FEATURE_HTTP_THIS,
 			constants.FEATURE_KEEPALIVE,
-			constants.FEATURE_ORDERED_OBJECT,
-			constants.FEATURE_ORDERED_ORDERDESC,
-			constants.FEATURE_ORDERED_BOARD,
-			constants.FEATURE_ORDERED_CATEGORY,
-			constants.FEATURE_ORDERED_DESIGN,
-			constants.FEATURE_ORDERED_COMPONENT,
-			constants.FEATURE_ORDERED_PROPERTY,
-			constants.FEATURE_ORDERED_RESOURCE,
-			constants.FEATURE_ACCOUNT_REGISTER,
+##			constants.FEATURE_ORDERED_OBJECT,
+##			constants.FEATURE_ORDERED_ORDERDESC,
+##			constants.FEATURE_ORDERED_BOARD,
+##			constants.FEATURE_ORDERED_CATEGORY,
+##			constants.FEATURE_ORDERED_DESIGN,
+##			constants.FEATURE_ORDERED_COMPONENT,
+##			constants.FEATURE_ORDERED_PROPERTY,
+##			constants.FEATURE_ORDERED_RESOURCE,
+##			constants.FEATURE_ACCOUNT_REGISTER,
 		]))
 		return True
 
