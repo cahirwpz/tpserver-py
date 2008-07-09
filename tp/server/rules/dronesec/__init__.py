@@ -115,6 +115,7 @@ class Ruleset(RulesetBase):
 			D = Dronepedia()
 			MasterList.loadUnitType()
 			MasterList.loadWorldType()
+			MasterList.loadEconomyType()
 			trans.commit()
 		except:
 			trans.rollback()
