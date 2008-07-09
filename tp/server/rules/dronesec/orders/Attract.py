@@ -10,7 +10,7 @@ class Attract(Order):
 	"""\
 Drones move to a point in space.
 """
-	typeno = 3
+	typeno = 103
 	attributes = {\
 		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.constants.ARG_ABS_COORD,
 				desc="Where to go.")

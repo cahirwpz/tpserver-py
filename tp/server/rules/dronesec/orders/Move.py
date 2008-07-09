@@ -25,7 +25,7 @@ class Move(Order):
 	"""\
 Move to a point in space.
 """
-	typeno = 1
+	typeno = 101
 
 	attributes = {\
 		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.constants.ARG_ABS_COORD,

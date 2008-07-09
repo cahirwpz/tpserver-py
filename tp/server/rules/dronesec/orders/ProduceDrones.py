@@ -13,7 +13,7 @@ from tp.server.rules.dronesec.bases.Drone import Drone
 class ProduceDrones(Order):
 	"""\
 Build a new drone."""
-	typeno = 2
+	typeno = 102
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
 					desc="Build Drones."),

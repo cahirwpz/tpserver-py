@@ -6,7 +6,7 @@ class Stop(Order):
 	"""\
 Make Drones stop moving...
 """
-	typeno = 6
+	typeno = 106
 
 	attributes = {\
 		'wait': Order.Attribute("wait", 0, 'protected', type=netlib.objects.constants.ARG_TIME,
