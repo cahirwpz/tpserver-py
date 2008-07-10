@@ -48,14 +48,14 @@ class Research(SQLTypedBase):
 		return [(x['id']) for x in results]
 
 	@classmethod
-	def byreq(cls, abbrev):
+	def bylist(cls, res):
 		"""\
 		byreq(abbrev)
 
 		Returns the objects which contain this research abbrev as a requirement
 		"""
 		c = cls.table.c
-		results = select([c.id], c.reqs.in_(abbrev)).execute().fetchall()
+		results = select([c.id], not_(c.id.in_(res))).execute().fetchall()
 		return [(x['id']) for x in results]
 
 
