@@ -116,6 +116,7 @@ class Ruleset(RulesetBase):
 			MasterList.loadUnitType()
 			MasterList.loadWorldType()
 			MasterList.loadEconomyType()
+			MasterList.loadCombatType()
 			trans.commit()
 		except:
 			trans.rollback()
