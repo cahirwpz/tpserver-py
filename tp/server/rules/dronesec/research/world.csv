@@ -2,5 +2,5 @@
 "Fighter Propulsion Engines I","fprop1",300,,10,0.2,0,,"Fighter"
 "Bomber Propulsion Engines I","bprop1",400,,10,0,0,,"Bomber"
 "Capital Ship Subwarp Engines I","csprop1",500,,0,0.3,0,,"Capital Ship"
-"Capital Ship Colonization I","cscol1",600,,0,0,3,,"Capital Ship"
-"White Star Colonization Improvements I","wscol1",800,"cscol1",0,0,5,"White Star","None"
+"Capital Ship Colonization I","cscol1",600,"csprop1",0,0,3,,"Capital Ship"
+"White Star Colonization Improvements I","wscol1",800,"cscol1",0,0,5,"White Star",

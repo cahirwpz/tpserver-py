@@ -1,1 +1,4 @@
-"Name","Cost","Requirements"
+"Name","Abbreviation","Cost","Requirements","Damage","Number of Attacks","Health","Types","Ships"
+"Hull Plating I ","hullplat1",200,,0,0,5,"All","None"
+"Hull Plating II","hullplat2",300,"hullplat1",0,0,5,"All","None"
+"Use the Force Luke","utforcel",1000,,2,1,2,"Fighter","X-Wing"
