@@ -26,8 +26,8 @@ def do(top):
 				if researches:
 					for id in researches:
 						resources += Research(id).resources
-						resourceRatio += Research(id).resourceRatio
-				resources = resource * resourceRatio
+						resourceRatio += Research(id).resourcesRatio
+				resources = resources * resourceRatio
 				obj.resources_add(Resource.byname('Credit'), resources)
 				print "%s is  producing %s Credits" % (obj.name, resources)
 
