@@ -70,7 +70,7 @@ class MasterList:
 				r.resources = int(resources)
 				r.resourceRatio = float(resourceRatio)
 				r.researchRatio = float(researchRatio)
-				r.researchType = researchType.strip().split(',')
+				r.researchType = researchType.strip()
 				r.insert()
 
 
