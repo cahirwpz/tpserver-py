@@ -31,7 +31,7 @@ class Player(SQLBase):
 
 	def BuildList(self):
 		self.drones = {}
-		self.research = []
+		self.research = set()
 		self.canResearch = {}
 		self.researchLeft = {}
 
@@ -56,25 +56,31 @@ class Player(SQLBase):
 
 	def addResearch(self, id):
 		if id not in self.research:
-			self.research.append(id)
+			self.research.add(id)
 		if id in self.researchLeft.keys():
 			del self.researchLeft[id]
 		if id in self.canResearch.keys():
 			del self.canResearch[id]
 
-		posNew = Research.byreq(Research(id).abbrev)
+		posNew = Research.bylist(self.research)
+		##FIXME: HACK!
+		posNew = list(set(posNew) - set(self.canResearch.keys()))
 		for x in posNew:
-			reqList = []
+			reqList = set()
 			for y in Research(x).reqs:
-				reqList.append(Research.byname(y))
-				if reqList in self.research:
+				reqList.add(Research.byname(y))
+			if reqList:
+				if reqList <= self.research:
+					print "%s can now be researched" % Research(x).name
+
 					self.canResearch[x] = Research(x).name
 
 
 	def researchQuota(self, id, payed, ratio):
 		if id not in self.researchLeft:
 			self.researchLeft[id] = 0
-		check = self.researchLeft[id] - Research(id).cost
+
+		check = Research(id).cost - self.researchLeft[id]
 		if check <= payed * ratio:
 			extra = payed - (check / ratio)
 		self.researchLeft[id] += payed * ratio
