@@ -38,23 +38,25 @@ Build a new drone."""
 			if resLeft == 0:
 				break
 			if not player.canResearch.has_key(id):
-				continueFit
+				continue
 			res = resLeft
 			resRatio = 1
 			researches = Res.bytype('tp.server.rules.dronesec.research.EconomyType')
-			res = []
+			resList = []
 			for x in Player(researcher.owner).research:
 				if x in researches:
-					res.append(x)
-			researches = res
+					resList.append(x)
+			researches = resList
 			if researches:
 				for i in researches:
-					if Res(id).type.endswith(Res(i).researchTypes):
+					if Res(id).type.endswith(Res(i).researchType) or 'All' in Res(i).researchType:
 						resRatio += Res(i).researchRatio
 
 
-			finished, resLeft = player.researchQuota(id, resLeft, resRatio)
+			finished, resLeft = player.researchQuota(id, res, resRatio)
+			
 			totalUsed += res - resLeft
+			print totalUsed
 			if finished:
 				player.addResearch(id)
 
