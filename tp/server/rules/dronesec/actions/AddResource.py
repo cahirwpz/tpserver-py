@@ -29,6 +29,8 @@ def do(top):
 						resourceRatio += Research(id).resourcesRatio
 				resources = resources * resourceRatio
 				obj.resources_add(Resource.byname('Credit'), resources)
+				if obj.resources[Resource.byname('Credit')][0] > 100000:
+					obj.resources[Resource.byname('Credit')][0] = 100000
 				print "%s is  producing %s Credits" % (obj.name, resources)
 
 				obj.damage = {}
