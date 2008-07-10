@@ -33,7 +33,7 @@ class Fleet(Object, Combattant):
 			researches = res
 			if researches:
 				for id in researches:
-					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).units:
+					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).units  or 'All' in Research(id).types:
 						power += Research(id).power * no
 
 		return power
@@ -90,7 +90,7 @@ class Fleet(Object, Combattant):
 		researches = res
 		if researches:
 			for id in researches:
-				if Drone(slowDrone).type in Research(id).types or Drone(slowDrone).name in Research(id).units:
+				if Drone(slowDrone).type in Research(id).types or Drone(slowDrone).name in Research(id).units or 'All' in Research(id).types:
 					speedRatio += Research(id).speedRatio
 					speed += Research(id).speed
 		print "Speed with researches is %i" % (speed * speedRatio)
@@ -112,8 +112,22 @@ class Fleet(Object, Combattant):
 		"""
 
 		for type, no in self.ships.items():
-			while self.damage > Drone(type).health and self.ships[type] > 0:
-				self.damage -= Drone(type).health
+			
+			health = Drone(type).health
+			
+			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
+			res = []
+			for x in Player(self.owner).research:
+				if x in researches:
+					res.append(x)
+			researches = res
+			if researches:
+				for id in researches:
+					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
+						health += Research(id).health
+
+			while self.damage > health and self.ships[type] > 0:
+				self.damage -= health
 				self.ships[type] -= 1
 
 	def damage_get(self, fail=False):
@@ -122,12 +136,36 @@ class Fleet(Object, Combattant):
 		"""
 		r = 0
 		for type, no in self.ships.items():
+			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
+			res = []
+			for x in Player(self.owner).research:
+				if x in researches:
+					res.append(x)
+			researches = res
+			if researches:
+				for id in researches:
+					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
+						r += Research(id).damage * no
 			r += Drone(type).attack * no
 		return r
 
 	def total_health(self):
 		health = 0
+
 		for type, num in self.ships.items():
+			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
+			res = []
+			for x in Player(self.owner).research:
+				if x in researches:
+					res.append(x)
+			researches = res
+			if researches:
+				for id in researches:
+					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
+						health += Research(id).health * num
+
+
+
 			health += Drone(type).health * num
 		return health
 
