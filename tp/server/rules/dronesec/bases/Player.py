@@ -26,7 +26,7 @@ class Player(SQLBase):
 	)
 
 	def __str__(self):
-		return "<Player id=%s>" % (self.id, self.username)
+		return "<Player id=%s>" % self.id
 
 
 	def BuildList(self):
