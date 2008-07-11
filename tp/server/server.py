@@ -248,7 +248,7 @@ class FullConnection(netlib.ServerConnection):
 ##			constants.FEATURE_ORDERED_COMPONENT,
 ##			constants.FEATURE_ORDERED_PROPERTY,
 ##			constants.FEATURE_ORDERED_RESOURCE,
-##			constants.FEATURE_ACCOUNT_REGISTER,
+			constants.FEATURE_ACCOUNT_REGISTER,
 		]))
 		return True
 
