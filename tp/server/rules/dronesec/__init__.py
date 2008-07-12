@@ -13,7 +13,6 @@ from bases.Research import Research
 
 
 # Generic Actions
-import tp.server.rules.base.orders.NOp as NOp
 
 import tp.server.rules.base.actions.Clean as Clean
 import tp.server.rules.base.actions.Win as Win
@@ -78,7 +77,6 @@ class Ruleset(RulesetBase):
 			Heal, 				# Repair any ships orbiting a friendly planet
 			Defeat, 			# Remove overlords if a player has no more units
 			Win, 				# Figure out if there is any winner
-			NOp, 				# NOp needs to occur last
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 
