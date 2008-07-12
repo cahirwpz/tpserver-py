@@ -5,8 +5,9 @@ import random
 from tp.server.bases.Message import Message
 from tp.server.utils import WalkUniverse
 from tp.server.rules.dronesec.bases.Drone import Drone
-from tp.server.rules.dronesec.bases.Research import Research
-from tp.server.rules.dronesec.bases.Player import Player
+
+from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
+
 def do(top):
 	#Get all Fleets
 	def h(obj, d):
@@ -59,7 +60,8 @@ def do(top):
 		rand = random.Random()
 		for side, fleets in sides.items():
 			for fleet in fleets:
-				for times in range(getNumAttacks(fleet.owner, fleet.ships.keys()[0])):
+				fleetAttack, fleetNumAttacks, fleetHealth = RC.Combat(fleet.owner, fleet.ships.keys()[0])
+				for times in range(fleetNumAttacks):
 					#HACK: Since fleets should have only 1 ship type this should work
 					attackedSide = side
 					while attackedSide == side:
@@ -109,7 +111,7 @@ def do(top):
 						defender[0].save()
 
 						#Check to see if the extra damage has been transferred
-						if diff < Drone(fleet.ships.keys()[0]).attack * 1.5:
+						if diff < fleetAttack:
 							diff =0
 							continue
 
@@ -127,20 +129,3 @@ def do(top):
 			for fleet in fleets:
 				fleet.damage_do()
 				fleet.save()
-
-
-def getNumAttacks(player, drone):
-
-	numAttacks = Drone(drone).numAttacks
-	researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
-	res = []
-	for x in Player(player).research:
-		if x in researches:
-			res.append(x)
-	researches = res
-	if researches:
-		for id in researches:
-			if Drone(drone).type in Research(id).types or Drone(drone).name in Research(id).ships or 'All' in Research(id).types:
-				numAttacks += Research(id).numAttacks
-
-	return numAttacks

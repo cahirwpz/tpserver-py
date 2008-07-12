@@ -7,4 +7,8 @@ class EconomyType(Research):
 		'resourcesRatio': Research.Attribute('resourcesRatio', 0, 'private'),
 		'researchRatio': Research.Attribute('researchRatio', 0, 'private'),
 		'researchType': Research.Attribute('researchType', 0, 'private'),
+		'droneCost': Research.Attribute('droneCost', 0, 'private'),
+		'droneRatio': Research.Attribute('droneRatio', 0, 'private'),
+		'droneTypes': Research.Attribute('droneTypes', '', 'private'),
+		'droneShips': Research.Attribute('droneShips', '', 'private'),
 	}

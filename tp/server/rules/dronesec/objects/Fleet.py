@@ -8,6 +8,7 @@ from tp.server.bases.Design import Design
 from tp.server.bases.Combattant import Combattant
 from tp.server.rules.dronesec.bases.Player import Player
 from tp.server.rules.dronesec.bases.Drone import Drone
+from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
 from tp.server.rules.dronesec.bases.Research import Research
 
 class Fleet(Object, Combattant):
@@ -24,17 +25,8 @@ class Fleet(Object, Combattant):
 	def calcPower(self):
 		power = 0
 		for type, no in self.ships.items():
-			power += Drone(type).power * no
-			researches = Research.bytype('tp.server.rules.dronesec.research.WorldType')
-			res = []
-			for x in Player(self.owner).research:
-				if x in researches:
-					res.append(x)
-			researches = res
-			if researches:
-				for id in researches:
-					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).units  or 'All' in Research(id).types:
-						power += Research(id).power * no
+			dronePower, x, y = RC.World(self.owner, type)
+			power += dronePower * no
 
 		return power
 
@@ -77,23 +69,11 @@ class Fleet(Object, Combattant):
 		"""
 		types = dict()
 		for ship in self.ships.keys():
-			types[ship] = Drone(ship).speed
+			power, speed, sr = RC.World(self.owner, ship)
+			types[ship] = speed
 		slowDrone = min(types,key = lambda a: types.get(a))
-		speed = Drone(slowDrone).speed
-		print "Normal speed was %i" % speed
-		researches = Research.bytype('tp.server.rules.dronesec.research.WorldType')
-		speedRatio = 1
-		res = []
-		for x in Player(self.owner).research:
-			if x in researches:
-				res.append(x)
-		researches = res
-		if researches:
-			for id in researches:
-				if Drone(slowDrone).type in Research(id).types or Drone(slowDrone).name in Research(id).units or 'All' in Research(id).types:
-					speedRatio += Research(id).speedRatio
-					speed += Research(id).speed
-		print "Speed with researches is %i" % (speed * speedRatio)
+		power, speed, speedRatio = RC.World(self.owner, slowDrone)
+
 		return int(speed * speedRatio)
 
 	#############################################
@@ -113,60 +93,32 @@ class Fleet(Object, Combattant):
 
 		for type, no in self.ships.items():
 			
-			health = Drone(type).health
+			d, n, health = RC.Combat(self.owner, type)
 			
-			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
-			res = []
-			for x in Player(self.owner).research:
-				if x in researches:
-					res.append(x)
-			researches = res
-			if researches:
-				for id in researches:
-					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
-						health += Research(id).health
-
 			while self.damage > health and self.ships[type] > 0:
 				self.damage -= health
 				self.ships[type] -= 1
 
-	def damage_get(self, fail=False):
+	def damage_get(self):
 		"""\
 		Returns the amount of damage this fleet can do.
 		"""
 		r = 0
 		for type, no in self.ships.items():
-			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
-			res = []
-			for x in Player(self.owner).research:
-				if x in researches:
-					res.append(x)
-			researches = res
-			if researches:
-				for id in researches:
-					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
-						r += Research(id).damage * no
-			r += Drone(type).attack * no
+			attack, num, health = RC.Combat(self.owner, type)
+			r += attack * no
 		return r
 
 	def total_health(self):
 		health = 0
 
 		for type, num in self.ships.items():
-			researches = Research.bytype('tp.server.rules.dronesec.research.CombatType')
-			res = []
-			for x in Player(self.owner).research:
-				if x in researches:
-					res.append(x)
-			researches = res
-			if researches:
-				for id in researches:
-					if Drone(type).type in Research(id).types or Drone(type).name in Research(id).ships or 'All' in Research(id).types:
-						health += Research(id).health * num
+			
+			d, n, droneHealth = RC.Combat(self.owner, type)
 
 
 
-			health += Drone(type).health * num
+			health += droneHealth * num
 		return health
 
 Fleet.typeno = 4

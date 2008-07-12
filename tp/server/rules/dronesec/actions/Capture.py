@@ -6,6 +6,8 @@ from tp.server.bases.Object import Object
 from tp.server.utils import WalkUniverse
 from tp.server.rules.dronesec.bases.Drone import Drone
 
+from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
+
 from tp.server.bases.Message import Message
 
 def do(top):
@@ -61,33 +63,14 @@ Capture of %s <b>succeded</b>.""" % (obj.name,)
 								if drone.owner == conqueror and hasattr(drone, 'target'):
 									types = dict()
 									for ship in drone.ships.keys():
-										types[ship] = DronePower(conqueror,ship)
+										power, s, sr = RC.World(conqueror, ship)
+										
+										types[ship] = power
 										removed = min(types,key = lambda a: types.get(a))
 										while powerLoss < 50 and drone.ships[ship] > 0:
-											powerLoss += DronePower(conqueror, ship)
+											powerLoss += power
 											drone.ships[ship] -= 1
 										drone.tidy()
 										drone.save()
 				obj.save()
 	WalkUniverse(top, "before", h)
-
-
-def DronePower(player, drone):
-	from tp.server.rules.dronesec.bases.Research import Research
-	from tp.server.rules.dronesec.bases.Player import Player
-
-	power = 0
-
-	power += Drone(drone).power
-	researches = Research.bytype('tp.server.rules.dronesec.research.WorldType')
-	res = []
-	for x in Player(player).research:
-		if x in researches:
-			res.append(x)
-	researches = res
-	if researches:
-		for id in researches:
-			if Drone(drone).type in Research(id).types or Drone(drone).name in Research(id).units:
-				power += Research(id).power
-
-	return power

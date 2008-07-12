@@ -9,6 +9,7 @@ from tp.server.rules.dronesec.objects.Fleet import Fleet
 
 from tp.server.rules.dronesec.bases.Player import Player
 from tp.server.rules.dronesec.bases.Drone import Drone
+from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
 
 class ProduceDrones(Order):
 	"""\
@@ -34,8 +35,9 @@ Build a new drone."""
 
 			res = 0
 			no = 0
-			no =  int(builder.resources[1][0] / Drone(type).cost)
-			res = no * Drone(type).cost
+			cost, costRatio = RC.EconomyDrone(builder.owner, type)
+			no =  int(builder.resources[1][0] / (cost * costRatio))
+			res = int(no * cost * costRatio)
 
 			message = Message()
 			message.slot = -1

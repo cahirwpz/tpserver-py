@@ -60,7 +60,7 @@ class MasterList:
 		except:
 			reader = csv.reader(open(f))
 
-		for name, abbrev, cost, requirements, resources, resourceRatio, researchRatio, researchType in reader:
+		for name, abbrev, cost, requirements, resources, resourceRatio, researchRatio, researchType, droneCost, droneRatio, droneTypes, droneShips in reader:
 			if name != 'Name':
 				r = EconomyType()
 				r.name = name
@@ -71,6 +71,10 @@ class MasterList:
 				r.resourceRatio = float(resourceRatio)
 				r.researchRatio = float(researchRatio)
 				r.researchType = researchType.strip()
+				r.droneCost = int(droneCost)
+				r.droneRatio = float(droneRatio)
+				r.droneTypes = droneTypes.strip().split(',')
+				r.droneShips = droneShips.strip().split(',')
 				r.insert()
 
 

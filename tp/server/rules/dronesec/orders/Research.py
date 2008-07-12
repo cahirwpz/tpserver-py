@@ -9,6 +9,8 @@ from tp.server.rules.dronesec.bases.Player import Player
 from tp.server.rules.dronesec.bases.Research import Research as Res
 from tp.server.rules.dronesec.bases.Drone import Drone
 
+from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
+
 class Research(Order):
 	"""\
 Build a new drone."""
@@ -40,23 +42,12 @@ Build a new drone."""
 			if not player.canResearch.has_key(id):
 				continue
 			res = resLeft
-			resRatio = 1
-			researches = Res.bytype('tp.server.rules.dronesec.research.EconomyType')
-			resList = []
-			for x in Player(researcher.owner).research:
-				if x in researches:
-					resList.append(x)
-			researches = resList
-			if researches:
-				for i in researches:
-					if Res(id).type.endswith(Res(i).researchType) or 'All' in Res(i).researchType:
-						resRatio += Res(i).researchRatio
+			blah, blah, resRatio = RC.Economy(researcher.owner, Research(id).type)
 
 
 			finished, resLeft = player.researchQuota(id, res, resRatio)
 			
 			totalUsed += res - resLeft
-			print totalUsed
 			if finished:
 				player.addResearch(id)
 
