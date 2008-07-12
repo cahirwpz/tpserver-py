@@ -3,6 +3,7 @@ Captures a Planet
 """
 
 from tp.server.bases.Object import Object
+from tp.server.bases.Order import Order
 from tp.server.utils import WalkUniverse
 from tp.server.rules.dronesec.bases.Drone import Drone
 
@@ -72,5 +73,11 @@ Capture of %s <b>succeded</b>.""" % (obj.name,)
 											drone.ships[ship] -= 1
 										drone.tidy()
 										drone.save()
+									
+									#Remove Orders from the planet
+									while obj.orders():
+										o = Order(Order.realid(object.id, 0))
+										o.remove()
+										o.save()
 				obj.save()
 	WalkUniverse(top, "before", h)
