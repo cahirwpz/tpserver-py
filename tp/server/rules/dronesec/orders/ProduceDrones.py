@@ -70,7 +70,7 @@ Had %s and needed %s""" % (buider.name, builder.resources[1][0], res)
 			fleet.owner = builder.owner
 			fleet.ships = {type : no}
 			fleet.insert()
-			fleet.name = " %s %s Fleet" % (self.name , Drone(type).name)
+			fleet.name = (" %s %s Fleet" % (self.name , Drone(type).name)).strip()
 			fleet.save()
 			print "Drone fleet produced at %s using %s resources" % (builder.id, res)
 
