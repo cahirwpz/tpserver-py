@@ -121,48 +121,151 @@ class Ruleset(RulesetBase):
 			raise
 
 
-	def populate(self, maptype, numPlanets, numPlayers, maplayout, seed=None):
+
+	def populate(self,  numPlanets , numPlayers = 2, maptype = 'random', seed=None, loadfile = None,):
 		"""\
-		--populate <game> <Map Type> <number of Planets> <maximunum number of players> <Layout> <seed>
-		    Maptypes so far can be normal, epic, and tug.
+		--populate <game>  <number of Planets> <maximunum number of players> <Map Type> <seed> <load file>
+		    Maptypes so far can be standard and random
 		    Number of Planets includes player planets
-		    Layouts are currently a blank option. It could be used to determine randomness of map or a special layout to follow.
-		    seed can be set for purposes of saved games. But fully random seeds are also allowed.
+		    
+		    seed can be set for purposes of saved games. But fully random seeds are also allowed by typing in None
+		    a loadfile does not need to be specified unless it is a loaded map.
 		"""
+
+
+		numPlanets = int(numPlanets)
+		numPlayers = int(numPlayers)
+
+		if numPlanets < numPlayers:
+			print "Invalid: Number of Players cannot be more than then number of total planets"
+			return
 
 		dbconn.use(self.game)
 
 		trans = dbconn.begin()
 
 		try:
+			
 			# FIXME: Assuming that the Universe exists
 			r = random.Random()
+
+			if seed == 'None':
+				seed = None
+
 			if seed != None:
 				self.seed = int(seed)
 				r.seed(seed)
 
 			PG = PlanetGenerator(theSeed = self.seed)
-			# In each system create a number of planets
-			for j in range(0, int(numPlanets)):
-				n = PG.genName()
-				pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
-				system = Object(type='tp.server.rules.base.objects.System')
-				system.name = "System %s" % n
-				system.size = r.randint(80, 200)
-				system.posx = pos[0]
-				system.posy = pos[1]
-				system.insert()
-				ReparentOne(system)
-				system.save()
+			
 
-				planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-				planet.name = "%s" % n
-				planet.size = r.randint(10, 100)
-				planet.parent = system.id
-				planet.posx = pos[0]+r.randint(1,10)
-				planet.posy = pos[1]+r.randint(1,10)
-				planet.insert()
-				print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+			if maptype == 'standard':
+				if numPlayers < 2:
+					print "Not enough players for a game"
+					return
+
+				import math
+				size = SIZE * numPlanets * numPlayers
+				divisions = (2.0 * math.pi)/numPlayers
+				planetsPerDivision = int(math.floor(numPlanets / numPlayers))
+				remainderPlanets = numPlanets % numPlayers
+				
+				
+				locs = []
+				
+				locs.append((divisions, size * .75))
+				#preset planet locations
+				for plan in range(planetsPerDivision - 1):
+					div = r.random() * divisions
+					dist = r.random() * size
+					locs.append((div, dist))
+
+				for num in range(numPlayers):
+					for x in range(planetsPerDivision):
+						n = PG.genName()
+						
+						div = locs[x][0]
+						dist = locs[x][1]
+
+						posx = int(math.cos((divisions * num) + div) * dist)
+						posy = int(math.sin((divisions * num) + div) * dist)
+
+						system = Object(type='tp.server.rules.base.objects.System')
+						system.name = "System %s" % n
+						system.size = r.randint(80, 200)
+						system.posx = posx
+						system.posy = posy
+						system.insert()
+						ReparentOne(system)
+						system.save()
+
+						planet = Object(type='tp.server.rules.dronesec.objects.Planet')
+						planet.name = "%s" % n
+						planet.size = r.randint(10, 100)
+						planet.parent = system.id
+						planet.posx = posx + r.randint(1,10)
+						planet.posy = posy + r.randint(1,10)
+						if num == 0:
+							planet.playerhome = True
+						planet.insert()
+						print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+						
+				if remainderPlanets == 1:
+					div = 0
+					dist = 0
+				else:
+				#Remainder Planets
+					divisions = math.pi / remainderPlanets
+					div = r.random() * div
+					dist =r.randint(0, size)
+				for num in range(remainderPlanets):
+					n = PG.genName()
+
+					posx = int(math.cos((divisions * num) + div) * dist)
+					posy = int(math.sin((divisions * num) + div) * dist)
+
+					system = Object(type='tp.server.rules.base.objects.System')
+					system.name = "System %s" % n
+					system.size = r.randint(80, 200)
+					system.posx = posx
+					system.posy = posy
+					system.insert()
+					ReparentOne(system)
+					system.save()
+
+					planet = Object(type='tp.server.rules.dronesec.objects.Planet')
+					planet.name = "%s" % n
+					planet.size = r.randint(10, 100)
+					planet.parent = system.id
+					planet.posx = posx + r.randint(1,10)
+					planet.posy = posy + r.randint(1,10)
+					planet.insert()
+					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
+			else: #maptype =='random': 
+				# In each system create a number of planets
+				for j in range(0, int(numPlanets)):
+					n = PG.genName()
+					pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
+					system = Object(type='tp.server.rules.base.objects.System')
+					system.name = "System %s" % n
+					system.size = r.randint(80, 200)
+					system.posx = pos[0]
+					system.posy = pos[1]
+					system.insert()
+					ReparentOne(system)
+					system.save()
+
+					planet = Object(type='tp.server.rules.dronesec.objects.Planet')
+					planet.name = "%s" % n
+					planet.size = r.randint(10, 100)
+					planet.parent = system.id
+					planet.posx = pos[0]+r.randint(1,10)
+					planet.posy = pos[1]+r.randint(1,10)
+					planet.playerhome = True
+					planet.insert()
+					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+
 
 			trans.commit()
 		except:
@@ -178,32 +281,30 @@ class Ruleset(RulesetBase):
 		trans = dbconn.begin()
 		try:
 
+			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
+			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
+			
+			if len(homeplanets) == 0:
+				print "Sorry but the maximum amount of players for this map has been reached"
+				return
+
+
 			user = RulesetBase.player(self, username, password, email, comment)
 
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
 			r.seed(self.seed + user.id)
-			pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
-	#### Might have planets be created before hand and players join an already existing planet
+			#### Might have planets be created before hand and players join an already existing planet
+			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
+			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
+			
 
-			system = Object(type='tp.server.rules.base.objects.System')
-			system.name = "%s Solar System" % username
-			system.parent = 0
-			system.size = r.randint(80, 200)
-			(system.posx, system.posy, junk) = pos
-			ReparentOne(system)
-			system.save()
+			planet = Object(homeplanets[r.randint(0, len(homeplanets)-1)])
 
-
-			planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-			planet.name = "%s Planet" % username
-			planet.parent = system.id
-			planet.size = 100
-			planet.posx = pos[0]
-			planet.posy = pos[1]
 			planet.owner = user.id
 			planet.resources_add(Resource.byname('Credit'), 100)
 			planet.save()
+
 
 			overlord = Object(type='tp.server.rules.dronesec.objects.overlord.Fleet')
 			overlord.parent = planet.id
@@ -218,9 +319,11 @@ class Ruleset(RulesetBase):
 			players.BuildList()
 			players.insert()
 
+			print "%s has been assigned Planet: %s" % (username, planet.name)
+
 			trans.commit()
 
-			return (user,system, planet, overlord)
+			return (user, planet, overlord)
 		except:
 			trans.rollback()
 			raise

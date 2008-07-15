@@ -10,6 +10,7 @@ class Planet(Object):
 	attributes = { \
 		'owner':     Object.Attribute('owner', -1, 'public'),
 		'resources': Object.Attribute('resources', {}, 'protected'),
+		'playerhome': Object.Attribute('playerhome', False, 'private')
 		}
 	orderclasses = (
 		'tp.server.rules.dronesec.orders.ProduceDrones',
