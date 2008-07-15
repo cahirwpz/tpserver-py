@@ -205,7 +205,7 @@ class Ruleset(RulesetBase):
 						planet.parent = system.id
 						planet.posx = posx + r.randint(1,10)
 						planet.posy = posy + r.randint(1,10)
-						if num == 0:
+						if x == 0:
 							planet.playerhome = True
 						planet.insert()
 						print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
