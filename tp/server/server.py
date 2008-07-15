@@ -539,6 +539,37 @@ class FullConnection(netlib.ServerConnection):
 	def OnPlayer_Get(self, packet):
 		return self.OnGetWithID(packet, User)
 
+	def OnTurnFinished(self, packet):
+		if not self.check(packet):
+			return True
+
+		db.dbconn.use(self.game)
+		
+		lock = Lock.new('processing')
+		db.dbconn.commit()
+		
+		
+		self.user.done = True
+		self.user.save()
+
+		
+		checkDone = True
+		for id, time in User.ids():
+			if checkDone == False:
+				continue
+			if User(id).done == False:
+				checkDone = False
+
+		if checkDone:
+			self.game.ruleset.turn()
+		
+		for id, time in User.ids():
+			User(id).done = False
+		
+		del lock
+		db.dbconn.commit()
+		
+
 	def _send(self, *args, **kw):
 		return netlib.ServerConnection._send(self, *args, **kw)
 
@@ -635,7 +666,7 @@ class FullServer(netlib.Server):
 
 	def endofturn(self, game):
 		# Send TimeRemaining Packets
-		packet = netlib.objects.TimeRemaining(0, -1)
+		packet = netlib.objects.TimeRemaining(0, 0)
 
 		for connection in self.connections.values():
 			if isinstance(connection, FullConnection) and not connection.user is None:

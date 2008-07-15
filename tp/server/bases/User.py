@@ -18,6 +18,7 @@ class User(SQLBase):
 		Column('username',  String(255), nullable=False, index=True),
 		Column('password',  String(255), nullable=False, index=True),
 		Column('comment',   Binary,      nullable=False, default=""),
+		Column('done', 	    Boolean,     nullable=False, default=False),
 		Column('time',	    DateTime,    nullable=False, index=True,
 			onupdate=func.current_timestamp(), default=func.current_timestamp()),
 
