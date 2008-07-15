@@ -107,13 +107,12 @@ Supports the following:
 			- Designs calculate properties
 			- Designs check requirements and provide feedback
 			- Designs correctly produce
+
+
+Add CSV Sync:
+	- If new line is added or removed from the csv containing the information then add or remove them from the database midgame.
 	
 Dronesec:
-	Research
-		- Apply any research bonuses.
-		- Implement "Economy" Research
-		- Implement "World/Global" Researchs
-		- Implement "Combat" Research
 	Maps:
 		- Work on a standard map
 		- Implement Different possible map types
@@ -121,5 +120,5 @@ Dronesec:
 		-Find a way to make the names more... understandable. Less random.
 	
 	Database
-		- Dronesec specific tables should be prepended with dronesec
 		- Find a way to keep the server independent from the rulesets without breaking database loading and deletion.
+	Add more Drones and Researches
