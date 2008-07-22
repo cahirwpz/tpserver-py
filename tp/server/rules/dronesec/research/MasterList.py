@@ -17,7 +17,6 @@ class MasterList:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
 			reader = csv.reader(open(f))
-
 		for name, abbrev, cost, requirements, ship in reader:
 			if name != 'Name':
 				r = UnitType()
@@ -36,7 +35,7 @@ class MasterList:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
 			reader = csv.reader(open(f))
-
+		
 		for name, abbrev, cost, requirements, speed, speedRatio, power, units, types in reader:
 			if name != 'Name':
 				r = WorldType()
@@ -59,7 +58,6 @@ class MasterList:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
 			reader = csv.reader(open(f))
-
 		for name, abbrev, cost, requirements, resources, resourceRatio, researchRatio, researchType, droneCost, droneRatio, droneTypes, droneShips in reader:
 			if name != 'Name':
 				r = EconomyType()
@@ -86,8 +84,7 @@ class MasterList:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
 			reader = csv.reader(open(f))
-
-		for name, abbrev, cost, requirements, damage, numAttacks, health, types, ships in reader:
+		for name, abbrev, cost, requirements, damage, numAttacks, health, strength, weakness, types, ships in reader:
 			if name != 'Name':
 				r = CombatType()
 				r.name = name
