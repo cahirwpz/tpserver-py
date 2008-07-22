@@ -1,6 +1,10 @@
 "Name","Type","Cost","Power","Attack","Number of Attacks","Health","Speed","Strength","Weakness","Requirements"
-"Basic Fighter","Fighter",25,5,5,1,10,300,"Bomber","Capital Ship",
-"Basic Bomber","Bomber",35,5,5,2,12,200,"Capital Ship","Fighter",
-"Basic Capital Ship","Capital Ship",90,9,9,3,20,100,"Fighter","Bomber",
-"White Star","Capital Ship",100,15,30,2,50,500,"All","None","vtm1"
-"X-Wing","Fighter",30,2,8,2,14,310,"Bomber","Capital Ship","sfoilw"
+"Basic Fighter","Fighter",25,5,5,1,10,3000,"Bomber","Capital Ship",
+"Basic Bomber","Bomber",35,5,5,2,12,2000,"Capital Ship","Fighter",
+"Basic Capital Ship","Capital Ship",90,9,9,3,20,1000,"Fighter","Bomber",
+"White Star","Capital Ship",100,15,30,2,50,5000,"All","None","vtm1"
+"X-Wing","Fighter",30,2,8,2,14,3100,"Bomber","Capital Ship","sfoilw"
+"Guardian","Bomber",40,6,6,2,15,2100,"Capital Ship","Fighter","prottorpl"
+"Interceptor","Fighter",10,1,2,2,4,4000,"Bomber","Capital Ship","inter"
+"Carrier","Capital Ship",100,10,3,8,40,2500,"Bomber","Capital Ship","fleetbea"
+"Arbiter","Bomber",45,4,4,3,20,1500,"Capital Ship","Fighter","arbtrib"
