@@ -213,7 +213,7 @@ class Ruleset(RulesetBase):
 				if remainderPlanets == 1:
 					div = 0
 					dist = 0
-				else:
+				elif remainderPlanets != 0:
 				#Remainder Planets
 					divisions = math.pi / remainderPlanets
 					div = r.random() * div
