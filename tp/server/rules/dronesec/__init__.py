@@ -56,7 +56,7 @@ class Ruleset(RulesetBase):
 # Cap planet
 
 
-	seed = 0
+	seed = None
 	# The order orders and actions occur
 	orderOfOrders = [
 			Attract,			# Attract units
@@ -119,8 +119,6 @@ class Ruleset(RulesetBase):
 		except:
 			trans.rollback()
 			raise
-
-
 
 	def populate(self,  numPlanets , numPlayers = 2, maptype = 'random', seed=None, loadfile = None,):
 		"""\
@@ -189,27 +187,13 @@ class Ruleset(RulesetBase):
 
 						posx = int(math.cos((divisions * num) + div) * dist)
 						posy = int(math.sin((divisions * num) + div) * dist)
-
-						system = Object(type='tp.server.rules.base.objects.System')
-						system.name = "System %s" % n
-						system.size = r.randint(80, 200)
-						system.posx = posx
-						system.posy = posy
-						system.insert()
-						ReparentOne(system)
-						system.save()
-
-						planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-						planet.name = "%s" % n
-						planet.size = r.randint(10, 100)
-						planet.parent = system.id
-						planet.posx = posx + r.randint(1,10)
-						planet.posy = posy + r.randint(1,10)
+						posz = 0
+						home = False
 						if x == 0:
-							planet.playerhome = True
-						planet.insert()
-						print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+							home = True
 						
+						self.addPlanet(r, n, posx, posy, posz , -1, home)
+
 				if remainderPlanets == 1:
 					div = 0
 					dist = 0
@@ -223,51 +207,32 @@ class Ruleset(RulesetBase):
 
 					posx = int(math.cos((divisions * num) + div) * dist)
 					posy = int(math.sin((divisions * num) + div) * dist)
+					posz = 0
 
-					system = Object(type='tp.server.rules.base.objects.System')
-					system.name = "System %s" % n
-					system.size = r.randint(80, 200)
-					system.posx = posx
-					system.posy = posy
-					system.insert()
-					ReparentOne(system)
-					system.save()
+					self.addPlanet(r, n, posx, posy, poz)
 
-					planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-					planet.name = "%s" % n
-					planet.size = r.randint(10, 100)
-					planet.parent = system.id
-					planet.posx = posx + r.randint(1,10)
-					planet.posy = posy + r.randint(1,10)
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+			elif maptype == 'load':
+				if loadfile == None:
+					print "Cannot populate game as no file was given"
+					return
+				import csv
+				import os
+				reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/maps/"),loadfile)))
+				for name, x, y, z, size, home in reader:
+					if name != 'Name':
+						self.addPlanet(r, name, int(x), int(y), int(z), int(size), bool(home))
 
 			else: #maptype =='random': 
 				# In each system create a number of planets
 				for j in range(0, int(numPlanets)):
 					n = PG.genName()
 					pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
-					system = Object(type='tp.server.rules.base.objects.System')
-					system.name = "System %s" % n
-					system.size = r.randint(80, 200)
-					system.posx = pos[0]
-					system.posy = pos[1]
-					system.insert()
-					ReparentOne(system)
-					system.save()
-
-					planet = Object(type='tp.server.rules.dronesec.objects.Planet')
-					planet.name = "%s" % n
-					planet.size = r.randint(10, 100)
-					planet.parent = system.id
-					planet.posx = pos[0]+r.randint(1,10)
-					planet.posy = pos[1]+r.randint(1,10)
-					planet.playerhome = True
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+	
+					self.addPlanet(r, n, pos[0], pos[1], pos[2] , -1, True)
 
 
 			trans.commit()
+		
 		except:
 			trans.rollback()
 			raise
@@ -327,3 +292,29 @@ class Ruleset(RulesetBase):
 		except:
 			trans.rollback()
 			raise
+
+
+	def addPlanet(self, r, name, x, y, z , size =-1 ,home = False):
+
+		system = Object(type='tp.server.rules.base.objects.System')
+		system.name = "System %s" % name
+		system.size = r.randint(80, 200)
+		system.posx = x
+		system.posy = y
+		system.posz = z
+		system.insert()
+		ReparentOne(system)
+		system.save()
+
+		planet = Object(type='tp.server.rules.dronesec.objects.Planet')
+		planet.name = "%s" % name
+		if size <= 0:
+			size = r.randint(10, 100)
+		planet.size = size
+		planet.parent = system.id
+		planet.posx = x+r.randint(1,10)
+		planet.posy = y+r.randint(1,10)
+		planet.posz = z + r.randint(1,10)
+		planet.playerhome = home
+		planet.insert()
+		print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
