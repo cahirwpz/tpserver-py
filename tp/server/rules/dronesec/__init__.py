@@ -153,6 +153,7 @@ class Ruleset(RulesetBase):
 			if seed != None:
 				self.seed = int(seed)
 				r.seed(seed)
+			
 
 			PG = PlanetGenerator(theSeed = self.seed)
 			
@@ -209,7 +210,7 @@ class Ruleset(RulesetBase):
 					posy = int(math.sin((divisions * num) + div) * dist)
 					posz = 0
 
-					self.addPlanet(r, n, posx, posy, poz)
+					self.addPlanet(r, n, posx, posy, posz)
 
 			elif maptype == 'load':
 				if loadfile == None:
@@ -258,7 +259,10 @@ class Ruleset(RulesetBase):
 
 			#First player created will always start at the same position should game be replayed
 			r = random.Random()
-			r.seed(self.seed + user.id)
+			if self.seed == None:
+				r.seed(self.seed)
+			else:
+				r.seed(self.seed + user.id)
 			#### Might have planets be created before hand and players join an already existing planet
 			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
 			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
