@@ -141,6 +141,7 @@ class Ruleset(RulesetBase):
 		dbconn.use(self.game)
 
 		trans = dbconn.begin()
+		
 
 		try:
 			
@@ -216,12 +217,7 @@ class Ruleset(RulesetBase):
 				if loadfile == None:
 					print "Cannot populate game as no file was given"
 					return
-				import csv
-				import os
-				reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/maps/"),loadfile)))
-				for name, x, y, z, size, home in reader:
-					if name != 'Name':
-						self.addPlanet(r, name, int(x), int(y), int(z), int(size), bool(home))
+				self.loadMap(loadfile, r)
 
 			else: #maptype =='random': 
 				# In each system create a number of planets
@@ -251,7 +247,7 @@ class Ruleset(RulesetBase):
 			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
 			
 			if len(homeplanets) == 0:
-				print "Sorry but the maximum amount of players for this map has been reached"
+				print "Sorry but the amount of players for this map has been reached"
 				return
 
 
@@ -297,6 +293,25 @@ class Ruleset(RulesetBase):
 			trans.rollback()
 			raise
 
+	def loadMap(self, fileName, r):
+		import xml.etree.ElementTree as ET
+		import os
+		tree = ET.parse(os.path.join(os.path.abspath("./tp/server/rules/dronesec/maps/"),fileName))
+		universe = tree.getroot()
+		for planet in universe:
+			name = planet.find('Name').text.strip()
+			x = planet.find('posx').text.strip()
+			y = planet.find('posy').text.strip()
+			z = planet.find('posz').text.strip()
+			if planet.find('size') != None:
+				size = planet.find('size').text.strip()
+			else:
+				size = -1
+			if planet.find('home') != None:
+				home = True
+			else:
+				home = False
+			self.addPlanet(r, name, int(x), int(y), int(z), int(size), home)
 
 	def addPlanet(self, r, name, x, y, z , size =-1 ,home = False):
 

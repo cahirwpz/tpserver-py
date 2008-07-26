@@ -1,0 +1,37 @@
+<Universe>
+	<Planet>
+		<Name>Blah</Name>
+		<posx>-20</posx>
+		<posy>-30</posy>
+		<posz>0</posz>
+		<size>5</size>
+		<home></home>
+	</Planet>
+	<Planet>
+		<Name>Blag</Name>
+		<posx>20</posx>
+		<posy>30</posy>
+		<posz>0</posz>
+		<size>5</size>
+		<home></home>
+	</Planet>
+	<Planet>
+		<Name>Galh</Name>
+		<posx>0</posx>
+		<posy>0</posy>
+		<posz>0</posz>
+	</Planet>
+	<Planet>
+		<Name>Blog</Name>
+		<posx>20</posx>
+		<posy>-30</posy>
+		<posz>0</posz>
+		<size>5</size>
+	</Planet>
+	<Planet>
+		<Name>Bleg</Name>
+		<posx>-20</posx>
+		<posy>30</posy>
+		<posz>0</posz>
+	</Planet>
+</Universe>
