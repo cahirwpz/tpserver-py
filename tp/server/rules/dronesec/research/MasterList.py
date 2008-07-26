@@ -97,3 +97,33 @@ class MasterList:
 				r.ships = ships.strip().split(',')
 				r.types = types.strip().split(',')
 				r.insert()
+
+	@classmethod
+	def syncCombatType(cls, f = 'combat.csv'):
+		try:
+			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
+		except:
+			reader = csv.reader(open(f))
+			
+		researches = []
+		for name, abbrev, cost, requirements, damage, numAttacks, health, strength, weakness, types, ships in reader:
+			if name != 'Name':
+				if len(CombatType.byname(abbrev)) < 1:
+					#Add research
+					r = CombatType()
+					r.name = name
+					r.abbrev = abbrev
+					r.cost = cost
+					r.reqs = requirements.strip().split()
+					r.damage = int(damage)
+					r.numAttacks = int(numAttacks)
+					r.health = int(health)
+					r.ships = ships.strip().split(',')
+					r.types = types.strip().split(',')
+					r.insert()
+					researches.append(r.id)
+				else:
+					researches.append(CombatType.byname(abbrev)[0])
+		for id,time in CombatType.ids():
+			if id not in researches:
+				Research(id).remove()
