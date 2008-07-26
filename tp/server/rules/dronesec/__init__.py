@@ -30,6 +30,7 @@ import actions.MoveDrones as MoveDrones
 import actions.SetDestination as SetDestination
 import actions.Automerge as Automerge
 import actions.FleetCombat as FleetCombat
+import actions.SyncDB as SyncDB
 import orders.Repel as Repel
 import orders.Attract as Attract
 import orders.Stop as Stop
@@ -77,6 +78,7 @@ class Ruleset(RulesetBase):
 			Heal, 				# Repair any ships orbiting a friendly planet
 			Defeat, 			# Remove overlords if a player has no more units
 			Win, 				# Figure out if there is any winner
+			SyncDB,				#Synchronizes the Research Database with the CSV files
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 
