@@ -142,6 +142,9 @@ class Ruleset(RulesetBase):
 
 		trans = dbconn.begin()
 		
+		if len(Object.bytype('tp.server.rules.dronesec.objects.Planet')) > 0:
+			print "Game has already been populated. Cannot populate more than once"
+			return
 
 		try:
 			
