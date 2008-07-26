@@ -108,9 +108,6 @@ Supports the following:
 			- Designs check requirements and provide feedback
 			- Designs correctly produce
 
-
-Add CSV Sync:
-	- If new line is added or removed from the csv containing the information then add or remove them from the database midgame.
 	
 Dronesec:
 	PlanerGenerator:
