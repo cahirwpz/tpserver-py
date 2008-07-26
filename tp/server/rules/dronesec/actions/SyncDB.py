@@ -4,3 +4,5 @@ from tp.server.rules.dronesec.research.MasterList import MasterList
 
 def do(top):
 	MasterList.syncCombatType()
+	MasterList.syncEconomyType()
+	MasterList.syncWorldType()
