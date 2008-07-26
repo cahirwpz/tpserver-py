@@ -113,9 +113,6 @@ Add CSV Sync:
 	- If new line is added or removed from the csv containing the information then add or remove them from the database midgame.
 	
 Dronesec:
-	Maps:
-		- Work on a standard map
-		- Implement Different possible map types
 	PlanerGenerator:
 		-Find a way to make the names more... understandable. Less random.
 	
