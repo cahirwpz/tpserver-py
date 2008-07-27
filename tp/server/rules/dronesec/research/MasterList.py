@@ -104,12 +104,12 @@ class MasterList:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
 			reader = csv.reader(open(f))
-			
 		researches = []
 		for name, abbrev, cost, requirements, damage, numAttacks, health, strength, weakness, types, ships in reader:
 			if name != 'Name':
 				try:
-					ct = CombatType(CombatType.byname(abbrev))
+					ct = Research(CombatType.byname(abbrev))
+					damage, numAttacks, health = int(damage), int(numAttacks), int(health)
 					if ct.damage != damage or ct.numAttacks != numAttacks or ct.health != health:
 						ct.damage = damage
 						ct.numAttacks = numAttacks
@@ -133,7 +133,7 @@ class MasterList:
 					researches.append(r.id)
 					'A research %s has been added' % name
 
-		for id,time in CombatType.ids():
+		for id in CombatType.bytype('tp.sever.rules.dronesec.research.CombatType'):
 			if id not in researches:
 				r = Research(id)
 				print 'A research %s has been removed' % r.name
@@ -150,7 +150,8 @@ class MasterList:
 		for name, abbrev, cost, requirements, speed, speedRatio, power, units, types in reader:
 			if name != 'Name':
 				try:
-					r = WorldType(WorldType.byname(abbrev))
+					r = Research(id = Research.byname(abbrev))
+					speed, speedRatio, power = int(speed), int(speedRatio), int(power)
 					if r.speed != speed or r.speedRatio != speedRatio or r.power != power:
 						r.speed = speed
 						r.speedRatio = speedRatio
@@ -174,13 +175,14 @@ class MasterList:
 					researches.append(r.id)
 					'A research %s has been added' % name
 
-		for id,time in WorldType.ids():
+		for id in WorldType.bytype('tp.sever.rules.dronesec.research.WorldType'):
 			if id not in researches:
 				r = Research(id)
 				print 'A research %s has been removed' % r.name
 				r.remove()
 
-def syncEconomyType(cls, f = 'economy.csv'):
+	@classmethod
+	def syncEconomyType(cls, f = 'economy.csv'):
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -191,6 +193,7 @@ def syncEconomyType(cls, f = 'economy.csv'):
 			if name != 'Name':
 				try:
 					r = EconomyType(EconomyType.byname(abbrev))
+					resources, resourceRatio, researchRatio, droneCost, droneRatio = int(resources), int(resourceRatio), int(ResearchRatio), int(droneCost), int(droneRatio)
 					if r.resources != resources or r.resourceRatio != resourceRatio or r.researchRatio != researchRatio or r.droneCost != droneCost or r.droneRatio != droneRatio:
 						r.resources = resources
 						r.resourceRatio = resourceRatio
@@ -219,7 +222,7 @@ def syncEconomyType(cls, f = 'economy.csv'):
 					researches.append(r.id)
 					'A research %s has been added' % name
 
-		for id,time in EconomyType.ids():
+		for id in EconomyType.bytype('tp.sever.rules.dronesec.research.EconomyType'):
 			if id not in researches:
 				r = Research(id)
 				print 'A research %s has been removed' % r.name
