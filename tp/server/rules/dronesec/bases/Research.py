@@ -27,10 +27,10 @@ class Research(SQLTypedBase):
 	table_extra = SQLTypedTable('dronesec_research')
 
 	@classmethod
-	def byname(cls, name):
+	def byname(cls, abbrev):
 		c = cls.table.c
 		try:
-			return select([c.id], c.abbrev == name, limit=1).execute().fetchall()[0]['id']
+			return select([c.id], c.abbrev == abbrev, limit=1).execute().fetchall()[0]['id']
 		except IndexError:
 			raise NoSuch("No object with abbreviation) %s" % name)
 
@@ -62,4 +62,4 @@ class Research(SQLTypedBase):
 
 
 	def __str__(self):
-		return "<Research id=%s>" % (self.id)
+		return "<Research id=%s, name=%s, abbrev =%s>" % (self.id, self.name, self.abbrev)
