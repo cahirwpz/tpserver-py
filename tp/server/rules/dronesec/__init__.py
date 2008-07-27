@@ -122,7 +122,7 @@ class Ruleset(RulesetBase):
 			trans.rollback()
 			raise
 
-	def populate(self,  numPlanets , numPlayers = 2, maptype = 'random', seed=None, loadfile = None,):
+	def populate(self,  numPlanets , maptype = 'random', numPlayers = 2, seed=None, loadfile = None,):
 		"""\
 		--populate <game>  <number of Planets> <maximunum number of players> <Map Type> <seed> <load file>
 		    Maptypes so far can be standard and random
