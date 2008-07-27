@@ -135,6 +135,7 @@ class Ruleset(RulesetBase):
 
 		numPlanets = int(numPlanets)
 		numPlayers = int(numPlayers)
+		maptype = maptype.lower()
 
 		if numPlanets < numPlayers:
 			print "Invalid: Number of Players cannot be more than then number of total planets"
