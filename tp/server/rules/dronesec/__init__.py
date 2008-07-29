@@ -6,6 +6,9 @@ from tp.server.bases.Message  import Message
 from tp.server.bases.Object   import Object
 from tp.server.bases.Resource import Resource
 from tp.server.bases.Ruleset import Ruleset as RulesetBase
+from tp.server.bases.Category import Category
+from tp.server.bases.Design import Design
+from tp.server.bases.Component import Component
 
 from bases.Player import Player
 from bases.Drone import Drone
@@ -110,6 +113,36 @@ class Ruleset(RulesetBase):
 			r.weight = 0
 			r.size   = 10
 			r.insert()
+			
+			
+			c = Category()
+			c.name = "Fighter"
+			c.desc = "Those who fight"
+			c.insert()
+			c = Category()
+			c.name = "Bomber"
+			c.desc = "Those who bomb"
+			c.insert()
+			c = Category()
+			c.name = "Capital Ship"
+			c.desc = "Those who capital?"
+			c.insert()
+			
+			c = Category()
+			c.name = 'Drones'
+			c.desc = 'Drone Components'
+			c.insert()
+			
+			d = Design()
+			d.id = 0
+			d.name = 'Overlord'
+			d.categories = []
+			d.components = []
+			d.owner = -1
+			d.desc = "Master and Commander of your forces"
+			d.insert()
+			
+			
 			from drones.Dronepedia import Dronepedia
 			from research.MasterList import MasterList
 			D = Dronepedia()

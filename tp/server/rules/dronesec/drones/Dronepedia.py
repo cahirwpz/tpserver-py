@@ -2,6 +2,10 @@
 
 import csv
 import os
+from tp.server.bases.Component import Component
+from tp.server.rules.dronesec.bases.Drone import Drone
+from tp.server.bases.Category import Category
+from tp.server.bases.Design import Design
 
 
 class Dronepedia:
@@ -14,7 +18,7 @@ class Dronepedia:
 			reader = csv.reader(open(f))
 		for name, typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements in reader:
 			if name != 'Name':
-				from tp.server.rules.dronesec.bases.Drone import Drone
+
 				drone = Drone()
 				drone.name = name
 				drone.type = typ
@@ -28,4 +32,31 @@ class Dronepedia:
 				drone.weakness = weakness
 				drone.reqs = requirements
 				drone.insert()
+				
+				
+				d = Design()
+				d.name  = name
+				d.desc  = "A fast light ship with advanced sensors."
+				d.owner = -1
+				d.categories = [Category.byname(typ)]
+				d.components = []
+				d.components.append((Component.byname('Cost'), cost))
+				d.components.append((Component.byname('Power'),      power))
+				d.components.append((Component.byname('Attack'),   attack))
+				d.components.append((Component.byname('Number of Attacks'),   numAttacks))
+				d.components.append((Component.byname('Health'),   health))
+				d.components.append((Component.byname('Speed'),   speed))
+##				d.components.append((Component.byname('Strength'),   strength))
+##				d.components.append((Component.byname('Weakness'),   weakness))
+##				d.components.append((Component.byname('Requirements'),   requirements))
+				d.insert()
+				
+			else:
+				for x in (typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements):
+					c = Component()
+					c.categories = [Category.byname('Drones')]
+					c.name = x
+					c.desc = ""
+					c.properties  = {}
+					c.insert()
 
