@@ -36,7 +36,8 @@ class Dronepedia:
 				
 				d = Design()
 				d.name  = name
-				d.desc  = "A fast light ship with advanced sensors."
+				d.id = drone.id
+				d.desc  = ""
 				d.owner = -1
 				d.categories = [Category.byname(typ)]
 				d.components = []
