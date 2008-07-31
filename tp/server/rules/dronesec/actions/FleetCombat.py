@@ -11,7 +11,7 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 def do(top):
 	#Get all Fleets
 	def h(obj, d):
-		# Check the object can go into combat
+		# Check the object can go into combat (Drone Fleet)
 		if not obj.type.endswith('objects.Fleet'):
 			return
 
@@ -32,12 +32,12 @@ def do(top):
 		if len(fleets) < 2:
 			continue
 
-		#Check that more than one player is around.
+		# Check that more than one player is around.
 		if len(dict.fromkeys([fleet.owner for fleet in fleets])) <= 1:
 			continue
 
-		#create sides
-		#Assumption: Technically each fleet consists of a single ship type.
+		# create sides
+		# Assumption: Technically each fleet consists of a single ship type.
 		sides = dict()
 		sideTypes = dict()
 		for fleet in fleets:
@@ -62,7 +62,7 @@ def do(top):
 			for fleet in fleets:
 				fleetAttack, fleetNumAttacks, fleetHealth = RC.Combat(fleet.owner, fleet.ships.keys()[0])
 				for times in range(fleetNumAttacks):
-					#HACK: Since fleets should have only 1 ship type this should work
+					# HACK: Since fleets should have only 1 ship type this should work
 					attackedSide = side
 					while attackedSide == side:
 						attackedSide = rand.randint(1, len(sides.keys()))
@@ -71,26 +71,26 @@ def do(top):
 						and sideTypes[attackedSide].has_key(findType):
 
 						t = findType
-					else:
+					else: 
 						#If you don't have a bonus then pick a type randomly
 						typeList = sideTypes[attackedSide].keys()
 						t =typeList[rand.randint(0, len(typeList) -1)]
 					rInt = rand.randint(0,len(sideTypes[attackedSide][t]) -1)
-					#Fleet deals all of its damage to that fleetl
+					# Fleet deals all of its damage to that fleetl
 					defender = sideTypes[attackedSide][t][rInt]
 
-					##Bonus Damage checks
+					# Bonus Damage checks
 					damageDone = fleet.damage_get()
 					bonusRatio = 1
 					fleetType = Drone(fleet.ships.keys()[0]).type
-					#Attacker Modifiers
+					# Attacker Modifiers
 					if Drone(fleet.ships.keys()[0]).strength == 'All':
 						bonusRatio += .25
 					elif t == Drone(fleet.ships.keys()[0]).strength:
 						bonusRatio += .25
 					elif t == Drone(fleet.ships.keys()[0]).weakness:
 						bonusRatio -= .25
-					#Defender moodifiers
+					# Defender moodifiers
 					if Drone(defender[0].ships.keys()[0]).weakness == 'All':
 						bonusRatio += .25
 					elif Drone(defender[0].ships.keys()[0]).weakness == fleetType:
@@ -103,19 +103,19 @@ def do(top):
 					defender[0].save()
 					while diff > 0:
 						rInt = rand.randint(0,len(sideTypes[attackedSide][t]) -1)
-						#Fleet deals all of its damage to that fleet
+						# Fleet deals all of its damage to that fleet
 						defender = sideTypes[attackedSide][t][rInt]
 						defender[1] += diff
 						diff = diff - (defender[0].total_health() - defender[1])
 						defender[0].damage = defender[1]
 						defender[0].save()
 
-						#Check to see if the extra damage has been transferred
+						# Check to see if the extra damage has been transferred
 						if diff < fleetAttack:
 							diff =0
 							continue
 
-						##Check to end combat if all units of this type have been destroyed
+						# Check to end combat if all units of this type have been destroyed
 						totalh = 0
 						totald = 0
 						for fleet, damage in sideTypes[attackedSide][t]:
@@ -124,7 +124,7 @@ def do(top):
 						if totald > totalh:
 							diff = 0
 
-		#resolve combat by having units take the damage so they can be killed/ghoster
+		 #Resolve combat by having units take the damage so they can be killed/ghoster
 		for side, fleets in sides.items():
 			for fleet in fleets:
 				fleet.damage_do()
