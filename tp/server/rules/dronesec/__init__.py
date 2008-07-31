@@ -50,39 +50,31 @@ class Ruleset(RulesetBase):
 	Dronesec Ruleset...
 	"""
 	name = "Dronesec"
-	version = "0.0.1"
-
-# Overlord orderss
-# Moves
-# Build Unit
-# Research
-# Combat
-# Cap planet
-
+	version = "0.0.2"
 
 	seed = None
 	# The order orders and actions occur
 	orderOfOrders = [
-			Attract,			# Attract units
-			Repel,				# Repel units
-			Stop,				# Drones will stop moving
-			ResearchOrder, 			# Implements Research Upgrades
-			SetDestination,		# Sets target location
-			MoveDrones, 		# Move Drones
-			ProduceDrones, 		# Produce all Drones
-			Automerge, 			# Merge Drones of the same type
-			FleetCombat, 		# Combat
+			Attract,            # Attract units
+			Repel,              # Repel units
+			Stop,               # Drones will stop moving
+			ResearchOrder,      # Implements Research Upgrades
+			SetDestination,     # Sets target location
+			MoveDrones,         # Move Drones
+			ProduceDrones,      # Produce all Drones
+			Automerge,          # Merge Drones of the same type
+			FleetCombat,        # Combat
 			(Move, 'prepare'),  # Set the velocity of objects
-			MoveAction, 		# Move all the objects about
+			MoveAction,         # Move all the objects about
 			(Move, 'finalise'), # Check for objects which may have overshot the destination
-			Capture, 			# Captures Planets that can be captured
-			AddResource,		# Add Resource to planet
-			Clean, 				# Remove all empty fleets
-			Heal, 				# Repair any ships orbiting a friendly planet
-			Defeat, 			# Remove overlords if a player has no more units
-			Win, 				# Figure out if there is any winner
-			SyncDB,				#Synchronizes the Research Database with the CSV files
-			Turn, 				# Increase the Universe's "Turn" value
+			Capture,            # Captures Planets that can be captured
+			AddResource,        # Add Resource to planet
+			Clean,              # Remove all empty fleets
+			Heal,               # Repair any ships orbiting a friendly planet
+			Defeat,             # Remove overlords if a player has no more units
+			Win,                # Figure out if there is any winner
+			SyncDB,             # Synchronizes the Research Database with the CSV files
+			Turn,               # Increase the Universe's "Turn" value
 	]
 
 	def initialise(self):
@@ -114,7 +106,7 @@ class Ruleset(RulesetBase):
 			r.size   = 10
 			r.insert()
 			
-			
+			# Design Categories are added so Players can check designs ingame.
 			c = Category()
 			c.name = "Fighter"
 			c.desc = "Those who fight"
@@ -133,6 +125,7 @@ class Ruleset(RulesetBase):
 			c.desc = 'Drone Components'
 			c.insert()
 			
+			#Overlord Design definition allows fleets to show if an overlord is in that fleet.
 			d = Design()
 			d.id = 0
 			d.name = 'Overlord'
@@ -141,6 +134,7 @@ class Ruleset(RulesetBase):
 			d.owner = -1
 			d.desc = "Master and Commander of your forces"
 			d.insert()
+			
 			
 			
 			from drones.Dronepedia import Dronepedia
@@ -204,9 +198,11 @@ class Ruleset(RulesetBase):
 					return
 
 				import math
+				# A "Balanced" map would be equal for all players in game
 				size = SIZE * numPlanets * numPlayers
 				divisions = (2.0 * math.pi)/numPlayers
 				planetsPerDivision = int(math.floor(numPlanets / numPlayers))
+				# Extra planets that cannot be arranged equally for all players have some special rules.
 				remainderPlanets = numPlanets % numPlayers
 				
 				
@@ -235,6 +231,8 @@ class Ruleset(RulesetBase):
 						
 						self.addPlanet(r, n, posx, posy, posz , -1, home)
 
+				# If Only one planet is remaining then just dump it in the very center of the universe.
+				# Otherwise, make a randomly placed "circle" of as many planets as they can fit.
 				if remainderPlanets == 1:
 					div = 0
 					dist = 0
@@ -259,7 +257,6 @@ class Ruleset(RulesetBase):
 				self.loadMap(loadfile, r)
 
 			else: #maptype =='random': 
-				# In each system create a number of planets
 				for j in range(0, int(numPlanets)):
 					n = PG.genName()
 					pos = r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE), r.randint(SIZE*-1, SIZE)
@@ -281,7 +278,7 @@ class Ruleset(RulesetBase):
 
 		trans = dbconn.begin()
 		try:
-
+			# Get all planets that a player can be assigned to.
 			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
 			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
 			
@@ -298,11 +295,9 @@ class Ruleset(RulesetBase):
 				r.seed(self.seed)
 			else:
 				r.seed(self.seed + user.id)
-			#### Might have planets be created before hand and players join an already existing planet
-			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
-			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
 			
 
+			# Randomly select a player's home planet and assign it to him
 			planet = Object(homeplanets[r.randint(0, len(homeplanets)-1)])
 
 			planet.owner = user.id
@@ -319,6 +314,7 @@ class Ruleset(RulesetBase):
 			overlord.owner = user.id
 			overlord.save()
 
+			# Create Player lists for research and drone availability
 			players = Player()
 			players.BuildList()
 			players.insert()
@@ -333,11 +329,16 @@ class Ruleset(RulesetBase):
 			raise
 
 	def loadMap(self, fileName, r):
+		"""\
+		Loads an xml file and creates planets according to the given specifications.
+		"""
 		import xml.etree.ElementTree as ET
 		import os
 		tree = ET.parse(os.path.join(os.path.abspath("./tp/server/rules/dronesec/maps/"),fileName))
 		universe = tree.getroot()
 		for planet in universe:
+			# FIXME: There is probably a much faster way of doing this
+			# This only occurs once a game so its not critical.
 			name = planet.find('Name').text.strip()
 			x = planet.find('posx').text.strip()
 			y = planet.find('posy').text.strip()
@@ -353,7 +354,12 @@ class Ruleset(RulesetBase):
 			self.addPlanet(r, name, int(x), int(y), int(z), int(size), home)
 
 	def addPlanet(self, r, name, x, y, z , size =-1 ,home = False):
+		"""\
+		Creates a system and a planet according to the given positions.
+		"""
 
+
+		#tpclient-pywx only has graphics for systems so in order to "see" the map systems have to be created.
 		system = Object(type='tp.server.rules.base.objects.System')
 		system.name = "System %s" % name
 		system.size = r.randint(80, 200)
