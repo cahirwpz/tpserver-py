@@ -107,7 +107,6 @@ It consists of:
 		builder = Object(self.oid)
 		if value == None:
 			returns = []
-			print Player(builder.owner).drones.items()
 			for type, name in Player(builder.owner).drones.items():
 				returns.append((type, name, 1))
 			return returns, self.ships.items()
@@ -119,6 +118,7 @@ It consists of:
 					if not type in Player(builder.owner).drones.keys():
 						raise ValueError("Invalid type selected")
 					ships[type] = number
+					break
 			except:
 				pass
 
