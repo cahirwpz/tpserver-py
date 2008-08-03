@@ -32,7 +32,7 @@ class Research(SQLTypedBase):
 		try:
 			return select([c.id], c.abbrev == abbrev, limit=1).execute().fetchall()[0]['id']
 		except IndexError:
-			raise NoSuch("No object with abbreviation) %s" % name)
+			raise NoSuch("No object with abbreviation) %s" % abbrev)
 
 	@classmethod
 	def bytype(cls, type):
