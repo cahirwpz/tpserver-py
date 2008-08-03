@@ -7,7 +7,7 @@ def ReparentOne(obj):
 
 	obj.parent = 0
 	parents = [id for (id, time) in parents if Object(id).type != obj.type
-		and Object(id).type.endswith("Fleet")]
+		and not Object(id).type.endswith("Fleet")]
 	if parents:
 		obj.parent = parents[0]
 	else:
