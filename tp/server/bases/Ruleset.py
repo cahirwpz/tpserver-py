@@ -257,7 +257,13 @@ This game is currently playing version %s of %s.
 			# Create a EOT event
 			Event.new('endofturn', self.game)
 
+			dbconn.use(None)
+			from tp.server.bases.Game import Game
+			game = Game(self.game.id)
+			game.turn += 1
+			game.save()
 			trans.commit()
+			
 		except:
 			dbconn.rollback()
 			raise
