@@ -165,6 +165,9 @@ class SQLBase(object):
 					continue
 				if hasattr(self, column.name):
 					arguments[column.name] = getattr(self, column.name)
+					
+				if column.name == 'time':
+					arguments[column.name] = func.current_timestamp()
 			
 			result = method.execute(**arguments)
 
