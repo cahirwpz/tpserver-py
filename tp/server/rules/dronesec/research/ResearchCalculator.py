@@ -1,4 +1,6 @@
-
+"""
+Researches are calculated by getting all researches of a type and returning their bonuses
+"""
 from tp.server.rules.dronesec.bases.Research import Research
 from tp.server.rules.dronesec.bases.Player import Player
 from tp.server.rules.dronesec.bases.Drone import Drone

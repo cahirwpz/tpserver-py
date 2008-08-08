@@ -34,7 +34,7 @@ class Dronepedia:
 				drone.reqs = requirements
 				drone.insert()
 				
-				
+				# A Design is created for each Drone for user-friendliness
 				d = Design()
 				d.name  = name
 				d.id = drone.id
@@ -48,12 +48,15 @@ class Dronepedia:
 				d.components.append((Component.byname('Number of Attacks'),   numAttacks))
 				d.components.append((Component.byname('Health'),   health))
 				d.components.append((Component.byname('Speed'),   speed))
+				
+				# Components cannot be strings
 ##				d.components.append((Component.byname('Strength'),   strength))
 ##				d.components.append((Component.byname('Weakness'),   weakness))
 ##				d.components.append((Component.byname('Requirements'),   requirements))
 				d.insert()
 				
 			else:
+				# Components are defined the first time based on the names of the columns
 				for x in (typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements):
 					c = Component()
 					c.categories = [Category.byname('Drones')]

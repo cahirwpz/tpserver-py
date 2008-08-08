@@ -1,5 +1,5 @@
 """\
-The basis for all objects that exist.
+Contains all the information about a drone's attributes
 """
 # Module imports
 from sqlalchemy import *
@@ -49,17 +49,27 @@ class Drone(SQLBase):
 
 	@classmethod
 	def byreq(cls, req):
+		"""\
+		byreq(req)
+		
+		Returns the objects that have a certain requirement
+		"""
 		t = cls.table
 		results = select([t.c.id, t.c.reqs], (t.c.reqs in bindparam('reqs'))).execute(req=req).fetchall()
 		return [(x['id'], x['reqs']) for x in results]
 
 	@classmethod
 	def byname(cls, name):
+		"""\
+		byname(name)
+		
+		Returns the objects with a certain name
+		"""
 		c = cls.table.c
 		try:
 			return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
 		except IndexError:
-			raise NoSuch("No object with abbreviation) %s" % name)
+			raise NoSuch("No object with name) %s" % name)
 
 
 	def __str__(self):

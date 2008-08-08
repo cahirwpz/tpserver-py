@@ -53,7 +53,7 @@ class Ruleset(RulesetBase):
 	version = "0.0.2"
 
 	seed = None
-	# The order orders and actions occur
+	# The order that orders and actions occur
 	orderOfOrders = [
 			Attract,            # Attract units
 			Repel,              # Repel units
@@ -89,12 +89,13 @@ class Ruleset(RulesetBase):
 			universe = Object(type='tp.server.rules.base.objects.Universe')
 			universe.id     = 0
 			universe.name   = "The Universe"
-			universe.size   = SIZE
+			universe.size   = SIZE * SIZE
 			universe.parent = 0
 			universe.posx   = 0
 			universe.posy   = 0
 			universe.turn   = 0
 			universe.insert()
+			
 			#initialize Credits resource
 			r = Resource()
 			r.namesingular = "Credit"
@@ -139,7 +140,9 @@ class Ruleset(RulesetBase):
 			
 			from drones.Dronepedia import Dronepedia
 			from research.MasterList import MasterList
+			# Drone information is loaded into the database
 			D = Dronepedia()
+			#Researches are loaded into the database
 			MasterList.loadUnitType()
 			MasterList.loadWorldType()
 			MasterList.loadEconomyType()
@@ -159,7 +162,7 @@ class Ruleset(RulesetBase):
 		    a loadfile does not need to be specified unless it is a loaded map.
 		"""
 
-
+		# Conversions from string to ints
 		numPlanets = int(numPlanets)
 		numPlayers = int(numPlayers)
 		maptype = maptype.lower()
@@ -178,7 +181,12 @@ class Ruleset(RulesetBase):
 
 		try:
 			
-			# FIXME: Assuming that the Universe exists
+			try:
+				Object(0)
+			except:
+				print "Universe has not been created"
+				
+
 			r = random.Random()
 
 			if seed == 'None':
@@ -193,13 +201,19 @@ class Ruleset(RulesetBase):
 			
 
 			if maptype == 'standard':
+				#TODO: set this as a seperate function
 				if numPlayers < 2:
 					print "Not enough players for a game"
 					return
 
 				import math
 				# A "Balanced" map would be equal for all players in game
-				size = SIZE * numPlanets * numPlayers
+				# Players are arranged based on divisions of a "pie"
+				# Each division consists of a certain slice of the pie.
+				# Each slice should be equal so every slice's planet is equidistant from the center
+				size = SIZE * numPlanets
+				# Divisions are set in radians
+				# Splitting the divisions is done equally by the number of players
 				divisions = (2.0 * math.pi)/numPlayers
 				planetsPerDivision = int(math.floor(numPlanets / numPlayers))
 				# Extra planets that cannot be arranged equally for all players have some special rules.
@@ -210,6 +224,8 @@ class Ruleset(RulesetBase):
 				
 				locs.append((divisions, size * .75))
 				#preset planet locations
+				# Divisions refers to the radian offset at each division
+				# Distance is the distance from the center
 				for plan in range(planetsPerDivision - 1):
 					div = r.random() * divisions
 					dist = r.random() * size
@@ -232,12 +248,13 @@ class Ruleset(RulesetBase):
 						self.addPlanet(r, n, posx, posy, posz , -1, home)
 
 				# If Only one planet is remaining then just dump it in the very center of the universe.
-				# Otherwise, make a randomly placed "circle" of as many planets as they can fit.
+				# Otherwise, make a randomly placed "circle" of as many planets as they can fit at a random distance from the center
 				if remainderPlanets == 1:
 					div = 0
 					dist = 0
 				elif remainderPlanets != 0:
 				#Remainder Planets
+				# TODO: When made into a function this part can be called recursively 
 					divisions = math.pi / remainderPlanets
 					div = r.random() * div
 					dist =r.randint(0, size)
@@ -331,7 +348,20 @@ class Ruleset(RulesetBase):
 	def loadMap(self, fileName, r):
 		"""\
 		Loads an xml file and creates planets according to the given specifications.
+		
+		Each Planet in an XML file should contain the following criteria
+		
+		Name - Name of the Planet
+		posx - Position on the X axis
+		posy - Position on the Y axis
+		posz - Position on the Z axis
+		
+		
+		The following are optional:
+		size - sets the size of the planet
+		home - If a planet has this attribute the planet is designanted as a home planet
 		"""
+		
 		import xml.etree.ElementTree as ET
 		import os
 		tree = ET.parse(os.path.join(os.path.abspath("./tp/server/rules/dronesec/maps/"),fileName))

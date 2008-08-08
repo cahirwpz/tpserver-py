@@ -1,5 +1,5 @@
 """\
-Resources require to build stuff.
+Player information needed to track available drones and researches
 """
 # Module imports
 from sqlalchemy import *
@@ -30,6 +30,9 @@ class Player(SQLBase):
 
 
 	def BuildList(self):
+		"""
+		Builds the initial list of drones and researches without requirements
+		"""
 		self.drones = {}
 		self.research = set()
 		self.canResearch = {}
@@ -48,13 +51,19 @@ class Player(SQLBase):
 
 
 	def addDrone(self, drone):
-
+		"""
+		Adds a drone to the list of available drones
+		"""
 		if not self.drones.has_key(drone):
 			if Research.byname(Drone(drone).reqs) in self.research:
 				self.drones[drone] =Drone(drone).name
 
 
 	def addResearch(self, id):
+		"""
+		Adds a research to a player and removes it from the lists
+		Checks requirements and adds any research that is now available to the list
+		"""
 		if id not in self.research:
 			self.research.add(id)
 		if id in self.researchLeft.keys():
@@ -64,6 +73,7 @@ class Player(SQLBase):
 
 		posNew = Research.bylist(self.research)
 		##FIXME: HACK!
+		# By making the researches sets we can simplify things quickly to check subsets
 		posNew = list(set(posNew) - set(self.canResearch.keys()))
 		for x in posNew:
 			reqList = set()
@@ -77,14 +87,22 @@ class Player(SQLBase):
 
 
 	def researchQuota(self, id, payed, ratio):
+		"""
+		Adds the multiple of the amount payed and the ratio with the amount payed
+		Checks if the research is finished
+		"""
 		if id not in self.researchLeft:
 			self.researchLeft[id] = 0
 
+		# Get the current difference between the cost and the amount payed so far
 		check = Research(id).cost - self.researchLeft[id]
+		# If the amount payed with the ration is more, then find the extra resources
 		if check <= payed * ratio:
 			extra = payed - (check / ratio)
 		self.researchLeft[id] += payed * ratio
 
+
+		# The function returns true so that the research order can know if it was finished
 		if self.researchLeft[id] >= Research(id).cost:
 			return True, extra
 		else: return False, 0

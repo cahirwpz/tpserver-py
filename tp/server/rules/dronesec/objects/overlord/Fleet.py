@@ -1,4 +1,9 @@
-###Overlord Fleet
+"""
+Overlord Fleet
+
+Note: Overlord and Drone Classes are called Fleets due to how the library works
+However, each fleet type can have different orders and abilities.
+"""
 from sqlalchemy import *
 
 from types import TupleType, ListType

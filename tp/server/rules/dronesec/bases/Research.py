@@ -28,6 +28,11 @@ class Research(SQLTypedBase):
 
 	@classmethod
 	def byname(cls, abbrev):
+		"""\
+		byname(abbrev)
+		
+		Returns the objects which have a certain abbreviation
+		"""
 		c = cls.table.c
 		try:
 			return select([c.id], c.abbrev == abbrev, limit=1).execute().fetchall()[0]['id']

@@ -1,4 +1,6 @@
-
+"""
+Drones
+"""
 from sqlalchemy import *
 
 from types import TupleType, ListType
@@ -110,6 +112,9 @@ class Fleet(Object, Combattant):
 		return r
 
 	def total_health(self):
+		"""\
+		Returns the total amount of health of this fleet
+		"""
 		health = 0
 
 		for type, num in self.ships.items():
@@ -121,5 +126,7 @@ class Fleet(Object, Combattant):
 			health += droneHealth * num
 		return health
 
+
+#Note: Fleet objects should always be of typeno 4
 Fleet.typeno = 4
 Object.types[Fleet.typeno] = Fleet
