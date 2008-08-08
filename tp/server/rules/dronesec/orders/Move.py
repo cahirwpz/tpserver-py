@@ -6,7 +6,7 @@ from tp.server.bases.Order import Order
 from tp.server.bases.Object import Object
 from tp.server.bases.Message import Message
 
-from tp.server.utils import ReparentOne
+from tp.server.rules.dronesec.utils import ReparentOne
 
 def away(x):
 	if x < 0:
