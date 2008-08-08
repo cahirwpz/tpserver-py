@@ -177,7 +177,6 @@ class Order(SQLTypedBase):
 		self, args = SQLTypedBase.to_packet(self, user, sequence)
 
 		typeno = user.playing.ruleset.typeno(self)
-		print self.packet(typeno)
 		return self.packet(typeno)(sequence, self.oid, self.slot, typeno, self.turns(), self.resources(), *args)
 
 	@classmethod
