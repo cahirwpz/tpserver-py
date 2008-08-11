@@ -1,10 +1,10 @@
 "Name","Type","Cost","Power","Attack","Number of Attacks","Health","Speed","Strength","Weakness","Requirements"
-"Basic Fighter","Fighter",25,5,5,1,10,3000,"Bomber","Capital Ship",
-"Basic Bomber","Bomber",35,5,5,2,12,2000,"Capital Ship","Fighter",
-"Basic Capital Ship","Capital Ship",90,9,9,3,20,1000,"Fighter","Bomber",
-"White Star","Capital Ship",100,15,30,2,50,5000,"All","None","vtm1"
-"X-Wing","Fighter",30,2,8,2,14,3100,"Bomber","Capital Ship","sfoilw"
-"Guardian","Bomber",40,6,6,2,15,2100,"Capital Ship","Fighter","prottorpl"
-"Interceptor","Fighter",10,1,2,2,4,4000,"Bomber","Capital Ship","inter"
-"Carrier","Capital Ship",100,10,3,8,40,2500,"Bomber","Capital Ship","fleetbea"
-"Arbiter","Bomber",45,4,4,3,20,1500,"Capital Ship","Fighter","arbtrib"
+"Eris Bomber","Bomber",30,2,3,2,10,1500,"Capital Ship","Fighter",
+"Selene Raider","Bomber",35,2,4,2,12,1700,"Capital Ship","Fighter","moonraid"
+"Nemesis Defender","Bomber",40,3,5,2,15,2000,"Capital Ship","None","defenders"
+"Thea Destroyer","Capital Ship",60,8,7,2,20,1000,"Fighter","Bomber",
+"Hyperion Battlecruiser","Capital Ship",80,12,8,3,22,900,"All","Bomber","hypsun"
+"Phoebe Frigate","Capital Ship",70,10,8,2,25,1100,"Fighter","Bomber","phoebmoon"
+"Helios Fighter","Fighter",20,1,3,1,5,3000,"Bomber","Capital Ship",
+"Thanatos Wraith","Fighter",25,1,3,1,7,4000,"All","None","deathwraith"
+"Apollo Interceptor","Fighter",30,2,3,2,9,3100,"Bomber","Capital Ship","solarinter"
