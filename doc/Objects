@@ -1,0 +1,38 @@
+Objects
+Objects should be derived from the Object SQL base in tp/server/bases.
+
+Specific objects can be found by calling them by their ID. 
+Ex.
+Object(0) or Object(id = 0)
+This will call the universe object (Universe object ids are generally assigned to 0.
+
+
+
+An Objects visible attributes(public and protected) must follow tpclient's specification as according to http://thousandparsec.net/tp/dev/documents/objects.php
+
+Important arguments for objects:
+	orderclasses:
+	This should contain a list with the string representation of all the orders that this object type can use.
+	This list can be empty if the object does not have any orders.
+
+	owner:
+	This attribute will determine the owner of this object and also who can give this object orders.
+
+	size:
+	Size determines the objects size int he world. This is important to know which object is inside the vicinity of another(such as if a planet is in a system.
+
+	parent:
+	Parent will determine where in the system tree the object will be placed and under which system/planet/fleet/galaxy or anything else.
+
+Imporant Functions
+	save()
+	This will save the current object to the database. It is important that this is done whenever an object would be updated or the changes done will not be saved.
+
+	remove()
+	This will remove the current object from the game.
+
+	ids()
+	This will return a list of all object ids and their current timestamp.
+
+
+

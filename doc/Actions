@@ -1,0 +1,13 @@
+Actions
+
+Actions are automatic orders.
+
+Actions are events that occur automatically every turn.
+
+They are defined as so:
+
+def do(top):
+
+	top is the top object. In the case for the default ruleset actions, the top object is the Universe.
+
+	WalkUniverse is an important utility function for Actions as it allows you to go through every object in the game.

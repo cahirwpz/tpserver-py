@@ -1,0 +1,10 @@
+Designs
+
+Designs are important simply because a Design's ID is used when giving the name of the ships in a fleet.
+They are also available in the Design Window which allows users to see the Designs for each ship.
+
+Designs must fall into a Category
+
+Designs are a collection of components.
+Components can contain a collection of properties.
+

@@ -1,0 +1,8 @@
+Attributes:
+Attributes contain all of the variable parameters of your SQL Typed base. There are 3 types of Attributes:
+	Public - Theses attributes will be used as is by the client
+	Protected - These attributes can be a different typpe than originally assigned and are accessed through a function called fn_<name> where name is the attributes name.
+	Private - These attributes are not used by the client and are only accessed within the game. These work as variables for each instance of the object.
+
+
+

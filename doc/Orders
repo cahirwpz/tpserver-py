@@ -1,0 +1,49 @@
+Orders
+
+Orders are actions which a player must specify for an object.
+In tpserver-py an object can only perform one order at a time.
+
+
+Orders should be derived from the Order SQL base in tp/server/bases.
+
+Typeno: Generally should be the Unique ID of the order. It also determines their order on the order list.
+
+
+Attributes work as normal but also need to be told what type of argument the client will use for this order.
+The Argument types are:
+	ARG_ABS_COORD
+	ARG_TIME
+	ARG_OBJECT
+	ARG_PLAYER
+	ARG_REL_COORD
+	ARG_RANGE
+	ARG_LIST
+	ARG_STRING
+
+The definition and specifications for these Order types are currently defined in the Protocol Documentation.
+http://thousandparsec.net/tp/dev/documents/protocol3.php
+
+Orders also have some other functions that normally need to be defined.
+
+def do(self):
+	The "do" order is everything that occurs when the order is called during Turn Processing. This can go from the creation of new fleets, to movement orders, to colonization.
+
+def turns(self):
+	This is used by the client to tell the players how many turns are left until this order is finished.
+
+def resources(self):
+	This function should tell the player how many and what resources the order will cost.
+
+
+
+Notable Arguments:
+	oid:
+	Using self.oid allows you to get the id of the object for this order.
+
+
+Important Functions
+	remove()
+	This will remove the current order from the objects orderqueue.
+
+	save()
+	This will save the current order to the database. It is important that this is done whenever an object would be updated or the changes done will not be saved.

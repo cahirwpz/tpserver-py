@@ -1,0 +1,34 @@
+Ruleset
+
+The base of a ruleset.
+
+Rulesets are defined in the __init__.py of the rulesets folder.
+
+Important Arguments:
+	name: Name of the Ruleset
+
+	version: Version number of the ruleset.
+
+	orderofclasses:
+	List containing all of the orders and actions of the ruleset in the order that they are to be processed at each turn.
+
+
+Important Functions:
+
+initialise(self):
+	Should contain all operations that will occur when a game using the ruleset is created.
+	Called with the command ./tpserver-py-tool --addgame <game> <ruleset>
+	Normally, the universe object is created at this time.
+
+populate:
+	Contains all the operations necesary to populate the universe map according to the parameters given.
+	Called with the command ./tpserver-py-tool --populate <game> <args>
+	Normally this is when most of the systems and planets are created.
+player(self, username, password, email, comment)
+	Contains all the operations to create a player and his planets and units.
+	Should call Rulesetbase.player so the player is created in the database.
+
+turn:
+	This function can be changed if you wish to manage your own turns manually. This function should not be defined if you want to use the default Turn Processing.
+
+
