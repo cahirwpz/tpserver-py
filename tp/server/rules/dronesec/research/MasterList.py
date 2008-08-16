@@ -1,6 +1,11 @@
 #Master list  holds all of the researches available and determines their availability
 
 from tp.server.rules.dronesec.bases.Research import Research
+
+from tp.server.bases.Design import Design
+from tp.server.bases.Component import Component
+from tp.server.bases.Category import Category
+
 from CombatType import CombatType
 from UnitType import UnitType
 from WorldType import WorldType
@@ -49,6 +54,36 @@ class MasterList:
 				r.units = units.strip().split(',')
 				r.types = types.strip().split(',')
 				r.insert()
+				
+				
+				# A Design is created for each Research for user-friendliness
+				d = Design()
+				d.name  = name
+				d.id = 200 + r.id
+				d.desc  = ""
+				d.owner = -1
+				d.categories = [Category.byname('Research - World Researches')]
+				d.components = []
+				d.components.append((Component.byname('Cost'), cost))
+				d.components.append((Component.byname('Speed Ratio(%)'),   int(r.speedRatio*100)))
+				d.components.append((Component.byname('Power'),   power))
+				d.insert()
+				
+				
+			else:
+				# Components are defined the first time based on the names of the columns
+				for x in (cost, speed, speedRatio, power):
+					try:
+						Component.byname(x)
+					except:
+						c = Component()
+						c.categories = [Category.byname('Research')]
+						if x.endswith('Ratio'):
+							x = x + '(%)'
+						c.name = x
+						c.desc = ""
+						c.properties  = {}
+						c.insert()
 
 	@classmethod
 	def loadEconomyType(cls, f = "economy.csv"):
@@ -74,7 +109,38 @@ class MasterList:
 				r.droneTypes = droneTypes.strip().split(',')
 				r.droneShips = droneShips.strip().split(',')
 				r.insert()
-
+				
+				
+				# A Design is created for each Researchfor user-friendliness
+				d = Design()
+				d.name  = name
+				d.id = 200 + r.id
+				d.desc  = ""
+				d.owner = -1
+				d.categories = [Category.byname('Research - Economy Researches')]
+				d.components = []
+				d.components.append((Component.byname('Cost'), cost))
+				d.components.append((Component.byname('Resource'), resources))
+				d.components.append((Component.byname('Resource Ratio(%)'),      int(r.resourceRatio*100)))
+				d.components.append((Component.byname('Research Ratio(%)'),   int(r.researchRatio*100)))
+				d.components.append((Component.byname('Drone Cost'),   droneCost))
+				d.components.append((Component.byname('Drone Cost Ratio(%)'),   int(r.droneRatio*100)))
+				d.insert()
+				
+			else:
+				# Components are defined the first time based on the names of the columns
+				for x in (resources, resourceRatio, researchRatio, droneCost, droneRatio):
+					try:
+						Component.byname(x)
+					except:
+						c = Component()
+						c.categories = [Category.byname('Research')]
+						if x.endswith('Ratio'):
+							x = x + '(%)'
+						c.name = x
+						c.desc = ""
+						c.properties  = {}
+						c.insert()
 
 	@classmethod
 	def loadCombatType(cls, f = "combat.csv"):
@@ -94,9 +160,38 @@ class MasterList:
 				r.damage = int(damage)
 				r.numAttacks = int(numAttacks)
 				r.health = int(health)
-				r.ships = ships.strip().split(',')
+				r.ships = ships.strip()
 				r.types = types.strip().split(',')
 				r.insert()
+				
+				
+				# A Design is created for each Research for user-friendliness
+				d = Design()
+				d.name  = name
+				d.id = 200 + r.id
+				d.desc  = ""
+				d.owner = -1
+				d.categories = [Category.byname('Research - Combat Researches')]
+				d.components = []
+				d.components.append((Component.byname('Cost'), cost))
+				d.components.append((Component.byname('Damage'),      damage))
+				d.components.append((Component.byname('Number of Attacks'),   numAttacks))
+				d.components.append((Component.byname('Health'),   health))
+				d.insert()
+				
+				
+			else:
+				# Components are defined the first time based on the names of the columns
+				for x in (cost, damage, numAttacks, health):
+					try:
+						Component.byname(x)
+					except:
+						c = Component()
+						c.categories = [Category.byname('Research')]
+						c.name = x
+						c.desc = ""
+						c.properties  = {}
+						c.insert()
 
 	@classmethod
 	def syncCombatType(cls, f = 'combat.csv'):

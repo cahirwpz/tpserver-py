@@ -58,10 +58,13 @@ class Dronepedia:
 			else:
 				# Components are defined the first time based on the names of the columns
 				for x in (typ, cost, power, attack, numAttacks, health, speed, strength, weakness, requirements):
-					c = Component()
-					c.categories = [Category.byname('Drones')]
-					c.name = x
-					c.desc = ""
-					c.properties  = {}
-					c.insert()
+					try:
+						Component.byname(x)
+					except:
+						c = Component()
+						c.categories = [Category.byname('Drones')]
+						c.name = x
+						c.desc = ""
+						c.properties  = {}
+						c.insert()
 

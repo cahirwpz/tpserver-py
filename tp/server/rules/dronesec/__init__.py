@@ -126,6 +126,26 @@ class Ruleset(RulesetBase):
 			c.desc = 'Drone Components'
 			c.insert()
 			
+			c = Category()
+			c.name = 'Research - Economy Researches'
+			c.desc = 'Economy Researches'
+			c.insert()
+			
+			c = Category()
+			c.name = 'Research - World Researches'
+			c.desc = 'World Researches'
+			c.insert()
+			
+			c = Category()
+			c.name = 'Research - Combat Researches'
+			c.desc = 'Combat Researches'
+			c.insert()
+			
+			c = Category()
+			c.name = 'Research'
+			c.desc = 'Research Components'
+			c.insert()
+			
 			#Overlord Design definition allows fleets to show if an overlord is in that fleet.
 			d = Design()
 			d.id = 0
