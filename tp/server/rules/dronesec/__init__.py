@@ -167,6 +167,13 @@ class Ruleset(RulesetBase):
 			MasterList.loadWorldType()
 			MasterList.loadEconomyType()
 			MasterList.loadCombatType()
+			
+			
+			# Add guest account
+			user = RulesetBase.player(self, 'guest', 'guest', 'guest', 'guest')
+			user.done = True
+			user.save()
+			
 			trans.commit()
 		except:
 			trans.rollback()
@@ -321,7 +328,7 @@ class Ruleset(RulesetBase):
 			
 			if len(homeplanets) == 0:
 				print "Sorry but the amount of players for this map has been reached"
-				return
+				return False
 
 
 			user = RulesetBase.player(self, username, password, email, comment)
@@ -353,6 +360,7 @@ class Ruleset(RulesetBase):
 
 			# Create Player lists for research and drone availability
 			players = Player()
+			players.id = user.id
 			players.BuildList()
 			players.insert()
 
