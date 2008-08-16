@@ -268,7 +268,11 @@ class FullConnection(netlib.ServerConnection):
 				self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Username already in use, try a different name."))
 				return True
 
-			g.ruleset.player(username, packet.password, packet.email, packet.comment)
+			#Should return false if game is full
+			check = g.ruleset.player(username, packet.password, packet.email, packet.comment)
+
+			if check == False:
+				return self._send(netlib.objects.Fail(packet.sequence, constants.FAIL_PERM, "Game is full, try a different game."))
 
 			self._send(netlib.objects.OK(packet.sequence, "User successfully created. You can login straight away now."))
 			return True
@@ -544,7 +548,6 @@ class FullConnection(netlib.ServerConnection):
 		self.user.done = True
 		self.user.save()
 
-		
 		checkDone = True
 		for id, time in User.ids():
 			if checkDone == False:
@@ -555,8 +558,13 @@ class FullConnection(netlib.ServerConnection):
 		if checkDone:
 			self.game.ruleset.turn()
 		
+		objectOwners = [Object(id).owner for id,time in Object.ids() if hasattr(Object(id), 'owner')]
+		objectOwners.remove(-1)
+		objectOwners = set(objectOwners)
+		
 		for id, time in User.ids():
-			User(id).done = False
+			if id in objectOwners:
+				User(id).done = False
 		
 		del lock
 		db.dbconn.commit()
