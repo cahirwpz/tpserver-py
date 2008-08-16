@@ -93,6 +93,10 @@ class Fleet(Object, Combattant):
 		Damages a fleet.
 		"""
 
+		from tp.server.bases.Message import Message
+		
+		shipsKilled = 0
+		
 		for type, no in self.ships.items():
 			
 			d, n, health = RC.Combat(self.owner, type)
@@ -100,7 +104,17 @@ class Fleet(Object, Combattant):
 			while self.damage > health and self.ships[type] > 0:
 				self.damage -= health
 				self.ships[type] -= 1
-
+				shipsKilled += 1
+		
+		if shipsKilled > 0:
+			m = Message()
+			m.slot = -1
+			m.bid = self.owner
+			m.subject = 'Fleet Damaged'
+			m.body = """Our Fleet %s at (%i, %i, %i) has been damaged and lost %s ships""" \
+				%(self.name, self.posx, self.posy, self.posz, shipsKilled)
+			m.insert()
+		
 	def damage_get(self):
 		"""\
 		Returns the amount of damage this fleet can do.
