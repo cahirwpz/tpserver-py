@@ -539,36 +539,50 @@ class FullConnection(netlib.ServerConnection):
 		if not self.check(packet):
 			return True
 
+		# Set this user to being ready
 		db.dbconn.use(self.game)
-		
-		lock = Lock.new('processing')
-		db.dbconn.commit()
-		
-		
 		self.user.done = True
 		self.user.save()
+		db.dbconn.commit()
 
+		# Check if all other users are done too?
 		checkDone = True
 		for id, time in User.ids():
-			if checkDone == False:
-				continue
+			user = User(id)
+			print user.username, user.game, user.done
 			if User(id).done == False:
 				checkDone = False
+				break
 
-		if checkDone:
+
+		if not checkDone:
+			print "Not doing turn generation because not all users are ready!"
+			return
+
+		print "Generating turn"
+
+		try:
+			# Locks the server
+			lock = Lock.new('processing')
+
+			# Do the turn generation
 			self.game.ruleset.turn()
-		
-		objectOwners = [Object(id).owner for id,time in Object.ids() if hasattr(Object(id), 'owner')]
-		objectOwners.remove(-1)
-		objectOwners = set(objectOwners)
-		
-		for id, time in User.ids():
-			if id in objectOwners:
-				User(id).done = False
-		
-		del lock
-		db.dbconn.commit()
-		
+
+			# Reset all the still existing users as ready
+			objectOwners = [Object(id).owner for id,time in Object.ids() if hasattr(Object(id), 'owner')]
+			objectOwners.remove(-1)
+			objectOwners = set(objectOwners)
+			for id, time in User.ids():
+				if id in objectOwners:
+					user = User(id)
+					user.done = False
+					user.save()
+
+			del lock
+
+			db.dbconn.commit()
+		except e:
+			db.dbconn.rollback()
 
 	def _send(self, *args, **kw):
 		return netlib.ServerConnection._send(self, *args, **kw)
