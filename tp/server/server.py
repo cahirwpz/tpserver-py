@@ -168,7 +168,7 @@ class FullConnection(netlib.ServerConnection):
 		if not self.check(packet):
 			return True
 
-		key   = long(type.modified(self.user).strftime('%s'))
+		key   = long(time.mktime(type.modified(self.user).timetuple()))
 		total = type.amount(self.user)
 		
 		if packet.key != -1 and key != packet.key:
