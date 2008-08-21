@@ -11,6 +11,7 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 
 from tp.server.bases.Message import Message
 
+
 def do(top):
 	def h(obj):
 		if obj.type.endswith("Planet"):
@@ -20,6 +21,11 @@ def do(top):
 				'tp.server.rules.dronesec.objects.Fleet']
 			#If there are any capturers present.
 			if capturers:
+				# No owner: "Attacking wildlife should not be that hard"
+				if obj.owner == -1:
+					conquerThreshold = 10
+				else:
+					conquerThreshold = 35
 				checkOwners = dict()
 				#Checks to see how many players are at the planet and their total power
 				for id in capturers:
@@ -40,9 +46,9 @@ def do(top):
 						for id, pow in checkOwners.items():
 							if id != conqueror:
 								conqpow -= pow
-					# To Capture a planet a conqueror must have 50 power more
+					# To Capture a planet a conqueror must have a certain amount of power more
 					# than all other players at that planet
-					if conqpow >= 50:
+					if conqpow >= conquerThreshold:
 						obj.owner = conqueror
 						#Message
 						message = Message()
@@ -59,7 +65,7 @@ Capture of %s <b>succeded</b>.""" % (obj.name,)
 						for id in capturers:
 							# This should go through the fleets taking away the
 							# ships with the smallest amount of power first.
-							if powerLoss < 50:
+							if powerLoss < conquerThreshold:
 								drone = Object(id)
 								if drone.owner == conqueror and hasattr(drone, 'target'):
 									types = dict()
@@ -68,7 +74,7 @@ Capture of %s <b>succeded</b>.""" % (obj.name,)
 										
 										types[ship] = power
 										removed = min(types,key = lambda a: types.get(a))
-										while powerLoss < 50 and drone.ships[ship] > 0:
+										while powerLoss < conquerThreshold and drone.ships[ship] > 0:
 											powerLoss += power
 											drone.ships[ship] -= 1
 										drone.tidy()
