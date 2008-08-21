@@ -18,8 +18,8 @@ Build a new drone."""
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
 					desc="Build Drones."),
-		'name':  Order.Attribute("name", 'New Drones', 'protected', type=netlib.objects.constants.ARG_STRING,
-					desc="The new drone's name."),
+		'wait': Order.Attribute("wait", 0, 'protected', type= netlib.objects.constants.ARG_TIME,
+					desc="Length of Time until this order ends."),
 	}
 
 
@@ -51,12 +51,11 @@ Build a new drone."""
 Had %s and needed %s""" % (buider.name, builder.resources[1][0], res)
 				return
 
-			if self.turns() > 1:
-				# Add another year to worked...
-				self.worked += 1
-				print "Worked %s, %s left until built." % (self.worked, self.turns())
-				self.save()
-				return
+
+			# If player gives a length above 1 the order produce drones until
+			# the length is 1
+			# If the player gives a length 0 or less then the order will
+			# continue producing until changed
 
 			# Build new fleet object
 			fleet = Object(type='tp.server.rules.dronesec.objects.Fleet')
@@ -70,7 +69,7 @@ Had %s and needed %s""" % (buider.name, builder.resources[1][0], res)
 			fleet.owner = builder.owner
 			fleet.ships = {type : no}
 			fleet.insert()
-			fleet.name = (" %s %s Fleet" % (self.name , Drone(type).name)).strip()
+			fleet.name = ("%s Fleet" % (Drone(type).name)).strip()
 			fleet.save()
 			print "Drone fleet produced at %s using %s resources" % (builder.id, res)
 
@@ -91,9 +90,18 @@ It consists of:
 			#Remove resources for unit
 			builder.resources_add(Resource.byname('Credit'), -res)
 			builder.save()
+			
+			
+			#Removes order if length was given (not zero) and after drones are produced
+			if self.wait == 1:
+				self.remove()
+			elif self.wait > 1:
+				# Lower the length
+				self.wait -= 1
+				self.save()
 
 	def turns(self, turns=0):
-		return 1
+		return turns + self.wait
 
 	def resources(self):
 		return []
@@ -124,8 +132,8 @@ It consists of:
 
 			self.ships = ships
 
-	def fn_name(self, value=None):
-		if value == None:
-			return (255, self.name)
+	def fn_wait(self, value=None):
+		if value is None:
+			return self.wait, -1
 		else:
-			self.name = value[1]
+			self.wait = value[0]
