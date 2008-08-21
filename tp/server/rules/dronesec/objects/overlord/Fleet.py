@@ -34,7 +34,7 @@ class Fleet(Fleetbase):
 		)
 
 	ship_types = {0: 'Overlord'}
-	ship_speed  = {0: 700}
+	ship_speed  = {0: 5000}
 
 	#############################################
 	# Movement functions
