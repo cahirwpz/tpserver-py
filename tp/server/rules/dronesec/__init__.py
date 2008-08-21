@@ -44,7 +44,7 @@ import random
 from tp.server.utils.planetGenerator import PlanetGenerator
 
 
-SIZE = 1000
+SIZE = 2000
 class Ruleset(RulesetBase):
 	"""
 	Dronesec Ruleset...
@@ -238,7 +238,7 @@ class Ruleset(RulesetBase):
 				# Players are arranged based on divisions of a "pie"
 				# Each division consists of a certain slice of the pie.
 				# Each slice should be equal so every slice's planet is equidistant from the center
-				size = SIZE * numPlanets
+				size = int(SIZE * math.sqrt(numPlayers))
 				# Divisions are set in radians
 				# Splitting the divisions is done equally by the number of players
 				divisions = (2.0 * math.pi)/numPlayers
@@ -255,7 +255,7 @@ class Ruleset(RulesetBase):
 				# Distance is the distance from the center
 				for plan in range(planetsPerDivision - 1):
 					div = r.random() * divisions
-					dist = r.random() * size
+					dist = r.random() * (size-400)  + 400
 					locs.append((div, dist))
 
 				for num in range(numPlayers):
@@ -284,7 +284,7 @@ class Ruleset(RulesetBase):
 				# TODO: When made into a function this part can be called recursively 
 					divisions = math.pi / remainderPlanets
 					div = r.random() * div
-					dist =r.randint(0, size)
+					dist =r.randint(100, size)
 				for num in range(remainderPlanets):
 					n = PG.genName()
 
