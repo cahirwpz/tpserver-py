@@ -324,6 +324,7 @@ class Ruleset(RulesetBase):
 		try:
 			# Get all planets that a player can be assigned to.
 			homeplanets = Object.bytype('tp.server.rules.dronesec.objects.Planet')
+			takenplanets = [id for (id,time) in homeplanets if Object(id).playerhome and Object(id).owner != -1]
 			homeplanets = [id for (id, time) in homeplanets if Object(id).playerhome and Object(id).owner == -1]
 			
 			if len(homeplanets) == 0:
@@ -342,7 +343,28 @@ class Ruleset(RulesetBase):
 			
 
 			# Randomly select a player's home planet and assign it to him
-			planet = Object(homeplanets[r.randint(0, len(homeplanets)-1)])
+			findmax = dict()
+			
+			# If there is already another player then find the most distant planet
+			# The product of the distance of a planet to all taken planets is taken as the heuristic
+			# The heuristic should work on most if not all cases.
+			if takenplanets:
+				import math
+				for homeid in homeplanets:
+					home = Object(homeid)
+					totalDistance = 1
+					for takenid in takenplanets:
+						taken = Object(takenid)
+						distance = math.sqrt((home.posx - taken.posx)**2 + \
+							(home.posy - taken.posy)**2 + (home.posz - taken.posz)**2)
+						# print "Planet %s has distance %s to %s" % (taken.name, distance, home.name)
+						totalDistance *= distance
+					findmax[totalDistance] = home
+				
+				planet = findmax[max(findmax.keys())]
+
+			else:
+				planet = Object(homeplanets[r.randint(0, len(homeplanets)-1)])
 
 			planet.owner = user.id
 			planet.resources_add(Resource.byname('Credit'), 100)
