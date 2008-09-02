@@ -14,7 +14,7 @@ from Order import Order
 from Component import Component
 from Property import Property
 
-import pyscheme as scheme
+import schemepy as scheme
 
 class Design(SQLBase):
 	table = Table('design', metadata,
@@ -233,7 +233,7 @@ class Design(SQLBase):
 		"""
 		if hasattr(self, '_calculate'):
 			return self._calculate
-		i = scheme.make_interpreter()
+		vm = scheme.VM(profile="tpcl")
 
 		# Step 1 -------------------------------------
 
@@ -247,7 +247,7 @@ class Design(SQLBase):
 			pass
 
 		design = Design()
-		scheme.environment.defineVariable(scheme.symbol.Symbol('design'), design, i.get_environment())
+		vm.define("design", vm.toscheme(design))
 
 		# Step 3 -------------------------------------
 		for rank in ranks.keys():
@@ -266,7 +266,7 @@ class Design(SQLBase):
 					value = component.property(property_id)
 					if value:
 						print "Now evaluating", value
-						value = i.eval(scheme.parse("""( %s design)""" % value))
+						value = vm.fromscheme(vm.eval(vm.compile("""(%s design)""" % value)))
 
 						print "The value calculated for component %i was %r" % (component_id, value)
 					
@@ -281,20 +281,21 @@ class Design(SQLBase):
 				print "In scheme that is", bits_scheme
 			
 				print """(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)	
-				total = i.eval(scheme.parse("""(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)))
-				value, display = scheme.pair.car(total), scheme.pair.cdr(total)
+				total = vm.fromscheme(vm.eval(vm.compile("""(let ((bits %s)) (%s design bits))""" % \
+									 (bits_scheme, property.calculate))))
+				value, display = total.car, total.cdr
 
 				print "In total I got '%i' which will be displayed as '%s'" % (value, display)
 				design[property.name] = (property_id, value, display)
 
 				def t(design, name=property.name):
 					return design[name][1]
-				
-				i.install_function('designtype.'+property.name, t)
+
+				vm.define('designtype.'+property.name, vm.toscheme(t))
 				
 		print "The final properties we have are", design.items()
-		self._calculate = (i, design)
-		return i, design
+		self._calculate = (vm, design)
+		return vm, design
 	
 	def check(self):
 		"""\
@@ -306,7 +307,7 @@ class Design(SQLBase):
 			return self._check
 		
 		# Step 1, calculate the properties
-		i, design = self.calculate()
+		vm, design = self.calculate()
 		
 		total_okay = True
 		total_feedback = []
@@ -323,11 +324,11 @@ class Design(SQLBase):
 			
 				print "Now checking the following requirement"
 				print property.requirements
-				result = i.eval(scheme.parse("""(%s design)""" % property.requirements))
+				result = vm.fromscheme(vm.eval(vm.compile("""(%s design)""" % property.requirements)))
 				print "Result was:", result
-				okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
+				okay, feedback = result.car, result.cdr
 
-				if okay != scheme.symbol.Symbol('#t'):
+				if okay != True:
 					total_okay = False
 		
 				if feedback != "":
@@ -343,11 +344,11 @@ class Design(SQLBase):
 			
 			print "Now checking the following requirement"
 			print component.requirements
-			result = i.eval(scheme.parse("""(%s design)""" % component.requirements))
+			result = vm.fromscheme(vm.eval(vm.compile("""(%s design)""" % component.requirements)))
 			print "Result was:", result
-			okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
+			okay, feedback = result.car, result.cdr
 
-			if okay != scheme.symbol.Symbol('#t'):
+			if okay != True:
 				total_okay = False
 		
 			if feedback != "":
