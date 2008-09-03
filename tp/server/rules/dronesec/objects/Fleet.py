@@ -1,5 +1,5 @@
 """
-Drones
+Drone Fleets
 """
 from sqlalchemy import *
 
@@ -14,6 +14,11 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 from tp.server.rules.dronesec.bases.Research import Research
 
 class Fleet(Object, Combattant):
+	"""
+	Drone Fleets.
+	
+	Drone Fleets do not have any orders and instead are deployed through the use of the overlord.
+	"""
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),
@@ -25,6 +30,11 @@ class Fleet(Object, Combattant):
 		)
 
 	def calcPower(self):
+		"""
+		calcPower()
+		
+		Returns the total power of all the drones in this Fleet.
+		"""
 		power = 0
 		for type, no in self.ships.items():
 			dronePower, x, y = RC.World(self.owner, type)
@@ -33,13 +43,28 @@ class Fleet(Object, Combattant):
 		return power
 
 	def fn_damage(self, value = None):
+		"""
+		fn_damage(value)
+		
+		Returns the the damage that this Fleet has sustained
+		"""
 		return int(self.damage)
 
 	def fn_ships(self, value=None):
+		"""
+		fn_ships(value)
+		
+		Returns the Drones(ships) that this fleet contains.
+		"""
 		if value == None:
 			return self.ships.items()
 
 	def fn_name(self, value=None):
+		"""
+		fn_name(value)
+		
+		Returns the Name of this Fleet.
+		"""
 		if value == None:
 			return (255, self.name)
 		else:

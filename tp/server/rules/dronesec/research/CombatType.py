@@ -1,8 +1,10 @@
-
+"""Combat Type Researches"""
 from tp.server.rules.dronesec.bases.Research import Research
 
 class CombatType(Research):
-
+	"""
+	Combat Researches affect a drone's combat capabilities.
+	"""
 	attributes = {\
 		'damage': Research.Attribute('damage', 0, 'private'),
 		'numAttacks': Research.Attribute('numAttacks', 0, 'private'),

@@ -1,5 +1,5 @@
 """\
-Contains all the information about a drone's attributes
+Drone SQL Object
 """
 # Module imports
 from sqlalchemy import *
@@ -11,6 +11,9 @@ from tp.server.bases.SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimpor
 
 
 class Drone(SQLBase):
+	"""
+	Drone Objects contain the basic information of a fleet's Drones(ships)
+	"""
 	table = Table('dronesec_drone', metadata,
 		Column('game',	     Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	     Integer,  nullable=False, index=True, primary_key=True),
@@ -37,7 +40,7 @@ class Drone(SQLBase):
 	@classmethod
 	def bytype(cls, type):
 		"""\
-		bytype(id)
+		bytype(type)
 
 		Returns the objects which have a certain type.
 		"""

@@ -1,5 +1,5 @@
 """\
-This module impliments combat for Dronesec
+Calculates and resolves all combat conflicts
 """
 import random
 from tp.server.bases.Message import Message
@@ -9,6 +9,12 @@ from tp.server.rules.dronesec.bases.Drone import Drone
 from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalculator as RC
 
 def do(top):
+	"""
+	Action method for FleetCombat
+	
+	All opposing Fleets at the same location engage in combat.
+	Drones are destroyed as enough damage is dealt to surpass their health.
+	"""
 	#Get all Fleets
 	def h(obj, d):
 		# Check the object can go into combat (Drone Fleet)

@@ -1,3 +1,7 @@
+"""
+Action which automatically moves drones towards their target destinations
+"""
+
 import math
 from tp.server.bases.Object import Object
 from tp.server.utils import WalkUniverse
@@ -20,6 +24,11 @@ def closest(*args):
 	return x
 
 def do(top):
+	"""
+	Action Method for Drone Movement
+	
+	Drones positions are updated towards their target location.
+	"""
 	def move(obj):
 		if isinstance(obj, Drone) and not hasattr(obj, "command"):
 			if obj.ordered == 0:

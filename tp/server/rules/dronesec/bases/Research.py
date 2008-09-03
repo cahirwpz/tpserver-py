@@ -1,5 +1,5 @@
 """\
-Research
+Research SQL Object
 """
 # Module imports
 from sqlalchemy import *
@@ -10,6 +10,9 @@ from tp import netlib
 from tp.server.bases.SQL import SQLTypedBase, SQLTypedTable, NoSuch
 
 class Research(SQLTypedBase):
+	"""
+	Research objects contain the basic information for all researches.
+	"""
 	table = Table('dronesec_research', metadata,
 		Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,  nullable=False, index=True, primary_key=True),

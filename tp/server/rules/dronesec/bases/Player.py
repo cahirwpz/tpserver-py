@@ -1,5 +1,5 @@
 """\
-Player information needed to track available drones and researches
+Player SQL Object
 """
 # Module imports
 from sqlalchemy import *
@@ -11,6 +11,9 @@ from tp.server.rules.dronesec.bases.Drone import Drone
 from tp.server.rules.dronesec.bases.Research import Research
 
 class Player(SQLBase):
+	"""
+	Player information needed to track available drones and researches
+	"""
 	table = Table('dronesec_player', metadata,
 		Column('game', 	       Integer,     nullable=False, index=True, primary_key=True),
 		Column('id',	       Integer,     nullable=False, index=True, primary_key=True),
@@ -31,7 +34,9 @@ class Player(SQLBase):
 
 	def BuildList(self):
 		"""
-		Builds the initial list of drones and researches without requirements
+		BuildList()
+		
+		Builds the initial list of drones and researches without requirements for the player
 		"""
 		self.drones = {}
 		self.research = set()
@@ -52,7 +57,10 @@ class Player(SQLBase):
 
 	def addDrone(self, drone):
 		"""
+		addDrone(drone)
 		Adds a drone to the list of available drones
+		
+		drone - ID of the drone that is now available to the player.
 		"""
 		if not self.drones.has_key(drone):
 			if Research.byname(Drone(drone).reqs) in self.research:
@@ -61,6 +69,8 @@ class Player(SQLBase):
 
 	def addResearch(self, id):
 		"""
+		addResearch(id)
+		
 		Adds a research to a player and removes it from the lists
 		Checks requirements and adds any research that is now available to the list
 		"""
@@ -88,8 +98,14 @@ class Player(SQLBase):
 
 	def researchQuota(self, id, payed, ratio):
 		"""
+		researchQuota(id, payed, ratio)
+		
 		Adds the multiple of the amount payed and the ratio with the amount payed
 		Checks if the research is finished
+		
+		id - The Research's ID
+		payed - how many resources are being sent to pay for this Research
+		ratio - The ratio bonus applied to the amount payed for this research
 		"""
 		if id not in self.researchLeft:
 			self.researchLeft[id] = 0
@@ -110,6 +126,11 @@ class Player(SQLBase):
 
 	@classmethod
 	def realid(cls, user, pid):
+		"""
+		realid(user, pid)
+		
+		Returns the real ID of the user
+		"""
 		if pid == 0:
 			return user.id
 		return pid

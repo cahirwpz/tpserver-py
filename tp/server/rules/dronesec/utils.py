@@ -1,6 +1,11 @@
+"""Contains Redefinition of the Reparent Function"""
 from tp.server.bases.Object import Object
 
 def ReparentOne(obj):
+	"""
+	Reparents an object based on all object at its location.
+	Ensures that overlords and fleets are not parents.
+	"""
 	# Reparent the object
 	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby=Object.bypos_size)
 	print "Possible parents", parents

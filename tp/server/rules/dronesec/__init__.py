@@ -1,3 +1,5 @@
+"""Dronesec Ruleset Object Definition"""
+
 from tp.server.utils import ReparentOne
 from tp.server.db import dbconn, convert
 
@@ -47,7 +49,11 @@ from tp.server.utils.planetGenerator import PlanetGenerator
 SIZE = 2000
 class Ruleset(RulesetBase):
 	"""
-	Dronesec Ruleset...
+	Dronesec Ruleset
+	
+	Dronesec is a simple game in which most of the action occurs at planets and\
+through orders given by an "Overlord".
+	This Ruleset also implements a simple research variant.
 	"""
 	name = "Dronesec"
 	version = "0.0.2"
@@ -79,7 +85,13 @@ class Ruleset(RulesetBase):
 
 	def initialise(self):
 		"""\
-		Dronesec
+		Dronesec Initialization
+		
+		The universe is created. Designs, Components, Drones and Researches are loaded.
+		
+		A guest account is created.
+		username: guest
+		password: guest
 		"""
 		dbconn.use(self.game)
 		trans = dbconn.begin()
@@ -181,12 +193,16 @@ class Ruleset(RulesetBase):
 
 	def populate(self,  numPlanets , maptype = 'random', numPlayers = 2, seed=None, loadfile = None,):
 		"""\
-		--populate <game>  <number of Planets> <maximunum number of players> <Map Type> <seed> <load file>
-		    Maptypes so far can be standard and random
-		    Number of Planets includes player planets
-		    
-		    seed can be set for purposes of saved games. But fully random seeds are also allowed by typing in None
-		    a loadfile does not need to be specified unless it is a loaded map.
+		--populate <game> <number of Planets> <maptype> <maximunum number of players> <seed> <load file>
+			Maptypes are random, standard and load
+				Random: Randomly places all planets throughout the universe.
+				Standard: Attempts to place planets in a balanced way such that\
+most locations are equidistant from the center.
+				Load: Loads a map from an xml file
+				
+			Number of Planets should include Player Home Planets
+			Seed can be set for purposes of rematches But fully random seeds are also allowed by typing in None
+			Loadfile need only be specified if it is a Load type map.
 		"""
 
 		# Conversions from string to ints
@@ -316,6 +332,8 @@ class Ruleset(RulesetBase):
 
 	def player(self, username, password, email='Unknown', comment='A Dronesec Player'):
 		"""\
+		player(username, password, email, comment)
+		
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
 		dbconn.use(self.game)
@@ -397,19 +415,23 @@ class Ruleset(RulesetBase):
 
 	def loadMap(self, fileName, r):
 		"""\
+		loadMap(fileName, r)
 		Loads an xml file and creates planets according to the given specifications.
+		
+		filename: name of the XML file containing universe information
+		r: The random object currently in use by the ruleset.
 		
 		Each Planet in an XML file should contain the following criteria
 		
-		Name - Name of the Planet
-		posx - Position on the X axis
-		posy - Position on the Y axis
-		posz - Position on the Z axis
+			Name - Name of the Planet
+			posx - Position on the X axis
+			posy - Position on the Y axis
+			posz - Position on the Z axis
 		
 		
-		The following are optional:
-		size - sets the size of the planet
-		home - If a planet has this attribute the planet is designanted as a home planet
+			The following are optional:
+			size - sets the size of the planet
+			home - If a planet has this attribute the planet is designanted as a home planet
 		"""
 		
 		import xml.etree.ElementTree as ET
@@ -435,7 +457,17 @@ class Ruleset(RulesetBase):
 
 	def addPlanet(self, r, name, x, y, z , size =-1 ,home = False):
 		"""\
+		addPlanet(r, name, x, y, z, size, home)
+		
 		Creates a system and a planet according to the given positions.
+		
+		r: The random object currently in use by the ruleset.
+		name: Name of the Planet and its System
+		x - The position of the planet on the x axis
+		y - The position of the planet on the y axis
+		z - The position of the planet on the z axis
+		size - The size of the planet. Defaults to -1 which randomizes the size.
+		home - Whether this is a home planet. Home planets are the starting locations of players.
 		"""
 
 

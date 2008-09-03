@@ -1,11 +1,17 @@
 """\
-This action sends the a message to defeated players.
+Cleans up after a player is Defeated
 """
 
 from tp.server.bases.Message import Message
 from tp.server.utils import WalkUniverse
 
 def do(top):
+	"""
+	Action method for Defeat
+	
+	Players without any planets or units are removed from the game.
+	Their overlords are destroyed and a message is sent to the player.
+	"""
 	owners = {}
 	overlords = {}
 	def h(obj, owners=owners, overlords = overlords):

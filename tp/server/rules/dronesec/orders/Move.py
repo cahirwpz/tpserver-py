@@ -1,4 +1,4 @@
-
+"""Contains the Move Order"""
 import math
 from tp import netlib
 
@@ -33,6 +33,15 @@ Move to a point in space.
 	}
 
 	def do(self, action):
+		"""
+		Executes Move
+		
+		If Prepare:
+			Sets the fleet's velocity
+			
+		If Finalise:
+			Ensures fleet arrives at the target location.
+		"""
 		# We are going to have to modify the object so lets load it
 		obj = Object(self.oid)
 

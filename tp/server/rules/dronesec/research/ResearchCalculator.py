@@ -1,14 +1,19 @@
 """
 Researches are calculated by getting all researches of a type and returning their bonuses
 """
-from tp.server.rules.dronesec.bases.Research import Research
 from tp.server.rules.dronesec.bases.Player import Player
+from tp.server.rules.dronesec.bases.Research import Research
 from tp.server.rules.dronesec.bases.Drone import Drone
 
 
 class ResearchCalculator:
+	"""Wrapper Class for Calculation methods"""
 	@classmethod
 	def Economy(self, owner, type = None):
+		"""
+		Returns the resource bonus and modified rations for Resoursec and Researches\
+based on this player's finished Research.
+		"""
 		resources = 0
 		resourceRatio = 1
 		researchRatio = 1
@@ -31,6 +36,9 @@ class ResearchCalculator:
 
 	@classmethod
 	def EconomyDrone(self, owner, drone):
+		"""
+		Returns the cost reduction and modified Cost Ratio based on the Player's Research
+		"""
 		cost = Drone(drone).cost
 		costRatio = 1
 		researches = Research.bytype('tp.server.rules.dronesec.research.EconomyType')
@@ -48,7 +56,10 @@ class ResearchCalculator:
 
 	@classmethod
 	def World(self, owner, drone):
-
+		"""
+		Returns the bonuses for power and speed and the modified speed ratio \
+for a specific drone based on a players Research finished.
+		"""
 		power = Drone(drone).power
 		speed = Drone(drone).speed
 		speedRatio = 1
@@ -69,7 +80,10 @@ class ResearchCalculator:
 
 	@classmethod
 	def Combat(self, owner, drone):
-
+		"""
+		Returns the bonuses for damage, number of Attacks and health \
+for a specific drone based on a players Research finished.
+		"""
 		damage = Drone(drone).attack
 		numAttacks = Drone(drone).numAttacks
 		health = Drone(drone).health

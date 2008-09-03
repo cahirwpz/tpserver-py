@@ -1,4 +1,4 @@
-
+"""Contains the Research Order"""
 from tp import netlib
 
 from tp.server.bases.Object import Object
@@ -13,7 +13,7 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 
 class Research(Order):
 	"""\
-Build a new drone."""
+Researches new Technologies."""
 	typeno = 105
 	attributes = {\
 		'research': Order.Attribute("research", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
@@ -22,6 +22,12 @@ Build a new drone."""
 
 
 	def do(self):
+		"""
+		Executes Research
+		Updates Research pay values
+		Adds Research to player list if finished.
+		Adds new capabilties if research requires it
+		"""
 		researcher = Object(self.oid)
 
 		if not hasattr(researcher, "owner"):

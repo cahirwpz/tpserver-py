@@ -1,3 +1,6 @@
+"""
+Planets
+"""
 import random
 
 from tp.server.bases.Object import Object
@@ -7,6 +10,12 @@ ACCESSABLE   = 0
 MINABLE      = 1
 INACCESSABLE = 2
 class Planet(Object):
+	"""
+	Planets
+	
+	Planets are critical locations acting as bases and factories.
+	Planets generate 100 resources per turn and can research new upgrades or produce new drones.
+	"""
 	attributes = { \
 		'owner':     Object.Attribute('owner', -1, 'public'),
 		'resources': Object.Attribute('resources', {}, 'protected'),
@@ -31,6 +40,9 @@ class Planet(Object):
 		return res
 
 	def resources_add(self, resource, amount, type=ACCESSABLE):
+		"""
+		Add new resources to this planet.
+		"""
 		if not self.resources.has_key(resource):
 			self.resources[resource] = [0, 0, 0]
 		self.resources[resource][type] += amount

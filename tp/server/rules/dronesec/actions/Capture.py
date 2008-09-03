@@ -1,5 +1,5 @@
 """\
-Captures a Planet
+Captures a Planet for use by the conquering Player
 """
 
 from tp.server.bases.Object import Object
@@ -13,6 +13,12 @@ from tp.server.bases.Message import Message
 
 
 def do(top):
+	"""
+	Action Method for Capture
+	
+	Reassigns ownership of a planet to a player that exceeds the threshold of power.
+	Some of the Drones in a capturing fleet are removed.
+	"""
 	def h(obj):
 		if obj.type.endswith("Planet"):
 			#Build list of fleets that could capture the planet

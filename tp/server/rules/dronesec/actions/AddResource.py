@@ -9,6 +9,11 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 
 
 def do(top):
+	"""
+	Action method for Add Resource.
+	
+	Every player owned planet receives (100 plus bonuses) Credit Resources
+	"""
 	def h(obj):
 		if obj.type.endswith("Planet"):
 			if obj.owner != -1:

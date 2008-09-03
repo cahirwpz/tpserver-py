@@ -1,4 +1,4 @@
-
+"""Contains the Repel Order"""
 from tp import netlib
 
 from tp.server.bases.Order import Order
@@ -19,6 +19,10 @@ Drones move to a point in space.
 	}
 
 	def do(self):
+		"""
+		Executes Repel
+		Sets the overlord's command parameters and target location.
+		"""
 		obj = Object(self.oid)
 		if not hasattr(obj, "command"):
 			print "Could not assign move command because object is not an Overlord"

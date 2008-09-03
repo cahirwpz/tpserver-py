@@ -1,4 +1,4 @@
-
+"""Contains the ProduceDrones Order"""
 from tp import netlib
 
 from tp.server.bases.Object import Object
@@ -13,7 +13,8 @@ from tp.server.rules.dronesec.research.ResearchCalculator import ResearchCalcula
 
 class ProduceDrones(Order):
 	"""\
-Build a new drone."""
+Order that builds a new drone at the planet's location.
+"""
 	typeno = 102
 	attributes = {\
 		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST,
@@ -24,6 +25,12 @@ Build a new drone."""
 
 
 	def do(self):
+		"""
+		Executes DroneProduction. 
+		Creates a Drone Fleet at the location of the building planet.
+		Drones are of the DroneType selected by the player.
+		Resources are removed from the Planet's Resource Pool to pay for the drones.
+		"""
 		builder = Object(self.oid)
 
 		if not hasattr(builder, "owner"):

@@ -13,6 +13,11 @@ from tp.server.bases.Design import Design
 from tp.server.rules.dronesec.objects.Fleet import Fleet as Fleetbase
 
 class Fleet(Fleetbase):
+	"""
+	Overlord Fleets
+	
+	Overlords determine the movement of Drone Fleets through the use of their Orders.
+	"""
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),

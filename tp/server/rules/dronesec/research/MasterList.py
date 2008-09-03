@@ -1,4 +1,6 @@
-#Master list  holds all of the researches available and determines their availability
+"""
+Master list  holds all of the researches available and determines their availability
+"""
 
 from tp.server.rules.dronesec.bases.Research import Research
 
@@ -14,10 +16,11 @@ import csv
 import os
 
 class MasterList:
+	"""Function Class that loads various Researches into the Database"""
 	@classmethod
 	def loadUnitType(cls, f = "units.csv"):
-		# """load and return a list of researchs of this type
-		#    f is the file to be loaded as the holder of information"""
+		"""load and return a list of researchs of the Unit type
+		   f is the file to be loaded as the holder of information"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -34,8 +37,8 @@ class MasterList:
 
 	@classmethod
 	def loadWorldType(cls, f = "world.csv"):
-		# """load and return a list of researchs of this type
-		#    f is the file to be loaded as the holder of information"""
+		"""load and return a list of researchs of the World type
+			f is the file to be loaded as the holder of information"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -87,8 +90,8 @@ class MasterList:
 
 	@classmethod
 	def loadEconomyType(cls, f = "economy.csv"):
-		# """load and return a list of researchs of this type
-		#    f is the file to be loaded as the holder of information"""
+		"""load and return a list of researchs of the Economy type
+			f is the file to be loaded as the holder of information"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -144,8 +147,8 @@ class MasterList:
 
 	@classmethod
 	def loadCombatType(cls, f = "combat.csv"):
-		# """load and return a list of researchs of this type
-		#    f is the file to be loaded as the holder of information"""
+		"""load and return a list of researchs of the Combat type
+			f is the file to be loaded as the holder of information"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -195,6 +198,9 @@ class MasterList:
 
 	@classmethod
 	def syncCombatType(cls, f = 'combat.csv'):
+		"""
+		Synchronizes the Combat Type researches of the game with those on the CSV File
+		"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -236,6 +242,9 @@ class MasterList:
 
 	@classmethod
 	def syncWorldType(cls, f = 'world.csv'):
+		"""
+		Synchronizes the World Type researches of the game with those on the CSV File
+		"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:
@@ -278,6 +287,9 @@ class MasterList:
 
 	@classmethod
 	def syncEconomyType(cls, f = 'economy.csv'):
+		"""
+		Synchronizes the Economy Type researches of the game with those on the CSV File
+		"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/research/"),f)))
 		except:

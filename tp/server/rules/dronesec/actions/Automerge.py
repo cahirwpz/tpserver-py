@@ -1,3 +1,7 @@
+"""\
+Automatically merges Fleets of the same type
+"""
+
 from tp.server.bases.Object import Object
 from tp.server.rules.dronesec.objects.Fleet import Fleet
 from tp.server.utils import WalkUniverse
@@ -5,7 +9,11 @@ from tp.server.bases.Message import Message
 from tp.server.rules.dronesec.bases.Drone import Drone
 
 def do(top):
-
+	"""
+	Action Method for AutoMerge
+	
+	All Fleets in the same location and of the same type merge into a single fleet
+	"""
 	#Get all Fleets
 	def h(obj, d):
 		# Check the object can go into combat

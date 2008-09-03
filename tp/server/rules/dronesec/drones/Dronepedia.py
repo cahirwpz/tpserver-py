@@ -1,4 +1,4 @@
-#Dronepedia loads the Drones to the database for a game.
+"""Loads drone information to the SQL Databse"""
 
 import csv
 import os
@@ -9,10 +9,12 @@ from tp.server.bases.Design import Design
 
 
 class Dronepedia:
+	"""Loads the Drone information into the Database"""
 	def __init__(self, f = "drones.csv"):
 		"""
-		\Initialize dronepedia.
-		f is the file to be loaded as the holder of information"""
+		Initialize dronepedia.
+		f is the file to be loaded as the holder of information
+		"""
 		try:
 			reader = csv.reader(open(os.path.join(os.path.abspath("./tp/server/rules/dronesec/drones"),f)))
 		except:

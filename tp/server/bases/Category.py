@@ -23,6 +23,11 @@ class Category(SQLBase):
 
 	@classmethod
 	def byname(cls, name):
+		"""\
+		byname(name)
+		
+		Returns the objects with a certain name
+		"""
 		c = cls.table.c
 		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
 

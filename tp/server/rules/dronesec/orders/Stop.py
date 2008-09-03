@@ -1,3 +1,4 @@
+"""Contains the Stop Order"""
 from tp import netlib
 from tp.server.bases.Order import Order
 from tp.server.bases.Object import Object
@@ -14,6 +15,10 @@ Make Drones stop moving...
 	}
 
 	def do(self):
+		"""
+		Executes Stop
+		Sets the overlords command parameters to stop
+		"""
 		obj = Object(self.oid)
 		if not hasattr(obj, "command"):
 			print "Could not assign move command because object is not an Overlord"

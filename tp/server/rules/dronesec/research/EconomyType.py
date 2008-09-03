@@ -1,7 +1,10 @@
-
+"""Economy Type Researches"""
 from tp.server.rules.dronesec.bases.Research import Research
 
 class EconomyType(Research):
+	"""
+	Economy Researches affect Planet Resource production and reduce cost of drones and researches.
+	"""
 	attributes = {\
 		'resources': Research.Attribute('resources', 0, 'private'),
 		'resourcesRatio': Research.Attribute('resourcesRatio', 0, 'private'),
