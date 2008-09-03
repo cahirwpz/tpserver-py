@@ -27,7 +27,6 @@ import actions.Defeat as Defeat
 import orders.Move as Move
 import orders.ProduceDrones as ProduceDrones
 import actions.Move as MoveAction
-import actions.Heal as Heal
 import actions.Turn as Turn
 import actions.Capture as Capture
 import actions.AddResource as AddResource
@@ -76,7 +75,6 @@ through orders given by an "Overlord".
 			Capture,            # Captures Planets that can be captured
 			AddResource,        # Add Resource to planet
 			Clean,              # Remove all empty fleets
-			Heal,               # Repair any ships orbiting a friendly planet
 			Defeat,             # Remove overlords if a player has no more units
 			Win,                # Figure out if there is any winner
 			SyncDB,             # Synchronizes the Research Database with the CSV files
