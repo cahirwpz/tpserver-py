@@ -1,9 +1,22 @@
 #! /usr/bin/env python 
 
+
 import sys
 sys.path.insert(0, "/etc/tpserver-py")
 sys.path.insert(0, ".")
 import config
+
+# Check the requirements...
+import StringIO
+__stdout = sys.stdout
+sys.stdout = StringIO.StringIO()
+try:
+	import requirements
+except:
+	__stdout.write(sys.stdout.getvalue())
+	raise
+finally:
+	sys.stdout = __stdout
 
 import time
 import random
