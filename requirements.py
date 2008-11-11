@@ -19,6 +19,8 @@ if os.path.exists(".git"):
 		print "It appears this is a fresh git checkout, trying to get dependencies"
 		os.system("git submodule init")
 		os.system("git submodule update")
+		print
+		print
 
 
 notfound    = []
