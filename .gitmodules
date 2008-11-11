@@ -1,3 +1,6 @@
 [submodule "schemepy"]
 	path = schemepy
-	url = git+ssh://git.thousandparsec.net/git/schemepy.git
+	url = git://git.thousandparsec.net/git/schemepy.git
+[submodule "libtpproto-py"]
+	path = libtpproto-py
+	url = git://git.thousandparsec.net/git/libtpproto-py
