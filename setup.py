@@ -13,6 +13,6 @@ setup(name="tpserver-py",
 	author_email="tim@thousandparsec.net",
 	url="http://www.thousandparsec.net",
 	package_dir = {'': 'tp'},
-	scripts=["tpserver-py", "tpserver-py-tool", "tpserver-py-turn"],
+	scripts=["tpserver-py", "tpserver-py-tool"],
 	data_files=[('/etc/tpserver-py', ['config.py']),],
 )
