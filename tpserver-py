@@ -1,14 +1,7 @@
 #! /usr/bin/env python
 
-try:
-	import requirements
-except ImportError, e:
-	print "Could not check the requirements!"
-
-	import sys
-	sys.path.insert(0, "/etc/tpserver-py")
-	sys.path.insert(0, ".")
-	import config
+import requirements
+import config
 
 import socket
 from tp.server.server import FullServer

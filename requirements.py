@@ -6,6 +6,7 @@
 # Preference the local directory first...
 import sys
 sys.path.insert(0, '.')
+import os
 import os.path
 
 modules = ["libtpproto-py", "schemepy"]
@@ -15,12 +16,7 @@ for module in modules:
 
 import tp.server.version as version
 if hasattr(version, "version_git"):
-	for module in modules:
-		if os.path.exists(module) and not os.path.exists(os.path.join(module, ".git")):
-			os.system("git submodule init")
-	os.system("git submodule update")
-
-import time
+	os.system("git submodule update --init")
 
 notfound    = []
 recommended = []
