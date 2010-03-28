@@ -21,6 +21,9 @@ def main():
 				s = FullServer("", port, port+1)
 				print "Used port", port
 			except socket.error, e:
+				import traceback
+				traceback.print_exc()
+
 				if e == (99, 'Cannot assign requested address'):
 					print e
 					break
