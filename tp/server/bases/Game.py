@@ -6,7 +6,7 @@ import weakref
 import os, socket
 from sqlalchemy import *
 
-import md5
+import hashlib
 
 # Local imports
 from tp.server.db import *
@@ -312,7 +312,7 @@ class Game(SQLBase):
 
 	def key(self):
 		# FIXME: This probably isn't very secure...
-		key = md5.md5("%s-%s" % (self.longname, self.time))
+		key = hashlib.md5("%s-%s" % (self.longname, self.time))
 		return key.hexdigest()
 	key = property(key)
 
