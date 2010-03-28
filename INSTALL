@@ -3,20 +3,13 @@ Quick setup instructions for "inplace" operation:
 --------------------------------------------------------
 apt-get install python-pysqlite2 python-sqlalchemy
 
-cg-clone git://git.thousandparsec.net/scratchpad
-cg-clone git://git.thousandparsec.net/libtpproto-py
-cg-clone git://git.thousandparsec.net/tpserver-py
-
-cd scratchpad
-./setup.sh
-cd ..
+git clone git://git.thousandparsec.net/tpserver-py
 
 cd tpserver-py
-cp config.py-template config.py
+
 ./tpserver-py-tool --addgame tp minisec admin@localhost "A test game"
 ./tpserver-py-tool --populate tp 0 10 10 2 2
 ./tpserver-py-tool --adduser tp <username> <password>
 
 # Run the following to generate a turn
 ./tpserver-py-tool --turn tp
-
