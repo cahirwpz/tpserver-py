@@ -3,6 +3,24 @@
 # This file checks you have installed the requirements for tpclient-pywx 
 # It can be run as standalone but is also run by the client at startup
 
+# Preference the local directory first...
+import sys
+sys.path.insert(0, '.')
+import os.path
+
+modules = ["libtpproto-py", "schemepy"]
+for module in modules:
+	if os.path.exists(module):
+		sys.path.insert(0, module)
+
+import tp.server.version as version
+if hasattr(version, "version_git"):
+	for module in modules:
+		if os.path.exists(module) and not os.path.exists(os.path.join(module, ".git")):
+			os.system("git submodule init")
+	os.system("git submodule update")
+
+import time
 
 notfound    = []
 recommended = []
