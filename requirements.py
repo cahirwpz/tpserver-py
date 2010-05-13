@@ -9,7 +9,7 @@ sys.path.insert(0, '.')
 import os
 import os.path
 
-modules = ["libtpproto-py", "schemepy"]
+modules = ["libtpproto2-py", "schemepy"]
 for module in modules:
 	if os.path.exists(module):
 		sys.path.insert(0, module)
@@ -69,13 +69,13 @@ print
 print "Checking requirements:"
 print "---------------------------------------------------------------"
 
-netlib_version = (0, 2, 2)
+netlib_version = (0, 4, 0)
 print
 try:
-	print " * Looking for Thousand Parsec Protocol Library,"
+	print " * Looking for Thousand Parsec Protocol Library 2 Version,"
 	import tp.netlib
 
-	print "    Thousand Parsec Protocol Library Version", tp.netlib.__version__ 
+	print "    Thousand Parsec Protocol Library 2 Version", tp.netlib.__version__ 
 	print "       (installed at %s)" % tp.netlib.__installpath__
 	try:
 		from tp.netlib.version import version_git
@@ -84,7 +84,7 @@ try:
 		pass
 
 	if not cmp(netlib_version, tp.netlib.__version__):
-		raise ImportError("Thousand Parsec Network Library (libtpproto-py) is too old")
+		raise ImportError("Thousand Parsec Network Library 2 (libtpproto2-py) is too old")
 
 except Exception, e:
 	print e
@@ -111,7 +111,7 @@ except Exception, e:
 
 print
 try:
-	print " * Looking for ElementTree implimentation,"
+	print " * Looking for ElementTree implementation,"
 
 	ET = None
 	errors = []
