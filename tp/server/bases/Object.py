@@ -118,13 +118,8 @@ class Object(SQLTypedBase):
 		o = SQLBase.protect(self, user)
 		if hasattr(self, "owner") and self.owner != user.id:
 			print self.owner
-			def empty():
-				return 0
-			o.orders = empty
-			
-			def empty():
-				return []
-			o.ordertypes = empty
+			o.orders = lambda: 0
+			o.ordertypes = lambda: []
 		return o
 
 	def remove(self):
