@@ -1,8 +1,7 @@
-
 version = (0, 2, 0)
 
 # Add the git version if in a git tree...
-import os, os.path
+import os.path
 __path__ = os.path.realpath(os.path.dirname(__file__))
 installpath = os.path.split(os.path.split(__path__)[0])[0]
 
@@ -19,7 +18,6 @@ if os.path.exists(os.path.join(installpath, '.git')):
 	version_git = p.read().strip()
 
 	# What version are we trying to get too?
-	import time
 	if version[2] >= 99:
 		version_target = (version[0], version[1]+1, 0)
 	else:
@@ -31,6 +29,7 @@ version_str = "%i.%i.%i" % version[:3]
 
 if __name__ == "__main__":
 	import sys
+
 	if len(sys.argv) > 1 and sys.argv[1] == '--fix':
 		print """
 import os, os.path
