@@ -10,6 +10,8 @@ from tp import netlib
 from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
 from Order import Order
 
+from tp.server.packet import PacketFactory
+
 class Object(SQLTypedBase):
 	table = Table('object', metadata,
 		Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
@@ -167,7 +169,7 @@ class Object(SQLTypedBase):
 	def to_packet(self, user, sequence):
 		# Preset arguments
 		self, args = SQLTypedBase.to_packet(self, user, sequence)
-		return netlib.objects.Object(sequence, self.id, self.typeno, self.name, 
+		return PacketFactory().objects.Object(sequence, self.id, self.typeno, self.name, 
 				self.size, 
 				self.posx, self.posy, self.posz, 
 				self.velx, self.vely, self.velz, 
@@ -177,7 +179,7 @@ class Object(SQLTypedBase):
 
 	@classmethod
 	def id_packet(cls):
-		return netlib.objects.Object_IDSequence
+		return PacketFactory().objects.ObjectIDs
 
 	def __str__(self):
 		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
