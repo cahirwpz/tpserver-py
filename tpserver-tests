@@ -10,19 +10,97 @@ from twisted.internet import reactor, ssl
 from OpenSSL import SSL
 
 from client import ThousandParsecClientFactory
-from tp.server.logging import Logger
+from tp.server.logging import Logger, msg, logctx
+from tp.server.packet import PacketFactory
+
+class Test( object ):
+	def __init__( self, _protocol ):
+		self._protocol = _protocol
+
+class Check_Ping( Test ):
+	def __iter__( self ):
+		yield self._protocol.Connect( 1, "tpserver-tests client" )
+		yield self._protocol.Ping( 2 )
+
+class Check_GetFeatures( Test ):
+	def __iter__( self ):
+		yield self._protocol.Connect( 1, "tpserver-tests client" )
+		yield self._protocol.GetFeatures( 2 )
+
+class Check_Login( Test ):
+	def __iter__( self ):
+		yield self._protocol.Connect( 1, "tpserver-tests client" )
+		yield self._protocol.Login( 2, "test@tp", "test" )
+
+class Check_TimeRemaining( Test ):
+	def __iter__( self ):
+		yield self._protocol.Connect( 1, "tpserver-tests client" )
+		yield self._protocol.GetTimeRemaining( 2 )
+
+class Check_Full( Test ):
+	def __iter__( self ):
+		yield self._protocol.Connect( 1, "tptests-py client" )
+		yield self._protocol.Ping( 2 )
+		yield self._protocol.GetFeatures( 3 )
+		yield self._protocol.Login( 4, "test@tp", "test" )
+
+		response = yield self._protocol.GetObjectIDs( 5, -1, 0, 0 )
+		response = yield self._protocol.GetObjectIDs( 6, -1, 0, response.remaining )
+		yield self._protocol.GetObjectsByID( 7, [ id for id, modtime in response.modtimes ] )
+
+		response = yield self._protocol.GetBoardIDs( 10, -1, 0, 0 )
+		response = yield self._protocol.GetBoardIDs( 11, -1, 0, response.remaining )
+		yield self._protocol.GetBoards( 12, [ id for id, modtime in response.modtimes ] )
+
+		response = yield self._protocol.GetPlayer( 15, [0] )
+		#yield self._protocol.Player( 17, [ id for id, modtime in response.modtimes ] )
 
 class ClientTLSContext( ssl.ClientContextFactory ):
 	method = SSL.TLSv1_METHOD
 
-def main():
-	logger = Logger()
-	logger.start()
+class TestRunner( object ):
+	tests = [ Check_Ping, Check_GetFeatures, Check_Login, Check_Full, Check_TimeRemaining ]
 
-	factory = ThousandParsecClientFactory()
-	reactor.connectTCP( "localhost", 6923, factory )
-	#reactor.connectSSL( "localhost", 6924, factory, ssl.ClientContextFactory() )
-	reactor.run()
+	def __init__( self ):
+		logger = Logger( level = 'notice' )
+		logger.start()
+
+		self.__protocol = PacketFactory().objects
+		self.__factory = ThousandParsecClientFactory()
+		self.__factory.finished = self.__finished
+	
+	@logctx
+	def __continue( self ):
+		try:
+			self.__test = self.tests.pop(0)
+		except IndexError, ex:
+			msg( "${wht1}No more tests!${coff}", level='notice' ) 
+			reactor.stop()
+		else:
+			self.__test = self.__test( self.__protocol )
+			self.__factory.scenario = self.__test
+
+			msg( "${wht1}Starting %s test...${coff}" % self.__test.__class__.__name__, level='notice' ) 
+
+			reactor.connectTCP( "localhost", 6923, self.__factory )
+			#reactor.connectSSL( "localhost", 6924, factory, ssl.ClientContextFactory() )
+
+	@logctx
+	def __finished( self, result ):
+		if result == True:
+			msg( "${grn1}Test %s succeeded!${coff}" % self.__test.__class__.__name__, level='notice' ) 
+		else:
+			msg( "${red1}Test %s failed!${coff}" % self.__test.__class__.__name__, level='notice' ) 
+
+		self.__continue()
+
+	def run( self ):
+		reactor.callLater( 0, self.__continue )
+		reactor.run()
+	
+	def logPrefix( self ):
+		return self.__class__.__name__
 
 if __name__ == '__main__':
-	main()
+	runner = TestRunner()
+	runner.run()

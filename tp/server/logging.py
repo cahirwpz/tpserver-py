@@ -107,15 +107,15 @@ class Logger( log.FileLogObserver ):#{{{
 		"""
 		return string.Template( msg ).safe_substitute( Logger.colors )
 
-	def __init__( self ):
+	def __init__( self, level = 'debug1' ):
 		"""
 		Constructor
 		"""
 		log.FileLogObserver.__init__( self, sys.stderr )
 
-		self.__level = 'debug1'
+		self.__level = level
 
-		globals()["CurrentLogLevel"] = Logger.levels[self.__level]
+		globals()["CurrentLogLevel"] = Logger.levels[ self.__level ]
 
 	@staticmethod
 	def updateContext( logger ):
@@ -127,7 +127,7 @@ class Logger( log.FileLogObserver ):#{{{
 		try:
 			level = eventDict[ 'level' ]
 		except KeyError:
-			level = 'notice'
+			level = 'info'
 
 		try:
 			_failure = eventDict[ 'failure' ]

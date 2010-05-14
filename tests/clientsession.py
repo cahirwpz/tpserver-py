@@ -8,13 +8,15 @@ class ClientSessionHandler( object ):#{{{
 		self.count = 0
 		self.protocol = protocol
 
-		self.scenario = self.scenarioGen()
+		self._scenario = self.protocol.factory.scenario
+		self.scenario = self.protocol.factory.scenario.__iter__()
 
 		self.scenarioStep()
 
 	@logctx
 	def packetReceived( self, packet ):
 		if packet._name == "Fail":
+			self._scenario.status = False
 			self.protocol.loseConnection()
 		elif packet._name == "Sequence":
 			self.count = packet.number - 1
@@ -32,30 +34,9 @@ class ClientSessionHandler( object ):#{{{
 		try:
 			self.protocol.sendPacket( self.scenario.send( packet ) )
 		except StopIteration, ex:
+			self._scenario.status = True
 			self.protocol.loseConnection()
-
-	@staticmethod
-	def scenarioGen():
-		objects = PacketFactory().objects
-
-		yield objects.Connect( 1, "tptests-py client" )
-		yield objects.Ping( 2 )
-		yield objects.GetFeatures( 3 )
-		yield objects.Login( 4, "test@tp", "test" )
-
-		response = yield objects.GetObjectIDs( 5, -1, 0, 0 )
-		response = yield objects.GetObjectIDs( 6, -1, 0, response.remaining )
-		yield objects.GetObjectsByID( 7, [ id for id, modtime in response.modtimes ] )
-
-		response = yield objects.GetBoardIDs( 10, -1, 0, 0 )
-		response = yield objects.GetBoardIDs( 11, -1, 0, response.remaining )
-		yield objects.GetBoards( 12, [ id for id, modtime in response.modtimes ] )
-
-		response = yield objects.GetPlayer( 15, [0] )
-		#yield objects.Player( 17, [ id for id, modtime in response.modtimes ] )
-
-		yield objects.GetTimeRemaining( 100 )
-
+	
 	def logPrefix( self ):
 		return self.__class__.__name__
 #}}}

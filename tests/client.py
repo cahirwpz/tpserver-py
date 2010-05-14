@@ -25,8 +25,14 @@ class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 	@logctx
 	def doStop(self):
 		msg( "Stopping factory." )
-		reactor.stop()
 		ClientFactory.doStop(self)
+
+		try:
+			self.finished
+		except AttributeError:
+			pass
+		else:
+			reactor.callLater( 0, self.finished, self.scenario.status )
 
 	@logctx
 	def clientConnectionFailed(self, connector, reason):
