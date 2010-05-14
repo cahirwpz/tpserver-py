@@ -12,10 +12,7 @@ class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 
 	@logctx
 	def buildProtocol( self, addr ):
-		protocol = ClientFactory.buildProtocol( self, addr )
-		protocol.SessionHandlerType = ClientSessionHandler
-
-		return protocol
+		return ClientFactory.buildProtocol( self, addr )
 
 	@logctx
 	def doStart(self):
@@ -27,19 +24,12 @@ class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 		msg( "Stopping factory." )
 		ClientFactory.doStop(self)
 
-		try:
-			self.finished
-		except AttributeError:
-			pass
-		else:
-			reactor.callLater( 0, self.finished, self.scenario.status )
-
 	@logctx
-	def clientConnectionFailed(self, connector, reason):
+	def clientConnectionFailed( self, connector, reason ):
 		msg( "Connection failed: %s" % reason.getErrorMessage() )
 
 	@logctx
-	def clientConnectionLost(self, connector, reason):
+	def clientConnectionLost( self, connector, reason ):
 		msg( "Connection lost: %s" % reason.getErrorMessage() )
 
 	def logPrefix( self ):

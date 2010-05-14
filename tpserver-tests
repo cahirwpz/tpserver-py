@@ -9,57 +9,77 @@ sys.path.insert(0, 'libtpproto2-py')
 from twisted.internet import reactor, ssl
 from OpenSSL import SSL
 
+from clientsession import TestSession, IncrementingSequenceMixin
 from client import ThousandParsecClientFactory
+from tp.server.protocol import ThousandParsecProtocol
 from tp.server.logging import Logger, msg, logctx
-from tp.server.packet import PacketFactory
+from tp.server.packet import PacketFactory, PacketFormatter
 
-class Test( object ):
-	def __init__( self, _protocol ):
-		self._protocol = _protocol
+class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
+	def __init__( self ):
+		super( ConnectedTestSession, self ).__init__()
 
-class Check_Ping( Test ):
+		self.scenarioList.append( self.__connect() )
+
+	def __connect( self ):
+		yield self.protocol.Connect( self.seq, "tpserver-tests client" )
+#}}}
+
+class Check_Ping( ConnectedTestSession ):#{{{
 	def __iter__( self ):
-		yield self._protocol.Connect( 1, "tpserver-tests client" )
-		yield self._protocol.Ping( 2 )
-
-class Check_GetFeatures( Test ):
+		yield self.protocol.Ping( self.seq )
+#}}}
+class Check_GetFeatures( ConnectedTestSession ):#{{{
 	def __iter__( self ):
-		yield self._protocol.Connect( 1, "tpserver-tests client" )
-		yield self._protocol.GetFeatures( 2 )
-
-class Check_Login( Test ):
+		yield self.protocol.GetFeatures( self.seq )
+#}}}
+class Check_Login( ConnectedTestSession ):#{{{
 	def __iter__( self ):
-		yield self._protocol.Connect( 1, "tpserver-tests client" )
-		yield self._protocol.Login( 2, "test@tp", "test" )
-
-class Check_TimeRemaining( Test ):
+		yield self.protocol.Login( self.seq, "test@tp", "test" )
+#}}}
+class Check_TimeRemaining( ConnectedTestSession ):#{{{
 	def __iter__( self ):
-		yield self._protocol.Connect( 1, "tpserver-tests client" )
-		yield self._protocol.GetTimeRemaining( 2 )
-
-class Check_Full( Test ):
+		yield self.protocol.GetTimeRemaining( self.seq )
+#}}}
+class Check_GetObjectIds( ConnectedTestSession ):#{{{
 	def __iter__( self ):
-		yield self._protocol.Connect( 1, "tptests-py client" )
-		yield self._protocol.Ping( 2 )
-		yield self._protocol.GetFeatures( 3 )
-		yield self._protocol.Login( 4, "test@tp", "test" )
+		yield self.protocol.Login( self.seq, "test@tp", "test" )
 
-		response = yield self._protocol.GetObjectIDs( 5, -1, 0, 0 )
-		response = yield self._protocol.GetObjectIDs( 6, -1, 0, response.remaining )
-		yield self._protocol.GetObjectsByID( 7, [ id for id, modtime in response.modtimes ] )
+		response = yield self.protocol.GetObjectIDs( self.seq, -1, 0, 0 )
+		response = yield self.protocol.GetObjectIDs( self.seq, -1, 0, response.remaining )
+		yield self.protocol.GetObjectsByID( self.seq, [ id for id, modtime in response.modtimes ] )
 
-		response = yield self._protocol.GetBoardIDs( 10, -1, 0, 0 )
-		response = yield self._protocol.GetBoardIDs( 11, -1, 0, response.remaining )
-		yield self._protocol.GetBoards( 12, [ id for id, modtime in response.modtimes ] )
+		response = yield self.protocol.GetBoardIDs( self.seq, -1, 0, 0 )
+		response = yield self.protocol.GetBoardIDs( self.seq, -1, 0, response.remaining )
+		yield self.protocol.GetBoards( self.seq, [ id for id, modtime in response.modtimes ] )
+#}}}
+class Check_GetPlayer( ConnectedTestSession ):#{{{
+	def __iter__( self ):
+		response = yield self.protocol.GetPlayer( self.seq, [0] )
+		#yield self.protocol.Player( 17, [ id for id, modtime in response.modtimes ] )
+#}}}
+class Check_SameSeq( TestSession ):#{{{
+	NoFailAllowed = False
 
-		response = yield self._protocol.GetPlayer( 15, [0] )
-		#yield self._protocol.Player( 17, [ id for id, modtime in response.modtimes ] )
+	def __iter__( self ):
+		yield self.protocol.Connect( 1, "tpserver-tests client" )
+		yield self.protocol.Ping( 2 )
+		packet = yield self.protocol.Ping( 2 )
 
-class ClientTLSContext( ssl.ClientContextFactory ):
+		if packet._name == 'Okay':
+			self.status = False
+			self.reason = "Server does accept multiple packets with same sequence number!"
+		else:
+			self.status = True
+#}}}
+
+class ClientTLSContext( ssl.ClientContextFactory ):#{{{
 	method = SSL.TLSv1_METHOD
+#}}}
 
-class TestRunner( object ):
-	tests = [ Check_Ping, Check_GetFeatures, Check_Login, Check_Full, Check_TimeRemaining ]
+class TestRunner( object ):#{{{
+	tests = [ Check_Ping, Check_GetFeatures, Check_Login, Check_GetObjectIds,
+			Check_TimeRemaining, Check_GetPlayer, Check_SameSeq ]
 
 	def __init__( self ):
 		logger = Logger( level = 'notice' )
@@ -67,30 +87,38 @@ class TestRunner( object ):
 
 		self.__protocol = PacketFactory().objects
 		self.__factory = ThousandParsecClientFactory()
-		self.__factory.finished = self.__finished
 	
 	@logctx
 	def __continue( self ):
 		try:
-			self.__test = self.tests.pop(0)
+			test = self.tests.pop(0)
 		except IndexError, ex:
-			msg( "${wht1}No more tests!${coff}", level='notice' ) 
 			reactor.stop()
 		else:
-			self.__test = self.__test( self.__protocol )
-			self.__factory.scenario = self.__test
+			test.finished = self.__finished
 
-			msg( "${wht1}Starting %s test...${coff}" % self.__test.__class__.__name__, level='notice' ) 
+			ThousandParsecProtocol.SessionHandlerType = test
+
+			msg( "${wht1}Starting %s test...${coff}" % test.__name__, level='info' ) 
 
 			reactor.connectTCP( "localhost", 6923, self.__factory )
 			#reactor.connectSSL( "localhost", 6924, factory, ssl.ClientContextFactory() )
 
 	@logctx
-	def __finished( self, result ):
-		if result == True:
-			msg( "${grn1}Test %s succeeded!${coff}" % self.__test.__class__.__name__, level='notice' ) 
+	def __finished( self, test ):
+		if test.status == True:
+			msg( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__, level='notice' ) 
 		else:
-			msg( "${red1}Test %s failed!${coff}" % self.__test.__class__.__name__, level='notice' ) 
+			msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
+			msg( "${red1}Failed test name:${coff}\n %s" % test.__class__.__name__, level='error' ) 
+			msg( "${red1}Reason:${coff}\n %s" % test.reason, level='error' ) 
+			if test.failRequest:
+				msg( "${red1}Failing request %s:${coff}" % test.failRequest._name, level='error' )
+				msg( PacketFormatter( test.failRequest ), level='error' )
+			if test.failResponse:
+				msg( "${red1}Wrong response %s:${coff}" % test.failResponse._name, level='error' )
+				msg( PacketFormatter( test.failResponse ), level='error' )
+			msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
 
 		self.__continue()
 
@@ -100,6 +128,7 @@ class TestRunner( object ):
 	
 	def logPrefix( self ):
 		return self.__class__.__name__
+#}}}
 
 if __name__ == '__main__':
 	runner = TestRunner()
