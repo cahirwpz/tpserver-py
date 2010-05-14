@@ -9,7 +9,7 @@ cd tpserver-py
 
 ./tpserver-py-tool --addgame tp minisec admin@localhost "A test game"
 ./tpserver-py-tool --populate tp 0 10 10 2 2
-./tpserver-py-tool --adduser tp <username> <password>
+./tpserver-py-tool --player tp <username> <password>
 
 # Run the following to generate a turn
 ./tpserver-py-tool --turn tp
