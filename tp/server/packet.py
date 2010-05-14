@@ -16,7 +16,7 @@ class PacketFactory( object ):#{{{
 
 		self.objects = parser.parseFile( PacketFactory.ProtocolDefinitionFile )
 
-		msg("${yel1}Loaded definition for Thousand Parsec Protocol version %d${coff}" % int( self.objects._version[2:]))
+		msg("${yel1}Loaded definition for Thousand Parsec Protocol version %d${coff}" % int( self.objects.version[2:]))
 
 		# FIXME: use inspect module
 		for name in dir( self.objects ):
