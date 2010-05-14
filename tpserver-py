@@ -1,35 +1,29 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
 
 import requirements
 import config
 
-import socket
-from tp.server.server import FullServer
+from twisted.internet import reactor, ssl
+from OpenSSL import SSL
+
+from tp.server.server import ThousandParsecServerFactory
+from tp.server.logging import Logger
+
+class ClientTLSContext( ssl.ClientContextFactory ):
+        method = SSL.TLSv1_METHOD
 
 def main():
-	port = 6923
-	try:
-		while True:
-			try:
-				s = FullServer("", port, port+1)
-				print "Used port", port
-			except socket.error, e:
-				import traceback
-				traceback.print_exc()
+	tp_port = 6923
+	tps_port = 6924
 
-				if e == (99, 'Cannot assign requested address'):
-					print e
-					break
+	logger = Logger()
+	logger.start()
 
-				print e, "This port in use...", port
-				port += 1
-				continue
-			
-			s.serve_forever()
-	except KeyboardInterrupt:
-		# FIXME: Should notify clients, or should at least explicitely
-		# close all open connections.
-		print "Interrupted by keyboard; exiting"
+	factory = ThousandParsecServerFactory()
+	factory.port = reactor.listenTCP( tp_port, factory )
+	#factory.portSSL = reactor.listenSSL( tps_port, factory, ssl.ClientContextFactory() )
+	reactor.run()
+
 
 if __name__ == "__main__":
 	main()
