@@ -1,5 +1,6 @@
 from protocol import ThousandParsecProtocol
 from logging import logctx, msg
+from clientsession import ClientSessionHandler
 
 from twisted.internet import reactor
 from twisted.internet.protocol import ServerFactory
@@ -9,6 +10,13 @@ from config import dbconfig, dbecho, servername, serverip, metaserver
 class ThousandParsecServerFactory( ServerFactory, object ):#{{{
 	protocol = ThousandParsecProtocol
 	noisy = False
+
+	@logctx
+	def buildProtocol( self, addr ):
+		protocol = ServerFactory.buildProtocol( self, addr )
+		protocol.SessionHandlerType = ClientSessionHandler
+
+		return protocol
 
 	@logctx
 	def doStart(self):

@@ -60,7 +60,7 @@ class ClientSessionHandler( object ):#{{{
 				response = None
 			
 			if not response:
-				response = self._objects.Fail( packet._sequence, "UnavailablePermanently", "Unable to produce response!", [])
+				response = self._objects.Fail( packet._sequence, "UnavailablePermanently", "Internal server error!", [])
 
 		if isinstance( response, list ):
 			for r in response:

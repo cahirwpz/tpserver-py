@@ -4,10 +4,9 @@ from twisted.internet.protocol import Protocol
 
 from logging import logctx, msg, err
 from packet import PacketFactory, PacketFormatter
-from clientsession import ClientSessionHandler
 
 class ThousandParsecProtocol( Protocol, object ):#{{{
-	SessionHandlerType = ClientSessionHandler
+	SessionHandlerType = None
 
 	@logctx
 	def connectionMade( self ):
