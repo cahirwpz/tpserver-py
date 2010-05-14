@@ -15,7 +15,7 @@ from tp.server.db.enum import Enum
 from tp.server.bases.SQL  import SQLBase, NoSuch
 
 from tp.netlib import objects
-from tp.netlib.discover.game import Game as DiscoverGame
+#from tp.netlib.discover.game import Game as DiscoverGame
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -362,6 +362,7 @@ class Game(SQLBase):
 								self.ruleset.name, self.ruleset.version,
 								locations, optional)
 
+"""
 	def to_discover(self):
 		g = DiscoverGame(self.longname)
 
@@ -401,4 +402,4 @@ class Game(SQLBase):
 
 		g.updateOptional(optional)
 		return g
-
+"""
