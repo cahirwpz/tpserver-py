@@ -1,7 +1,7 @@
 from common import TestSession
 
-class CheckSameSequenceInHeader( TestSession ):
-	description = "Checks if a server drops second packet with same sequence."
+class SameSequenceInHeader( TestSession ):
+	""" Checks if a server drops second packet with same sequence. """
 
 	NoFailAllowed = False
 
@@ -15,3 +15,5 @@ class CheckSameSequenceInHeader( TestSession ):
 			self.reason = "Server does accept multiple packets with same sequence number!"
 		else:
 			self.status = True
+
+__tests__ = [ SameSequenceInHeader ]

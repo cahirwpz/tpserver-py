@@ -12,13 +12,16 @@ from tp.server.logging import Logger, LoggerConfiguration
 from tp.server.configuration import CLIConfigurator, ConfigurationError
 
 from testrunner import TestRunner, TestRunnerConfiguration
+from testrunner import TestSelector, TestSelectorConfiguration
 
 def main():
 	logger = Logger()
-	runner = TestRunner()
+	selector = TestSelector()
+	runner = TestRunner( selector )
 
 	configurator = CLIConfigurator( "Thousand Parsec Test Client" )
 	configurator.registerComponent( logger, LoggerConfiguration() )
+	configurator.registerComponent( selector, TestSelectorConfiguration() )
 	configurator.registerComponent( runner, TestRunnerConfiguration() )
 
 	try:

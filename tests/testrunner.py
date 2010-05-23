@@ -1,32 +1,83 @@
+#!/usr/bin/env python
+
+import fnmatch
+from collections import Iterator
+
 from twisted.internet import reactor, ssl
 from OpenSSL import SSL
 
-from tp.server.configuration import ComponentConfiguration, StringOption, IntegerOption, BooleanOption
-from tp.server.logging import msg, logctx
+from tp.server.configuration import ComponentConfiguration, StringOption, IntegerOption, BooleanOption, ConfigurationError
+from tp.server.logging import Logger, msg, logctx
 from tp.server.protocol import ThousandParsecProtocol
 from tp.server.packet import PacketFactory, PacketFormatter
 
 from client import ThousandParsecClientFactory
 
-from testcases import __testcases__
+from testcases import __manager__
 
 class ClientTLSContext( ssl.ClientContextFactory ):
 	method = SSL.TLSv1_METHOD
 
-class TestRunner( object ):#{{{
+class TestSelector( Iterator ):#{{{
 	def __init__( self ):
-		self.__protocol = PacketFactory().objects
-		self.__factory = ThousandParsecClientFactory()
-		self.tests = list( __testcases__ )
+		self.__manager	= __manager__
+		self.__tests	= []
+		self.__index	= 0
+	
+	def next( self ):
+		if self.__index >= len( self.__tests ):
+			raise StopIteration
 
-		#self.__manager = TestManager()
-		#self.__chooser = TestSelector( self.__manager )
+		name = self.__tests[ self.__index ]
+
+		self.__index += 1
+
+		return self.__manager[ name ]
+
+	def configure( self, configuration ):
+		tests = configuration.tests
+
+		if tests == 'LIST':
+			raise SystemExit( Logger.colorizeMessage( '\n'.join( self.__manager.getReport() ) ) )
+		elif tests == 'DEFAULT':
+			self.__tests = [ 'DEFAULT' ]
+		elif tests == 'ALL':
+			self.__tests = self.__manager.keys()
+		else:
+			for name in tests.split(','):
+				try:
+					names = fnmatch.filter( self.__manager.keys(), name )
+
+					if not names:
+						raise KeyError( 'No test matching \'%s\'' % name )
+
+					self.__tests.extend( names )
+				except KeyError, ex:
+					raise SystemExit( ex )
+
+		if not self.__tests:
+			raise ConfigurationError( 'test run is empty' )
+
+#}}}
+
+class TestSelectorConfiguration( ComponentConfiguration ):#{{{
+	tests = StringOption( short='t',
+						  help='Specifies which tests will be added to test run. TEST-LIST is a list of test names or glob (see unix manual pages) patterns separated by comma. There are some arguments to this option that have a special meaning. \'LIST\' will force to display all available tests and finish the application. \'ALL\' will add all available test to test run.', arg_name='TEST-LIST' )
+#}}}
+
+__all__ = [ 'TestSelector', 'TestSelectorConfiguration', 'TestManager' ]
+
+class TestRunner( object ):#{{{
+	def __init__( self, selector ):
+		self.__protocol	= PacketFactory().objects
+		self.__factory	= ThousandParsecClientFactory()
+		self.__selector	= selector
 
 	@logctx
 	def __continue( self ):
 		try:
-			test = self.tests.pop(0)
-		except IndexError, ex:
+			test = self.__selector.next()
+		except StopIteration, ex:
 			reactor.stop()
 		else:
 			test.finished = self.__finished
@@ -47,7 +98,7 @@ class TestRunner( object ):#{{{
 		else:
 			msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
 			msg( "${red1}Failed test name:${coff}\n %s" % test.__class__.__name__, level='error' ) 
-			msg( "${red1}Description:${coff}\n %s" % test.description, level='error' ) 
+			msg( "${red1}Description:${coff}\n %s" % test.__doc__, level='error' ) 
 			msg( "${red1}Reason:${coff}\n %s" % test.reason, level='error' ) 
 			if test.failRequest:
 				msg( "${red1}Failing request %s:${coff}" % test.failRequest._name, level='error' )
@@ -85,4 +136,4 @@ class TestRunnerConfiguration( ComponentConfiguration ):#{{{
 								help='Use TLS instead of TCP connection.' )
 #}}}
 
-__all__ = [ 'TestRunner', 'TestRunnerConfiguration' ]
+__all__ = [ 'TestRunner', 'TestRunnerConfiguration', 'TestSelector', 'TestSelectorConfiguration' ]
