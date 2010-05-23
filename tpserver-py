@@ -1,30 +1,32 @@
 #!/usr/bin/env python
 
 import requirements
-import config
 
-from twisted.internet import reactor, ssl
-from OpenSSL import SSL
+from twisted.internet import reactor
 
-from tp.server.server import ThousandParsecServerFactory
-from tp.server.logging import Logger
-
-class ClientTLSContext( ssl.ClientContextFactory ):
-        method = SSL.TLSv1_METHOD
+from tp.server.configuration import CLIConfigurator, ConfigurationError
+from tp.server.server import ThousandParsecServerFactory, ThousandParsecServerConfiguration
+from tp.server.logging import Logger, LoggerConfiguration
 
 def main():
-	tp_port = 6923
-	tps_port = 6924
+	logger	= Logger()
+	factory	= ThousandParsecServerFactory()
 
-	logger = Logger()
+	configurator = CLIConfigurator( "Thousand Parsec Server" )
+	configurator.registerComponent( logger, LoggerConfiguration() )
+	configurator.registerComponent( factory, ThousandParsecServerConfiguration() )
+
+	try:
+		configurator.configParse()
+		configurator.configCommit()
+	except ConfigurationError, ex:
+		configurator.help()
+
+		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
+
 	logger.start()
-
-	factory = ThousandParsecServerFactory()
-	factory.port = reactor.listenTCP( tp_port, factory )
-	#factory.portSSL = reactor.listenSSL( tps_port, factory, ssl.ClientContextFactory() )
+	factory.start()
 	reactor.run()
-
 
 if __name__ == "__main__":
 	main()
-
