@@ -6,8 +6,7 @@
 # Preference the local directory first...
 import sys
 sys.path.insert(0, '.')
-import os
-import os.path
+import os, os.path
 
 modules = ["libtpproto2-py", "schemepy"]
 for module in modules:
@@ -15,6 +14,7 @@ for module in modules:
 		sys.path.insert(0, module)
 
 import tp.server.version as version
+
 if hasattr(version, "version_git"):
 	os.system("git submodule update --init")
 
@@ -22,8 +22,8 @@ notfound    = []
 recommended = []
 
 # Try and figure out what type of system this computer is running.
-import os
 result = os.system('apt-get --version > /dev/null 2>&1') 
+
 if result == 0:
 	system = "debian-based"
 elif result == 32512:
@@ -31,6 +31,7 @@ elif result == 32512:
 
 from types import StringTypes
 import re
+
 def cmp(ver1, ver2):
 	if type(ver2) in StringTypes:
 		ver2 = [int(re.sub('[^0-9].*','', x)) for x in ver2.split('.')]
@@ -203,13 +204,17 @@ try:
 	print " * Looking for SSL support,"
 	try:
 		import pyOpenSSL
-
 	except Exception, e:
-		print e
+		pass
 
-		# Maybe it's using a different name
+	try:
 		import OpenSSL as pyOpenSSL
-	print "      SSL support found, provided by", pyOpenSSL
+	except Exception, e:
+		pass
+
+	pyOpenSSL.__version__
+
+	print "      SSL support found, version", pyOpenSSL.__version__
 except Exception, e:
 	print e
 
@@ -230,7 +235,6 @@ if len(notfound) > 0:
 		print '    ', module
 	print
 
-import os, pprint
 try:
 	COLS = int(os.environ["COLUMNS"])
 except (KeyError, ValueError):
