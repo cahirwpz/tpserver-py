@@ -3,6 +3,7 @@
 import string, sys, linecache
 
 from twisted.python import log, util, context, failure
+from configuration import ComponentConfiguration, BooleanOption, StringSetOption
 
 msg = log.msg
 err = log.err
@@ -26,7 +27,7 @@ def format_frames(frames, write, detail="default"):#{{{
 	@param write: method used to show formatted frames
 	@param detail: not used
 	"""
-	level = globals()["CurrentLogLevel"]
+	level = 1 #globals()["CurrentLogLevel"]
 	w = write
 
 	prefixes = [ path for path in sys.path if len(path) ]
@@ -66,7 +67,6 @@ class Logger( log.FileLogObserver ):#{{{
 	@type colors: dict
 	@cvar levels: levels of logging information output
 	@type levels: dict
-	@ivar __level: current cog level
 	"""
 
 	colors =  {	'gry0':	'\033[0;30m',
@@ -87,7 +87,6 @@ class Logger( log.FileLogObserver ):#{{{
 				'wht1':	'\033[1;37m',
 				'coff':	'\033[0m' }
 
-
 	levels =  {	'debug2'	:	0, 		# Verbose debug information
 				'debug1'	:	1, 		# Normal debug information
 				'info'		:	2, 		# Informational messages
@@ -98,7 +97,7 @@ class Logger( log.FileLogObserver ):#{{{
 				'critical'	:	6 		# Critical messages. Most probably they will be accompanied with program 
 										# termination. (prefferable colors: red1)
 			  }
-	
+
 	@staticmethod
 	def colorizeMessage( msg ):
 		"""
@@ -107,13 +106,16 @@ class Logger( log.FileLogObserver ):#{{{
 		"""
 		return string.Template( msg ).safe_substitute( Logger.colors )
 
-	def __init__( self, level = 'debug1' ):
+	def __init__( self ):
 		"""
 		Constructor
 		"""
 		log.FileLogObserver.__init__( self, sys.stderr )
 
-		self.__level = level
+	def configure( self, configuration ):
+		self.__level = configuration.log_level
+		self.__drop_system = configuration.log_drop_system
+		self.__drop_time = configuration.log_drop_time
 
 		globals()["CurrentLogLevel"] = Logger.levels[ self.__level ]
 
@@ -150,8 +152,11 @@ class Logger( log.FileLogObserver ):#{{{
 		if Logger.levels[ level ] >= Logger.levels[ self.__level ]:
 			format = dict( time='', system='' )
 
-			format['time'] = '%s ' % self.formatTime( eventDict[ 'time' ] )
-			format['system'] = '[%s] ' % eventDict[ 'system' ]
+			if not self.__drop_time:
+				format['time'] = '%s ' % self.formatTime( eventDict[ 'time' ] )
+
+			if not self.__drop_system:
+				format['system'] = '[%s] ' % eventDict[ 'system' ]
 
 			for text in eventDict[ 'message' ]:
 				if text is None or eventDict[ 'system' ] == '-':
@@ -168,4 +173,16 @@ class Logger( log.FileLogObserver ):#{{{
 			util.untilConcludes( self.flush )
 #}}}
 
-__all__ = [ 'Logger', 'logctx', 'log', 'err' ]
+class LoggerConfiguration( ComponentConfiguration ):#{{{
+	component		= Logger
+
+	log_level		= StringSetOption( short='l', default='info', values=set( Logger.levels ),
+							help='All log message with level lower than provided will be dropped. Allowed log levels are: %s.' %
+							', '.join( sorted(Logger.levels, lambda x,y: cmp(Logger.levels[x], Logger.levels[y])) ), arg_name='LEVEL' )
+	log_drop_time	= BooleanOption( default=False,
+							help='Force logger to drop time prefix for each printed log message.' )
+	log_drop_system	= BooleanOption( default=False,
+							help='Force logger to drop component name (where the message was generated) prefix from each printed log message.' )
+#}}}
+
+__all__ = [ 'Logger', 'LoggerConfiguration', 'logctx', 'log', 'err' ]
