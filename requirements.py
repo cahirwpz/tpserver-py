@@ -219,51 +219,6 @@ except Exception, e:
 	else:
 		recommended.append(("pyOpenSSL", reason))
 
-print
-print "Checking config file:"
-print "---------------------------------------------------------------"
-
-import os.path
-if not os.path.exists('config.py'):
-	print "WARNING: No config.py found, setting one up for you."
-	import shutil
-	shutil.copy('config.py-template', 'config.py')
-
-import socket
-try:
-	import sys
-	sys.path.insert(0, "/etc/tpserver-py")
-	sys.path.insert(0, ".")
-	import config
-
-	config.dbconfig
-	config.dbecho
-	config.servername
-	config.serverip
-	config.socketecho
-	config.metaserver
-
-	print " * Configuration seems okay"
-except socket.error, e:
-	print e[1]
-	print
-	print "The config file was unable to figure out your hostname."
-	print " Please set both 'serverip' and 'servername' values in config.py manually."
-	sys.exit(1)
-except AttributeError, e:
-	print e
-	print
-	print "You seem to be missing a required configuration value."
-	print " Please check the case and spelling of all values."
-	sys.exit(1)
-except Exception, e:
-	print e
-	print
-	print "There is an unknown problem with your config file."
-	print " Please check the file carefully."
-	sys.exit(1)
-
-
 if len(notfound) > 0 or len(recommended) > 0:
 	print
 	print "Possible problems found:"
