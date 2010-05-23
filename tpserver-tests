@@ -6,70 +6,32 @@ sys.path.insert(0, '.')
 sys.path.insert(0, 'tests')
 sys.path.insert(0, 'libtpproto2-py')
 
-from twisted.internet import reactor, ssl
-from OpenSSL import SSL
+from twisted.internet import reactor
 
-from client import ThousandParsecClientFactory
-from tp.server.protocol import ThousandParsecProtocol
-from tp.server.logging import Logger, msg, logctx
-from tp.server.packet import PacketFactory, PacketFormatter
+from tp.server.logging import Logger, LoggerConfiguration
+from tp.server.configuration import CLIConfigurator, ConfigurationError
 
-from testcases import __testcases__
+from testrunner import TestRunner, TestRunnerConfiguration
 
-class ClientTLSContext( ssl.ClientContextFactory ):
-	method = SSL.TLSv1_METHOD
+def main():
+	logger = Logger()
+	runner = TestRunner()
 
-class TestRunner( object ):
-	def __init__( self ):
-		logger = Logger( level = 'notice' )
-		logger.start()
+	configurator = CLIConfigurator( "Thousand Parsec Test Client" )
+	configurator.registerComponent( logger, LoggerConfiguration() )
+	configurator.registerComponent( runner, TestRunnerConfiguration() )
 
-		self.__protocol = PacketFactory().objects
-		self.__factory = ThousandParsecClientFactory()
-		self.tests = list( __testcases__ )
-	
-	@logctx
-	def __continue( self ):
-		try:
-			test = self.tests.pop(0)
-		except IndexError, ex:
-			reactor.stop()
-		else:
-			test.finished = self.__finished
+	try:
+		configurator.configParse()
+		configurator.configCommit()
+	except ConfigurationError, ex:
+		configurator.help()
 
-			ThousandParsecProtocol.SessionHandlerType = test
+		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-			msg( "${wht1}Starting %s test...${coff}" % test.__name__, level='info' ) 
-
-			reactor.connectTCP( "localhost", 6923, self.__factory )
-			#reactor.connectSSL( "localhost", 6924, factory, ssl.ClientContextFactory() )
-
-	@logctx
-	def __finished( self, test ):
-		if test.status == True:
-			msg( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__, level='notice' ) 
-		else:
-			msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
-			msg( "${red1}Failed test name:${coff}\n %s" % test.__class__.__name__, level='error' ) 
-			msg( "${red1}Description:${coff}\n %s" % test.description, level='error' ) 
-			msg( "${red1}Reason:${coff}\n %s" % test.reason, level='error' ) 
-			if test.failRequest:
-				msg( "${red1}Failing request %s:${coff}" % test.failRequest._name, level='error' )
-				msg( PacketFormatter( test.failRequest ), level='error' )
-			if test.failResponse:
-				msg( "${red1}Wrong response %s:${coff}" % test.failResponse._name, level='error' )
-				msg( PacketFormatter( test.failResponse ), level='error' )
-			msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
-
-		self.__continue()
-
-	def run( self ):
-		reactor.callLater( 0, self.__continue )
-		reactor.run()
-	
-	def logPrefix( self ):
-		return self.__class__.__name__
+	logger.start()
+	runner.start()
+	reactor.run()
 
 if __name__ == '__main__':
-	runner = TestRunner()
-	runner.run()
+	main()
