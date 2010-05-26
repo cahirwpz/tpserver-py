@@ -8,7 +8,7 @@ import time
 class PacketFactory( object ):#{{{
 	__metaclass__ = SingletonClass
 
-	ProtocolDefinitionFile = "libtpproto2-py/tp/netlib/protocol3.xml"
+	ProtocolDefinitionFile = "libtpproto2-py/tp/netlib/protocol.xml"
 
 	def __init__( self ):
 		self.__objectsById = {}
@@ -60,7 +60,7 @@ def PacketFormatter( packet ):#{{{
 			try:
 				value = "%d.%d" % ( int(value[2:]), 0 )
 			except ValueError:
-				value = "%d.%d" % ( value[2], value[3] )
+				value = "%d.%d" % ( ord(value[2]), ord(value[3]) )
 		elif name == "type":
 			value = PacketFactory().commandAsString( packet._type )
 		elif isinstance( structure, structures.DateTime.DateTimeStructure ) or (name == "modtime" and type(value) == int):

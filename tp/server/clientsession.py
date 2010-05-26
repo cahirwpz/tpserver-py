@@ -48,7 +48,7 @@ class ClientSessionHandler( object ):#{{{
 
 		if self.lastSeq != None:
 			if self.lastSeq >= packet._sequence:
-				self.sendResponse( self._objects.Fail( packet._sequence, "Frame", "Wrong sequence number!" ) )
+				self.sendResponse( self._objects.Fail( packet._sequence, "Frame", "Wrong sequence number!", [] ) )
 				return
 			else:
 				self.lastSeq = packet._sequence

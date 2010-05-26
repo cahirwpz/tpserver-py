@@ -38,7 +38,7 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 
 					version, sequence, command, length = self.header
 
-					if version not in [ "TP03", "TP04" ]:
+					if version not in [ "TP03", "TP\x04\x00" ]:
 						self.sendPacket( PacketFactory().objects.Fail( 0, "Protocol %s not supported" % version ) )
 						self.loseConnection()
 
