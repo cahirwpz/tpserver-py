@@ -81,7 +81,7 @@ class StringOption( Option ):#{{{
 
 	def __set__( self, obj, value ):
 		if not isinstance( value, ( str, unicode ) ) and not ( self.__allow_empty and value is None ):
-			raise ConfigurationError( '%s must be a string' % self.name )
+			raise ConfigurationError( '%s must be a string' % self.__name__ )
 
 		Option.__set__( self, obj, value )
 	

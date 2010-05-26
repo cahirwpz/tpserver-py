@@ -61,7 +61,7 @@ class TestSelector( Iterator ):#{{{
 #}}}
 
 class TestSelectorConfiguration( ComponentConfiguration ):#{{{
-	tests = StringOption( short='t',
+	tests = StringOption( short='t', default='ALL',
 						  help='Specifies which tests will be added to test run. TEST-LIST is a list of test names or glob (see unix manual pages) patterns separated by comma. There are some arguments to this option that have a special meaning. \'LIST\' will force to display all available tests and finish the application. \'ALL\' will add all available test to test run.', arg_name='TEST-LIST' )
 #}}}
 
