@@ -1,33 +1,29 @@
-"""\
+"""
 Resources require to build stuff.
 """
-# Module imports
+
 from sqlalchemy import *
 
-# Local imports
-from tp.server.db   import *
+from tp.server.db import *
 from tp.server.bases.Game import Game
+from tp.server.bases.SQL import SQLBase
 
-from tp import netlib
-from SQL import SQLBase
-
-class User(SQLBase):
+class User( SQLBase ):#{{{
 	table = Table('user', metadata,
-		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('username',  String(255), nullable=False, index=True),
-		Column('password',  String(255), nullable=False, index=True),
-		Column('comment',   Binary,      nullable=False, default=""),
-		Column('time',	    DateTime,    nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
-
-		UniqueConstraint('username', 'game'),
-		ForeignKeyConstraint(['game'], ['game.id']),
-	)
+				Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('username',  String(255), nullable=False, index=True),
+				Column('password',  String(255), nullable=False, index=True),
+				Column('comment',   Binary,      nullable=False, default=""),
+				Column('time',	    DateTime,    nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()),
+				UniqueConstraint('username', 'game'),
+				ForeignKeyConstraint(['game'], ['game.id']))
 
 	@staticmethod
 	def usernameid(game, username, password=None):
-		"""\
+		"""
 		Get the id for a user given a game, username and password.
 		"""
 		dbconn.use(game)
@@ -45,7 +41,7 @@ class User(SQLBase):
 
 	@staticmethod
 	def split(username):
-		"""\
+		"""
 		Split a username into the user and game parts.
 		"""
 		if username.find('@') == -1:
@@ -62,20 +58,17 @@ class User(SQLBase):
 	def __str__(self):
 		return "<User id=%s username=%s>" % (self.id, self.username)
 
-	def game_get(self):
+	@property
+	def game(self):
 		return self.__game.id
-	def game_set(self, value):
+
+	@game.setter
+	def game(self, value):
 		if hasattr(self, '__game'):
 			raise TypeError('The game can not be changed!')
 		self.__game = Game(id=value)
-	game = property(game_get, game_set)
 
+	@property
 	def playing(self):
-		return self.__game
-	playing = property(playing)
-
-	def to_packet(self, user, sequence):
-		# Preset arguments
-		args = [sequence, self.id, self.username, ""]
-		return netlib.objects.Player(*args)
-
+		return bool(self.__game)
+#}}}

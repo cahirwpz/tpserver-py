@@ -1,63 +1,58 @@
-"""\
+"""
 Design of things.
 """
-# Module imports
-from sqlalchemy import *
-
-# Local imports
-from tp.server.db import *
-from tp import netlib
-from SQL import SQLBase
-
-from Object import Object
-from Order import Order
-from Component import Component
-from Property import Property
 
 import pyscheme as scheme
+from sqlalchemy import *
 
-class Design(SQLBase):
+from tp.server.logging import msg
+from tp.server.db import *
+from tp.server.bases.SQL import SQLBase
+from tp.server.bases.Object import Object
+from tp.server.bases.Order import Order
+from tp.server.bases.Component import Component
+from tp.server.bases.Property import Property
+
+class Design( SQLBase ):#{{{
 	table = Table('design', metadata,
-		Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('name',	    String(255), nullable=False, index=True),
-		Column('desc',      Binary,      nullable=False),
-		Column('owner',     Integer,     nullable=False),
-		Column('time',	    DateTime,    nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+				Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('name',	    String(255), nullable=False, index=True),
+				Column('desc',      Binary,      nullable=False),
+				Column('owner',     Integer,     nullable=False),
+				Column('time',	    DateTime,    nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()),
+				ForeignKeyConstraint(['owner'], ['user.id']),
+				ForeignKeyConstraint(['game'],  ['game.id']))
 
-		ForeignKeyConstraint(['owner'], ['user.id']),
-		ForeignKeyConstraint(['game'],  ['game.id']),
-
-	)
 	table_category = Table('design_category', metadata,
-		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
-		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
-		Column('category',  Integer,  nullable=False, index=True, primary_key=True),
-		Column('comment',   Binary,   nullable=False, default=''),
-		Column('time',	    DateTime, nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+				Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
+				Column('design',    Integer,  nullable=False, index=True, primary_key=True),
+				Column('category',  Integer,  nullable=False, index=True, primary_key=True),
+				Column('comment',   Binary,   nullable=False, default=''),
+				Column('time',	    DateTime, nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()),
+				ForeignKeyConstraint(['design'],   ['design.id']),
+				ForeignKeyConstraint(['category'], ['category.id']),
+				ForeignKeyConstraint(['game'],     ['game.id']))
 
-		ForeignKeyConstraint(['design'],   ['design.id']),
-		ForeignKeyConstraint(['category'], ['category.id']),
-		ForeignKeyConstraint(['game'],     ['game.id']),
-	)
 	table_component = Table('design_component', metadata,
-		Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
-		Column('design',    Integer,  nullable=False, index=True, primary_key=True),
-		Column('component', Integer,  nullable=False, index=True, primary_key=True),
-		Column('amount',    Integer,  nullable=False, default=0),
-		Column('comment',   Binary,   nullable=False, default=''),
-		Column('time',	    DateTime, nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+				Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
+				Column('design',    Integer,  nullable=False, index=True, primary_key=True),
+				Column('component', Integer,  nullable=False, index=True, primary_key=True),
+				Column('amount',    Integer,  nullable=False, default=0),
+				Column('comment',   Binary,   nullable=False, default=''),
+				Column('time',	    DateTime, nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default=func.current_timestamp()),
+				ForeignKeyConstraint(['design'],    ['design.id']),
+				ForeignKeyConstraint(['component'], ['component.id']),
+				ForeignKeyConstraint(['game'],      ['game.id']))
 
-		ForeignKeyConstraint(['design'],    ['design.id']),
-		ForeignKeyConstraint(['component'], ['component.id']),
-		ForeignKeyConstraint(['game'],      ['game.id']),
-	)
-	
 	def load(self, id):
-		"""\
+		"""
 		load(id)
 
 		Loads a thing from the database.
@@ -71,7 +66,7 @@ class Design(SQLBase):
 		self.components = self.get_components()
 
 	def save(self, forceinsert=False):
-		"""\
+		"""
 		save()
 
 		Saves a thing to the database.
@@ -112,9 +107,6 @@ class Design(SQLBase):
 				if end != None and end > 0:
 					results = insert(t).execute(design=self.id, component=cid, amount=end)
 			
-	def set_ignore(self, value):
-		return
-	
 	def get_categories(self):
 		"""\
 		get_categories -> [id, ...]
@@ -147,6 +139,7 @@ class Design(SQLBase):
 				self._components = [(x['component'], x['amount']) for x in results]
 		return self._components
 	
+	@property
 	def used(self):
 		"""\
 		used -> value
@@ -181,8 +174,8 @@ class Design(SQLBase):
 			beingbuilt = 0
 		
 		return inplay+beingbuilt
-	used = property(used)
 
+	@property
 	def properties(self):
 		"""\
 		properties -> [(id, value, string), ...]
@@ -191,8 +184,8 @@ class Design(SQLBase):
 		"""
 		i, design = self.calculate()
 		return [(x[0], x[2]) for x in design.values()]
-	properties = property(properties)
 
+	@property
 	def feedback(self):
 		"""\
 		feedback -> string
@@ -200,8 +193,8 @@ class Design(SQLBase):
 		Returns the feedback for this design.
 		"""
 		return self.check()[1]
-	feedback = property(feedback)
 
+	@property
 	def rank(self):
 		if len(self.components) <= 0:
 			return {}
@@ -225,7 +218,7 @@ class Design(SQLBase):
 		return ranks
 
 	def calculate(self):
-		"""\
+		"""
 		calculate() -> Interpretor, Design
 
 		Calculates all the properties on a design. 
@@ -238,7 +231,7 @@ class Design(SQLBase):
 		# Step 1 -------------------------------------
 
 		ranks = self.rank()
-		print "The order I need to calculate stuff in is,", ranks
+		msg( "The order I need to calculate stuff in is, %s" % ranks )
 
 		# Step 2 -------------------------------------
 
@@ -265,26 +258,26 @@ class Design(SQLBase):
 					# Calculate the actual value for this design
 					value = component.property(property_id)
 					if value:
-						print "Now evaluating", value
+						msg( "Now evaluating %s" % value )
 						value = i.eval(scheme.parse("""( %s design)""" % value))
 
-						print "The value calculated for component %i was %r" % (component_id, value)
+						msg( "The value calculated for component %i was %r" % (component_id, value) )
 					
 						for x in range(0, amount):
 							bits.append(value)
 
-				print "All the values calculated where", bits
+				msg( "All the values calculated where %s", bits )
 				bits_scheme = "(list"
 				for bit in bits:
 					bits_scheme += " " + str(bit).replace('L', '')
 				bits_scheme += ")"
-				print "In scheme that is", bits_scheme
+				msg( "In scheme that is %s", bits_scheme )
 			
-				print """(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)	
+				msg( "(let ((bits %s)) (%s design bits))" % (bits_scheme, property.calculate) )
 				total = i.eval(scheme.parse("""(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)))
 				value, display = scheme.pair.car(total), scheme.pair.cdr(total)
 
-				print "In total I got '%i' which will be displayed as '%s'" % (value, display)
+				msg( "In total I got '%i' which will be displayed as '%s'" % (value, display) )
 				design[property.name] = (property_id, value, display)
 
 				def t(design, name=property.name):
@@ -292,12 +285,12 @@ class Design(SQLBase):
 				
 				i.install_function('designtype.'+property.name, t)
 				
-		print "The final properties we have are", design.items()
+		msg( "The final properties we have are %s" % design.items() )
 		self._calculate = (i, design)
 		return i, design
 	
 	def check(self):
-		"""\
+		"""
 		check() -> Interpretor, Design
 
 		Checks the requirements of a design.
@@ -318,13 +311,13 @@ class Design(SQLBase):
 
 				property = Property(property_id)
 				if property.requirements == '':
-					print "Property with id (%i) doesn't have any requirements" % property_id
+					msg( "Property with id (%i) doesn't have any requirements" % property_id )
 					continue
 			
-				print "Now checking the following requirement"
-				print property.requirements
+				msg( "Now checking the following requirement" )
+				msg( str( property.requirements ) )
 				result = i.eval(scheme.parse("""(%s design)""" % property.requirements))
-				print "Result was:", result
+				msg( "Result was: %s", result )
 				okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
 
 				if okay != scheme.symbol.Symbol('#t'):
@@ -332,19 +325,18 @@ class Design(SQLBase):
 		
 				if feedback != "":
 					total_feedback.append(feedback)
-
 				
 		# Step 3, calculate the requirements for the components
 		for component_id, amount in self.components:
 			component = Component(component_id)
 			if component.requirements == '':
-				print "Component with id (%i) doesn't have any requirements" % component_id
+				msg( "Component with id (%i) doesn't have any requirements" % component_id )
 				continue
 			
-			print "Now checking the following requirement"
-			print component.requirements
+			msg( "Now checking the following requirement" )
+			msg( str( component.requirements ) )
 			result = i.eval(scheme.parse("""(%s design)""" % component.requirements))
-			print "Result was:", result
+			msg( "Result was: %s" % result )
 			okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
 
 			if okay != scheme.symbol.Symbol('#t'):
@@ -356,38 +348,6 @@ class Design(SQLBase):
 		self._check = (total_okay, "\n".join(total_feedback))
 		return total_okay, "\n".join(total_feedback)
 
-	def to_packet(self, user, sequence):
-		# FIXME: The calculate function gets called 3 times when we convert to a packet
-		print (sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
-		return netlib.objects.Design(sequence, self.id, self.time, self.categories, self.name, self.desc, self.used, self.owner, self.components, self.feedback, self.properties)
-
-	def from_packet(self, user, packet):
-		# Check the design meets a few guide lines
-		
-		# FIXME: Check each component exists and the amount is posative
-		for id, amount in packet.components:
-			pass
-		
-		# Check we have at least one category
-		if len(packet.categories) < 1:
-			raise ValueError("Designs must have atleast one category")
-		else:
-			# FIXME: Check that the categories are valid
-			pass
-		
-		# FIXME: Check the owner is sane
-	
-		# FIXME: Check the id
-		if packet.id != -1:
-			self.id = packet.id
-			
-		for key in ["categories", "name", "desc", "owner", "components"]:
-			setattr(self, key, getattr(packet, key))
-
-	@classmethod
-	def id_packet(cls):
-		return netlib.objects.Design_IDSequence
-
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)
-
+#}}}

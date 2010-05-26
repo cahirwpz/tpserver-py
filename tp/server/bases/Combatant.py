@@ -1,23 +1,22 @@
-
-class Combattant(object):
-	def dead(self):
-		"""\
+class Combatant( object ):#{{{
+	def dead( self ):
+		"""
 		Returns if the object can no-longer participate in combat.
 		"""
-		raise NotImplimented("Combattant.dead method not implimented.")
+		raise NotImplemented("Combatant.dead method not implimented.")
 	
-	def damage_do(self, damage):
-		"""\
+	def damage_do( self, damage ):
+		"""
 		damage_do([10, 3])
 		damage_do(10)
 		
 		Does the list of discreet damage to the object. Damage should 
 		either be a list of integers or an integer.
 		"""
-		raise NotImplimented("Combattant.damage_do method not implimented.")
+		raise NotImplemented("Combatant.damage_do method not implimented.")
 
-	def damage_get(self, fail=False):
-		"""\
+	def damage_get( self, fail = False ):
+		"""
 		damage_get(True) -> [10, 3]
 		damage_get(False) -> 3
 
@@ -26,5 +25,5 @@ class Combattant(object):
 		integer.
 		Takes a simple argument to determine a "half fire".
 		"""
-		raise NotImplimented("Combattant.damage_get method not implimented.")
-
+		raise NotImplemented("Combatant.damage_get method not implimented.")
+#}}}

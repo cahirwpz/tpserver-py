@@ -1,26 +1,22 @@
-"""\
+"""
 Board which contains posts about stuff.
 """
-# Module imports
+
 from sqlalchemy import *
 
-# Local imports
 from tp.server.db import *
-from tp import netlib
-from SQL import SQLBase
-from Message import Message
+from tp.server.bases.SQL import SQLBase
 
-class Board(SQLBase):
+class Board( SQLBase ):#{{{
 	table = Table('board', metadata,
-		Column('game',	Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	Integer,     nullable=False, index=True, primary_key=True),
-		Column('name',	String(255), nullable=False, index=True),
-		Column('desc',	Binary,      nullable=False),
-		Column('time',	DateTime,    nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
-
-		ForeignKeyConstraint(['game'], ['game.id']),
-	)
+				Column('game',	Integer,     nullable=False, index=True, primary_key=True),
+				Column('id',	Integer,     nullable=False, index=True, primary_key=True),
+				Column('name',	String(255), nullable=False, index=True),
+				Column('desc',	Binary,      nullable=False),
+				Column('time',	DateTime,    nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default=func.current_timestamp()),
+				ForeignKeyConstraint(['game'], ['game.id']))
 
 	@classmethod
 	def realid(cls, user, bid):
@@ -38,11 +34,11 @@ class Board(SQLBase):
 		if bid > 0:
 			return 0
 		else:
-			return bid * -1
+			return -bid
 
 	@classmethod
 	def amount(cls, user):
-		"""\
+		"""
 		amount(user)
 
 		Get the number of records in this table (that the user can see).
@@ -55,7 +51,7 @@ class Board(SQLBase):
 
 	@classmethod
 	def ids(cls, user, start, amount):
-		"""\
+		"""
 		ids(user, start, amount)
 		
 		Get the last ids for this (that the user can see).
@@ -69,18 +65,6 @@ class Board(SQLBase):
 							order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
 		return [(cls.mangleid(x['id']), x['time']) for x in result] 
 
-	def to_packet(self, user, sequence):
-		b = Board.mangleid(self.id)
-
-		m = Message.number(self.id)
-		return netlib.objects.Board(sequence, Board.mangleid(self.id), self.name, self.desc, Message.number(self.id), self.time)
-
-	@classmethod
-	def id_packet(cls):
-		return netlib.objects.Board_IDSequence
-
 	def __str__(self):
 		return "<Board id=%s>" % (self.id)
-
-
-
+#}}}

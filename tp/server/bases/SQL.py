@@ -1,4 +1,4 @@
-"""\
+"""
 Database backed bases for the objects.
 """
 # Module imports
@@ -15,11 +15,12 @@ from array import array
 
 # These types go through repr fine
 import types
+
 types.SimpleTypes = [types.NoneType, types.BooleanType, types.ComplexType, types.FloatType, 
 					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
 types.SimpleCompoundTypes = [types.ListType, types.TupleType]
 
-def isSimpleType(value):
+def isSimpleType(value):#{{{
 	if type(value) in types.SimpleTypes:
 		return True
 	
@@ -31,23 +32,27 @@ def isSimpleType(value):
 		
 	else:
 		return False
+#}}}
 
-def quickimport(s):
+def quickimport(s):#{{{
 	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
+#}}}
 
-class NoSuch(Exception):
+class NoSuch(Exception):#{{{
 	pass
+#}}}
 
-class PermissionDenied(Exception):
+class PermissionDenied(Exception):#{{{
 	pass
+#}}}
 
-class SQLBase(object):
-	"""\
+class SQLBase( object ):#{{{
+	"""
 	A class which stores it's data in a SQL database.
 	"""
 	@classmethod
 	def modified(cls, user):
-		"""\
+		"""
 		modified(user) -> unixtime
 		
 		Gets the last modified time for the type.
@@ -61,7 +66,7 @@ class SQLBase(object):
 
 	@classmethod
 	def ids(cls, user=None, start=0, amount=-1):
-		"""\
+		"""
 		ids([user, start, amount]) -> [id, ...]
 		
 		Get the last ids for this (that the user can see).
@@ -75,7 +80,7 @@ class SQLBase(object):
 
 	@classmethod
 	def amount(cls, user=None):
-		"""\
+		"""
 		amount(user) -> int
 
 		Get the number of records in this table (that the user can see).
@@ -87,7 +92,7 @@ class SQLBase(object):
 
 	@classmethod
 	def realid(cls, user, id):
-		"""\
+		"""
 		realid(user, id) -> id
 		
 		Get the real id for an object (from id the user sees).
@@ -104,11 +109,11 @@ class SQLBase(object):
 		Create an object from a network packet.
 		Create an empty object.
 		"""
-		if not (id is None):
+		if id is not None:
 			self.load(id)
 
 	def todict(self):
-		"""\
+		"""
 		todict() -> dict
 
 		Turns this object into a dictionary.
@@ -116,7 +121,7 @@ class SQLBase(object):
 		return copy.copy(self.__dict__)
 
 	def load(self, id):
-		"""\
+		"""
 		load(id)
 
 		Loads a thing from the database.
@@ -136,7 +141,7 @@ class SQLBase(object):
 			setattr(self, key, value)
 
 	def save(self, forceinsert=False):
-		"""\
+		"""
 		save()
 
 		Saves a thing to the database.
@@ -183,7 +188,7 @@ class SQLBase(object):
 			raise
 
 	def remove(self):
-		"""\
+		"""
 		remove()
 
 		Removes an object from the database.
@@ -192,7 +197,7 @@ class SQLBase(object):
 		delete(self.table, self.table.c.id==bindparam('id')).execute(id=self.id)
 
 	def insert(self):
-		"""\
+		"""
 		insert()
 
 		Inserts an object into the database.
@@ -200,7 +205,7 @@ class SQLBase(object):
 		self.save(forceinsert=True)
 
 	def to_packet(self, user, sequence):
-		"""\
+		"""
 		to_packet(user, sequence) -> netlib.Packet
 
 		Returns a Thousand Parsec network packet using the sequence number.
@@ -232,7 +237,7 @@ class SQLBase(object):
 		return self
 
 	def allowed(self, user):
-		"""\
+		"""
 		allowed(user) -> boolean
 
 		Returns a boolean which tells if a user can even see this object.
@@ -240,28 +245,28 @@ class SQLBase(object):
 		return True
 
 	def protect(self, user):
-		"""\
+		"""
 		protect(user) -> object
 
 		Returns a version of this object which shows only details which the user is 
 		allowed to see.
 		"""
 		return copy.deepcopy(self)
+#}}}
 
-def SQLTypedTable(name):
+def SQLTypedTable( name ):#{{{
 	t = Table(name+"_extra", metadata,
-		Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
-		Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
-		Column('name',	String(255), nullable=False, index=True, primary_key=True),
-		Column('key',	String(255), nullable=True,  index=True, primary_key=True, quote=True),
-		Column('value',	Binary),
-		Column('time',	DateTime, nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+			Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
+			Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
+			Column('name',	String(255), nullable=False, index=True, primary_key=True),
+			Column('key',	String(255), nullable=True,  index=True, primary_key=True, quote=True),
+			Column('value',	Binary),
+			Column('time',	DateTime, nullable=False, index=True,
+				onupdate = func.current_timestamp(),
+				default = func.current_timestamp()),
+			ForeignKeyConstraint(['oid'],  [name+'.id']),
+			ForeignKeyConstraint(['game'], ['game.id']))
 
-		# Extra properties
-		ForeignKeyConstraint(['oid'],  [name+'.id']),
-		ForeignKeyConstraint(['game'], ['game.id']),
-	)
 	# Index on the ID and name
 	Index('idx_'+name+'xtr_idname', t.c.game, t.c.oid, t.c.name)
 	Index('idx_'+name+'xtr_idnamevalue', t.c.game, t.c.oid, t.c.name, t.c.key)
@@ -269,9 +274,9 @@ def SQLTypedTable(name):
 	t._name = name
 
 	return t
+#}}}
 
-_marker = []
-class SQLTypedBase(SQLBase):
+class SQLTypedBase(SQLBase):#{{{
 	"""\
 	A class which stores it's data in a SQL database.
 	It also has a subclass associated with it which stores extra data.
@@ -478,3 +483,4 @@ Extra attributes this type defines.
 				continue
 			args.append(value)
 		return self, args
+#}}}

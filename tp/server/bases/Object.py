@@ -1,38 +1,35 @@
-"""\
+"""
 The basis for all objects that exist.
 """
-# Module imports
+
 from sqlalchemy import *
 
-# Local imports
+from tp.server.logging import msg
 from tp.server.db import *
-from tp import netlib
-from SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
-from Order import Order
+from tp.server.bases.SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
+from tp.server.bases.Order import Order
 
-from tp.server.packet import PacketFactory
-
-class Object(SQLTypedBase):
+class Object(SQLTypedBase):#{{{
 	table = Table('object', metadata,
-		Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-		Column('type',	    String(255), nullable=False, index=True),
-		Column('name',      Binary,      nullable=False),
-		Column('size',      Integer(64), nullable=False),
-		Column('posx',      Integer(64), nullable=False, default=0),
-		Column('posy',      Integer(64), nullable=False, default=0),
-		Column('posz',      Integer(64), nullable=False, default=0),
-		Column('velx',      Integer(64), nullable=False, default=0),
-		Column('vely',      Integer(64), nullable=False, default=0),
-		Column('velz',      Integer(64), nullable=False, default=0),
-		Column('parent',    Integer,     nullable=True),
-		Column('time',	    DateTime,    nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+				Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('type',	    String(255), nullable=False, index=True),
+				Column('name',      Binary,      nullable=False),
+				Column('size',      Integer(64), nullable=False),
+				Column('posx',      Integer(64), nullable=False, default=0),
+				Column('posy',      Integer(64), nullable=False, default=0),
+				Column('posz',      Integer(64), nullable=False, default=0),
+				Column('velx',      Integer(64), nullable=False, default=0),
+				Column('vely',      Integer(64), nullable=False, default=0),
+				Column('velz',      Integer(64), nullable=False, default=0),
+				Column('parent',    Integer,     nullable=True),
+				Column('time',	    DateTime,    nullable=False, index=True,
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()),
+				UniqueConstraint('id', 'game'),
+				ForeignKeyConstraint(['parent'], ['object.id']),
+				ForeignKeyConstraint(['game'],   ['game.id']))
 
-		UniqueConstraint('id', 'game'),
-		ForeignKeyConstraint(['parent'], ['object.id']),
-		ForeignKeyConstraint(['game'],   ['game.id']),
-	)
 	Index('idx_object_position', table.c.posx, table.c.posy, table.c.posz)
 
 	table_extra = SQLTypedTable('object')
@@ -119,7 +116,7 @@ class Object(SQLTypedBase):
 	def protect(self, user):
 		o = SQLBase.protect(self, user)
 		if hasattr(self, "owner") and self.owner != user.id:
-			print self.owner
+			msg( self.owner )
 			o.orders = lambda: 0
 			o.ordertypes = lambda: []
 		return o
@@ -132,16 +129,18 @@ class Object(SQLTypedBase):
 		update(t, t.c.parent==self.id, {t.c.parent: 0}).execute()
 		SQLTypedBase.remove(self)
 	
+	@property
 	def orders(self):
-		"""\
+		"""
 		orders()
 
 		Returns the number of orders this object has.
 		"""
 		return Order.number(self.id)
 
+	@property
 	def ordertypes(self):
-		"""\
+		"""
 		ordertypes()
 
 		Returns the valid order types for this object.
@@ -154,6 +153,7 @@ class Object(SQLTypedBase):
 		
 		return self._ordertypes
 
+	@property
 	def contains(self):
 		"""
 		contains()
@@ -166,29 +166,15 @@ class Object(SQLTypedBase):
 		else:
 			return tuple()
 
-	def to_packet(self, user, sequence):
-		# Preset arguments
-		self, args = SQLTypedBase.to_packet(self, user, sequence)
-		return PacketFactory().objects.Object(sequence, self.id, self.typeno, self.name, 
-				self.size, 
-				self.posx, self.posy, self.posz, 
-				self.velx, self.vely, self.velz, 
-				self.contains(), self.ordertypes(), self.orders(), 
-				self.time, 
-				*args)
-
-	@classmethod
-	def id_packet(cls):
-		return PacketFactory().objects.ObjectIDs
-
 	def __str__(self):
 		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
 
 	def ghost(self):
-		"""\
+		"""
 		Returns true if this object should be removed.
 		"""
-		if hasattr(self, "owner"):
+		try:
 			return self.owner == 0
-		else:
+		except AttributeError:
 			return False
+#}}}
