@@ -1,9 +1,9 @@
-from common import ConnectedTestSession
+from common import ConnectedTestSession, Expect
 
 class GetFeaturesRequest( ConnectedTestSession ):
-	""" Check if a server answers GetFeatures packet. """
+	""" Does server respond to GetFeatures request properly? """
 
 	def __iter__( self ):
-		yield self.protocol.GetFeatures( self.seq )
+		yield self.protocol.GetFeatures( self.seq ), Expect( 'Features' )
 
 __tests__ = [ GetFeaturesRequest ]

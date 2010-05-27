@@ -98,14 +98,25 @@ class TestRunner( object ):#{{{
 		else:
 			msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
 			msg( "${red1}Failed test name:${coff}\n %s" % test.__class__.__name__, level='error' ) 
-			msg( "${red1}Description:${coff}\n %s" % test.__doc__, level='error' ) 
+			msg( "${red1}Description:${coff}\n %s" % test.__doc__.strip(), level='error' ) 
 			msg( "${red1}Reason:${coff}\n %s" % test.reason, level='error' ) 
+
 			if test.failRequest:
-				msg( "${red1}Failing request %s:${coff}" % test.failRequest._name, level='error' )
+				msg( "${red1}Failing request %s:${coff}" % test.failRequest.type, level='error' )
 				msg( PacketFormatter( test.failRequest ), level='error' )
+
 			if test.failResponse:
-				msg( "${red1}Wrong response %s:${coff}" % test.failResponse._name, level='error' )
-				msg( PacketFormatter( test.failResponse ), level='error' )
+				if isinstance( test.failResponse, list ):
+					msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in test.failResponse ), level='error' )
+					for r in test.failResponse:
+						msg( PacketFormatter( r ), level='error' )
+				else:
+					msg( "${red1}Wrong response %s:${coff}" % test.failResponse.type, level='error' )
+					msg( PacketFormatter( test.failResponse ), level='error' )
+
+			if test.expected:
+				msg( "${red1}Expected:${coff}\n %s" % test.expected, level='error' ) 
+
 			msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
 
 		self.__continue()

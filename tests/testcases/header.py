@@ -1,4 +1,4 @@
-from common import TestSession
+from common import TestSession, Expect
 
 class SameSequenceInHeader( TestSession ):
 	""" Checks if a server drops second packet with same sequence. """
@@ -6,9 +6,9 @@ class SameSequenceInHeader( TestSession ):
 	NoFailAllowed = False
 
 	def __iter__( self ):
-		yield self.protocol.Connect( 1, "tpserver-tests client" )
-		yield self.protocol.Ping( 2 )
-		packet = yield self.protocol.Ping( 2 )
+		yield self.protocol.Connect( 1, "tpserver-tests client" ), Expect( 'Okay' )
+		yield self.protocol.Ping( 2 ), Expect( 'Okay' )
+		packet = yield self.protocol.Ping( 2 ), Expect( 'Fail' )
 
 		if packet._name == 'Okay':
 			self.status = False
