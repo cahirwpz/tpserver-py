@@ -8,7 +8,7 @@ from tp.server.bases.Object    import Object
 from tp.server.bases.Order     import Order
 from tp.server.bases.Property  import Property
 from tp.server.bases.Resource  import Resource
-from tp.server.bases.SQL       import NoSuch, PermissionDenied
+from tp.server.bases.SQL       import NoSuchThing, PermissionDenied, SQLUtils
 from tp.server.bases.User      import User
 
 from tp.server import db
@@ -48,9 +48,7 @@ class CommandsHandler( object ):
 			request.ids - The ids to be gotten
 					
 		type - The class used in processing, it must have the following
-			type.realid(user, id)                - Get the real id for this object
 			type(realid)                         - Creates the object
-			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
 		"""
 		response = []
 
@@ -59,7 +57,7 @@ class CommandsHandler( object ):
 
 		for _id in request.ids:
 			try:
-				obj = _type( _type.realid( self._client.user, _id ) )
+				obj = _type( _type.Utils.realid( self._client.user, _id ) )
 
 				if _type.__name__ == 'User':
 					_name = 'Player'
@@ -70,7 +68,7 @@ class CommandsHandler( object ):
 			except PermissionDenied:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
 				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
-			except NoSuch:
+			except NoSuchThing:
 				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
 				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
 
@@ -91,11 +89,11 @@ class CommandsHandler( object ):
 			type.ids(user, start, amount)       - Get the ids (that this user can see)
 			type.ids_packet()                   - Get the packet type for sending a list of ids
 		"""
-		key   = long( _type.modified( self._client.user ).strftime('%s') )
-		total = _type.amount( self._client.user )
+		key   = long( _type.Utils.modified( self._client.user ).strftime('%s') )
+		total = _type.Utils.amount( self._client.user )
 		
 		if request.key != -1 and key != request.key:
-			return self.objects.Fail( request._sequence, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
+			return self.objects.Fail( request._sequence, "NoSuchThingThing", "Key %s is no longer valid, please get a new key." % request.key )
 		
 		if request._start + request._amount > total:
 			msg( "Requested %d items starting at %d. Actually %s." % ( request._amount, request._amount, total ) )
@@ -106,7 +104,7 @@ class CommandsHandler( object ):
 		else:
 			left = total - ( request._start + request._amount )
 
-		ids = _type.ids( self._client.user, request._start, request._amount )
+		ids = _type.Utils.ids( self._client.user, request._start, request._amount )
 
 		class Temp( object ):
 			pass
@@ -136,7 +134,7 @@ class CommandsHandler( object ):
 		response = []
 		
 		# Get the real id
-		_id = container.realid( self._client.user, request.id )
+		_id = container.Utils.realid( self._client.user, request.id )
 
 		if len(request.slots) != 1:
 			response.append( self.objects.Sequence( request._sequence, len( request.slots ) ) )
@@ -149,7 +147,7 @@ class CommandsHandler( object ):
 			except PermissionDenied:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
 				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
-			except NoSuch:
+			except NoSuchThing:
 				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
 				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
 
@@ -279,23 +277,23 @@ class CommandsHandler( object ):
 		db.dbconn.use()
 
 		try:
-			username, game = User.split( request._username )
+			username, game_name = User.Utils.split( request.username )
 		except TypeError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
-			g = Game( shortname = game )
+			game = Game( shortname = game_name )
 		except KeyError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
-		pid = User.usernameid( g, username, request._password )
+		pid = User.Utils.usernameid( game, username, request.password )
 
 		if pid == -1:
-			return self.objects.Fail( request._sequence, "NoSuch", "Login incorrect or unknown username!" )
+			return self.objects.Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
 		else:
 			self._client.user = User( id = pid )
 			return self.objects.Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game ) )

@@ -5,9 +5,18 @@ Components which can be put together to form designs.
 from sqlalchemy import *
 
 from tp.server.db import *
-from tp.server.bases.SQL import SQLTypedBase, SQLTypedTable
+from tp.server.bases.SQL import SQLUtils
+from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable
+
+class ComponentUtils( SQLUtils ):#{{{
+	def byname(self, name):
+		c = self.cls.table.c
+		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+#}}}
 
 class Component(SQLTypedBase):#{{{
+	Utils = ComponentUtils()
+
 	table = Table('component', metadata,
 				Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 				Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
@@ -47,11 +56,6 @@ class Component(SQLTypedBase):#{{{
 				ForeignKeyConstraint(['component'], ['component.id']),
 				ForeignKeyConstraint(['property'],  ['property.id']),
 				ForeignKeyConstraint(['game'],      ['game.id']))
-
-	@classmethod
-	def byname(cls, name):
-		c = cls.table.c
-		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
 
 	def get_categories( self ):
 		"""

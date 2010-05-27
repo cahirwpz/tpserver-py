@@ -1,0 +1,261 @@
+from sqlalchemy import *
+from tp.server.db import *
+from tp.server.bases.SQL import SQLBase
+
+# These types go through repr fine
+import types, copy
+
+types.SimpleTypes = [types.NoneType, types.BooleanType, types.ComplexType, types.FloatType, 
+					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
+types.SimpleCompoundTypes = [types.ListType, types.TupleType]
+
+def isSimpleType(value):#{{{
+	if type(value) in types.SimpleTypes:
+		return True
+	
+	elif type(value) in types.SimpleCompoundTypes:
+		for subvalue in value:
+			if not isSimpleType(subvalue):
+				return False
+		return True
+		
+	else:
+		return False
+#}}}
+
+def quickimport(s):#{{{
+	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
+#}}}
+
+def SQLTypedTable( name ):#{{{
+	t = Table(name+"_extra", metadata,
+			Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
+			Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
+			Column('name',	String(255), nullable=False, index=True, primary_key=True),
+			Column('key',	String(255), nullable=True,  index=True, primary_key=True, quote=True),
+			Column('value',	Binary),
+			Column('time',	DateTime, nullable=False, index=True,
+				onupdate = func.current_timestamp(),
+				default = func.current_timestamp()),
+			ForeignKeyConstraint(['oid'],  [name+'.id']),
+			ForeignKeyConstraint(['game'], ['game.id']))
+
+	# Index on the ID and name
+	Index('idx_'+name+'xtr_idname', t.c.game, t.c.oid, t.c.name)
+	Index('idx_'+name+'xtr_idnamevalue', t.c.game, t.c.oid, t.c.name, t.c.key)
+
+	t._name = name
+
+	return t
+#}}}
+
+class SQLTypedBase(SQLBase):#{{{
+	"""\
+	A class which stores it's data in a SQL database.
+	It also has a subclass associated with it which stores extra data.
+	"""
+	attributes = {}
+	attributes__doc__ = """\
+Extra attributes this type defines.
+
+{"<name>": Attribute(<name>, <default>, <level>)}
+"""
+	class Attribute:
+		def __init__(self, name, default, level, type=-1, desc=""):
+			if level not in ('public', 'protected', 'private'):
+				raise ValueError("Invalid access level for attribute.")
+
+			self.name = name
+			self._default = default
+			self.level = level
+			self.type = type
+			self.desc = desc
+
+		@property
+		def default(self):
+			return copy.deepcopy(self._default)
+
+	@property
+	def type(self):
+		return self.__class__.__module__
+
+	@type.setter
+	def type(self, type):
+#		if self.__class__ != SQLTypedBase:
+#			raise TypeError('Can not set the type a second time!')
+		self.__class__ = quickimport(type)		
+		self.__upgrade__()
+
+	def __init__(self, id=None, type=None):
+		if id != None:
+			SQLBase.__init__(self, id)
+		if type != None:
+			self.type = type
+		self.defaults()
+
+	def __upgrade__(self):
+		self.defaults()
+
+	def defaults(self):
+		"""\
+		Sets all the attributes to their default values.
+		"""
+		for attribute in self.attributes.values():
+			if not hasattr(self, attribute.name):
+				setattr(self, attribute.name, attribute.default)
+
+	def load(self, id):
+		"""\
+		load(id)
+
+		Loads a thing from the database.
+		"""
+		te = self.table_extra
+		SQLBase.load(self, id)
+			
+		# Load the extra properties from the object_extra table
+		results = select([te], te.c.oid==self.id, order_by=[te.c.name, te.c.key]).execute().fetchall()
+		if len(results) > 0:
+			for result in results:
+				name, key, value = result['name'], result['key'], result['value']
+
+				if not self.attributes.has_key(name):
+					continue
+				attribute = self.attributes[name]
+				
+				if type(attribute.default) is types.DictType:
+					if not hasattr(self, name):
+						setattr(self, name, {})
+
+					getattr(self, name)[eval(key)] = eval(str(value))
+					continue
+			
+				elif type(attribute.default) is types.ListType:
+					if not hasattr(self, name):
+						setattr(self, name, [])
+
+					if len(getattr(self, name)) != eval(key):
+						raise TypeError('Some how you managed to get a list which is missing an element!')
+
+					getattr(self, name).append(eval(str(value)))
+					continue
+				elif isSimpleType(attribute.default):
+					value = eval(str(value))
+				else:
+					value = pickle.loads(value)
+					
+				setattr(self, name, value)
+
+	def save(self, preserve=True, forceinsert=False):
+		"""\
+		save()
+
+		Saves a thing to the database.
+		"""
+		trans = dbconn.begin()
+
+		te = self.table_extra
+		try:
+			SQLBase.save(self, forceinsert)
+
+			for attribute in self.attributes.values():
+				if type(attribute.default) in (types.DictType, types.ListType):
+					delete(te, (te.c.oid==self.id) & (te.c.name==attribute.name)).execute()
+
+					if type(attribute.default) is types.ListType:
+						items = enumerate(getattr(self, attribute.name))
+					else:
+						items = getattr(self, attribute.name).iteritems()
+
+					for key, value in items:
+						if not isSimpleType(key):
+							raise ValueError("The key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
+						else:
+							key = repr(key)
+						
+						if not isSimpleType(value):
+							raise ValueError("The value %s with key %s in dictionary attribute %s is not a simple type." %  (value, key, attribute.name))
+						else:
+							value = repr(value)
+						
+						insert(te).execute(oid=self.id, name=attribute.name, key=key, value=value)
+				else:
+					if isSimpleType(attribute.default):
+						value = repr(getattr(self, attribute.name))
+					else:
+						value = pickle.dumps(getattr(self, attribute.name))
+					# Check if attribute exists
+					result = select([te], (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute().fetchall()
+					if len(result) > 0:
+						update(te, (te.c.oid==self.id) & (te.c.name==attribute.name) & (te.c.key=='')).execute(oid=self.id, name=attribute.name, key='', value=value)
+					else:
+						insert(te).execute(oid=self.id, name=attribute.name, key='', value=value)
+			
+			trans.commit()
+		except Exception, e:
+			trans.rollback()
+			raise
+
+	def remove(self):
+		"""\
+		remove()
+
+		Removes an object from the database.
+		"""
+		trans = dbconn.begin()
+		try:
+			t = self.table_extra
+			delete(t, t.c.oid==bindparam('id')).execute(id=self.id)
+			SQLBase.remove(self)
+
+			trans.commit()
+		except Exception, e:
+			trans.rollback()
+			raise
+
+	@staticmethod
+	def from_packet(cls, user, packet):
+		"""\
+		from_packet(packet)
+
+		Makes an object out of a Thousand Parsec packet.
+		"""
+		# Get the mapping
+		map = getattr(user.playing.ruleset, cls.__name__.lower() + 'map')
+		
+		# Create an instance of this object
+		self = map[packet._subtype]()
+
+		# FIXME: This is probably bad...
+		for key, value in packet.__dict__.items():
+			# Ignore special attributes
+			if key.startswith("_") or key == "type":
+				continue
+
+			if self.attributes.has_key(key):
+				if self.attributes[key].level == 'public':
+					setattr(self, key, value)
+				elif self.attributes[key].level == 'protected':
+					getattr(self, "fn_"+key)(value)
+			else:
+				if hasattr(self, key):
+					print "Ekk! Tried to set %s but it already existed (%s)" % (key, getattr(self, key))
+					continue
+
+				setattr(self, key, value)
+		return self
+
+	def to_packet(self, user, sequence):
+		self = SQLBase.to_packet(self, user, sequence)
+
+		args = []
+		for attribute in self.attributes.values():
+			if attribute.level == "public":
+				value = getattr(self, attribute.name)
+			elif attribute.level == "protected":
+				value = getattr(self, "fn_"+attribute.name)()
+			else:
+				continue
+			args.append(value)
+		return self, args
+#}}}

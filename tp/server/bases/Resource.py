@@ -5,9 +5,21 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 from tp.server.db import *
-from SQL import SQLTypedBase, SQLTypedTable, NoSuch
+from tp.server.bases.SQL import SQLUtils, NoSuchThing
+from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable
+
+class ResourceUtils( SQLUtils ):#{{{
+	def byname(self, name):
+		c = self.cls.table.c
+		try:
+			return select([c.id], c.namesingular == name, limit=1).execute().fetchall()[0]['id']
+		except IndexError:
+			raise NoSuchThing("No object with name (either singular or plural) %s" % name)
+#}}}
 
 class Resource( SQLTypedBase ):#{{{
+	Utils = ResourceUtils()
+
 	table = Table('resource', metadata,
 				Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
 				Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
@@ -25,14 +37,6 @@ class Resource( SQLTypedBase ):#{{{
 				ForeignKeyConstraint(['game'], ['game.id']))
 
 	table_extra = SQLTypedTable('resource')
-
-	@classmethod
-	def byname(cls, name):
-		c = cls.table.c
-		try:
-			return select([c.id], c.namesingular == name, limit=1).execute().fetchall()[0]['id']
-		except IndexError:
-			raise NoSuch("No object with name (either singular or plural) %s" % name)
 
 	def __str__(self):
 		return "<Resource id=%s>" % (self.id)

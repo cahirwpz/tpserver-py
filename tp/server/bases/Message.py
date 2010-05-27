@@ -1,25 +1,42 @@
 """
 Message with information about stuff (and references to other objects).
 """
-# Module imports
+
 from sqlalchemy import *
 
-# Local imports
 from tp.server.db import *
-from SQL import SQLBase
-from tp.server.db import dbconn, metadata
+from tp.server.bases.SQL import SQLBase, SQLUtils, NoSuchThing
 
-table_types = Table('reference', metadata,
-	Column('game', 	Integer,     nullable=False, index=True, primary_key=True),
-	Column('id',    Integer,     nullable=False, primary_key=True),
-	Column('value', Integer,     nullable=False, index=True),
-	Column('desc',  Binary,      nullable=False),
-	Column('ref',   String(255), nullable=False))
+class MessageUtils( SQLUtils ):#{{{
+	"""
+	The realid class method starts here... 
+	"""
+	def realid(self, bid, slot):
+		"""
+		Message.realid(boardid, slot) -> id
+		
+		Returns the database id for the message found on board at slot.
+		"""
+		t = self.cls.table
+		result = select([t.c.id], (t.c.bid==bid) & (t.c.slot==slot)).execute().fetchall()
+		if len(result) != 1:
+			return -1
+		else:
+			return result[0]['id']
 
-class Message(SQLBase):#{{{
-	"""
-	No description.
-	"""
+	def number(self, bid):
+		"""
+		Message.number(boardid) -> number
+
+		Returns the number of messages on an board.
+		"""
+		t = self.cls.table
+		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
+#}}}
+
+class Message( SQLBase ):#{{{
+	Utils = MessageUtils()
+
 	table = Table('message', metadata,
 				Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
 				Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
@@ -36,6 +53,13 @@ class Message(SQLBase):#{{{
 
 	Index('idx_message_bidslot', table.c.bid, table.c.slot)
 
+	table_types = Table('reference', metadata,
+		Column('game', 	Integer,     nullable=False, index=True, primary_key=True),
+		Column('id',    Integer,     nullable=False, primary_key=True),
+		Column('value', Integer,     nullable=False, index=True),
+		Column('desc',  Binary,      nullable=False),
+		Column('ref',   String(255), nullable=False))
+
 	table_references = Table('message_references', metadata,
 				Column('game', 	Integer,  nullable=False, primary_key=True),
 				Column('mid',   Integer,  nullable=False, primary_key=True),
@@ -51,38 +75,11 @@ class Message(SQLBase):#{{{
 	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid)
 
 	"""
-	The realid class method starts here... 
-	"""
-	@classmethod
-	def realid(cls, bid, slot):
-		"""
-		Message.realid(boardid, slot) -> id
-		
-		Returns the database id for the message found on board at slot.
-		"""
-		t = cls.table
-		result = select([t.c.id], (t.c.bid==bid) & (t.c.slot==slot)).execute().fetchall()
-		if len(result) != 1:
-			return -1
-		else:
-			return result[0]['id']
-
-	@classmethod
-	def number(cls, bid):
-		"""
-		Message.number(boardid) -> number
-
-		Returns the number of messages on an board.
-		"""
-		t = cls.table
-		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
-
-	"""
 	The init method starts here... 
 	"""
 	def __init__(self, bid=None, slot=None, id=None):
 		if bid != None and slot != None:
-			id = self.realid(bid, slot)
+			id = self.Utils.realid(bid, slot)
 
 		SQLBase.__init__(self, id)
 
@@ -109,7 +106,7 @@ class Message(SQLBase):#{{{
 				# Need to move all the other orders down
 				update(t, (t.c.slot >= bindparam('s')) & (t.c.bid==bindparam('b')), {'slot': t.c.slot+1}).execute(s=self.slot, b=self.bid)
 			else:
-				raise NoSuch("Cannot insert to that slot number.")
+				raise NoSuchThing("Cannot insert to that slot number.")
 
 			self.save()
 

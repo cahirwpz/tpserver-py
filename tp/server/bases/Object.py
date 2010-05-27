@@ -6,10 +6,73 @@ from sqlalchemy import *
 
 from tp.server.logging import msg
 from tp.server.db import *
-from tp.server.bases.SQL import SQLBase, SQLTypedBase, SQLTypedTable, quickimport
+from tp.server.bases.SQL import SQLBase, SQLUtils
+from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable, quickimport
 from tp.server.bases.Order import Order
 
+class ObjectUtils( SQLUtils ):#{{{
+	def bypos(self, pos, size=0, limit=-1, orderby=None):
+		"""
+		Object.bypos([x, y, z], size) -> [Object, ...]
+
+		Return all objects which are centered inside a sphere centerd on
+		size and radius of size.
+		"""
+		pos = long(pos[0]), long(pos[1]), long(pos[2])
+
+		c = self.cls.table.c
+
+		bp_x = bindparam('x')
+		bp_y = bindparam('y')
+		bp_z = bindparam('z')
+		bp_s = bindparam('size')
+		where = ((c.size+bp_s) >= \
+					func.abs((c.posx-bp_x)) + \
+					func.abs((c.posy-bp_y)) + \
+					func.abs((c.posz-bp_z)))
+#		where = (((c.size+bp_s)*(c.size+bp_s)) >= \
+#					((c.posx-bp_x) * (c.posx-bp_x)) + \
+#					((c.posy-bp_y) * (c.posy-bp_y)) + \
+#					((c.posz-bp_z) * (c.posz-bp_z)))
+		if orderby is None:
+			orderby = [asc(c.time), desc(c.size)]
+
+		s = select([c.id, c.time], where, order_by=orderby)
+		if limit != -1:
+			s.limit = limit
+
+		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
+		return [(x['id'], x['time']) for x in results]
+
+	def byparent(self, id):
+		"""
+		byparent(id)
+
+		Returns the objects which have a parent of this id.
+		"""
+		t = self.cls.table
+
+		# FIXME: Need to figure out what is going on here..
+		bp_id = bindparam('id')
+		results = select([t.c.id, t.c.time], (t.c.parent==bp_id) & (t.c.id != bp_id)).execute(id=id).fetchall()
+		return [(x['id'], x['time']) for x in results]
+
+	def bytype(self, type):
+		"""\
+		bytype(id)
+
+		Returns the objects which have a certain type.
+		"""
+		t = self.cls.table
+
+		# FIXME: Need to figure out what is going on here..
+		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
+		return [(x['id'], x['time']) for x in results]
+#}}}
+
 class Object(SQLTypedBase):#{{{
+	Utils = ObjectUtils()
+
 	table = Table('object', metadata,
 				Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
 				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
@@ -38,67 +101,6 @@ class Object(SQLTypedBase):#{{{
 	orderclasses = {}
 
 	bypos_size = [asc(table.c.size)]
-
-	@classmethod
-	def bypos(cls, pos, size=0, limit=-1, orderby=None):
-		"""\
-		Object.bypos([x, y, z], size) -> [Object, ...]
-
-		Return all objects which are centered inside a sphere centerd on
-		size and radius of size.
-		"""
-		pos = long(pos[0]), long(pos[1]), long(pos[2])
-
-		c = cls.table.c
-
-		bp_x = bindparam('x')
-		bp_y = bindparam('y')
-		bp_z = bindparam('z')
-		bp_s = bindparam('size')
-		where = ((c.size+bp_s) >= \
-					func.abs((c.posx-bp_x)) + \
-					func.abs((c.posy-bp_y)) + \
-					func.abs((c.posz-bp_z)))
-#		where = (((c.size+bp_s)*(c.size+bp_s)) >= \
-#					((c.posx-bp_x) * (c.posx-bp_x)) + \
-#					((c.posy-bp_y) * (c.posy-bp_y)) + \
-#					((c.posz-bp_z) * (c.posz-bp_z)))
-		if orderby is None:
-			orderby = [asc(c.time), desc(c.size)]
-
-		s = select([c.id, c.time], where, order_by=orderby)
-		if limit != -1:
-			s.limit = limit
-
-		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
-		return [(x['id'], x['time']) for x in results]
-
-	@classmethod
-	def byparent(cls, id):
-		"""\
-		byparent(id)
-
-		Returns the objects which have a parent of this id.
-		"""
-		t = cls.table
-
-		# FIXME: Need to figure out what is going on here..
-		bp_id = bindparam('id')
-		results = select([t.c.id, t.c.time], (t.c.parent==bp_id) & (t.c.id != bp_id)).execute(id=id).fetchall()
-		return [(x['id'], x['time']) for x in results]
-
-	@classmethod
-	def bytype(cls, type):
-		"""\
-		bytype(id)
-
-		Returns the objects which have a certain type.
-		"""
-		t = cls.table
-
-		# FIXME: Need to figure out what is going on here..
-		results = select([t.c.id, t.c.time], (t.c.type==bindparam('type'))).execute(type=type).fetchall()
-		return [(x['id'], x['time']) for x in results]
 
 	def __init__(self, id=None, type=None):
 		self.name = "Unknown object"
@@ -160,15 +162,13 @@ class Object(SQLTypedBase):#{{{
 
 		Returns the objects which this object contains.
 		"""
-		ids = self.byparent(self.id)
+		ids = self.Utils.byparent(self.id)
 		if len(ids) > 0:
 			return zip(*ids)[0]
 		else:
 			return tuple()
 
-	def __str__(self):
-		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
-
+	@property
 	def ghost(self):
 		"""
 		Returns true if this object should be removed.
@@ -177,4 +177,7 @@ class Object(SQLTypedBase):#{{{
 			return self.owner == 0
 		except AttributeError:
 			return False
+
+	def __str__(self):
+		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
 #}}}

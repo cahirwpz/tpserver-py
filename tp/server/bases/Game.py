@@ -10,7 +10,7 @@ from sqlalchemy import *
 from tp.server.logging import msg
 from tp.server.db import *
 from tp.server.db.enum import Enum
-from tp.server.bases.SQL import SQLBase, NoSuch
+from tp.server.bases.SQL import SQLBase, NoSuchThing
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -275,7 +275,7 @@ class Game( SQLBase ):#{{{
 		try:
 			return dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0][0]
 		except (KeyError, IndexError), e:
-			raise NoSuch("No such game named %s exists!" % game)
+			raise NoSuchThing("No such game named %s exists!" % game)
 
 	@property
 	def ruleset(self):

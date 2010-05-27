@@ -5,9 +5,17 @@ Resources require to build stuff.
 from sqlalchemy import *
 
 from tp.server.db import *
-from tp.server.bases.SQL import SQLBase
+from tp.server.bases.SQL import SQLBase, SQLUtils
+
+class PropertyUtils( SQLUtils ):#{{{
+	def byname(self, name):
+		c = self.cls.table.c
+		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
+#}}}
 
 class Property( SQLBase ):#{{{
+	Utils = PropertyUtils()
+
 	table = Table('property', metadata,
 				Column('game', 	       Integer,      nullable=False, index=True, primary_key=True),
 				Column('id',	       Integer,      nullable=False, index=True, primary_key=True),
@@ -35,11 +43,6 @@ class Property( SQLBase ):#{{{
 				ForeignKeyConstraint(['property'], ['property.id']),
 				ForeignKeyConstraint(['category'], ['category.id']),
 				ForeignKeyConstraint(['game'],     ['game.id']))
-
-	@classmethod
-	def byname(cls, name):
-		c = cls.table.c
-		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
 
 	def get_categories(self):
 		"""

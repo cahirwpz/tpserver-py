@@ -1,8 +1,4 @@
-
-import copy
-from tp import netlib
-
-from tp.server.bases.SQL import NoSuch
+from tp.server.bases.SQL import NoSuchThing
 from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 from tp.server.bases.Message import Message
@@ -90,7 +86,7 @@ The merge order has been removed.
 					self.fleet = -1
 				else:
 					self.fleet = value
-			except NoSuch:
+			except NoSuchThing:
 				self.fleet = -1
 
 			return 
