@@ -13,9 +13,9 @@ Build a new star ship fleet."""
 	typeno = 2
 
 	attributes = {\
-		'ships': Order.Attribute("ships", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
+		'ships': Order.Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
 					desc="Ships to build and launch."),
-		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING, 
+		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
 					desc="The new fleet's name.")
 	}
 	

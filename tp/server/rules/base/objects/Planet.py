@@ -2,12 +2,13 @@
 import random
 
 from tp.server.bases.Object import Object
-from tp.server.bases.Combattant import Combattant
+from tp.server.bases.Combatant import Combatant
 
 ACCESSABLE   = 0
 MINABLE      = 1
 INACCESSABLE = 2
-class Planet(Object, Combattant):
+
+class Planet(Object, Combatant):
 	attributes = { \
 		'owner':     Object.Attribute('owner', -1, 'public'),
 		'resources': Object.Attribute('resources', {}, 'protected'),

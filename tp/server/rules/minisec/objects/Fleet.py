@@ -5,11 +5,11 @@ from types import TupleType, ListType
 
 from tp.server.bases.Object import Object
 from tp.server.bases.Design import Design
-from tp.server.bases.Combattant import Combattant
+from tp.server.bases.Combatant import Combatant
 
 SPEED = 300000000
 
-class Fleet(Object, Combattant):
+class Fleet(Object, Combatant):
 	attributes = { \
 		'owner': Object.Attribute('owner', -1, 'public'),
 		'ships': Object.Attribute('ships', {}, 'protected'),

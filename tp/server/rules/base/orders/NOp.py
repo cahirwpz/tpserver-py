@@ -9,7 +9,7 @@ Wait around and do nothing...
 	typeno = 0
 
 	attributes = {\
-		'wait': Order.Attribute("wait", 0, 'protected', type=netlib.objects.constants.ARG_TIME, 
+		'wait': Order.Attribute("wait", 0, 'protected', type=1, #netlib.objects.constants.ARG_TIME, 
 				desc="How long to wait for.")
 	}
 	

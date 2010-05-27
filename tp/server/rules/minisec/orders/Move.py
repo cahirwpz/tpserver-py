@@ -28,7 +28,7 @@ Move to a point in space.
 	typeno = 1
 
 	attributes = {\
-		'pos': Order.Attribute("pos", (0,0,0), 'public', type=netlib.objects.constants.ARG_ABS_COORD, 
+		'pos': Order.Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
 				desc="Where to go.")
 	}
 	

@@ -15,7 +15,7 @@ Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 	typeno = 5
 
 	attributes = {\
-		'target': Order.Attribute("target", -1, 'public', type=netlib.objects.constants.ARG_OBJECT, 
+		'target': Order.Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
 					desc="ID of object to colonise."),
 	}
 	
