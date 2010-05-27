@@ -1,14 +1,24 @@
-from tp.server.bases.Game   import Game
-from tp.server.bases.User   import User
-from tp.server.bases.Object import Object
-from tp.server.bases.SQL    import NoSuch, PermissionDenied
+from tp.server.bases.Board     import Board
+from tp.server.bases.Category  import Category
+from tp.server.bases.Component import Component
+from tp.server.bases.Design    import Design
+from tp.server.bases.Game      import Game
+from tp.server.bases.Message   import Message
+from tp.server.bases.Object    import Object
+from tp.server.bases.Order     import Order
+from tp.server.bases.Property  import Property
+from tp.server.bases.Resource  import Resource
+from tp.server.bases.SQL       import NoSuch, PermissionDenied
+from tp.server.bases.User      import User
 
 from tp.server import db
+
+from tp.server.packet import PacketFactory
 
 from version import version as __version__
 from logging import msg
 
-import inspect
+import inspect, time
 
 class CommandsHandler( object ):
 	def __init__( self, _module, _client ):
@@ -44,20 +54,25 @@ class CommandsHandler( object ):
 		"""
 		response = []
 
-		if len( request._ids ) > 1:
-			response.append( self.objects.Sequence( request._sequence, len( request._ids ) ) )
+		if len( request.ids ) > 1:
+			response.append( self.objects.Sequence( request._sequence, len( request.ids ) ) )
 
-		for _id in request._ids:
+		for _id in request.ids:
 			try:
-				obj = type( _type.realid( self._client.user, _id ) )
-				response.append( obj.to_request( self._client.user, request._sequence ) )
+				obj = _type( _type.realid( self._client.user, _id ) )
 
+				if _type.__name__ == 'User':
+					_name = 'Player'
+				else:
+					_name = _type.__name__
+
+				response.append( PacketFactory().fromObject( _name, request._sequence, obj ) )
 			except PermissionDenied:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
-				response.append( self.objects.Fail( request._sequence, "NoSuch", "No such %s." % _type) )
+				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
 			except NoSuch:
-				msg( "${yel1}No such %s with id %s.${coff}" % ( _type, _id ) )
-				response.append( self.objects.Fail( request._sequence, "NoSuch", "No such %s." % _type) )
+				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
+				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
 
 		return response
 	
@@ -80,11 +95,11 @@ class CommandsHandler( object ):
 		total = _type.amount( self._client.user )
 		
 		if request.key != -1 and key != request.key:
-			return self.objects.Fail( request._sequence, "NoSuch", "Key %s is no longer valid, please get a new key." % request.key )
+			return self.objects.Fail( request._sequence, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
 		
 		if request._start + request._amount > total:
 			msg( "Requested %d items starting at %d. Actually %s." % ( request._amount, request._amount, total ) )
-			return self.objects.Fail( request._sequence, constants.FAIL_NOSUCH, "Requested to many IDs. (Requested %s, Actually %s." % (request.start+request.amount, total))
+			return self.objects.Fail( request._sequence, 'NoSuch', "Requested too many IDs. (Requested %s, Actually %s." % (request.start+request.amount, total))
 
 		if request._amount == -1:
 			left = 0
@@ -93,11 +108,19 @@ class CommandsHandler( object ):
 
 		ids = _type.ids( self._client.user, request._start, request._amount )
 
-		return _type.id_packet()( request._sequence, key, left, ids)
+		class Temp( object ):
+			pass
+
+		obj = Temp()
+		obj.key		= key 
+		obj.left	= left
+		obj.ids		= sorted( (_id, int(time.mktime(time.strptime(_time.ctime())))) for _id, _time in ids )
+
+		return PacketFactory().fromObject( _type.__name__ + "IDs", request._sequence, obj )
 	
-	def OnGetWithIDandSlot(self, request, _type, container):
-		"""\
-		OnGetWithIDandSlot(request, type, container) -> [True | False]
+	def GetWithIDandSlot(self, request, _type, container):
+		"""
+		GetWithIDandSlot(request, type, container) -> [True | False]
 
 		request - Get request to be processes, it must have the following
 			request.id		- The id of the container
@@ -113,35 +136,33 @@ class CommandsHandler( object ):
 		response = []
 		
 		# Get the real id
-		_id = container.realid( self._client.user, request._id )
-		
+		_id = container.realid( self._client.user, request.id )
+
 		if len(request.slots) != 1:
-			response.append( self.objects.Sequence( request._sequence, len( request._slots ) ) )
+			response.append( self.objects.Sequence( request._sequence, len( request.slots ) ) )
 
 		for slot in request.slots:
 			try:
-				o = type(_id, slot)
-				self._send(o.to_request(self._client.user, request.sequence))
+				obj = _type( _id, slot )
 
+				response.append( PacketFactory().fromObject( _type.__name__, request._sequence, obj ) )
 			except PermissionDenied:
-				msg( "No permission for %s with id %s." % (_type, _id) )
-
-				self.objects.Fail( request._sequence, "NoSuch", "No such %s." % _type )
+				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
+				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
 			except NoSuch:
-				msg( "No such %s with id %s, %s." % (_type, _id, slot) )
+				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
+				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
 
-				self.objects.Fail( request._sequence, "NoSuch", "No such order." )
-
-		return True
+		return response
 
 	def on_AddCategory( self, request ):
 		pass
 
 	def on_GetCategory( self, request ):
-		pass
+		return self.OnGetWithID( request, Category )
 
 	def on_GetCategoryIDs( self, request ):
-		pass
+		return self.OnGetID( request, Category )
 
 	def on_RemoveCategory( self, request ):
 		pass
@@ -150,10 +171,10 @@ class CommandsHandler( object ):
 		pass
 
 	def on_GetDesign( self, request ):
-		pass
+		return self.GetWithID( request, Design )
 
 	def on_GetDesignIDs( self, request ):
-		pass
+		return self.GetIDs( request, Design )
 
 	def on_ModifyDesign( self, request ):
 		pass
@@ -162,16 +183,16 @@ class CommandsHandler( object ):
 		pass
 
 	def on_GetBoards( self, request ):
-		pass
+		return self.GetWithID( request, Board )
 
 	def on_GetBoardIDs( self, request ):
-		pass
+		return self.GetID( request, Board )
 
 	def on_GetComponent( self, request ):
-		pass
+		return self.GetWithID( request, Component )
 
 	def on_GetComponentIDs( self, request ):
-		pass
+		return self.GetIDs( request, Component )
 
 	def on_GetObjectIDs( self, request ):
 		return self.GetIDs( request, Object )	
@@ -207,8 +228,16 @@ class CommandsHandler( object ):
 	def on_GetOrder( self, request ):
 		pass
 
+	def on_GetGames( self, request ):
+		ids = Game.ids()
+
+		response = [ self.objects.Sequence(request.sequence, len(ids)) ]
+		response.extend( Game(id).to_packet(request.sequence) for id, time in ids )
+
+		return response
+
 	def on_GetOrderDesc( self, request ):
-		pass
+		return self.GetWithIDandSlot( request, Order, Object )
 
 	def on_GetOrderDescIDs( self, request ):
 		pass
@@ -217,34 +246,34 @@ class CommandsHandler( object ):
 		pass
 
 	def on_GetResource( self, request ):
-		pass
-
+		return self.GetWithID( request, Resource )
+		
 	def on_GetResourceIDs( self, request ):
-		pass
+		return self.GetIDs( request, Resource )
 
 	def on_GetMessage( self, request ):
-		pass
+		return self.GetWithIDandSlot( request, Message, Board )
 
 	def on_RemoveMessage( self, request ):
 		pass
 
 	def on_GetProperty( self, request ):
-		pass
+		return self.GetWithID( request, Property )
 
 	def on_GetPropertyIDs( self, request ):
-		pass
+		return self.GetID( request, Property )
 	
 	def on_CreateAccount( self, request ):
 		pass
 
 	def on_GetPlayer( self, request ):
-		pass
+		return self.GetWithID( request, User )
 
 	def on_FinishedTurn( self, request ):
 		pass
 
 	def on_GetTimeRemaining( self, request ):
-		pass
+		return self.objects.TimeRemaining( request._sequence, 0, 'Requested', 0, 'Bogus turn!' )
 
 	def on_Login( self, request ):
 		db.dbconn.use()

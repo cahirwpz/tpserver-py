@@ -21,11 +21,10 @@ class Board( SQLBase ):#{{{
 	@classmethod
 	def realid(cls, user, bid):
 		# Board ID Zero gets map to player id
-		# Board ID != Zero gets mapped to negative
 		if bid == 0:
 			return user.id
 		elif bid > 0:
-			return bid * -1
+			return bid
 		else:
 			raise NoSuch("No such board possible...")
 
