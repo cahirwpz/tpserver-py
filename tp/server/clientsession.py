@@ -78,7 +78,7 @@ class ClientSessionHandler( object ):#{{{
 	def sendResponse( self, response ):
 		if isinstance( response, list ):
 			for r in response:
-				self.protocol.sendPacket( response )
+				self.protocol.sendPacket( r )
 		else:
 			self.protocol.sendPacket( response )
 
