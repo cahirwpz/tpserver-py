@@ -12,8 +12,8 @@ class GetCurrentPlayer( AuthorizedTestSession ):
 		if packet.id != 2:
 			self.failed( "Server responded with different PlayerId than requested!" )
 
-class GetExistentPlayer( AuthorizedTestSession ):
-	""" Does server respond properly if asked about existent player? """
+class GetExistingPlayer( AuthorizedTestSession ):
+	""" Does server respond properly if asked about existing player? """
 
 	def __iter__( self ):
 		packet = yield self.protocol.GetPlayer( self.seq, [1] ), Expect( 'Player' )
@@ -42,4 +42,4 @@ class GetMultiplePlayers( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different PlayerIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
-__tests__ = [ GetCurrentPlayer, GetExistentPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
+__tests__ = [ GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
