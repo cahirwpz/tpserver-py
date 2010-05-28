@@ -5,8 +5,12 @@ import requirements
 from twisted.internet import reactor
 
 from tp.server.configuration import CLIConfigurator, ConfigurationError
-from tp.server.server import ThousandParsecServerFactory, ThousandParsecServerConfiguration
+from tp.server.db import DatabaseManager, DatabaseConfiguration
+
+DatabaseManager()
+
 from tp.server.logging import Logger, LoggerConfiguration
+from tp.server.server import ThousandParsecServerFactory, ThousandParsecServerConfiguration
 
 def main():
 	logger	= Logger()
@@ -15,6 +19,7 @@ def main():
 	configurator = CLIConfigurator( "Thousand Parsec Server" )
 	configurator.registerComponent( logger, LoggerConfiguration() )
 	configurator.registerComponent( factory, ThousandParsecServerConfiguration() )
+	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
 
 	try:
 		configurator.configParse()

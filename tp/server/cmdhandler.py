@@ -8,12 +8,12 @@ from tp.server.bases.Object    import Object
 from tp.server.bases.Order     import Order
 from tp.server.bases.Property  import Property
 from tp.server.bases.Resource  import Resource
-from tp.server.bases.SQL       import NoSuchThing, PermissionDenied, SQLUtils
+from tp.server.bases.SQL       import NoSuchThing, PermissionDenied
 from tp.server.bases.User      import User
 
-from tp.server import db
+from tp.server.db import DatabaseManager
 
-from tp.server.packet import PacketFactory
+from tp.server.packet import PacketFactory, datetime2int
 
 from version import version as __version__
 from logging import msg
@@ -57,7 +57,10 @@ class CommandsHandler( object ):
 
 		for _id in request.ids:
 			try:
-				obj = _type( _type.Utils.realid( self._client.user, _id ) )
+				obj = _type.Utils.findById( _type.Utils.realid( self._client.user, _id) )
+
+				if obj == None:
+					raise NoSuchThing
 
 				if _type.__name__ == 'User':
 					_name = 'Player'
@@ -112,7 +115,7 @@ class CommandsHandler( object ):
 		obj = Temp()
 		obj.key		= key 
 		obj.left	= left
-		obj.ids		= sorted( (_id, int(time.mktime(time.strptime(_time.ctime())))) for _id, _time in ids )
+		obj.ids		= sorted( (_id, datetime2int( _time ) ) for _id, _time in ids )
 
 		return PacketFactory().fromObject( _type.__name__ + "IDs", request._sequence, obj )
 	
@@ -141,7 +144,7 @@ class CommandsHandler( object ):
 
 		for slot in request.slots:
 			try:
-				obj = _type( _id, slot )
+				obj = _type.Utils.findByIdAndSlot( _id, slot )
 
 				response.append( PacketFactory().fromObject( _type.__name__, request._sequence, obj ) )
 			except PermissionDenied:
@@ -157,10 +160,10 @@ class CommandsHandler( object ):
 		pass
 
 	def on_GetCategory( self, request ):
-		return self.OnGetWithID( request, Category )
+		return self.GetWithID( request, Category )
 
 	def on_GetCategoryIDs( self, request ):
-		return self.OnGetID( request, Category )
+		return self.GetIDs( request, Category )
 
 	def on_RemoveCategory( self, request ):
 		pass
@@ -230,7 +233,7 @@ class CommandsHandler( object ):
 		ids = Game.ids()
 
 		response = [ self.objects.Sequence(request.sequence, len(ids)) ]
-		response.extend( Game(id).to_packet(request.sequence) for id, time in ids )
+		response.extend( Game(id).to_packet(request.sequence) for id, _time in ids )
 
 		return response
 
@@ -248,6 +251,9 @@ class CommandsHandler( object ):
 		
 	def on_GetResourceIDs( self, request ):
 		return self.GetIDs( request, Resource )
+
+	def on_Message( self, request ):
+		return PacketFactory().objects.Fail( request._sequence, 'NoSuchThing', 'Message adding failed.', [])
 
 	def on_GetMessage( self, request ):
 		return self.GetWithIDandSlot( request, Message, Board )
@@ -274,8 +280,6 @@ class CommandsHandler( object ):
 		return self.objects.TimeRemaining( request._sequence, 0, 'Requested', 0, 'Bogus turn!' )
 
 	def on_Login( self, request ):
-		db.dbconn.use()
-
 		try:
 			username, game_name = User.Utils.split( request.username )
 		except TypeError, ex:
@@ -284,19 +288,20 @@ class CommandsHandler( object ):
 			return self.objects.Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
-			game = Game( shortname = game_name )
+			game = Game.load( game_name )
 		except KeyError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
-		pid = User.Utils.usernameid( game, username, request.password )
+		user = User.Utils.getUser( game, username, request.password )
 
-		if pid == -1:
-			return self.objects.Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
-		else:
-			self._client.user = User( id = pid )
+		if user is not None:
+			self._client.game = game
+			self._client.user = user
 			return self.objects.Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game ) )
+		else:
+			return self.objects.Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
 
 	def on_Connect( self, request ):
 		version = ".".join(map(lambda i: str(i), __version__))

@@ -5,6 +5,9 @@ from tp.netlib import parser, structures
 
 import time
 
+def datetime2int( _time ):
+	return int( time.mktime( time.strptime( _time.ctime() ) ) )
+
 class PacketFactory( object ):#{{{
 	__metaclass__ = SingletonClass
 
@@ -88,16 +91,19 @@ class PacketFactory( object ):#{{{
 				obj.feedback, obj.properties)
 
 	def makeBoardPacket( self, seq, obj ):
-		return self.objects.Board( seq, Board.mangleid( obj.id ), obj.name,
-				obj.desc, Message.number( obj.id ), self.time)
+		return self.objects.Board( seq, obj.id, obj.name, str(obj.desc).strip(), obj.id, datetime2int( obj.time ) )
+		#return self.objects.Board( seq, Board.mangleid( obj.id ), obj.name,
+		#		obj.desc, Message.number( obj.id ), self.time)
 
 	def makeMessagePacket( self, seq, obj):
 		# FIXME: The reference system needs to be added and so does the turn
 		return self.objects.Message( seq, obj.bid, obj.slot, [], obj.subject,
-				obj.body, 0, [])
+				str(obj.body), 0, [])
 
 	def makeObjectPacket( self, seq, obj ):
-		return self.objects.Object( seq, obj.id, obj.typeno, obj.name,
+		from tp.server.bases.SQLTypedBase import quickimport
+
+		return self.objects.Object( seq, obj.id, quickimport(obj.type).typeno, str(obj.name),
 				"Description", 1, obj.contains, 2, 3, [ [[obj.posx, obj.posy,
 					obj.posz], -1], [[obj.velx, obj.vely, obj.velz], -1] ] )
 				# 1 => parent, 2 => modtime, 3 => padding

@@ -10,6 +10,7 @@ from twisted.internet import reactor
 
 from tp.server.logging import Logger, LoggerConfiguration
 from tp.server.configuration import CLIConfigurator, ConfigurationError
+from tp.server.db import DatabaseManager, DatabaseConfiguration
 
 from testrunner import TestRunner, TestRunnerConfiguration
 from testrunner import TestSelector, TestSelectorConfiguration
@@ -23,6 +24,7 @@ def main():
 	configurator.registerComponent( logger, LoggerConfiguration() )
 	configurator.registerComponent( selector, TestSelectorConfiguration() )
 	configurator.registerComponent( runner, TestRunnerConfiguration() )
+	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
 
 	try:
 		configurator.configParse()

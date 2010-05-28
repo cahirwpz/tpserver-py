@@ -1,6 +1,6 @@
 
 from tp.server.utils import ReparentOne
-from tp.server.db import dbconn, convert
+from tp.server.db import *
 
 from tp.server.bases.Board    import Board
 from tp.server.bases.Message  import Message
