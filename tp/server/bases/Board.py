@@ -72,3 +72,7 @@ class Board( SQLBase ):#{{{
 	def __str__(self):
 		return "<Board id=%s>" % self.id
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Board, Board.table)

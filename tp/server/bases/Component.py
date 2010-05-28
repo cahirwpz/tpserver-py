@@ -141,3 +141,7 @@ class Component(SQLTypedBase):#{{{
 				# Update the property
 				results = update(t, (t.c.component==self.id) & (t.c.property==cid)).execute(component=self.id, property=cid, value=self.properties[cid])
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Component, Component.table)

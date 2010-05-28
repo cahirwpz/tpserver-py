@@ -351,3 +351,7 @@ class Design( SQLBase ):#{{{
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Design, Design.table)

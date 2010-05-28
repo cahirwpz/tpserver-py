@@ -181,3 +181,7 @@ class Object(SQLTypedBase):#{{{
 	def __str__(self):
 		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Object, Object.table)

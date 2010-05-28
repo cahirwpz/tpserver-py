@@ -29,3 +29,7 @@ class Category( SQLBase ):#{{{
 	def __str__(self):
 		return "<Category id=%s name=%s>" % (self.id, self.name)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Category, Category.table)

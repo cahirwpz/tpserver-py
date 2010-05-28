@@ -2,7 +2,6 @@
 Classes for dealing with games hosted on the machine.
 """
 
-import weakref
 import os, socket
 import hashlib
 from sqlalchemy import *
@@ -213,46 +212,6 @@ class Game( SQLBase ):#{{{
 						default		= func.current_timestamp()),
 					UniqueConstraint('shortname'))
 
-	__cache = weakref.WeakValueDictionary()
-
-	def __new__(cls, id=None, shortname=None, longname=None):
-		# Try and return the object from the cache instead...
-		if not id is None:
-			try:
-				return cls.__cache[id]
-			except KeyError:
-				pass
-
-		if not longname is None:
-			shortname = cls.munge(longname)
-
-		if not shortname is None:
-			try:
-				return cls.__cache[shortname]
-			except KeyError:
-				pass
-		
-		# Call the __init__ method of the super class
-		self = SQLBase.__new__(cls)
-		if not id is None:
-			SQLBase.__init__(self, id=id)
-		if not (shortname is None):
-			SQLBase.__init__(self, id=self.gameid(shortname))
-		if not (longname is None):
-			SQLBase.__init__(self, id=self.gameid(self.munge(longname)))
-
-		if (id, shortname, longname) == (None, None, None):
-			return self
-		else:
-			# Short the object in the cache
-			cls.__cache[self.id]        = self
-			cls.__cache[self.shortname] = self
-
-			return self
-
-	def __init__(self, *args, **kw):
-		pass
-
 	@staticmethod
 	def munge(game):
 		"""
@@ -261,19 +220,12 @@ class Game( SQLBase ):#{{{
 		return game.replace(' ', '').strip().lower()
 
 	@staticmethod
-	def gameid(game):
+	def load( game_name ):
 		"""
 		Get the id of a game from a short name.
 		"""
 		try:
-			return Game.__cache[game].id
-		except KeyError:
-			pass
-
-		dbconn.use()
-		t = Game.table
-		try:
-			return dbconn.execute(select([t.c.id], t.c.shortname==game)).fetchall()[0][0]
+			return DatabaseManager().session().query( Game ).filter_by( shortname = game_name ).first()
 		except (KeyError, IndexError), e:
 			raise NoSuchThing("No such game named %s exists!" % game)
 
@@ -339,3 +291,10 @@ class Game( SQLBase ):#{{{
 				# prd: The time between turns in seconds.
 			)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper( Lock, Lock.table )
+mapper( Event, Event.table )
+mapper( Connection, Connection.table )
+mapper( Game, Game.table )

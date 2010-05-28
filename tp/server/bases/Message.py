@@ -32,14 +32,22 @@ class MessageUtils( SQLUtils ):#{{{
 		"""
 		t = self.cls.table
 		return select([func.count(t.c.id).label('count')], t.c.bid==bid).execute().fetchall()[0]['count']
+
+	def findByIdAndSlot( self, _id, _slot ):
+		result = DatabaseManager().session().query(Message).filter_by(bid=_id, slot=_slot).first()
+
+		if result == None:
+			raise NoSuchThing
+		else:
+			return result
 #}}}
 
 class Message( SQLBase ):#{{{
 	Utils = MessageUtils()
 
 	table = Table('message', metadata,
-				Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
-				Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
+				Column('game', 	  Integer,     nullable=False, index=True), #, primary_key=True),
+				Column('id',	  Integer,     primary_key=True),
 				Column('bid',	  Integer,     nullable=False, index=True),
 				Column('slot',	  Integer,     nullable=False),
 				Column('subject', String(255), nullable=False, index=True),
@@ -47,7 +55,7 @@ class Message( SQLBase ):#{{{
 				Column('time',	  DateTime,    nullable=False, index=True,
 					onupdate=func.current_timestamp(),
 					default=func.current_timestamp()),
-				#UniqueConstraint('game', 'bid', 'slot'),
+				UniqueConstraint('game', 'bid', 'slot'),
 				ForeignKeyConstraint(['bid'],  ['board.id']),
 				ForeignKeyConstraint(['game'], ['game.id']))
 
@@ -73,15 +81,6 @@ class Message( SQLBase ):#{{{
 				ForeignKeyConstraint(['game'], ['game.id']))
 
 	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid)
-
-	"""
-	The init method starts here... 
-	"""
-	def __init__(self, bid=None, slot=None, id=None):
-		if bid != None and slot != None:
-			id = self.Utils.realid(bid, slot)
-
-		SQLBase.__init__(self, id)
 
 	def allowed(self, user):
 		# FIXME: This is a hack.
@@ -154,3 +153,7 @@ class Message( SQLBase ):#{{{
 		except AttributeError:
 			return "<Message id=(None) bid=%s slot=%s>" % (self.bid, self.slot)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Message, Message.table)

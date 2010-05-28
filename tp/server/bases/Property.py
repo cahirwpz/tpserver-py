@@ -88,3 +88,7 @@ class Property( SQLBase ):#{{{
 				# Add the category
 				results = insert(t).execute(property=self.id, category=cid)
 #}}}
+
+from sqlalchemy.orm import mapper
+
+mapper(Property, Property.table)
