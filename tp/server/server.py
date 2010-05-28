@@ -3,7 +3,7 @@ from logging import logctx, msg
 from configuration import ComponentConfiguration, IntegerOption, BooleanOption
 from clientsession import ClientSessionHandler
 
-from twisted.internet import reactor, ssl
+from twisted.internet import reactor, ssl, error
 from twisted.internet.protocol import ServerFactory
 
 from OpenSSL import SSL
@@ -27,13 +27,6 @@ class ThousandParsecServerFactory( ServerFactory, object ):#{{{
 		msg( "Starting factory." )
 		ServerFactory.doStart(self)
 
-		from tp.server import db
-
-		dbconfig = "sqlite:///tp.db"
-		dbecho = False
-
-		db.setup(dbconfig, dbecho)
-
 	@logctx
 	def doStop(self):
 		msg( "Stopping factory." )
@@ -55,10 +48,28 @@ class ThousandParsecServerFactory( ServerFactory, object ):#{{{
 		self.listeners = dict( tcp=None, tls=None )
 
 	def start( self ):
-		self.listeners['tcp'] = reactor.listenTCP( self.__tcp_port_num, self )
+		reactor.callLater( 0, self.__startListening )
+	
+	@logctx
+	def __startListening( self ):
+		try:
+			port = reactor.listenTCP( self.__tcp_port_num, self )
+		except error.CannotListenError, ex:
+			msg( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]), level='error' )
+		else:
+			self.listeners['tcp'] = port
 
 		if self.__listen_tls:
-			self.listeners['tls'] = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
+			try:
+				port = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
+			except error.CannotListenError, ex:
+				msg( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]), level='error' )
+			else:
+				self.listeners['tls'] = port
+
+		if all( port == None for proto, port in self.listeners.items() ):
+			msg( "${red1}No listening ports. Quitting...${coff}", level='error' )
+			reactor.stop()
 
 	def logPrefix( self ):
 		return self.__class__.__name__
@@ -74,4 +85,3 @@ class ThousandParsecServerConfiguration( ComponentConfiguration ):#{{{
 	listen_tls	= BooleanOption( short='t', default=False,
 						help='Turns on TLS listener.' )
 #}}}
-
