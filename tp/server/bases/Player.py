@@ -1,14 +1,12 @@
-"""
-Resources require to build stuff.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
 from tp.server.db import *
-from tp.server.bases.Game import Game
-from tp.server.bases.SQL import SQLBase, SQLUtils, NoSuchThing
+from Game import Game
+from SQL import SQLBase, SQLUtils
 
-class UserUtils( SQLUtils ):#{{{
+class PlayerUtils( SQLUtils ):#{{{
 	def realid(self, user, id):
 		if id == 0:
 			return user.id
@@ -32,7 +30,7 @@ class UserUtils( SQLUtils ):#{{{
 		else:
 			return -1
 
-	def getUser(self, game, username, password = None):
+	def getPlayer(self, game, username, password = None):
 		"""
 		Get the id for a user given a game, username and password.
 		"""
@@ -55,11 +53,23 @@ class UserUtils( SQLUtils ):#{{{
 		return username.split('@', 1)
 #}}}
 
-class User( SQLBase ):#{{{
-	Utils = UserUtils()
+class Player( SQLBase ):#{{{
+	Utils = PlayerUtils()
+
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',	    Integer,     index = True, primary_key = True),
+				Column('username',  String(255), nullable = False, ),
+				Column('password',  String(255), nullable = False, ),
+				Column('comment',   Binary,      nullable = False, default = ""),
+				Column('mtime',	    DateTime,    nullable = False,
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()),
+				UniqueConstraint('username'))
 
 	def __str__(self):
-		return "<User id=%s username=%s>" % (self.id, self.username)
+		return "<Player id=%s username=%s>" % (self.id, self.username)
 
 	@property
 	def game(self):
@@ -76,18 +86,4 @@ class User( SQLBase ):#{{{
 		return bool(self.__game)
 #}}}
 
-from sqlalchemy.orm import mapper
-
-User.table = Table('user', metadata,
-				Column('game', 	    Integer,     nullable=False, index=True), #, primary_key=True),
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('username',  String(255), nullable=False, index=True),
-				Column('password',  String(255), nullable=False, index=True),
-				Column('comment',   Binary,      nullable=False, default=""),
-				Column('time',	    DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				UniqueConstraint('username', 'game'),
-				ForeignKeyConstraint(['game'], ['game.id']))
-
-mapper(User, User.table)
+__all__ = [ 'Player' ]

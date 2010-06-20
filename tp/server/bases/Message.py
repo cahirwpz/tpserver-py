@@ -1,6 +1,4 @@
-"""
-Message with information about stuff (and references to other objects).
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
@@ -43,48 +41,27 @@ class MessageUtils( SQLUtils ):#{{{
 #}}}
 
 class Message( SQLBase ):#{{{
+	"""
+	Message with information about stuff.
+	"""
+
 	Utils = MessageUtils()
 
-	table = Table('message', metadata,
-				Column('game', 	  Integer,     nullable=False, index=True), #, primary_key=True),
-				Column('id',	  Integer,     primary_key=True),
-				Column('bid',	  Integer,     nullable=False, index=True),
-				Column('slot',	  Integer,     nullable=False),
-				Column('subject', String(255), nullable=False, index=True),
-				Column('body',    Binary,      nullable=False),
-				Column('time',	  DateTime,    nullable=False, index=True,
-					onupdate=func.current_timestamp(),
-					default=func.current_timestamp()),
-				UniqueConstraint('game', 'bid', 'slot'),
-				ForeignKeyConstraint(['bid'],  ['board.id']),
-				ForeignKeyConstraint(['game'], ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata, board_table ):
+		table = Table( name, metadata,
+					Column('id',      Integer,     primary_key = True),
+					Column('board',   ForeignKey( "%s.id" % board_table ), nullable = False),
+					Column('slot',	  Integer,     nullable = False),
+					Column('subject', String(255), nullable = False),
+					Column('body',    Binary,      nullable = False),
+					Column('mtime',	  DateTime,    nullable = False,
+						onupdate = func.current_timestamp(), default = func.current_timestamp()),
+					UniqueConstraint('board', 'slot'))
 
-	Index('idx_message_bidslot', table.c.bid, table.c.slot)
-
-	table_types = Table('reference', metadata,
-		Column('game', 	Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',    Integer,     nullable=False, primary_key=True),
-		Column('value', Integer,     nullable=False, index=True),
-		Column('desc',  Binary,      nullable=False),
-		Column('ref',   String(255), nullable=False))
-
-	table_references = Table('message_references', metadata,
-				Column('game', 	Integer,  nullable=False, primary_key=True),
-				Column('mid',   Integer,  nullable=False, primary_key=True),
-				Column('rid',   Integer,  nullable=False, primary_key=True),
-				Column('value', Integer,  nullable=False, default=0),
-				Column('time',	DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default=func.current_timestamp()),
-				ForeignKeyConstraint(['mid'],  ['message.id']),
-				ForeignKeyConstraint(['rid'],  ['reference.id']),
-				ForeignKeyConstraint(['game'], ['game.id']))
-
-	Index('idx_msgref_midrid', table_references.c.mid, table_references.c.rid)
-
-	def allowed(self, user):
-		# FIXME: This is a hack.
-		return self.board.allowed(user)
+		Index('idx_%s_board_slot', table.c.board, table.c.slot)
+		
+		return table
 
 	@property
 	def board(self):
@@ -154,6 +131,30 @@ class Message( SQLBase ):#{{{
 			return "<Message id=(None) bid=%s slot=%s>" % (self.bid, self.slot)
 #}}}
 
-from sqlalchemy.orm import mapper
+class Reference( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',          Integer,     index = True, primary_key = True),
+				Column('value',       Integer,     nullable = False),
+				Column('description', Binary,      nullable = False),
+				Column('reference',   String(255), nullable = False))
+#}}}
 
-mapper(Message, Message.table)
+class MessageReference( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, message_table, reference_table ):
+		table = Table( name, metadata,
+				Column('id',        Integer,     index = True, primary_key = True),
+				Column('message',   ForeignKey( "%s.id" % message_table )),
+				Column('reference', ForeignKey( "%s.id" % reference_table )),
+				Column('value',     Integer,  nullable=False, default = 0),
+				Column('mtime',	    DateTime, nullable=False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+
+		Index('ix_%s_msg_ref' % name, table.c.message, table.c.reference)
+
+		return table
+#}}}
+
+__all__ = [ 'Message', 'Reference', 'MessageReference' ]

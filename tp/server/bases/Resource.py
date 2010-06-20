@@ -1,12 +1,8 @@
-"""
-Resources require to build stuff.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
-from tp.server.db import *
-from tp.server.bases.SQL import SQLUtils, NoSuchThing
-from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable
+from SQL import SQLUtils, NoSuchThing, SQLBase
 
 class ResourceUtils( SQLUtils ):#{{{
 	def byname(self, name):
@@ -17,27 +13,30 @@ class ResourceUtils( SQLUtils ):#{{{
 			raise NoSuchThing("No object with name (either singular or plural) %s" % name)
 #}}}
 
-class Resource( SQLTypedBase ):#{{{
+class Resource( SQLBase ):#{{{
+	"""
+	Resources require to build stuff.
+	"""
+
 	Utils = ResourceUtils()
 
-	table = Table('resource', metadata,
-				Column('game', 	       Integer,  nullable=False, index=True, primary_key=True),
-				Column('id',	       Integer,  nullable=False, index=True, primary_key=True),
-				Column('type',	       String(255), nullable=False, index=True),
-				Column('namesingular', Binary,   nullable=False),
-				Column('nameplural',   Binary,   nullable=False, default=''),
-				Column('unitsingular', Binary,   nullable=False, default=''),
-				Column('unitplural',   Binary,   nullable=False, default=''),
-				Column('desc',         Binary,   nullable=False),
-				Column('weight',       Integer,  nullable=False, default=0),
-				Column('size',         Integer,  nullable=False, default=0),
-				Column('time',	       DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default=func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
-
-	table_extra = SQLTypedTable('resource')
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',	       Integer,  index = True, primary_key = True),
+				Column('type',	       String(255), nullable = False),
+				Column('name_singular', Binary,   nullable = False),
+				Column('name_plural',   Binary,   nullable = False, default = ''),
+				Column('unit_singular', Binary,   nullable = False, default = ''),
+				Column('unit_plural',   Binary,   nullable = False, default = ''),
+				Column('description',  Binary,   nullable = False),
+				Column('weight',       Integer,  nullable = False, default = 0),
+				Column('size',         Integer,  nullable = False, default = 0),
+				Column('mtime',	       DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	def __str__(self):
 		return "<Resource id=%s>" % (self.id)
 #}}}
+
+__all__ = [ 'Resource' ]

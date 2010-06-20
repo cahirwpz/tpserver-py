@@ -1,12 +1,9 @@
-"""
-How to tell objects what to do.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
 from tp.server.db import *
-from tp.server.bases.SQL import SQLUtils, NoSuchThing
-from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable
+from SQL import SQLUtils, NoSuchThing, SQLBase
 
 class OrderUtils( SQLUtils ):#{{{
 	def realid(self, oid, slot):
@@ -67,52 +64,34 @@ class OrderUtils( SQLUtils ):#{{{
 		return self.cls.desc_packet(0, typeno).build()
 #}}}
 
-class Order( SQLTypedBase ):#{{{
+class Order( SQLBase ):#{{{
+	"""
+	How to tell objects what to do.
+	"""
+
 	Utils = OrderUtils()
 
-	table = Table('orders', metadata,
-		Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
-		Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
-		Column('type',	  String(255), nullable=False, index=True),
-		Column('oid',     Integer,     nullable=False, index=True),
-		Column('slot',    Integer,     nullable=False, index=True),
-		Column('worked',  Integer,     nullable=False),
-		Column('time',	  DateTime,    nullable=False, index=True,
-			onupdate=func.current_timestamp(), default=func.current_timestamp()),
+	types = {}
 
-		#UniqueConstraint('game', 'oid', 'slot'), FIXME: This breaks the update...
-		ForeignKeyConstraint(['oid'],  ['object.id']),
-		ForeignKeyConstraint(['game'], ['game.id']),
-	)
+	@classmethod
+	def getTable( cls, name, metadata, object_table ):
+		return Table( name, metadata,
+				Column('id',     Integer,     index = True, primary_key = True),
+				Column('slot',   Integer,     nullable = False),
+				Column('type',   String(255), nullable = False),
+				Column('object', ForeignKey("%s.id" % object_table)),
+				Column('eta',    Integer,     nullable = False),
+				Column('mtime',  DateTime,    nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
-	Index('idx_order_oidslot', table.c.oid, table.c.slot)
-
-	table_extra = SQLTypedTable('orders')
-
-	"""
-	The init method starts here... 
-	"""
-	def __init__(self, oid=None, slot=None, type=None, id=None):
+	def __init__(self, oid = None, slot = None, type = None, id = None):
 		if oid != None and slot != None:
 			id = self.realid(oid, slot)
 
-		self.worked = 0
-		SQLTypedBase.__init__(self, id, type)
-
-	def allowed(self, user):
-		# FIXME: This is a hack.
-		return (hasattr(self.object, "owner") and self.object.owner == user.id)
-
-	@property
-	def object(self):
-		if not hasattr(self, "_object"):
-			from Object import Object
-			self._object = Object(self.oid)
-		return self._object
+		self.eta = 0
 
 	def insert(self):
-		trans = dbconn.begin()
-		try:
+		with DatabaseManager().session() as session:
 			t = self.table
 
 			number = self.number(self.oid)
@@ -126,14 +105,8 @@ class Order( SQLTypedBase ):#{{{
 
 			self.save()
 
-			trans.commit()
-		except Exception, e:
-			trans.rollback()
-			raise
-
 	def save(self):
-		trans = dbconn.begin()
-		try:
+		with DatabaseManager().session() as session:
 			# Update the modtime...
 			self.object.save()
 
@@ -144,25 +117,14 @@ class Order( SQLTypedBase ):#{{{
 
 			SQLTypedBase.save(self)
 
-			trans.commit()
-		except Exception, e:
-			trans.rollback()
-			raise
-
 	def remove(self):
-		trans = dbconn.begin()
-		try:
+		with DatabaseManager().session() as session:
 			# Move the other orders down
 			t = self.table
 			update(t, (t.c.slot >= bindparam('s')) & (t.c.oid==bindparam('o')), {'slot': t.c.slot-1}).execute(s=self.slot, o=self.oid)
 
 			self.object.save()
 			SQLTypedBase.remove(self)
-
-			trans.commit()
-		except Exception, e:
-			trans.rollback()
-			raise
 
 	#def to_packet(self, user, sequence):
 	#	self, args = SQLTypedBase.to_packet(self, user, sequence)
@@ -180,8 +142,8 @@ class Order( SQLTypedBase ):#{{{
 	#
 	#	return self
 
-	def turns(self, turns=0):
-		"""\
+	def turns( self, turns = 0 ):
+		"""
 		Number of turns this order will take to complete.
 		"""
 		return turns + 0
@@ -194,8 +156,7 @@ class Order( SQLTypedBase ):#{{{
 		return []
 
 	def __str__(self):
-		if hasattr(self, 'id'):
-			return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
-		else:
-			return "<Order type=%s id=XX oid=%s slot=%s>" % (self.type, self.oid, self.slot)
+		return "<Order type=%s id=%s oid=%s slot=%s>" % (self.type, self.id, self.oid, self.slot)
 #}}}
+
+__all__ = [ 'Order' ]

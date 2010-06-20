@@ -1,12 +1,8 @@
-"""
-Components which can be put together to form designs.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
-from tp.server.db import *
-from tp.server.bases.SQL import SQLUtils
-from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable
+from SQL import SQLUtils, SQLBase
 
 class ComponentUtils( SQLUtils ):#{{{
 	def byname(self, name):
@@ -14,48 +10,24 @@ class ComponentUtils( SQLUtils ):#{{{
 		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
 #}}}
 
-class Component(SQLTypedBase):#{{{
+class Component( SQLBase ):#{{{
+	"""
+	Components which can be put together to form designs.
+	"""
+
 	Utils = ComponentUtils()
 
-	table = Table('component', metadata,
-				Column('game', 	  Integer,     nullable=False, index=True, primary_key=True),
-				Column('id',	  Integer,     nullable=False, index=True, primary_key=True),
-				Column('type',	  String(255), nullable=False, index=True),
-				Column('name',	  String(255), nullable=False, index=True),
-				Column('desc',    Binary,      nullable=False),
-				Column('requirements', Binary, nullable=False, default="""(lambda (design) (cons #t ""))"""),
-				Column('comment', Binary,      nullable=False, default=''),
-				Column('time',	  DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
-
-	table_extra = SQLTypedTable('component')
-
-	table_category = Table('component_category', metadata,
-				Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
-				Column('component', Integer,  nullable=False, index=True, primary_key=True),
-				Column('category',  Integer,  nullable=False, index=True, primary_key=True),
-				Column('comment',   Binary,   nullable=False, default=''),
-				Column('time',	    DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['component'], ['component.id']),
-				ForeignKeyConstraint(['category'],  ['category.id']),
-				ForeignKeyConstraint(['game'],      ['game.id']))
-
-	table_property = Table('component_property', metadata,
-				Column('game', 		Integer,  nullable=False, index=True, primary_key=True),
-				Column('component', Integer,  nullable=False, index=True, primary_key=True),
-				Column('property',  Integer,  nullable=False, index=True, primary_key=True),
-				Column('value',     Binary,   nullable=False, default='(lambda (design) 1)'),
-				Column('comment',   Binary,   nullable=False, default=''),
-				Column('time',	    DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['component'], ['component.id']),
-				ForeignKeyConstraint(['property'],  ['property.id']),
-				ForeignKeyConstraint(['game'],      ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',           Integer,     index = True, primary_key = True),
+				Column('type',         String(255), nullable = False),
+				Column('name',         String(255), nullable = False),
+				Column('description',  Binary,      nullable = False),
+				Column('requirements', Binary,      nullable = False, default = """(lambda (design) (cons #t ""))"""),
+				Column('comment',      Binary,      nullable = False, default = ''),
+				Column('mtime',        DateTime,    nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	def get_categories( self ):
 		"""
@@ -142,6 +114,29 @@ class Component(SQLTypedBase):#{{{
 				results = update(t, (t.c.component==self.id) & (t.c.property==cid)).execute(component=self.id, property=cid, value=self.properties[cid])
 #}}}
 
-from sqlalchemy.orm import mapper
+class ComponentCategory( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, component_table, category_table ):
+		return Table( name, metadata, 
+				Column('id',        Integer,  index = True, primary_key = True),
+				Column('component', ForeignKey( '%s.id' % component_table ), nullable = False),
+				Column('category',  ForeignKey( '%s.id' % category_table ), nullable = False),
+				Column('comment',   Binary,   nullable = False, default = ''),
+				Column('mtime',	    DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+#}}}
 
-mapper(Component, Component.table)
+class ComponentProperty( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, component_table, property_table ):
+		return Table( name, metadata,
+				Column('id',        Integer,  index = True, primary_key = True),
+				Column('component', ForeignKey( '%s.id' % component_table ), nullable = False),
+				Column('property',  ForeignKey( '%s.id' % property_table), nullable = False),
+				Column('value',     Binary,   nullable = False, default = '''(lambda (design) 1)'''),
+				Column('comment',   Binary,   nullable = False, default = ''),
+				Column('mtime',     DateTime, nullable = False, 
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+#}}}
+
+__all__ = [ 'Component', 'ComponentCategory', 'ComponentProperty' ]

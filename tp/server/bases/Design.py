@@ -1,55 +1,31 @@
-"""
-Design of things.
-"""
+#!/usr/bin/env python
 
 import pyscheme as scheme
+
 from sqlalchemy import *
 
 from tp.server.logging import msg
-from tp.server.db import *
-from tp.server.bases.SQL import SQLBase
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
-from tp.server.bases.Component import Component
-from tp.server.bases.Property import Property
+
+from SQL import SQLBase
+from Object import Object
+from Order import Order
+from Component import Component
+from Property import Property
 
 class Design( SQLBase ):#{{{
-	table = Table('design', metadata,
-				Column('game', 	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('name',	    String(255), nullable=False, index=True),
-				Column('desc',      Binary,      nullable=False),
-				Column('owner',     Integer,     nullable=False),
-				Column('time',	    DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['owner'], ['user.id']),
-				ForeignKeyConstraint(['game'],  ['game.id']))
+	"""
+	Design of things.
+	"""
 
-	table_category = Table('design_category', metadata,
-				Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
-				Column('design',    Integer,  nullable=False, index=True, primary_key=True),
-				Column('category',  Integer,  nullable=False, index=True, primary_key=True),
-				Column('comment',   Binary,   nullable=False, default=''),
-				Column('time',	    DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['design'],   ['design.id']),
-				ForeignKeyConstraint(['category'], ['category.id']),
-				ForeignKeyConstraint(['game'],     ['game.id']))
-
-	table_component = Table('design_component', metadata,
-				Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
-				Column('design',    Integer,  nullable=False, index=True, primary_key=True),
-				Column('component', Integer,  nullable=False, index=True, primary_key=True),
-				Column('amount',    Integer,  nullable=False, default=0),
-				Column('comment',   Binary,   nullable=False, default=''),
-				Column('time',	    DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default=func.current_timestamp()),
-				ForeignKeyConstraint(['design'],    ['design.id']),
-				ForeignKeyConstraint(['component'], ['component.id']),
-				ForeignKeyConstraint(['game'],      ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata, player_table ):
+		return Table( name, metadata,
+				Column('id',	      Integer,     index = True, primary_key = True),
+				Column('owner',       ForeignKey( "%s.id" % player_table), nullable = False),
+				Column('name',	      String(255), nullable = False),
+				Column('description', Binary,      nullable = False),
+				Column('mtime',	      DateTime,    nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	def load(self, id):
 		"""
@@ -108,7 +84,7 @@ class Design( SQLBase ):#{{{
 					results = insert(t).execute(design=self.id, component=cid, amount=end)
 			
 	def get_categories(self):
-		"""\
+		"""
 		get_categories -> [id, ...]
 
 		Returns the categories the design is in.
@@ -124,7 +100,7 @@ class Design( SQLBase ):#{{{
 		return self._categories
 		
 	def get_components(self):
-		"""\
+		"""
 		get_components -> [id, ...]
 
 		Returns the components the design contains.
@@ -141,7 +117,7 @@ class Design( SQLBase ):#{{{
 	
 	@property
 	def used(self):
-		"""\
+		"""
 		used -> value
 
 		Returns the properties (and values) a design has.
@@ -177,7 +153,7 @@ class Design( SQLBase ):#{{{
 
 	@property
 	def properties(self):
-		"""\
+		"""
 		properties -> [(id, value, string), ...]
 
 		Returns the properties (and values) a design has.
@@ -187,7 +163,7 @@ class Design( SQLBase ):#{{{
 
 	@property
 	def feedback(self):
-		"""\
+		"""
 		feedback -> string
 
 		Returns the feedback for this design.
@@ -352,6 +328,29 @@ class Design( SQLBase ):#{{{
 		return "<Component id=%s name=%s>" % (self.id, self.name)
 #}}}
 
-from sqlalchemy.orm import mapper
+class DesignCategory( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, design_table, category_table ):
+		return Table( name, metadata,
+				Column('id',       Integer,  index = True, primary_key = True),
+				Column('design',   ForeignKey( '%s.id' % design_table ), nullable = False ),
+				Column('category', ForeignKey( '%s.id' % category_table ), nullable = False),
+				Column('comment',  Binary,   nullable = False, default = ''),
+				Column('mtime',	   DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+#}}}
 
-mapper(Design, Design.table)
+class DesignComponent( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, design_table, component_table ):
+		return  Table( name, metadata,
+				Column('id',        Integer,  index = True, primary_key = True),
+				Column('design',    ForeignKey( '%s.id' % design_table ), nullable = False ),
+				Column('component', ForeignKey( '%s.id' % component_table ), nullable = False),
+				Column('amount',    Integer,  nullable = False, default = 0),
+				Column('comment',   Binary,   nullable = False, default = ''),
+				Column('mtime',	    DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+#}}}
+
+__all__ = [ 'Design', 'DesignCategory', 'DesignComponent' ]

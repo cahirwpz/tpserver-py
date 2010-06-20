@@ -1,14 +1,12 @@
-"""
-The basis for all objects that exist.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
 from tp.server.logging import msg
 from tp.server.db import *
-from tp.server.bases.SQL import SQLBase, SQLUtils
-from tp.server.bases.SQLTypedBase import SQLTypedBase, SQLTypedTable, quickimport
-from tp.server.bases.Order import Order
+
+from SQL import SQLBase, SQLUtils
+from Order import Order
 
 class ObjectUtils( SQLUtils ):#{{{
 	def bypos(self, pos, size=0, limit=-1, orderby=None):
@@ -70,13 +68,19 @@ class ObjectUtils( SQLUtils ):#{{{
 		return [(x['id'], x['time']) for x in results]
 #}}}
 
-class Object(SQLTypedBase):#{{{
+class Object( SQLBase ):#{{{
+	"""
+	The basis for all objects that exist.
+	"""
+
 	Utils = ObjectUtils()
 
-	table = Table('object', metadata,
-				Column('game',	    Integer,     nullable=False, index=True, primary_key=True),
+	@classmethod
+	def getTable( cls, name, metadata ):
+		table = Table( name, metadata,
 				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('type',	    String(255), nullable=False, index=True),
+				Column('parent_id', ForeignKey("%s.id" % name), nullable = True),
+				Column('type',	    String(255), nullable=False),
 				Column('name',      Binary,      nullable=False),
 				Column('size',      Integer(64), nullable=False),
 				Column('posx',      Integer(64), nullable=False, default=0),
@@ -85,24 +89,19 @@ class Object(SQLTypedBase):#{{{
 				Column('velx',      Integer(64), nullable=False, default=0),
 				Column('vely',      Integer(64), nullable=False, default=0),
 				Column('velz',      Integer(64), nullable=False, default=0),
-				Column('parent',    Integer,     nullable=True),
-				Column('time',	    DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				UniqueConstraint('id', 'game'),
-				ForeignKeyConstraint(['parent'], ['object.id']),
-				ForeignKeyConstraint(['game'],   ['game.id']))
+				Column('mtime',	    DateTime,    nullable=False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
-	Index('idx_object_position', table.c.posx, table.c.posy, table.c.posz)
+		Index('ix_%s_position' % name, table.c.posx, table.c.posy, table.c.posz)
 
-	table_extra = SQLTypedTable('object')
+		return table
 
 	types = {}
 	orderclasses = {}
 
-	bypos_size = [asc(table.c.size)]
+	#bypos_size = [asc(table.c.size)]
 
-	def __init__(self, id=None, type=None):
+	def __init__(self):
 		self.name = "Unknown object"
 		self.size = 0
 		self.posx = 0
@@ -111,9 +110,7 @@ class Object(SQLTypedBase):#{{{
 		self.velx = 0
 		self.vely = 0
 		self.velz = 0
-		self.parent = 0
-
-		SQLTypedBase.__init__(self, id, type)
+		self.parent_id = None
 
 	def protect(self, user):
 		o = SQLBase.protect(self, user)
@@ -182,6 +179,4 @@ class Object(SQLTypedBase):#{{{
 		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
 #}}}
 
-from sqlalchemy.orm import mapper
-
-mapper(Object, Object.table)
+__all__ = [ 'Object' ]

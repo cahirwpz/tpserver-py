@@ -11,3 +11,4 @@ tp.db
 config.py
 doc/testing.db
 create.sh
+.ropeproject

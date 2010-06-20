@@ -1,10 +1,7 @@
-"""
-Categories which help group things together.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
-from tp.server.db import *
 from tp.server.bases.SQL import SQLBase, SQLUtils
 
 class CategoryUtils( SQLUtils ):#{{{
@@ -14,22 +11,23 @@ class CategoryUtils( SQLUtils ):#{{{
 #}}}
 
 class Category( SQLBase ):#{{{
+	"""
+	Categories which help group things together.
+	"""
+
 	Utils = CategoryUtils()
 
-	table = Table('category', metadata,
-				Column('game',	Integer,     nullable=False, index=True, primary_key=True),
-				Column('id',	Integer,     nullable=False, index=True, primary_key=True),
-				Column('name',	String(255), nullable=False, index=True),
-				Column('desc',	Binary,      nullable=False),
-				Column('time',	DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',          Integer,     index = True, primary_key = True),
+				Column('name',        String(255), nullable = False),
+				Column('description', Binary,      nullable = False),
+				Column('mtime',       DateTime,    nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	def __str__(self):
-		return "<Category id=%s name=%s>" % (self.id, self.name)
+		return "<%s id=%s name=%s>" % (self.__class__.__name__, self.id, self.name)
 #}}}
 
-from sqlalchemy.orm import mapper
-
-mapper(Category, Category.table)
+__all__ = [ 'Category' ]

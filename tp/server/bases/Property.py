@@ -1,11 +1,8 @@
-"""
-Resources require to build stuff.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
-from tp.server.db import *
-from tp.server.bases.SQL import SQLBase, SQLUtils
+from SQL import SQLBase, SQLUtils
 
 class PropertyUtils( SQLUtils ):#{{{
 	def byname(self, name):
@@ -16,33 +13,20 @@ class PropertyUtils( SQLUtils ):#{{{
 class Property( SQLBase ):#{{{
 	Utils = PropertyUtils()
 
-	table = Table('property', metadata,
-				Column('game', 	       Integer,      nullable=False, index=True, primary_key=True),
-				Column('id',	       Integer,      nullable=False, index=True, primary_key=True),
-				Column('name',	       String(255),  nullable=False, index=True),
-				Column('displayname',  Binary,       nullable=False),
-				Column('desc',         Binary,       nullable=False),
-				# FIXME: Should be a SmallInteger...
-				Column('rank',         Integer,      nullable=False, default=127),
-				Column('calculate',    Binary,       nullable=False),
-				Column('requirements', Binary,       nullable=False, default="""(lambda (design) (cons #t ""))"""),
-				Column('comment',      Binary,       nullable=False, default=''),
-				Column('time',	       DateTime,     nullable=False, index=True,
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',	       Integer,      index = True, primary_key = True),
+				Column('name',	       String(255),  nullable = False),
+				Column('display_name', Binary,       nullable = False),
+				Column('description',  Binary,       nullable = False),
+				Column('rank',         Integer,      nullable = False, default=127), # FIXME: Should be a SmallInteger...
+				Column('calculate',    Binary,       nullable = False),
+				Column('requirements', Binary,       nullable = False, default="""(lambda (design) (cons #t ""))"""),
+				Column('comment',      Binary,       nullable = False, default=''),
+				Column('mtime',	       DateTime,     nullable = False,
 					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
-
-	table_category = Table('property_category', metadata,
-				Column('game', 	    Integer,  nullable=False, index=True, primary_key=True),
-				Column('property',  Integer,  nullable=False, index=True, primary_key=True),
-				Column('category',  Integer,  nullable=False, index=True, primary_key=True),
-				Column('comment',   Binary,   nullable=False, default=''),
-				Column('time',	    DateTime, nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()),
-				ForeignKeyConstraint(['property'], ['property.id']),
-				ForeignKeyConstraint(['category'], ['category.id']),
-				ForeignKeyConstraint(['game'],     ['game.id']))
+					default = func.current_timestamp()))
 
 	def get_categories(self):
 		"""
@@ -89,6 +73,17 @@ class Property( SQLBase ):#{{{
 				results = insert(t).execute(property=self.id, category=cid)
 #}}}
 
-from sqlalchemy.orm import mapper
+class PropertyCategory( SQLBase ):#{{{
+	@classmethod
+	def getTable( cls, name, metadata, property_table, category_table ):
+		return Table( name, metadata,
+				Column('id',        Integer,  index = True, primary_key = True),
+				Column('property',  ForeignKey( '%s.id' % property_table ), nullable = False),
+				Column('category',  ForeignKey( '%s.id' % category_table), nullable = False),
+				Column('comment',   Binary,   nullable = False, default = ''),
+				Column('mtime',	    DateTime, nullable = False, 
+					onupdate = func.current_timestamp(),
+					default = func.current_timestamp()))
+#}}}
 
-mapper(Property, Property.table)
+__all__ = [ 'Property', 'PropertyCategory' ]

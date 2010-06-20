@@ -1,11 +1,8 @@
-"""
-Board which contains posts about stuff.
-"""
+#!/usr/bin/env python
 
 from sqlalchemy import *
 
-from tp.server.db import *
-from tp.server.bases.SQL import SQLBase, SQLUtils
+from SQL import SQLBase, SQLUtils
 
 class BoardUtils( SQLUtils ):#{{{
 	def realid(self, user, bid):
@@ -57,22 +54,23 @@ class BoardUtils( SQLUtils ):#{{{
 #}}}
 
 class Board( SQLBase ):#{{{
+	"""
+	Board which contains posts about stuff.
+	"""
+
 	Utils = BoardUtils()
 
-	table = Table('board', metadata,
-				Column('game',	Integer,     nullable=False, index=True, primary_key=True),
-				Column('id',	Integer,     nullable=False, index=True, primary_key=True),
-				Column('name',	String(255), nullable=False, index=True),
-				Column('desc',	Binary,      nullable=False),
-				Column('time',	DateTime,    nullable=False, index=True,
-					onupdate = func.current_timestamp(),
-					default=func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',          Integer,     index = True, primary_key = True),
+				Column('name',        String(255), nullable = False ),
+				Column('description', Binary,      nullable = False ),
+				Column('mtime',	      DateTime,    nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	def __str__(self):
-		return "<Board id=%s>" % self.id
+		return "<%s id=%s>" % ( self.__class__.__name__, self.id )
 #}}}
 
-from sqlalchemy.orm import mapper
-
-mapper(Board, Board.table)
+__all__ = [ 'Board' ]

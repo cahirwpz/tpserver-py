@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Classes for dealing with games hosted on the machine.
 """
@@ -6,10 +8,10 @@ import os, socket
 import hashlib
 from sqlalchemy import *
 
-from tp.server.logging import msg
-from tp.server.db import *
+from tp.server.db import DatabaseManager
 from tp.server.db.enum import Enum
-from tp.server.bases.SQL import SQLBase, NoSuchThing
+from tp.server.logging import msg
+from SQL import SQLBase, NoSuchThing
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -21,18 +23,17 @@ class Lock( SQLBase ):#{{{
 		Serving    - This program is serving the database.
 		Processing - This program is processing a turn.
 	"""
-	types = ['serving', 'processing']
+	LockTypes = ['serving', 'processing']
 
-	table = Table('lock', metadata,
-				Column('game',	    Integer,     nullable=False, index=True, primary_key=True), # Game this lock is for
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('locktype',  Enum(types), nullable=False, index=True),       # Locktype
-				Column('host',      String(255), nullable=False, index=True),       # Hostname of the process is running on
-				Column('pid',       Integer,     nullable=False, index=True), 		# PID of the process with the lock
-				Column('time',	    DateTime,    nullable=False, index=True, 		# Last time the lock was updated
-					onupdate = func.current_timestamp(),
-					default  = func.current_timestamp()),
-				ForeignKeyConstraint(['game'], ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',	    Integer,     index = True, primary_key = True),
+				Column('lock_type', Enum(cls.LockTypes), nullable=False ),   # Locktype
+				Column('hostname',  String(255), nullable=False),            # Hostname of the process is running on
+				Column('pid',       Integer,     nullable=False), 		     # PID of the process with the lock
+				Column('mtime',	    DateTime,    nullable=False, 		     # Last time the lock was updated
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 	@classmethod
 	def new(cls, type):
@@ -85,7 +86,7 @@ class Lock( SQLBase ):#{{{
 		#	msg( "%s-%s %s %s" % (gid, id pid, locktype ) )
 #}}}
 
-class Event( SQLBase ):#{{{
+class GameEvent( SQLBase ):#{{{
 	"""
 	Sometimes 'Events' occur. This table stores them.
 
@@ -101,13 +102,16 @@ class Event( SQLBase ):#{{{
 		Game Removed  - A game is removed.
 		Game Updated  - Information about a game is updated.
 	"""
-	types = ['shutdown', 'endofturn', 'gameadded', 'gameremoved', 'gameupdated']
+	EventTypes = ['shutdown', 'endofturn', 'gameadded', 'gameremoved', 'gameupdated']
 
-	table = Table('event', metadata,
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('game',	    Integer,     nullable=True,  index=True),
-				Column('eventtype', Enum(types), nullable=False, index=True),
-				ForeignKeyConstraint(['game'], ['game.id']))
+	@classmethod
+	def getTable( cls, name, metadata, game_table ):
+		return Table( name, metadata,
+				Column('id',	     Integer, index = True, primary_key = True),
+				Column('game',	     ForeignKey( '%s.id' % game_table ), nullable = True),
+				Column('event_type', Enum(cls.EventTypes), nullable = False),
+				Column('mtime',	     DateTime, nullable = False,
+					onupdate  =func.current_timestamp(), default = func.current_timestamp()))
 
 	@classmethod
 	def new(cls, eventtype, game=None):
@@ -170,7 +174,7 @@ class Event( SQLBase ):#{{{
 	__repr__ = __str__
 #}}}
 
-class Connection( SQLBase ):#{{{
+class ConnectionEvent( SQLBase ):#{{{
 	"""
 	Events regarding connections get recorded in this table.
 
@@ -179,16 +183,16 @@ class Connection( SQLBase ):#{{{
 		login      - A person logs in on the connection.
 		disconnect - A connection is terminated.
 	"""
-	types = ['connect', 'login', 'disconnect']
+	EventTypes = ['connect', 'login', 'disconnect']
 
-	table = Table('connection', metadata,
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
-				Column('ip',        String(255), nullable=False, index=True),
-				Column('eventtype', Enum(types), nullable=False, index=True),
-				Column('time',	    DateTime,    nullable=False, index=True,
-					onupdate=func.current_timestamp(),
-					default=func.current_timestamp()),
-				UniqueConstraint('id'))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',	     Integer,     index = True, primary_key = True),
+				Column('ip',         String(255), nullable = False),
+				Column('event_type', Enum(cls.EventTypes), nullable = False),
+				Column('mtime',	     DateTime,    nullable = False,
+					onupdate  =func.current_timestamp(), default = func.current_timestamp()))
 #}}}
 
 class Game( SQLBase ):#{{{
@@ -198,19 +202,19 @@ class Game( SQLBase ):#{{{
 	It is a "singleton" class, meaning that only one instance exists for each game.
 	"""
 
-	table = Table('game', metadata,
-					Column('id',			Integer,		nullable = False,	index	= True, primary_key = True),
-					Column('rulesetname',	String(255),	nullable = False,	index	= True),	# Ruleset this game uses
-					Column('shortname',		String(255),	nullable = False,	index	= True),	# Computer name
-					Column('longname',		Binary,			nullable = False,	default	= ""),		# Human readable name
-					Column('admin',			String(255),	nullable = False,	index	= True),	# Admin's email address
-					Column('comment',		Binary,			nullable = False,	default	= ""),		# A generic comment
-					Column('turn',			Integer,		nullable = False),						# The current turn of the game
-					Column('commandline',	Binary,			nullable = False),						# The command line used to create the game
-					Column('time',			DateTime,		nullable = False, 	index=True,
-						onupdate	= func.current_timestamp(),
-						default		= func.current_timestamp()),
-					UniqueConstraint('shortname'))
+	@classmethod
+	def getTable( cls, name, metadata ):
+		return Table( name, metadata,
+				Column('id',			Integer,		index = True,	    primary_key = True),
+				Column('ruleset_name',	String(255),	nullable = False),	# Ruleset this game uses
+				Column('name_short',	String(255),	nullable = False),	# Computer name
+				Column('name_long',		Binary,			nullable = False,	default	= ""),		# Human readable name
+				Column('admin',			String(255),	nullable = False),	# Admin's email address
+				Column('comment',		Binary,			nullable = False,	default	= ""),		# A generic comment
+				Column('turn',			Integer,		nullable = False,   default = 0),		# The current turn of the game
+				Column('mtime',			DateTime,		nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()),
+				UniqueConstraint('name_short'))
 
 	@staticmethod
 	def munge(game):
@@ -237,7 +241,7 @@ class Game( SQLBase ):#{{{
 		try:
 			return self.__ruleset
 		except AttributeError:
-			exec("from tp.server.rules.%s import Ruleset" % self.rulesetname)
+			exec("from tp.server.rules.%s import Ruleset" % self.ruleset_name)
 			self.__ruleset = Ruleset(self)
 			return self.__ruleset
 
@@ -292,9 +296,4 @@ class Game( SQLBase ):#{{{
 			)
 #}}}
 
-from sqlalchemy.orm import mapper
-
-mapper( Lock, Lock.table )
-mapper( Event, Event.table )
-mapper( Connection, Connection.table )
-mapper( Game, Game.table )
+__all__ = [ 'Game', 'ConnectionEvent', 'GameEvent', 'Lock' ]

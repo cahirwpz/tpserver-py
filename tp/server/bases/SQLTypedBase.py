@@ -1,52 +1,24 @@
+#!/usr/bin/env python
+
+import copy
 from sqlalchemy import *
-from tp.server.db import *
-from tp.server.bases.SQL import SQLBase
 
-# These types go through repr fine
-import types, copy
+from SQL import SQLBase
 
-types.SimpleTypes = [types.NoneType, types.BooleanType, types.ComplexType, types.FloatType, 
-					 types.IntType, types.LongType, types.NoneType]+list(types.StringTypes)
-types.SimpleCompoundTypes = [types.ListType, types.TupleType]
+class Attribute( object ):#{{{
+	def __init__(self, name, default, level, type=-1, desc=""):
+		if level not in ('public', 'protected', 'private'):
+			raise ValueError("Invalid access level for attribute.")
 
-def isSimpleType(value):#{{{
-	if type(value) in types.SimpleTypes:
-		return True
-	
-	elif type(value) in types.SimpleCompoundTypes:
-		for subvalue in value:
-			if not isSimpleType(subvalue):
-				return False
-		return True
-		
-	else:
-		return False
-#}}}
+		self.name = name
+		self._default = default
+		self.level = level
+		self.type = type
+		self.desc = desc
 
-def quickimport(s):#{{{
-	return getattr(__import__(s, globals(), locals(), s.split(".")[-1]), s.split(".")[-1])
-#}}}
-
-def SQLTypedTable( name ):#{{{
-	t = Table(name+"_extra", metadata,
-			Column('game',	Integer,	 nullable=False, index=True, primary_key=True),
-			Column('oid',	Integer,	 nullable=False, index=True, primary_key=True),
-			Column('name',	String(255), nullable=False, index=True, primary_key=True),
-			Column('key',	String(255), nullable=True,  index=True, primary_key=True, quote=True),
-			Column('value',	Binary),
-			Column('time',	DateTime, nullable=False, index=True,
-				onupdate = func.current_timestamp(),
-				default = func.current_timestamp()),
-			ForeignKeyConstraint(['oid'],  [name+'.id']),
-			ForeignKeyConstraint(['game'], ['game.id']))
-
-	# Index on the ID and name
-	Index('idx_'+name+'xtr_idname', t.c.game, t.c.oid, t.c.name)
-	Index('idx_'+name+'xtr_idnamevalue', t.c.game, t.c.oid, t.c.name, t.c.key)
-
-	t._name = name
-
-	return t
+	@property
+	def default(self):
+		return copy.deepcopy(self._default)
 #}}}
 
 class SQLTypedBase(SQLBase):#{{{
@@ -60,21 +32,6 @@ Extra attributes this type defines.
 
 {"<name>": Attribute(<name>, <default>, <level>)}
 """
-	class Attribute:
-		def __init__(self, name, default, level, type=-1, desc=""):
-			if level not in ('public', 'protected', 'private'):
-				raise ValueError("Invalid access level for attribute.")
-
-			self.name = name
-			self._default = default
-			self.level = level
-			self.type = type
-			self.desc = desc
-
-		@property
-		def default(self):
-			return copy.deepcopy(self._default)
-
 	@property
 	def type(self):
 		return self.__class__.__module__
@@ -259,3 +216,5 @@ Extra attributes this type defines.
 			args.append(value)
 		return self, args
 #}}}
+
+__all__ = [ 'Attribute' ]
