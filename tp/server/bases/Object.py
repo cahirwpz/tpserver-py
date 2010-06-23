@@ -78,18 +78,18 @@ class Object( SQLBase ):#{{{
 	@classmethod
 	def getTable( cls, name, metadata ):
 		table = Table( name, metadata,
-				Column('id',	    Integer,     nullable=False, index=True, primary_key=True),
+				Column('id',	    Integer,     index = True, primary_key = True),
 				Column('parent_id', ForeignKey("%s.id" % name), nullable = True),
-				Column('type',	    String(255), nullable=False),
-				Column('name',      Binary,      nullable=False),
-				Column('size',      Integer(64), nullable=False),
-				Column('posx',      Integer(64), nullable=False, default=0),
-				Column('posy',      Integer(64), nullable=False, default=0),
-				Column('posz',      Integer(64), nullable=False, default=0),
-				Column('velx',      Integer(64), nullable=False, default=0),
-				Column('vely',      Integer(64), nullable=False, default=0),
-				Column('velz',      Integer(64), nullable=False, default=0),
-				Column('mtime',	    DateTime,    nullable=False,
+				Column('type',	    String(255), nullable = False),
+				Column('name',      Binary,      nullable = False),
+				Column('size',      Integer(64), nullable = False),
+				Column('posx',      Integer(64), nullable = False, default = 0),
+				Column('posy',      Integer(64), nullable = False, default = 0),
+				Column('posz',      Integer(64), nullable = False, default = 0),
+				Column('velx',      Integer(64), nullable = False, default = 0),
+				Column('vely',      Integer(64), nullable = False, default = 0),
+				Column('velz',      Integer(64), nullable = False, default = 0),
+				Column('mtime',	    DateTime,    nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 		Index('ix_%s_position' % name, table.c.posx, table.c.posy, table.c.posz)

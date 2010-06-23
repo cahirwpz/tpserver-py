@@ -9,6 +9,10 @@ class NoSuchThing( Exception ):#{{{
 	pass
 #}}}
 
+class AlreadyExists( Exception ):#{{{
+	pass
+#}}}
+
 class PermissionDenied( Exception ):#{{{
 	pass
 #}}}
@@ -81,6 +85,10 @@ class SQLUtils( object ):#{{{
 
 class SQLBase( object ):#{{{
 	Utils = SQLUtils()
+
+	def __init__( self, **kwargs ):
+		for key, val in kwargs.items():
+			setattr( self, key, val )
 #}}}
 
-__all__ = [ 'NoSuchThing', 'PermissionDenied', 'SQLUtils', 'SQLBase' ]
+__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLUtils', 'SQLBase' ]

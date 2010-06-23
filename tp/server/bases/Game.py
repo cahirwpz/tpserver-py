@@ -8,10 +8,10 @@ import os, socket
 import hashlib
 from sqlalchemy import *
 
-from tp.server.db import DatabaseManager
+from tp.server.db import DatabaseManager, make_dependant_mapping
 from tp.server.db.enum import Enum
 from tp.server.logging import msg
-from SQL import SQLBase, NoSuchThing
+from SQL import SQLBase
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -197,24 +197,74 @@ class ConnectionEvent( SQLBase ):#{{{
 
 class Game( SQLBase ):#{{{
 	"""
-	This class represents the various "Games" which exist on the server. 
-
-	It is a "singleton" class, meaning that only one instance exists for each game.
+	This class represents games which exist on the server. Only one instance exists for each game.
 	"""
 
 	@classmethod
 	def getTable( cls, name, metadata ):
 		return Table( name, metadata,
 				Column('id',			Integer,		index = True,	    primary_key = True),
+				Column('name',	        String(255),	nullable = False),	# Computer name
+				Column('longname',		Binary,			nullable = False,	default	= ""),		# Human readable name
 				Column('ruleset_name',	String(255),	nullable = False),	# Ruleset this game uses
-				Column('name_short',	String(255),	nullable = False),	# Computer name
-				Column('name_long',		Binary,			nullable = False,	default	= ""),		# Human readable name
 				Column('admin',			String(255),	nullable = False),	# Admin's email address
 				Column('comment',		Binary,			nullable = False,	default	= ""),		# A generic comment
 				Column('turn',			Integer,		nullable = False,   default = 0),		# The current turn of the game
 				Column('mtime',			DateTime,		nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()),
-				UniqueConstraint('name_short'))
+				UniqueConstraint('name'))
+
+	def load( self ):
+		print dir( self )
+		from tp.server.bases import *
+
+		metadata = DatabaseManager().metadata
+
+		self.Player  			= make_dependant_mapping( Player,				metadata, self )
+		self.Object  			= make_dependant_mapping( Object,				metadata, self )
+		self.Order   			= make_dependant_mapping( Order,				metadata, self, self.Object.__tablename__ )
+		self.Board				= make_dependant_mapping( Board,				metadata, self )
+		self.Reference			= make_dependant_mapping( Reference,			metadata, self )
+		self.Lock				= make_dependant_mapping( Lock,					metadata, self )
+
+		self.Component			= make_dependant_mapping( Component,			metadata, self )
+		self.Property			= make_dependant_mapping( Property,				metadata, self )
+		self.Resource			= make_dependant_mapping( Resource,				metadata, self )
+		self.Category			= make_dependant_mapping( Category,				metadata, self )
+
+		self.Design				= make_dependant_mapping( Design,				metadata, self, self.Player.__tablename__ )
+		self.Message			= make_dependant_mapping( Message,				metadata, self, self.Board.__tablename__ )
+		self.MessageReference	= make_dependant_mapping( MessageReference,		metadata, self, self.Message.__tablename__, self.Reference.__tablename__ )
+		self.ComponentCategory	= make_dependant_mapping( ComponentCategory,	metadata, self, self.Component.__tablename__, self.Category.__tablename__ )
+		self.ComponentProperty	= make_dependant_mapping( ComponentProperty,	metadata, self, self.Component.__tablename__, self.Property.__tablename__ )
+		self.DesignCategory		= make_dependant_mapping( DesignCategory,		metadata, self, self.Design.__tablename__, self.Category.__tablename__ )
+		self.DesignComponent	= make_dependant_mapping( DesignComponent,		metadata, self, self.Design.__tablename__, self.Component.__tablename__ )
+		self.PropertyCategory	= make_dependant_mapping( PropertyCategory,		metadata, self, self.Property.__tablename__, self.Category.__tablename__ )
+
+	def createTables( self ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s_" % self.name ):
+				metadata.tables[ table ].create( checkfirst = True )
+	
+	def dropTables( self ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s:" % self.name ):
+				metadata.tables[ table ].drop()
+				del metadata.tables[ table ]
+	
+	def initialise( self ):
+		self.ruleset.initialise(self)
+	
+	def populate( self ):
+		self.ruleset.initialise(self, 0xdeadc0de, 10, 10, 2, 2)
 
 	@staticmethod
 	def munge(game):
@@ -222,16 +272,6 @@ class Game( SQLBase ):#{{{
 		Convert a longname into some sort of suitable short name.
 		"""
 		return game.replace(' ', '').strip().lower()
-
-	@staticmethod
-	def load( game_name ):
-		"""
-		Get the id of a game from a short name.
-		"""
-		try:
-			return DatabaseManager().session().query( Game ).filter_by( shortname = game_name ).first()
-		except (KeyError, IndexError), e:
-			raise NoSuchThing("No such game named %s exists!" % game)
 
 	@property
 	def ruleset(self):
@@ -258,9 +298,9 @@ class Game( SQLBase ):#{{{
 
 	def __str__(self):
 		if hasattr(self, 'id'):
-			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.shortname, self.longname, self.turn)
+			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.name, self.longname, self.turn)
 		else:
-			return "<Game-(new) %s (%s) turn-%i>" % (self.shortname, self.longname, self.turn)
+			return "<Game-(new) %s (%s) turn-%i>" % (self.name, self.longname, self.turn)
 
 	@property
 	def key(self):

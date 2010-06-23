@@ -59,7 +59,7 @@ class Message( SQLBase ):#{{{
 						onupdate = func.current_timestamp(), default = func.current_timestamp()),
 					UniqueConstraint('board', 'slot'))
 
-		Index('idx_%s_board_slot', table.c.board, table.c.slot)
+		Index('idx_%s_board_slot' % name, table.c.board, table.c.slot)
 		
 		return table
 

@@ -1,33 +1,33 @@
 from logging import logctx, msg, err
 
-from tp.server.bases.User import User
+from tp.server.bases import Player
 
 from cmdhandler import CommandsHandler
 from packet import PacketFactory
 
 class ClientData( object ):#{{{
 	def __init__( self ):
-		self.game    = None
-		self.ruleset = None
-		self.__user  = None
+		self.game     = None
+		self.ruleset  = None
+		self.__player = None
 
-	def get_user( self ):
-		return self.__user
+	@property
+	def player( self ):
+		return self.__player
 
-	def set_user( self, value ):
+	@player.setter
+	def player( self, value ):
 		if value is None:
-			self.__user  = None
+			self.__player = None
 			#self.game    = None		
 			#self.ruleset = None
 
-		elif isinstance( value, User ):
-			self.__user  = value
+		elif isinstance( value, Player ):
+			self.__player = value
 			#self.game    = value.playing
 			#self.ruleset = value.playing.ruleset
 		else:
-			raise TypeError( "User value must either be None or a user object!" )
-
-	user = property( get_user, set_user )
+			raise TypeError( "Player value must either be None or a Player object!" )
 #}}}
 
 class ClientSessionHandler( object ):#{{{

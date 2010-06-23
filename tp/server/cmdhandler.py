@@ -1,24 +1,12 @@
-from tp.server.bases.Board     import Board
-from tp.server.bases.Category  import Category
-from tp.server.bases.Component import Component
-from tp.server.bases.Design    import Design
-from tp.server.bases.Game      import Game
-from tp.server.bases.Message   import Message
-from tp.server.bases.Object    import Object
-from tp.server.bases.Order     import Order
-from tp.server.bases.Property  import Property
-from tp.server.bases.Resource  import Resource
-from tp.server.bases.SQL       import NoSuchThing, PermissionDenied
-from tp.server.bases.User      import User
-
-from tp.server.db import DatabaseManager
+from tp.server.bases import *
+#from tp.server.db import DatabaseManager
 
 from tp.server.packet import PacketFactory, datetime2int
 
 from version import version as __version__
 from logging import msg
 
-import inspect, time
+import inspect
 
 class CommandsHandler( object ):
 	def __init__( self, _module, _client ):
@@ -62,12 +50,7 @@ class CommandsHandler( object ):
 				if obj == None:
 					raise NoSuchThing
 
-				if _type.__name__ == 'User':
-					_name = 'Player'
-				else:
-					_name = _type.__name__
-
-				response.append( PacketFactory().fromObject( _name, request._sequence, obj ) )
+				response.append( PacketFactory().fromObject( _type.__name__, request._sequence, obj ) )
 			except PermissionDenied:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
 				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
@@ -271,7 +254,7 @@ class CommandsHandler( object ):
 		pass
 
 	def on_GetPlayer( self, request ):
-		return self.GetWithID( request, User )
+		return self.GetWithID( request, Player )
 
 	def on_FinishedTurn( self, request ):
 		pass
@@ -281,7 +264,7 @@ class CommandsHandler( object ):
 
 	def on_Login( self, request ):
 		try:
-			username, game_name = User.Utils.split( request.username )
+			username, game_name = Player.Utils.split( request.username )
 		except TypeError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
@@ -294,11 +277,11 @@ class CommandsHandler( object ):
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
-		user = User.Utils.getUser( game, username, request.password )
+		user = Player.Utils.getPlayer( game, username, request.password )
 
 		if user is not None:
-			self._client.game = game
-			self._client.user = user
+			self._client.game   = game
+			self._client.player = player 
 			return self.objects.Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game ) )
 		else:
 			return self.objects.Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )

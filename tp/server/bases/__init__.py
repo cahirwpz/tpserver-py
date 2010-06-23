@@ -3,6 +3,7 @@ from tp.server.db import DatabaseManager
 DatabaseManager()
 
 from SQL import *
+from SQLTypedBase import *
 from Category import *
 from Property import *
 from Board import *

@@ -1,38 +1,9 @@
+import sqlalchemy.exc
+
 from tp.server.db import DatabaseManager, make_mapping, make_dependant_mapping
 from tp.server.bases import *
 from tp.server.logging import msg, logctx
 from tp.server.singleton import SingletonClass
-class ThousandParsecGame( object ):
-	def __init__( self, game ):
-		self.game = game
-
-		with DatabaseManager().metadata() as metadata:
-			self.Player  			= make_dependant_mapping( Player,				metadata, game )
-			self.Object  			= make_dependant_mapping( Object,				metadata, game )
-			self.Order   			= make_dependant_mapping( Order,				metadata, game, self.Object.__tablename__ )
-			self.Board				= make_dependant_mapping( Board,				metadata, game )
-			self.Reference			= make_dependant_mapping( Reference,			metadata, game )
-			self.Lock				= make_dependant_mapping( Lock,					metadata, game )
-
-			self.Component			= make_dependant_mapping( Component,			metadata, game )
-			self.Property			= make_dependant_mapping( Property,				metadata, game )
-			self.Resource			= make_dependant_mapping( Resource,				metadata, game )
-			self.Category			= make_dependant_mapping( Category,				metadata, game )
-
-			self.Design				= make_dependant_mapping( Design,				metadata, game, self.Player.__tablename__ )
-			self.Message			= make_dependant_mapping( Message,				metadata, game, self.Board.__tablename__ )
-			self.MessageReference	= make_dependant_mapping( MessageReference,		metadata, game, self.Message.__tablename__, self.Reference.__tablename__ )
-			self.ComponentCategory	= make_dependant_mapping( ComponentCategory,	metadata, game, self.Component.__tablename__, self.Category.__tablename__ )
-			self.ComponentProperty	= make_dependant_mapping( ComponentProperty,	metadata, game, self.Component.__tablename__, self.Property.__tablename__ )
-			self.DesignCategory		= make_dependant_mapping( DesignCategory,		metadata, game, self.Design.__tablename__, self.Category.__tablename__ )
-			self.DesignComponent	= make_dependant_mapping( DesignComponent,		metadata, game, self.Design.__tablename__, self.Component.__tablename__ )
-			self.PropertyCategory	= make_dependant_mapping( PropertyCategory,		metadata, game, self.Property.__tablename__, self.Category.__tablename__ )
-	
-	def initialise( self ):
-		self.game.ruleset.initialise(self)
-	
-	def populate( self ):
-		self.game.ruleset.initialise(self, 0xdeadc0de, 10, 10, 2, 2)
 
 class GameManager( object ):
 	__metaclass__ = SingletonClass
@@ -49,34 +20,47 @@ class GameManager( object ):
 		#for _id, _time in Game.ids():
 		#	self.onGameAdded( Game( _id ) )
 
-		with DatabaseManager().metadata() as metadata:
-			make_mapping( Game, metadata )
-			make_mapping( ConnectionEvent, metadata )
-			make_mapping( GameEvent, metadata, Game.__tablename__ )
+		metadata = DatabaseManager().metadata
+
+		for cls in [ make_mapping( Game, metadata ),
+					 make_mapping( ConnectionEvent, metadata ),
+					 make_mapping( GameEvent, metadata, Game.__tablename__ ) ]:
+			cls.__table__.create( checkfirst = True )
 
 		self.game = {}
 
 		with DatabaseManager().session() as session:
-			for game in session.query( Game ).all():
-				self.game[ game.shortname ] = None
+			for g in session.query( Game ).all():
+				g.load()
 
-		self.addGame( 'minisec', 'tp', 'Test Game', 'admin@localhost' )
+				self.game[ g.name ] = g
 
-	def addGame( self, rulesetname, shortname, longname, admin ):
-		g = Game()
-		g.ruleset_name = rulesetname
-		g.name_short   = shortname
-		g.name_long    = longname
-		g.admin       = admin
+	def addGame( self, name, longname, rulesetname, admin, comment ):
+		if self.game.has_key( name ):
+			raise AlreadyExists( "Game '%s' already exists!" % name )
+
+		g = Game( ruleset_name = rulesetname, name = name, longname = longname, admin = admin, comment = comment )
 
 		with DatabaseManager().session() as session:
 			session.add( g )
 
-			self.game[ g.name_short ] = ThousandParsecGame( g )
+		g.load()
+		g.createTables()
 
-		self.game[ shortname ].initialise()
-		self.game[ shortname ].populate()
+		self.game[ name ] = g
 	
+	def removeGame( self, name ):
+		if not self.game.has_key( name ):
+			raise NoSuchThing( "Game '%s' does not exists!" % name )
+		
+		self.game[ name ].createTables()
+		self.game[ name ].dropTables()
+
+		with DatabaseManager().session() as session:
+			session.delete( self.game[ name ] )
+
+		del self.game[ name ]
+		
 	def startZeroconf( self ):
 		pass
 
