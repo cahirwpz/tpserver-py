@@ -1,22 +1,23 @@
+#!/usr/bin/env python
 
-import random
+from types import TupleType, ListType
 
-from tp.server.bases.Object import Object
-from tp.server.bases.Combatant import Combatant
+from tp.server.bases import Object, Attribute
+from tp.server.rules.base.Combatant import Combatant
 
 ACCESSABLE   = 0
 MINABLE      = 1
 INACCESSABLE = 2
 
 class Planet(Object, Combatant):
-	attributes = { \
-		'owner':     Object.Attribute('owner', -1, 'public'),
-		'resources': Object.Attribute('resources', {}, 'protected'),
-	}
+	typeno = 3
+
+	attributes = { 'owner':     Attribute('owner', -1, 'public'),
+				   'resources': Attribute('resources', {}, 'protected') }
 	orderclasses = ('tp.server.rules.base.orders.NOp', 'tp.server.rules.minisec.orders.BuildFleet')
 
 	def ghost(self):
-		"""\
+		"""
 		Planets never die - even when owned by the universe.
 		"""
 		return False
@@ -26,19 +27,19 @@ class Planet(Object, Combatant):
 	#############################################
 
 	damage = 0
+
 	def dead(self):
-		"""\
+		"""
 		Planets are dead went delt 12 damage.
 		"""
 		return self.damage > 12
 	
 	def damage_do(self, damage):
-		if type(amount) in (TupleType, ListType):
-			for a in amount:
+		if type(damage) in (TupleType, ListType):
+			for a in damage:
 				self.damage_do(a)
-			return
-		
-		self.damage = self.damage + damage
+		else:
+			self.damage += damage
 
 	def damage_get(self, fail=False):
 		return (6, 2)[fail]
@@ -58,5 +59,4 @@ class Planet(Object, Combatant):
 		if self.resources[resource][type] < 0:
 			raise TypeError("Resources some how became negative!")
 
-Planet.typeno = 3
 Object.types[Planet.typeno] = Planet

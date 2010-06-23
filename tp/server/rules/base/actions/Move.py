@@ -1,4 +1,4 @@
-"""\
+"""
 Moves any object which has a velocity.
 """
 

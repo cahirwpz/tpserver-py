@@ -1,23 +1,20 @@
 
-from tp import netlib
-
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
-from tp.server.bases.Message import Message
+from tp.server.bases import Object, Order, Message
 
 from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class BuildFleet(Order):
-	"""\
-Build a new star ship from components at your head quaters."""
+	"""
+	Build a new star ship from components at your head quaters.
+	"""
 	typeno = 2
 
-	attributes = {\
-		'parts': Order.Attribute("parts", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
-					desc="Parts to build the ship from."),
-		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING, 
-					desc="The new fleet's name.")
-	}
+	attributes = {
+			'parts': Attribute("parts", {}, 'protected', type=netlib.objects.constants.ARG_LIST, 
+				desc="Parts to build the ship from."),
+			'name':  Attribute("name", 'New Fleet', 'protected', type=netlib.objects.constants.ARG_STRING, 
+				desc="The new fleet's name.")
+			}
 	
 	def do(self):
 		builder = Object(self.oid)

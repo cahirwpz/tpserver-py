@@ -1,11 +1,8 @@
+#!/usr/bin/env python
 
 import math
-from tp import netlib
 
-from tp.server.bases.Order import Order
-from tp.server.bases.Object import Object
-from tp.server.bases.Message import Message
-
+from tp.server.bases import Order, Attribute, Object, Message
 from tp.server.utils import ReparentOne
 
 def away(x):
@@ -22,13 +19,13 @@ def closest(*args):
 	return x
 
 class Move(Order):
-	"""\
-Move to a point in space.
-"""
+	"""
+	Move to a point in space.
+	"""
 	typeno = 1
 
-	attributes = {\
-		'pos': Order.Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
+	attributes = {
+		'pos': Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
 				desc="Where to go.")
 	}
 	

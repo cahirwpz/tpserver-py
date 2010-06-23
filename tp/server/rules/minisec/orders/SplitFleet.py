@@ -1,23 +1,21 @@
+#!/usr/bin/env python
 
 import copy
-from tp import netlib
 
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
-from tp.server.bases.Message import Message
+from tp.server.bases import Object, Order, Attribute
 
 from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class SplitFleet(Order):
-	"""\
-Split some ships into a new fleet.
-"""
+	"""
+	Split some ships into a new fleet.
+	"""
 	typeno = 3
 
 	attributes = {\
-		'call': Order.Attribute("call", "New Fleet", 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
+		'call': Attribute("call", "New Fleet", 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
 				desc="What to call the new fleet."),
-		'ships': Order.Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
+		'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
 				desc="Ships to move into new fleet.")
 	}
 	

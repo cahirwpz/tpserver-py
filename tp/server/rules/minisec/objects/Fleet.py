@@ -1,20 +1,20 @@
+#!/usr/bin/env python
 
-from sqlalchemy import *
+#from sqlalchemy import *
 
 from types import TupleType, ListType
-
-from tp.server.bases.Object import Object
-from tp.server.bases.Design import Design
-from tp.server.bases.Combatant import Combatant
+from tp.server.bases import Object, Attribute
+from tp.server.rules.base.Combatant import Combatant
 
 SPEED = 300000000
 
 class Fleet(Object, Combatant):
-	attributes = { \
-		'owner': Object.Attribute('owner', -1, 'public'),
-		'ships': Object.Attribute('ships', {}, 'protected'),
-		'damage': Object.Attribute('damage', {}, 'protected'),
-	}
+	typeno = 4
+
+	attributes = { 'owner':  Attribute('owner', -1, 'public'),
+				   'ships':  Attribute('ships', {}, 'protected'),
+				   'damage': Attribute('damage', {}, 'protected') }
+
 	orderclasses = ('tp.server.rules.base.orders.NOp', 
 					'tp.server.rules.minisec.orders.Move',
 					'tp.server.rules.minisec.orders.SplitFleet',
@@ -79,13 +79,13 @@ class Fleet(Object, Combatant):
 	#############################################
 
 	def dead(self):
-		"""\
+		"""
 		Checks if this object is a can still participate in combat.
 		"""
 		return self.ghost() or self.ships.keys() == [0,]
 		
 	def damage_do(self, amount):
-		"""\
+		"""
 		Damages a fleet. Can be called with either a single
 		integer or a tuple of integers.
 		"""
@@ -123,7 +123,7 @@ class Fleet(Object, Combatant):
 			del damage[-1]
 
 	def damage_get(self, fail=False):
-		"""\
+		"""
 		Returns the amount of damage this fleet can do.
 		"""
 		r = []
@@ -131,5 +131,4 @@ class Fleet(Object, Combatant):
 			r.extend([self.ship_damage[type][fail]] * no)
 		return r
 
-Fleet.typeno = 4
 Object.types[Fleet.typeno] = Fleet

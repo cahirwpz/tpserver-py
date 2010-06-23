@@ -1,17 +1,14 @@
+#!/usr/bin/env python
 
-from tp import netlib
-from tp.server.bases.Order import Order
+from tp.server.bases import Order, Attribute
 
-class NOp(Order):
-	"""\
-Wait around and do nothing...
-"""
+class NOp( Order ):#{{{
+	"""
+	Wait around and do nothing...
+	"""
 	typeno = 0
 
-	attributes = {\
-		'wait': Order.Attribute("wait", 0, 'protected', type=1, #netlib.objects.constants.ARG_TIME, 
-				desc="How long to wait for.")
-	}
+	attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
 	
 	def do(self):
 		self.wait -= 1
@@ -32,3 +29,4 @@ Wait around and do nothing...
 			return self.wait, -1
 		else:
 			self.wait = value[0]
+#}}}

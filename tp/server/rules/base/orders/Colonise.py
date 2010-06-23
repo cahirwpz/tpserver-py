@@ -1,21 +1,17 @@
+#!/usr/bin/env python
 
-import math
-from tp import netlib
-
-from tp.server.bases.Order import Order
-from tp.server.bases.Object import Object
-from tp.server.bases.Message import Message
+from tp.server.bases import Order, Attribute, Object, Message
 
 Frigate = 1
 
-class Colonise(Order):
-	"""\
-Colonise the planet this fleet is orbiting. Will use one frigate class ship.
-"""
+class Colonise(Order):#{{{
+	"""
+	Colonise the planet this fleet is orbiting. Will use one frigate class ship.
+	"""
 	typeno = 5
 
-	attributes = {\
-		'target': Order.Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
+	attributes = {
+		'target': Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
 					desc="ID of object to colonise."),
 	}
 	
@@ -90,3 +86,6 @@ Colonisation of %s <b>succeded</b>.""" % (planet.name,)
 
 	def resources(self):
 		return []
+#}}}
+
+__all__ = [ 'Colonise' ]

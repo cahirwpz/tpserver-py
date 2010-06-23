@@ -1,21 +1,18 @@
+#!/usr/bin/env python
 
-from tp import netlib
-
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
-from tp.server.bases.Message import Message
-
+from tp.server.bases import Object, Order, Attribute, Message
 from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class BuildFleet(Order):
-	"""\
-Build a new star ship fleet."""
+	"""
+	Build a new star ship fleet.
+	"""
 	typeno = 2
 
-	attributes = {\
-		'ships': Order.Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
+	attributes = {
+		'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
 					desc="Ships to build and launch."),
-		'name':  Order.Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
+		'name':  Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
 					desc="The new fleet's name.")
 	}
 	

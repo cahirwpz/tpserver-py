@@ -1,18 +1,17 @@
-from tp.server.bases.SQL import NoSuchThing
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
-from tp.server.bases.Message import Message
+#!/usr/bin/env python
 
-class MergeFleet(Order):
-	"""\
-Merge two fleets together.
-"""
+from tp.server.bases import Object, Order, Attribute, Message, NoSuchThing
+
+class MergeFleet(Order):#{{{
+	"""
+	Merge two fleets together.
+	"""
 	typeno = 4
 
-	attributes = {\
-		'fleet': Order.Attribute("fleet", -1, 'protected', type=2, #netlib.objects.constants.ARG_OBJECT, 
+	attributes = {
+			'fleet': Attribute("fleet", -1, 'protected', type=2, #netlib.objects.constants.ARG_OBJECT, 
 				desc="Fleet to merge with.")
-	}
+			}
 	
 	def do(self):
 		# We need the original fleet
@@ -89,4 +88,7 @@ The merge order has been removed.
 			except NoSuchThing:
 				self.fleet = -1
 
-			return 
+			return
+#}}}
+
+__all__ = [ 'MergeFleet' ]

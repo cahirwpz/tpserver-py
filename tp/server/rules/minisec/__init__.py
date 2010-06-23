@@ -1,14 +1,12 @@
+#!/usr/bin/env python
 
 from tp.server.utils import ReparentOne
-from tp.server.db import *
+from tp.server.db import DatabaseManager
 
-from tp.server.bases.Board    import Board
-from tp.server.bases.Message  import Message
-from tp.server.bases.Object   import Object
-
-from tp.server.bases.Ruleset import Ruleset as RulesetBase
+from tp.server.bases import Object
 
 # Generic Actions
+from tp.server.rules.base import Ruleset as RulesetBase
 import tp.server.rules.base.orders.NOp as NOp
 import tp.server.rules.base.orders.MergeFleet as MergeFleet
 import tp.server.rules.base.orders.Colonise as Colonise
@@ -27,7 +25,8 @@ import actions.Turn as Turn
 import random
 
 SIZE = 10000000
-class Ruleset(RulesetBase):
+
+class Ruleset(RulesetBase):#{{{
 	"""
 	Minisec Ruleset...
 	"""
@@ -52,34 +51,25 @@ class Ruleset(RulesetBase):
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 
-	def initialise(self):
-		"""\
+	def initialise(self, game):
+		"""
 		Minisec 
 		"""
-		dbconn.use(self.game)
+		RulesetBase.initialise(self)
 
-		trans = dbconn.begin()
-		try:
-			RulesetBase.initialise(self)
+		# Need to create the top level universe object...
+		universe = game.Object()
+		universe.id		= 0
+		universe.type	= 'tp.server.rules.base.objects.Universe'
+		universe.name   = "The Universe"
+		universe.size   = SIZE
+		universe.turn   = 0
 
-			# Need to create the top level universe object...
-			universe = Object(type='tp.server.rules.base.objects.Universe')
-			universe.id     = 0
-			universe.name   = "The Universe"
-			universe.size   = SIZE
-			universe.parent = 0
-			universe.posx   = 0
-			universe.posy   = 0
-			universe.turn   = 0
-			universe.insert()
-
-			trans.commit()
-		except:
-			trans.rollback()
-			raise
+		with DatabaseManager().session() as session:
+			session.add( universe )
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
-		"""\
+		"""
 		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
 		
 			Populate a universe with a number of systems and planets.
@@ -88,10 +78,7 @@ class Ruleset(RulesetBase):
 		"""
 		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
 
-		dbconn.use(self.game)
-	
-		trans = dbconn.begin()
-		try:
+		with DatabaseManager().session() as session:
 			# FIXME: Assuming that the Universe and the Galaxy exist.
 			r = random.Random()
 			r.seed(int(seed))
@@ -101,79 +88,79 @@ class Ruleset(RulesetBase):
 				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 				
 				# Add system
-				system = Object(type='tp.server.rules.base.objects.System')
+				system = self.game.Object()
+				system.type = 'tp.server.rules.base.objects.System'
 				system.name = "System %s" % i
 				system.size = r.randint(800000, 2000000)
 				system.posx = pos[0]
 				system.posy = pos[1]
-				system.insert()
-				ReparentOne(system)
-				system.save()
-				print "Created system (%s) with the id: %i" % (system.name, system.id)
+				# ReparentOne(system) ??
+				session.add( system )
+				session.commit()
+
+				print "Created system (%s)" % system.name
 				
 				# In each system create a number of planets
 				for j in range(0, r.randint(planet_min, planet_max)):
-					planet = Object(type='tp.server.rules.base.objects.Planet')
+					planet = self.game.Object()
+					planet.type = 'tp.server.rules.base.objects.Planet'
 					planet.name = "Planet %i in %s" % (j, system.name)
 					planet.size = r.randint(1000, 10000)
-					planet.parent = system.id
+					planet.parent_id = system.id
 					planet.posx = pos[0]+r.randint(1,100)*1000
 					planet.posy = pos[1]+r.randint(1,100)*1000
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+					session.add( planet )
 
-			trans.commit()
-		except:
-			trans.rollback()
-			raise
+					print "Created planet (%s)" % planet.name
 
 	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
-		"""\
+		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		dbconn.use(self.game)
-	
-		trans = dbconn.begin()
-		try:
-			user = RulesetBase.player(self, username, password, email, comment)
+		user   = RulesetBase.player(self, username, password, email, comment)
+		system = None
+		planet = None
+		fleet  = None
 
+		with DatabaseManager().session() as session:
 			# FIXME: Hack! This however means that player x will always end up in the same place..
 			r = random.Random()
 			r.seed(user.id)
 
 			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
 
-			system = Object(type='tp.server.rules.base.objects.System')
+			system = self.game.Object()
+			system.type='tp.server.rules.base.objects.System'
 			system.name = "%s Solar System" % username
 			system.parent = 0
 			system.size = r.randint(800000, 2000000)
 			(system.posx, system.posy, junk) = pos
-			ReparentOne(system)
+			#ReparentOne(system)
 			system.owner = user.id
-			system.save()
 
-			planet = Object(type='tp.server.rules.base.objects.Planet')
+			session.add( system )
+
+			planet = self.game.Object()
+			planet.type='tp.server.rules.base.objects.Planet'
 			planet.name = "%s Planet" % username
 			planet.parent = system.id
 			planet.size = 100
 			planet.posx = system.posx+r.randint(1,100)*1000
 			planet.posy = system.posy+r.randint(1,100)*1000
 			planet.owner = user.id
-			planet.save()
 
-			fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
+			session.add( planet )
+
+			fleet = self.game.Object()
+			fleet.type='tp.server.rules.minisec.objects.Fleet'
 			fleet.parent = planet.id
 			fleet.size = 3
 			fleet.name = "%s First Fleet" % username
 			fleet.ships = {1:3}
 			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
 			fleet.owner = user.id
-			fleet.save()
 
-			trans.commit()
-	
-			return (user, system, planet, fleet)
-		except:
-			trans.rollback()
-			raise
+			session.add( fleet )
 
+		return (user, system, planet, fleet)
+#}}}

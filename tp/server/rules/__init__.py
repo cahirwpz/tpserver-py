@@ -1,24 +1,22 @@
+import os.path
 
-def rulesets():
-	import os.path
-	directory = os.path.dirname(__file__)
+from tp.server.singleton import SingletonClass
 
-	rulesets = {}
-	for entry in os.listdir(directory):
-		fullentry = os.path.join(directory, entry)
+class RulesetManager( object ):
+	__metaclass__ = SingletonClass
 
-		if os.path.isdir(fullentry):
-			try:
-				exec 'from %s import Ruleset as R' % entry
-				R.path = entry
-				rulesets[R.name] = R
-			except ImportError, e:
-				if str(e) == "cannot import name Ruleset":
-					continue
-				print e
-	return rulesets
+	def __init__( self ):
+		path = os.path.dirname( os.path.abspath( __file__ ) )
 
-def prettyprint(ruleset):
-	print "Name:\t\t%s (%s)"  % (ruleset.name, ruleset.path)
-	print "Version:\t%s" % ruleset.version
-	print ruleset.__doc__
+		self.ruleset = {}
+
+		for name in os.listdir( path ):
+			if name != "base" and os.path.isdir( os.path.join( path, name ) ):
+				try:
+					ruleset = __import__( "%s.%s" % ( __package__, name ), globals(), locals(), [ name ], -1 )
+
+					self.ruleset[ ruleset.__name__.split('.')[-1] ] = ruleset.Ruleset
+				except ImportError, msg:
+					print "Could not import %s: %s" % ( name, msg )
+
+__all__ = [ 'RulesetManager' ]

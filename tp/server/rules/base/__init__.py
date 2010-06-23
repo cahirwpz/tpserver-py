@@ -2,19 +2,13 @@
 Ruleset base.
 """
 
-import pprint
 import sys
 from types import TupleType
 
-from tp.server.db import *
-from tp.server.bases.Game    import Lock, Event
-from tp.server.bases.User    import User
-from tp.server.bases.Board   import Board
-from tp.server.bases.Message import Message
-from tp.server.bases.Object  import Object
+from tp.server.db import DatabaseManager
+from tp.server.bases import *
 from tp.server.utils import OrderGet
 
-# FIXME: These should be singletons
 class Ruleset(object):#{{{
 	"""
 	Rulesets define how gameplay works.
@@ -22,12 +16,21 @@ class Ruleset(object):#{{{
 	name    = "Unknown Ruleset"
 	version = 'Unknown Version'
 
-	def __init__(self, game):
+	def __init__(self, game = None):
 		"""
 		Initialise a ruleset.
 		"""
 		self.game = game
 		self.setup()
+
+	@property
+	def information( self ):
+		return [ ('name',    self.name ),
+				 ('version', self.version),
+				 ('comment', "\n".join( map( str.strip, self.__doc__.strip().splitlines() ))) ]
+	
+	def __str__( self ):
+		return "%s, version %s" % (self.name, self.version)
 
 	def setup(self):
 		"""
@@ -64,7 +67,6 @@ class Ruleset(object):#{{{
 					raise TypeError('Two orders (%s and %s) have conflicting type numbers!' % (self.ordermap[typeno].__module__, order.__module__))
 
 				self.ordermap[typeno] = order 
-		pprint.pprint(self.ordermap)
 
 		self.objectmap = {}
 
@@ -95,16 +97,7 @@ class Ruleset(object):#{{{
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
-		dbconn.use(self.game)
-
-		trans = dbconn.begin()
-		try:
-			Event.new('gameadded', self.game)
-
-			trans.commit()
-		except:
-			trans.rollback()
-			raise
+		# Event.new('gameadded', self.game)
 
 	def update(self):
 		"""
@@ -120,7 +113,7 @@ class Ruleset(object):#{{{
 		"""
 		pass
 
-	def player(self, username, password, email='Unknown', comment=''):
+	def player(self, username, password, email = 'N/A', comment = ''):
 		"""
 		--player <game> <username> <password> [<email>, <comment>]
 			Create a player for this game.
@@ -128,44 +121,34 @@ class Ruleset(object):#{{{
 			The default function creates a new user, a board for the user and adds a
 			welcome message. It returns the newly created user object.
 		"""
-		dbconn.use(self.game)
+		user = None
 
-		trans = dbconn.begin()
-		try:
-
-			user = User()
+		with DatabaseManager().session() as session:
+			user = self.game.Player()
 			user.username = username
 			user.password = password
 			user.email    = email
 			user.comment  = comment
-			user.save()
 
-			board = Board()
-			board.id = user.id
-			board.name = "Private message board for %s" % username
-			board.desc = """\
-This board is used so that stuff you own (such as fleets and planets) \
-can inform you of what is happening in the universe. \
-"""
-			board.insert()
+			session.add( user )
 
-			# Add the first message
-			message = Message()
-			message.bid = user.id
-			message.slot = -1
+		with DatabaseManager().session() as session:
+			board = self.game.Board()
+			board.id          = user.id
+			board.name        = "Private message board for %s" % username
+			board.description = "This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe."
+
+			session.add( board )
+
+			message = self.game.Message()
+			message.board   = user.id
+			message.slot    = -1
 			message.subject = "Welcome to the Universe!"
-			message.body = """\
-Welcome, %s, to the python Thousand Parsec server. Hope you have fun! \
-\
-This game is currently playing version %s of %s.
-""" % (username, self.version, self.name)
-			message.insert()
+			message.body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun! This game is currently playing version %s of %s." % (username, self.version, self.name)
 
-			trans.commit()
-			return user
-		except:
-			trans.rollback()
-			raise
+			session.add( message )
+
+		return user
 
 	def turn(self):
 		"""
@@ -186,13 +169,9 @@ This game is currently playing version %s of %s.
 			Then the Clean action would be applied with the argument ('fleetsonly')
 		"""
 		# Create a turn processing lock
-		dbconn.use(self.game)
-		lock = Lock.new('processing')
+		#lock = Lock.new('processing')
 
-		# Connect to the database
-		trans = dbconn.begin()
-
-		try:
+		with DatabaseManager().session() as session:
 			# FIXME: This won't work as if a move then colonise order occurs,
 			# and the move order completed the colonise order won't be
 			# performed. It also removes the ability for dummy orders to be
@@ -232,9 +211,4 @@ This game is currently playing version %s of %s.
 
 			# Create a EOT event
 			Event.new('endofturn', self.game)
-
-			trans.commit()
-		except:
-			dbconn.rollback()
-			raise
 #}}}

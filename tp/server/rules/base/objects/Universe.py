@@ -1,8 +1,9 @@
+#!/usr/bin/env python
 
-from tp.server.bases.Object import Object
+from tp.server.bases import Object, Attribute
 
 class Universe(Object):
-	attributes = {'turn': Object.Attribute('turn', 0, 'public')}
+	typeno = 0
+	attributes = {'turn': Attribute('turn', 0, 'public')}
 
-Universe.typeno = 0
 Object.types[Universe.typeno] = Universe

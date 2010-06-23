@@ -4,14 +4,9 @@ import csv
 import random
 import pprint
 
-from tp.server.db import dbconn, convert
+from tp.server.db import *
 
-from tp.server.bases.Object    import Object
-from tp.server.bases.Resource  import Resource
-from tp.server.bases.Category  import Category
-from tp.server.bases.Property  import Property
-from tp.server.bases.Component import Component
-from tp.server.bases.Design    import Design
+from tp.server.bases import Object, Resource, Category, Property, Component, Design
 
 from tp.server.rules.base.objects import Planet
 from tp.server.rules.minisec      import Ruleset as MinisecRuleset

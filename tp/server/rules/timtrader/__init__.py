@@ -2,26 +2,20 @@
 import os.path
 import csv
 import random
-import pprint
 
 from tp.server.utils import ReparentOne
-from tp.server.db import dbconn, convert
+from tp.server.db import *
 
-from tp.server.bases.SQL 	   import NoSuch
-from tp.server.bases.Object    import Object
-from tp.server.bases.Category  import Category
-from tp.server.bases.Property  import Property
-from tp.server.bases.Component import Component
-from tp.server.bases.Design    import Design
-from tp.server.bases.Ruleset   import Ruleset as RulesetBase
+from tp.server.bases import Object
 
+from tp.server.rules.base import Ruleset as RulesetBase
 import tp.server.rules.base.orders.NOp as NOp
-import tp.server.rules.base.actions.Move as MoveAction
 import tp.server.rules.minisec.actions.Turn as Turn
 
 from bases.Resource import Resource
 	
 SIZE = 10000000
+
 class Ruleset(RulesetBase):
 	"""
 	TIM Trader Ruleset.
