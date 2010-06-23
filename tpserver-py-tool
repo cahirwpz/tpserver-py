@@ -1,153 +1,79 @@
-#! /usr/bin/env python 
+#!/usr/bin/env python 
 
-import quirements
-import config
+import requirements
+import sys, time
+from cmd import Cmd as CommandLineInterface
 
-import sys
-import time
-import random
+from tp.server.configuration import CLIConfigurator, ConfigurationError
+from tp.server.db import DatabaseManager, DatabaseConfiguration
+from tp.server.rules import RulesetManager
+from tp.server.gamemanager import GameManager
 
-import tp.server.server
+DatabaseManager()
+
 from tp.server.utils import *
-from tp.server.db import dbconn
-from tp.server.bases.SQL  import NoSuch
-from tp.server.bases.Game import Game, Lock, Event
+from tp.server.db import DatabaseManager
+from tp.server.bases import *
 
 import sqlalchemy
 
-class Commands:
-	@classmethod
-	def rulesets(*args):
-		"""\
-		--rulesets
-			Prints out the currently installed rulesets.
-"""
-		import tp.server.rules as rules
-		for R in rules.rulesets().values():
-			print '-----------------------------------------'
-			rules.prettyprint(R)
+from contextlib import contextmanager
 
-	@staticmethod
-	def addgame(longname, ruleset, admin, comment):
-		"""\
-		--addgame <game> <ruleset> <admin email> <comment>
-			Add a new game to the server
-"""
-		# Check the game doesn't already exist
-		shortname = Game.munge(longname)
-		try:
-			Game.gameid(shortname)
-			print "That game name is already taken! Please try again with a different or remove that game first."
-			return
-		except NoSuch:
-			pass
+@contextmanager
+def PrettyFrame( kind, inst ):
+	prologue = "---=[ %s: %s ]=" % (kind, inst)
+	prologue += "-" * (80 - len(prologue))
+	print prologue
+	print ""
+	yield
+	print ""
 
-		try:
-			trans = dbconn.begin()
+class GameMenu( CommandLineInterface ):
+	def __init__( self, game ):
+		CommandLineInterface.__init__( self )
 
-			# Okay create a new game then
-			g = Game()
+		self.prompt = "(Game: %s) " % game.name
+		self.game   = game
 
-			# Check that this is a valid ruleset
-			try:
-				g.ruleset  = ruleset
-			except ImportError, e:
-				print e
-				print "That ruleset does not exist! Please check your spelling or install the correct module."
-				return
+	def do_q( self, remainder ):
+		return True
 
-			g.shortname= shortname
-			g.longname = longname
-			g.admin    = admin
-			g.comment  = comment
-			g.turn     = 0
-			g.commandline=" ".join(sys.argv)
-			g.save()
+	do_quit = do_q
 
-			g.ruleset.initialise()
-
-			trans.commit()
-
-			print "Game successfully created!"
-			print "You can use the '%s' shortname when running programs in the future." % shortname
-			print
-			print "You probably want to populate the universe now. See the --populate command."
-		except Exception, e:
-			trans.rollback()
-
-			print "An error occured when adding the game, no changes to the database have been made.."
-			print e
-
-	@staticmethod
-	def delgame(game, force=False):
-		"""\
-		--delgame <game>
-			Remove a game from the server.
-"""
-		# Check the user really wants to do this		
-		if force != "--yespleasedo":
-			print "Please use --yespleasedo flag to confirm you actually want to remove %s" % game
-			return
-
-		# Check the game exists
-		g = Game(longname=game)
-		
-		try:
-			e = Event.new(u"gameremoved", g)
-			e.insert()
-		except sqlalchemy.exceptions.IntegrityError, e:
-			pass
-
-		# Wait for the locks to disappear
-		if Lock.locked(u"serving", g):
-			print "Waiting for servers to finish",
-
-			while Lock.locked(u"serving", g):
-				sys.stdout.write(".")
-				sys.stdout.flush()
-
-				dbconn.commit()
-
-				time.sleep(1)
-			print "\n  all finished"
-
-		dbconn.begin()
-
-		# Remove all the data from all every table
-		from tp.server.db import metadata
-		for name, table in metadata.tables.items():
-			if name.lower() == "event":
-				continue
-			if "game" in table.c:
-				dbconn.execute(sqlalchemy.delete(table, table.c['game']==g.id))
-
-		g.remove()
-
-		dbconn.commit()
-
-	@staticmethod
-	def populate(game, *args, **kw):
-		"""\
+	def do_populate( self, line ):
+		"""
 		--populate <game> --help
 			Find out what arguments populate takes for this game's ruleset.
 
 		--populate <game> <ruleset arguments>
 			Populates will populate a game with "things". What things means
 			depends on the the ruleset.
-"""
-		r = Game(longname=game).ruleset
-		if len(args) == 0 or args[0] == '--help':
-			print r.populate.__doc__.replace('\t\t', '')
-		else:
-			r.populate(*args, **kw)
+		"""
 
-	@staticmethod
-	def player(game, username, password, email=None, comment=None):
-		"""\
-		--player <game> <username> <password> [<email>, <comment>]
+		words = line.split()
+
+		self.game.ruleset.populate( *words )
+	
+	def do_player( self, line ):
+		"""
+		player add <username> <password> [<email>, <comment>]
 			Add a new player to the game.
 		"""
-		r = Game(longname=game).ruleset
+		words = line.split()
+
+		try:
+			what, args = words[0], words[1:]
+		except IndexError:
+			self.do_help( "player" )
+		else:
+			if what == 'add' and len(args) in range(2,5):
+				self.player_add( self.game, *args )
+			else:
+				self.do_help( "player" )
+
+	@staticmethod
+	def player_add( game, username, password, email = None, comment = None ):
+		r = game.ruleset
 
 		if comment is None:
 			r.player(username, password)
@@ -156,34 +82,16 @@ class Commands:
 		else:
 			r.player(username, password, email, comment)
 
-	@staticmethod
-	def turn(game, number=1):
-		"""\
+	def do_turn( self, line ):
+		number = 1
+		"""
 		--turn <game> [<number>]
 			Generate <number> turns. Number defaults to one.
 		"""
-		r = Game(longname=game).ruleset
+		r = self.game.ruleset
 		
 		for i in range(0, int(number)):
 			r.turn()
-
-	@staticmethod
-	def help(*args, **kw):
-		"""\
-		--help
-			Get help about using this program.
-		"""
-		print """
-This command lets you change things on the local server.
-"""
-
-		for name in dir(Commands):
-			if name.startswith('__'):
-				continue
-			if getattr(Commands, name).__doc__ is None:
-				continue
-
-			print getattr(Commands, name).__doc__.replace('\t\t', '')
 
 	@staticmethod
 	def status(*args, **kw):
@@ -211,19 +119,160 @@ This command lets you change things on the local server.
 		"""
 		Lock.cleanup()
 
-def main():
-	# Special case for not enough arguments
-	if len(sys.argv) <= 1 or sys.argv[1][:2] != '--':
-		Commands.help()
-		return
+class MainMenu( CommandLineInterface ):
+	def __init__( self ):
+		CommandLineInterface.__init__( self )
+		self.prompt = "(Main) "
 
-	cmd = sys.argv[1][2:]
-	if not hasattr(Commands, cmd):
-		cmd = 'help'
-
-	getattr(Commands, cmd)(*sys.argv[2:])
+	@property
+	def subcmd_list( self ):
+		return [ "games", "rulesets" ] 
 	
+	def complete_list( self, text, line, begidx, endidx ):
+		words = line.split()[1:]
+
+		if len( words ) == 0:
+			return self.subcmd_list
+		elif len( words ) == 1:
+			return filter( lambda s: s.startswith( words[-1] ), self.subcmd_list )
+		else:
+			return []
+
+	def do_list( self, line ):
+		"""
+		List objects of given kind.
+
+		Usage:
+			list <kind>
+
+		Options:
+			kind = games | rulesets
+		"""
+		what = line.split()[0]
+
+		if what == 'games':
+			self.list_games()
+		elif what == 'rulesets':
+			self.list_rulesets()
+		else:
+			self.do_help( "list" )
+	
+	@staticmethod
+	def list_games():
+		with DatabaseManager().session() as session:
+			for game in session.query( Game ).all():
+				with PrettyFrame( "game", game.name ):
+					for line in [ ('long name', game.longname), ('ruleset', str(game.ruleset)), ('turn', game.turn), ('administrator', game.admin), ('comment', game.comment), ('last modified', game.mtime) ]:
+						print "%14s: %s " % line
+			print "-" * 80
+	
+	@staticmethod
+	def list_rulesets():
+		for name, ruleset in sorted( RulesetManager().ruleset.items() ):
+			with PrettyFrame( "ruleset", name ):
+				for line in ruleset().information:
+					print "%8s: %s " % line
+		print "-" * 80
+
+	@property
+	def subcmd_game( self ):
+		return [ "use", "add", "remove" ]
+
+	def complete_game( self, text, line, begidx, endidx ):
+		words = line.split()[1:]
+
+		if len( words ) == 0:
+			return self.subcmd_game
+		elif len( words ) == 1:
+			return filter( lambda s: s.startswith( words[-1] ), self.subcmd_game )
+		else:
+			return []
+
+	def do_game( self, line ):
+		"""
+		game add    - Add a new game to the server.
+		game remove - Remove a game from the server.
+		game use    - Manage a game on the server.
+		
+		Usage:
+			game add <name> <long name> <ruleset> <admin email> <comment>
+			game remove <name>
+			game use <name>
+		"""
+		words = line.split()
+
+		try:
+			what, args = words[0], words[1:]
+		except IndexError:
+			self.do_help( "game" )
+		else:
+			if what == 'add' and len(args) == 5:
+				self.game_add( *args )
+			elif what == 'remove' and len(args) == 1:
+				self.game_remove( *args )
+			elif what == 'use' and len(args) == 1:
+				self.game_use( *args )
+			else:
+				self.do_help( "game" )
+
+	@staticmethod
+	def game_add( shortname, longname, ruleset, admin, comment ):
+		try:
+			GameManager().addGame( shortname, longname, ruleset, admin, comment )
+			GameManager().game[ shortname ].initialise()
+
+			print "Game successfully created! You can use the '%s' name as game identifier." % shortname
+			print ""
+			print "You probably want to populate the universe now."
+		except AlreadyExists, ex:
+			print "Error:", ex
+			print ""
+			print "Please try again with a different name or remove that game first."
+
+	@staticmethod
+	def game_remove( name ):
+		try:
+			GameManager().removeGame( name )
+		except NoSuchThing, ex:
+			print "Error:", ex
+	
+	@staticmethod
+	def game_use( name ):
+		try:
+			game = GameManager().game[ name ]
+		except KeyError, ex:
+			print "Error:", ex
+		else:
+			menu = GameMenu( game )
+			menu.cmdloop()
+
+	def do_q( self, remainder ):
+		return True
+
+	do_quit = do_q
+
+def main():
+	configurator = CLIConfigurator( "Thousand Parsec Administration Tool" )
+	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
+
+	try:
+		configurator.configParse()
+		configurator.configCommit()
+	except ConfigurationError, ex:
+		configurator.help()
+
+		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
+
+	DatabaseManager().engine.echo = False
+	GameManager()
+	RulesetManager()
+
+	try:
+		menu = MainMenu()
+		menu.cmdloop()
+	except KeyboardInterrupt:
+		menu.onecmd("quit")
+		print "quit"
+
 if __name__ == "__main__":
 	main()
-
-
