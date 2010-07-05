@@ -23,7 +23,7 @@ class Category( SQLBase, SelectableByName ):#{{{
 		mapper( cls, cls.__table__ )
 
 	def __str__(self):
-		return "<%s id=%s name=%s>" % ( self.__class__.__name__, self.id, self.name )
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
 #}}}
 
 __all__ = [ 'Category' ]

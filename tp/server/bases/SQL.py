@@ -17,10 +17,11 @@ class PermissionDenied( Exception ):#{{{
 	pass
 #}}}
 
-class SelectableByName( object ):
+class SelectableByName( object ):#{{{
 	@classmethod
 	def ByName( cls, name ):
 		return DatabaseManager().query( cls ).filter_by( name = name ).first()
+#}}}
 
 class SQLBase( object ):#{{{
 	def __init__( self, **kwargs ):

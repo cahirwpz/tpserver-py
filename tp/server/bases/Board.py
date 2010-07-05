@@ -10,6 +10,8 @@ from SQL import SQLBase, NoSuchThing
 class Board( SQLBase ):#{{{
 	"""
 	Board which contains posts about stuff.
+
+	Notes: Board ID Zero gets map to player id
 	"""
 	@classmethod
 	def InitMapper( cls, metadata, Player ):
@@ -28,64 +30,8 @@ class Board( SQLBase ):#{{{
 				cascade = 'all')
 			})
 
-	@classmethod
-	def ByRealId( cls, user, id ):
-		if id == 0:
-			return cls.ById( user.id )
-		else:
-			return cls.ById( id )
-	
-	#{{{
-	# def realid(self, user, bid):
-	#	# Board ID Zero gets map to player id
-	#	if bid == 0:
-	#		return user.id
-	#	elif bid > 0:
-	#		return bid
-	#	else:
-	#		raise NoSuchThing("No such board possible...")
-
-	# def mangleid(self, bid):
-	#	if bid > 0:
-	#		return 0
-	#	else:
-	#		return -bid
-
-	# def amount(self, user):
-	#	"""
-	#	amount(user)
-	#
-	#	Get the number of records in this table (that the user can see).
-	#	"""
-	#	t = self.cls.table
-	#
-	#	result = select([func.count(t.c.id).label('count')], (t.c.id<0) | (t.c.id==user.id)).execute().fetchall()
-	#
-	#	if len(result) == 0:
-	#		return 0
-	#	else:
-	#		return result[0]['count']
-
-	# def ids(self, user, start, amount):
-	#	"""
-	#	ids(user, start, amount)
-	#	
-	#	Get the last ids for this (that the user can see).
-	#	"""
-	#	t = self.cls.table
-	#
-	#	if amount == -1:
-	#		result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
-	#						order_by=[desc(t.c.time)], offset=start).execute().fetchall()
-	#	else:
-	#		result = select([t.c.id, t.c.time], (t.c.id<0) | (t.c.id==user.id),
-	#						order_by=[desc(t.c.time)], limit=amount, offset=start).execute().fetchall()
-	#
-	#	return [(self.cls.mangleid(x['id']), x['time']) for x in result]
-	#}}}
-
 	def __str__(self):
-		return "<%s id=%s>" % ( self.__class__.__name__, self.id )
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
 #}}}
 
 class Slot( SQLBase ):#{{{
@@ -101,8 +47,8 @@ class Slot( SQLBase ):#{{{
 
 		cols = cls.__table__.c
 
-		Index('idx_%s_board_msg' % cls.__tablename__, cols.board_id, cols.message_id)
-		Index('idx_%s_board_slot' % cls.__tablename__, cols.board_id, cols.number)
+		Index('ix_%s_board_msg' % cls.__tablename__, cols.board_id, cols.message_id)
+		Index('ix_%s_board_slot' % cls.__tablename__, cols.board_id, cols.number)
 
 		mapper( cls, cls.__table__, properties = {
 			'board': relation( Board,

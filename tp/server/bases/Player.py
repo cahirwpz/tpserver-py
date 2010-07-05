@@ -43,32 +43,8 @@ class Player( SQLBase ):#{{{
 		else:
 			return cls.ById( id )
 
-#{{{
-
-	# def usernameid(self, game, username, password = None):
-	#	"""
-	#	Get the id for a user given a game, username and password.
-	#	"""
-	#
-	#	session = DatabaseManager().session()
-	#
-	#	if password is None:
-	#		result = session.query( self.cls ).filter_by( username = username ).first()
-	#	else:
-	#		result = session.query( self.cls ).filter_by( username = username, password = password ).first()
-	#	
-	#	if result:
-	#		return result.id
-	#	else:
-	#		return -1
-
-	# @property
-	# def playing(self):
-	#	return bool(self.__game)
-#}}}
-
 	def __str__(self):
-		return "<Player id=%s username=%s>" % (self.id, self.username)
+		return '<%s@%s id="%d" username="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.username )
 #}}}
 
 __all__ = [ 'Player' ]

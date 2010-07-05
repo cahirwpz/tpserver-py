@@ -15,6 +15,9 @@ class Reference( SQLBase ):#{{{
 				Column('reference',   String(255), nullable = False))
 
 		mapper( cls, cls.__table__ )
+	
+	def __str__( self ):
+		return '<%s@%s id="%d">' % ( self.__origname__, self.__game__.__name__, self.id )
 #}}}
 
 __all__ = [ 'Reference' ]

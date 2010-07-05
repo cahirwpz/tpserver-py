@@ -115,39 +115,6 @@ class Object( SQLBase ):#{{{
 
 	# bypos_size = [asc(table.c.size)]
 
-	# def bypos(self, pos, size=0, limit=-1, orderby=None):
-	#	"""
-	#	Object.bypos([x, y, z], size) -> [Object, ...]
-	#
-	#	Return all objects which are centered inside a sphere centerd on
-	#	size and radius of size.
-	#	"""
-	#	pos = long(pos[0]), long(pos[1]), long(pos[2])
-	#
-	#	c = self.cls.table.c
-	#
-	#	bp_x = bindparam('x')
-	#	bp_y = bindparam('y')
-	#	bp_z = bindparam('z')
-	#	bp_s = bindparam('size')
-	#	where = ((c.size+bp_s) >= \
-	#				func.abs((c.posx-bp_x)) + \
-	#				func.abs((c.posy-bp_y)) + \
-	#				func.abs((c.posz-bp_z)))
-	#	#	where = (((c.size+bp_s)*(c.size+bp_s)) >= \
-	#	#				((c.posx-bp_x) * (c.posx-bp_x)) + \
-	#	#				((c.posy-bp_y) * (c.posy-bp_y)) + \
-	#	#				((c.posz-bp_z) * (c.posz-bp_z)))
-	#	if orderby is None:
-	#		orderby = [asc(c.time), desc(c.size)]
-	#
-	#	s = select([c.id, c.time], where, order_by=orderby)
-	#	if limit != -1:
-	#		s.limit = limit
-	#
-	#	results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
-	#	return [(x['id'], x['time']) for x in results]
-
 	# def protect(self, user):
 	#	o = SQLBase.protect(self, user)
 	#	if hasattr(self, "owner") and self.owner != user.id:

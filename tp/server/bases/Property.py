@@ -24,7 +24,7 @@ class Property( SQLBase, SelectableByName ):#{{{
 		mapper( cls, cls.__table__ )
 
 	def __str__(self):
-		return "<Component id=%s name=%s>" % (self.id, self.name)
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
 #}}}
 
 class PropertyCategory( SQLBase ):#{{{
@@ -39,7 +39,7 @@ class PropertyCategory( SQLBase ):#{{{
 
 		cols = cls.__table__.c
 
-		Index('idx_%s_property_category' % cls.__tablename__, cols.property_id, cols.category_id)
+		Index('ix_%s_property_category' % cls.__tablename__, cols.property_id, cols.category_id)
 
 		mapper( cls, cls.__table__, properties = {
 			'property': relation( Property,

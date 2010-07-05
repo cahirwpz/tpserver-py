@@ -34,7 +34,7 @@ class ResourceType( SQLBase, SelectableByName ):#{{{
 		return DatabaseManager().query( cls ).filter_by( name_singular = name ).first()
 
 	def __str__(self):
-		return '<ResourceType "%s">' % self.name_singular
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name_singular )
 #}}}
 
 __all__ = [ 'ResourceType' ]

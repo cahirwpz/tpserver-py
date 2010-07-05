@@ -389,18 +389,6 @@ class Game( SQLBase, SelectableByName ):#{{{
 	#	return key.hexdigest()
 
 	# @property
-	# def players(self):
-	#	from User import User
-	#	dbconn.use(self)
-	#	return User.amount()
-
-	# @property
-	# def objects(self):
-	#	from Object import Object
-	#	dbconn.use(self)
-	#	return Object.amount()
-
-	# @property
 	# def parameters(self):
 	#	return dict(
 	#			plys	= self.players,

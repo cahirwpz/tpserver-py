@@ -31,94 +31,6 @@ class Design( SQLBase, SelectableByName ):#{{{
 			})
 
 #{{{
-	# def load(self, id):
-	#	"""
-	#	load(id)
-	#
-	#	Loads a thing from the database.
-	#	"""
-	#	SQLBase.load(self, id)
-	#
-	#	# Load the categories now
-	#	self.categories = self.get_categories()
-	#
-	#	# Load the properties now
-	#	self.components = self.get_components()
-
-	# def save(self, forceinsert=False):
-	#	"""
-	#	save()
-	#
-	#	Saves a thing to the database.
-	#	"""
-	#	SQLBase.save(self, forceinsert)
-	#
-	#	# Save the categories now
-	#	t = self.table_category
-	#	current = self.get_categories()
-	#	for cid in current+self.categories:
-	#		if (cid in current) and (not cid in self.categories):
-	#			# Remove the category
-	#			results = delete(t, (t.c.design==self.id) & (t.c.category==cid)).execute()
-	#		
-	#		if (not cid in current) and (cid in self.categories):
-	#			# Add the category
-	#			results = insert(t).execute(design=self.id, category=cid)
-	#
-	#	# Save the components now
-	#	t = self.table_component
-	#	current = self.get_components()
-	#	
-	#	ct = {}
-	#	for cid, amount in current:
-	#		ct[cid] = [amount, None]
-	#	for cid, amount in self.components:
-	#		if ct.has_key(cid):
-	#			ct[cid][1] = amount
-	#		else:
-	#			ct[cid] = [None, amount]
-	#
-	#	for cid, values in ct.items():
-	#		start, end = values
-	#	
-	#		if start != end:
-	#			if start != None:
-	#				results = delete(t, (t.c.design==self.id) & (t.c.component==cid)).execute()
-	#			if end != None and end > 0:
-	#				results = insert(t).execute(design=self.id, component=cid, amount=end)
-		
-	# def get_categories(self):
-	#	"""
-	#	get_categories -> [id, ...]
-	#
-	#	Returns the categories the design is in.
-	#	"""
-	#	t = self.table_category
-	#
-	#	if not hasattr(self, '_categories'):
-	#		if not hasattr(self, 'id'):
-	#			self._categories = []
-	#		else:
-	#			results = select([t.c.category], t.c.design==self.id).execute().fetchall()
-	#			self._categories = [x['category'] for x in results]
-	#	return self._categories
-	
-	# def get_components(self):
-	#	"""
-	#	get_components -> [id, ...]
-	#
-	#	Returns the components the design contains.
-	#	"""
-	#	t = self.table_component
-	#
-	#	if not hasattr(self, '_components'):
-	#		if not hasattr(self, 'id'):
-	#			self._components = []
-	#		else:
-	#			results = select([t.c.component, t.c.amount], t.c.design==self.id).execute().fetchall()
-	#			self._components = [(x['component'], x['amount']) for x in results]
-	#	return self._components
-
 	# @property
 	# def used(self):
 	#	"""
@@ -330,7 +242,7 @@ class Design( SQLBase, SelectableByName ):#{{{
 #}}}
 
 	def __str__(self):
-		return "<Design id=%s name=%s>" % (self.id, self.name)
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
 #}}}
 
 class DesignCategory( SQLBase ):#{{{
@@ -345,7 +257,7 @@ class DesignCategory( SQLBase ):#{{{
 
 		cols = cls.__table__.c
 
-		Index('idx_%s_design_category' % cls.__tablename__, cols.design_id, cols.category_id)
+		Index('ix_%s_design_category' % cls.__tablename__, cols.design_id, cols.category_id)
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
@@ -372,7 +284,7 @@ class DesignComponent( SQLBase ):#{{{
 
 		cols = cls.__table__.c
 
-		Index('idx_%s_design_component' % cls.__tablename__, cols.design_id, cols.component_id)
+		Index('ix_%s_design_component' % cls.__tablename__, cols.design_id, cols.component_id)
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
