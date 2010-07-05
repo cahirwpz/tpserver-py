@@ -22,12 +22,14 @@ class Move(Order):
 	"""
 	Move to a point in space.
 	"""
-	typeno = 1
+	@property
+	def typeno( self ):
+		return 1
 
-	attributes = {
-		'pos': Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
-				desc="Where to go.")
-	}
+	#attributes = {
+	#	'pos': Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
+	#			desc="Where to go.")
+	#}
 	
 	def do(self, action):
 		# We are going to have to modify the object so lets load it

@@ -3,7 +3,7 @@
 import sqlalchemy, datetime, re
 
 from contextlib import contextmanager
-from sqlalchemy.orm import sessionmaker, scoped_session, mapper
+from sqlalchemy.orm import sessionmaker, scoped_session
 
 from tp.server.singleton import SingletonClass
 from tp.server.configuration import ComponentConfiguration, StringOption
@@ -16,25 +16,34 @@ def untitle( s ):
 
 def make_mapping( cls, metadata, *args, **kwargs ):#{{{
 	cls.__tablename__ = untitle( cls.__name__ )
-	cls.__table__     = cls.getTable( cls.__tablename__, metadata, *args, **kwargs )
-
-	mapper( cls, cls.__table__ )
+	
+	cls.InitMapper( metadata, *args, **kwargs )
 
 	return cls
 #}}}
 
-def make_dependant_mapping( cls, metadata, game, *args, **kwargs ):#{{{
+def make_dependant_mapping( cls, metadata, Game, *args, **kwargs ):#{{{
 	class newcls( cls ):
+		__origname__  = cls.__name__
 		__module__    = cls.__module__
-		__tablename__ = str( '%s_%s' % ( game.name, untitle( cls.__name__ ) ) )
-		__table__     = cls.getTable( __tablename__, metadata, *args, **kwargs )
+		__tablename__ = "_".join( [ Game.name, untitle( cls.__name__ ) ] )
+		__game__      = Game
+	
+	newcls.__name__  = str( '%s_%s' % ( Game.name, cls.__name__ ) )
 
-	newcls.__name__ = str( '%s_%s' % ( game.name, cls.__name__ ) )
-
-	mapper( newcls, newcls.__table__ )
-
+	newcls.InitMapper( metadata, *args, **kwargs )
+	
 	return newcls
 #}}}
+
+def make_parametrized_mapping( cls, metadata, Object, *args, **kwargs ):
+	cls.__origname__  = cls.__name__
+	cls.__tablename__ = str( "%s_%s" % ( Object.__tablename__, untitle( cls.__origname__ ) ) )
+	cls.__name__      = str( "%s_%s" % ( cls.__game__.name, cls.__name__ ) )
+
+	cls.InitMapper( metadata, *args, **kwargs )
+	
+	return cls
 
 class DatabaseManager( object ):#{{{
 	__metaclass__ = SingletonClass
@@ -61,6 +70,10 @@ class DatabaseManager( object ):#{{{
 	@property
 	def metadata( self ):
 		return self.__metadata
+
+	@property
+	def query( self ):
+		return self.__sessionmaker().query
 #}}}
 
 class DatabaseConfiguration( ComponentConfiguration ):#{{{
@@ -70,4 +83,4 @@ class DatabaseConfiguration( ComponentConfiguration ):#{{{
 							help='Database engine supported by SQLAlchemy.', arg_name='DATABASE' )
 #}}}
 
-__all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping', 'make_dependant_mapping' ]
+__all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping', 'make_dependant_mapping', 'make_parametrized_mapping' ]

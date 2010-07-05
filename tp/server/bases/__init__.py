@@ -3,7 +3,8 @@ from tp.server.db import DatabaseManager
 DatabaseManager()
 
 from SQL import *
-from SQLTypedBase import *
+from Attributes import *
+from Reference import *
 from Category import *
 from Property import *
 from Board import *
@@ -14,5 +15,5 @@ from Game import *
 from Message import *
 from Object import *
 from Order import *
-from Resource import *
+from ResourceType import *
 from Player import *

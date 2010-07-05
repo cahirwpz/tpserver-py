@@ -1,20 +1,22 @@
 #!/usr/bin/env python
 
 from tp.server.bases import Object, Order, Attribute, Message
-from tp.server.rules.minisec.objects.Fleet import Fleet
+#from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class BuildFleet(Order):
 	"""
 	Build a new star ship fleet.
 	"""
-	typeno = 2
+	@property
+	def	typeno( self ):
+		return 2
 
-	attributes = {
-		'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
-					desc="Ships to build and launch."),
-		'name':  Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
-					desc="The new fleet's name.")
-	}
+	#attributes = {
+	#	'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
+	#				desc="Ships to build and launch."),
+	#	'name':  Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
+	#				desc="The new fleet's name.")
+	#}
 	
 	def do(self):
 		builder = Object(self.oid)

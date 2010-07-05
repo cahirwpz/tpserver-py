@@ -8,12 +8,14 @@ class Colonise(Order):#{{{
 	"""
 	Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 	"""
-	typeno = 5
+	@property
+	def typeno( self ):
+		return 5
 
-	attributes = {
-		'target': Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
-					desc="ID of object to colonise."),
-	}
+	#attributes = {
+	#	'target': Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
+	#				desc="ID of object to colonise."),
+	#}
 	
 	def do(self):
 		# We are going to have to modify the object so lets load it

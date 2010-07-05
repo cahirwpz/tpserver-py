@@ -1,17 +1,27 @@
 from tp.server.bases import *
-#from tp.server.db import DatabaseManager
+from tp.server.db import DatabaseManager
 
 from tp.server.packet import PacketFactory, datetime2int
 
 from version import version as __version__
 from logging import msg
+from gamemanager import GameManager
+from sqlalchemy import *
 
 import inspect
 
 class CommandsHandler( object ):
 	def __init__( self, _module, _client ):
-		self.objects = _module
-		self._client = _client
+		self.objects  = _module
+		self.__client = _client
+
+	@property
+	def player( self ):
+		return self.__client.player
+
+	@property
+	def game( self ):
+		return self.__client.game
 
 	def commands( self ):
 		commands = []
@@ -25,10 +35,14 @@ class CommandsHandler( object ):
 				msg( "${yel1}Could not register handler method %s: unknown command %s.${coff}" % ( name, command ), level="warning" )
 			else:
 				commands.append( (command, method) )
+		
+		# available   = set( name for name in dir( self.objects ) if not name.startswith('_') )
+		# implemented = set( cmd for cmd, method in commands )
+		# print "Not implemented:", available.difference(implemented)
 
 		return commands
 
-	def GetWithID( self, request, _type ):
+	def GetWithID( self, request, Object ):
 		"""
 		GetWithID(request, type) -> [True | False]
 
@@ -43,24 +57,21 @@ class CommandsHandler( object ):
 		if len( request.ids ) > 1:
 			response.append( self.objects.Sequence( request._sequence, len( request.ids ) ) )
 
-		for _id in request.ids:
+		for obj_id in request.ids:
 			try:
-				obj = _type.Utils.findById( _type.Utils.realid( self._client.user, _id) )
+				obj = Object.ByRealId( self.player, obj_id )
 
-				if obj == None:
-					raise NoSuchThing
-
-				response.append( PacketFactory().fromObject( _type.__name__, request._sequence, obj ) )
+				response.append( PacketFactory().fromObject( Object.__name__, request._sequence, obj ) )
 			except PermissionDenied:
-				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
-				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
+				msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__name__, obj_id ) )
+				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % Object.__name__, []) )
 			except NoSuchThing:
-				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
-				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
+				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__name__, obj_id ) )
+				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (Object.__name__, obj_id), []) )
 
 		return response
 	
-	def GetIDs( self, request, _type ):
+	def GetIDs( self, request, Object ):
 		"""
 		GetIDs(request, type) -> [True | False]
 
@@ -75,22 +86,28 @@ class CommandsHandler( object ):
 			type.ids(user, start, amount)       - Get the ids (that this user can see)
 			type.ids_packet()                   - Get the packet type for sending a list of ids
 		"""
-		key   = long( _type.Utils.modified( self._client.user ).strftime('%s') )
-		total = _type.Utils.amount( self._client.user )
+		last  = Object.ByModTime( self.player )
+
+		if last:
+			key = long( last.mtime.strftime('%s') )
+		else:
+			key = -1
+
+		total = Object.Count( self.player )
 		
 		if request.key != -1 and key != request.key:
-			return self.objects.Fail( request._sequence, "NoSuchThingThing", "Key %s is no longer valid, please get a new key." % request.key )
+			return self.objects.Fail( request._sequence, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
 		
 		if request._start + request._amount > total:
 			msg( "Requested %d items starting at %d. Actually %s." % ( request._amount, request._amount, total ) )
-			return self.objects.Fail( request._sequence, 'NoSuch', "Requested too many IDs. (Requested %s, Actually %s." % (request.start+request.amount, total))
+			return self.objects.Fail( request._sequence, 'NoSuch', "Requested too many IDs. (Requested %s, actually %s)" % (request._start + request._amount, total))
 
 		if request._amount == -1:
 			left = 0
 		else:
 			left = total - ( request._start + request._amount )
 
-		ids = _type.Utils.ids( self._client.user, request._start, request._amount )
+		objs = Object.ByIdRange( self.player, request._start, request._amount )
 
 		class Temp( object ):
 			pass
@@ -98,91 +115,135 @@ class CommandsHandler( object ):
 		obj = Temp()
 		obj.key		= key 
 		obj.left	= left
-		obj.ids		= sorted( (_id, datetime2int( _time ) ) for _id, _time in ids )
+		obj.ids		= sorted( (obj.id, datetime2int( obj.mtime ) ) for obj in objs )
 
-		return PacketFactory().fromObject( _type.__name__ + "IDs", request._sequence, obj )
+		return PacketFactory().fromObject( Object.__name__ + "IDs", request._sequence, obj )
 	
-	def GetWithIDandSlot(self, request, _type, container):
+	def GetWithIDandSlot(self, request, Slot, Object):
 		"""
-		GetWithIDandSlot(request, type, container) -> [True | False]
+		GetWithIDandSlot(request, container, object) -> [True | False]
 
 		request - Get request to be processes, it must have the following
 			request.id		- The id of the container
 			request.slots	- The slots to be gotten
-					
-		type - The class used in processing, it must have the following
-			type(realid, slot)                   - Creates the object
-			typeinstance.to_packet(sequenceid)   - Creates a network packet with this sequence number
-
-		container - The class that contains the other class
-			container.realid(user, id)           - Get the real id for the container object
 		"""
 		response = []
 		
-		# Get the real id
-		_id = container.Utils.realid( self._client.user, request.id )
-
-		if len(request.slots) != 1:
+		if len( request.slots ) != 1:
 			response.append( self.objects.Sequence( request._sequence, len( request.slots ) ) )
 
 		for slot in request.slots:
 			try:
-				obj = _type.Utils.findByIdAndSlot( _id, slot )
+				obj = Slot.ByIdAndNumber( request.id, slot )
 
-				response.append( PacketFactory().fromObject( _type.__name__, request._sequence, obj ) )
+				response.append( PacketFactory().fromObject( Object.__name__, request._sequence, obj.content ) )
 			except PermissionDenied:
-				msg( "${yel1}No permission for %s with id %s.${coff}" % ( _type, _id ) )
-				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % _type, []) )
+				msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__name__, request.id ) )
+				response.append( self.objects.Fail( request._sequence, "PermissionDenied", "No %s." % Object.__name__, []) )
 			except NoSuchThing:
-				msg( "${yel1}No such %s with id %s.${coff}" % ( _type.__name__, _id ) )
-				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (_type.__name__, _id), []) )
+				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__name__, request.id ) )
+				response.append( self.objects.Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (Object.__name__, request.id), []) )
 
 		return response
 
 	def on_AddCategory( self, request ):
-		pass
+		"""
+		Request:  AddCategory :: Category
+		Response: Category | Fail
+		"""
 
 	def on_GetCategory( self, request ):
-		return self.GetWithID( request, Category )
+		"""
+		Request:  GetCategory :: GetWithID
+		Response: Category | Sequence + Category{2,n}
+		"""
+		return self.GetWithID( request, self.game.Category )
 
 	def on_GetCategoryIDs( self, request ):
-		return self.GetIDs( request, Category )
+		"""
+		Request:  GetCategoryIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+		return self.GetIDs( request, self.game.Category )
 
 	def on_RemoveCategory( self, request ):
-		pass
+		"""
+		Request:  RemoveCategory :: GetCategory :: GetWithID
+		Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
+		"""
 
 	def on_AddDesign( self, request ):
-		pass
+		"""
+		Request:  AddDesign :: Design
+		Response: Design | Fail
+		"""
 
 	def on_GetDesign( self, request ):
-		return self.GetWithID( request, Design )
+		"""
+		Request:  GetDesign :: GetWithID
+		Response: Design | Sequence + Design{2,n}
+		"""
+		return self.GetWithID( request, self.game.Design )
 
 	def on_GetDesignIDs( self, request ):
-		return self.GetIDs( request, Design )
+		"""
+		Request:  GetDesignIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+		return self.GetIDs( request, self.game.Design )
 
 	def on_ModifyDesign( self, request ):
-		pass
+		"""
+		Request:  ModifyDesign :: Design
+		Response: Design | Fail
+		"""
 
 	def on_RemoveDesign( self, request ):
-		pass
+		"""
+		Request:  RemoveDesign :: GetDesign :: GetWithID
+		Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
+		"""
 
 	def on_GetBoards( self, request ):
-		return self.GetWithID( request, Board )
+		"""
+		Request:  GetBoards :: GetWithID
+		Response: Board | Sequence + Board{2,n}
+		"""
+		return self.GetWithID( request, self.game.Board )
 
 	def on_GetBoardIDs( self, request ):
-		return self.GetID( request, Board )
+		"""
+		Request:  GetBoardIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+		return self.GetID( request, self.game.Board )
 
 	def on_GetComponent( self, request ):
-		return self.GetWithID( request, Component )
+		"""
+		Request:  GetComponent :: GetWithID
+		Response: Component | Sequence + Component{2,n}
+		"""
+		return self.GetWithID( request, self.game.Component )
 
 	def on_GetComponentIDs( self, request ):
-		return self.GetIDs( request, Component )
+		"""
+		Request:  GetComponentIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+		return self.GetIDs( request, self.game.Component )
 
 	def on_GetObjectIDs( self, request ):
-		return self.GetIDs( request, Object )	
+		"""
+		Request:  GetObjectIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+		return self.GetIDs( request, self.game.Object )	
 	
 	def on_GetObjectIDsByContainer( self, request ):
-		pass
+		"""
+		Request:  GetObjectIDsByContainer
+		Response: IDSequence
+		"""
 
 		# if not self.check( packet ):
 		#	return True
@@ -192,108 +253,190 @@ class CommandsHandler( object ):
 		# return self.objects.Sequence(packet.sequence,)
 	
 	def on_GetObjectIDsByPos( self, request ):
-		pass
+		"""
+		Request:  GetObjectIDsByPos
+		Response: IDSequence
+		"""
 	
 	def on_GetObjectsByID( self, request ):
+		"""
+		Request:  GetObjectByID :: GetWithID
+		Response: IDSequence
+		"""
 		# FIXME: This should show the correct number of orders for a certain person
-		return self.GetWithID( request, Object )
+		return self.GetWithID( request, self.game.Object )
 
 	def on_GetObjectsByPos( self, request ):
-		# if not self.check(packet):
-		#	return True
-
+		"""
+		Request:  GetObjectsByPos
+		Response: Object | Sequence + Object{2,n}
+		"""
 		objs = Object.bypos( request._pos, request._size )
 		
 		response = [ self.objects.Sequence( request._sequence, len( objs ) ) ]
-		response.extend( [ obj.to_packet( self._client.user, request._sequence ) for obj in objs ] )
+		response.extend( [ obj.to_packet( self.player, request._sequence ) for obj in objs ] )
 
 		return response
 
 	def on_GetOrder( self, request ):
-		pass
-
-	def on_GetGames( self, request ):
-		ids = Game.ids()
-
-		response = [ self.objects.Sequence(request.sequence, len(ids)) ]
-		response.extend( Game(id).to_packet(request.sequence) for id, _time in ids )
-
-		return response
+		"""
+		Request:  GetOrder :: GetWithIDSlot
+		Response: Order | Sequence + Order{2,n}
+		"""
 
 	def on_GetOrderDesc( self, request ):
-		return self.GetWithIDandSlot( request, Order, Object )
+		"""
+		Request:  GetOrderDesc :: GetWithID
+		Response: OrderDesc | Sequence + OrderDesc{2,n}
+		"""
+		return self.GetWithID( request, self.game.OrderDesc )
 
 	def on_GetOrderDescIDs( self, request ):
-		pass
+		"""
+		Request:  GetOrderDescIDs :: GetIDSequence
+		Response: IDSequence
+		"""
+
+	def on_OrderInsert( self, request ):
+		"""
+		Request:  OrderInsert :: Order
+		Response: Okay | Fail
+		"""
+
+	def on_OrderProbe( self, request ):
+		"""
+		Request:  OrderProbe :: Order
+		Response: Order | Fail
+		"""
 
 	def on_RemoveOrder( self, request ):
-		pass
+		"""
+		Request:  RemoveOrder :: GetWithIDSlot
+		Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
+		"""
 
 	def on_GetResource( self, request ):
-		return self.GetWithID( request, Resource )
+		"""
+		Request:  GetResource :: GetWithID
+		Response: Resource | Sequence + Resource{2,n}
+		"""
+		return self.GetWithID( request, self.game.Resource )
 		
 	def on_GetResourceIDs( self, request ):
+		"""
+		Request:  GetResourceIDs :: GetIDSequence
+		Response: IDSequence
+		"""
 		return self.GetIDs( request, Resource )
 
-	def on_Message( self, request ):
+	def on_PostMessage( self, request ):
+		"""
+		Request:  PostMessage :: Message
+		Response: Okay | Fail
+		"""
 		return PacketFactory().objects.Fail( request._sequence, 'NoSuchThing', 'Message adding failed.', [])
 
 	def on_GetMessage( self, request ):
-		return self.GetWithIDandSlot( request, Message, Board )
+		"""
+		Request:  GetMessage :: GetWithIDSlot
+		Response: Message | Sequence + Message{2,n}
+		"""
+		return self.GetWithIDandSlot( request, self.game.Slot, self.game.Message )
 
 	def on_RemoveMessage( self, request ):
-		pass
+		"""
+		Request:  RemoveMessage :: GetMessage :: GetWithIDSlot
+		Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
+		"""
 
 	def on_GetProperty( self, request ):
-		return self.GetWithID( request, Property )
+		"""
+		Request:  GetProperty :: GetWithID
+		Response: Property | Sequence + Property{2,n}
+		"""
+		return self.GetWithID( request, self.game.Property )
 
 	def on_GetPropertyIDs( self, request ):
+		"""
+		Request:  GetPropertyIDs :: GetIDSequence
+		Response: IDSequence
+		"""
 		return self.GetID( request, Property )
 	
 	def on_CreateAccount( self, request ):
-		pass
+		"""
+		Request:  CreateAccount
+		Response: Okay | Fail
+		"""
 
 	def on_GetPlayer( self, request ):
-		return self.GetWithID( request, Player )
+		"""
+		Request:  GetPlayer :: GetWithID
+		Response: Player | Sequence + Player{2,n}
+		"""
+		return self.GetWithID( request, self.game.Player )
 
 	def on_FinishedTurn( self, request ):
-		pass
+		"""
+		Request:  FinishedTurn
+		Response: ?
+		"""
 
 	def on_GetTimeRemaining( self, request ):
+		"""
+		Request:  GetTimeRemaining
+		Response: TimeRemaining
+		"""
 		return self.objects.TimeRemaining( request._sequence, 0, 'Requested', 0, 'Bogus turn!' )
 
 	def on_Login( self, request ):
+		"""
+		Request:  Login
+		Response: Okay | Fail
+		"""
 		try:
-			username, game_name = Player.Utils.split( request.username )
-		except TypeError, ex:
+			username, game_name = request.username.split('@', 1)
+		except ValueError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
-			game = Game.load( game_name )
+			game = GameManager()[ game_name ]
 		except KeyError, ex:
 			msg( "${yel1}%s${coff}" % ex, level="info" )
 
 			return self.objects.Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
-		user = Player.Utils.getPlayer( game, username, request.password )
+		player = game.Player.ByName( username, request.password )
 
-		if user is not None:
-			self._client.game   = game
-			self._client.player = player 
+		if player is not None:
+			self.__client.game   = game
+			self.__client.player = player 
 			return self.objects.Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game ) )
 		else:
 			return self.objects.Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
 
 	def on_Connect( self, request ):
+		"""
+		Request:  Connect
+		Response: Okay | Fail | Redirect
+		"""
 		version = ".".join(map(lambda i: str(i), __version__))
 		return self.objects.Okay( 0, "Welcome to tpserver-py %s!" % version )
 
 	def on_Ping( self, request ):
+		"""
+		Request:  Ping
+		Response: Okay
+		"""
 		return self.objects.Okay( request._sequence, "PONG!")
 
 	def on_GetFeatures( self, request ):
+		"""
+		Request:  GetFeatures
+		Response: Features
+		"""
 		return self.objects.Features( request._sequence,
 			[
 				"AccountCreate",

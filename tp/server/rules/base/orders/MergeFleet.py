@@ -6,12 +6,15 @@ class MergeFleet(Order):#{{{
 	"""
 	Merge two fleets together.
 	"""
-	typeno = 4
+	
+	@property
+	def typeno( self ):
+		return 4
 
-	attributes = {
-			'fleet': Attribute("fleet", -1, 'protected', type=2, #netlib.objects.constants.ARG_OBJECT, 
-				desc="Fleet to merge with.")
-			}
+	#attributes = {
+	#		'fleet': Attribute("fleet", -1, 'protected', type=2, #netlib.objects.constants.ARG_OBJECT, 
+	#			desc="Fleet to merge with.")
+	#		}
 	
 	def do(self):
 		# We need the original fleet

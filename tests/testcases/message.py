@@ -42,4 +42,10 @@ class GetMultipleMessages( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different MessageIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
+class PutMessage( AuthorizedTestSession ):
+	""" Tries to send message to default board. """
+
+	def __iter__( self ):
+		packet = yield self.protocol.Message( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
+
 __tests__ = [ GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2 ]

@@ -1,28 +1,97 @@
 #!/usr/bin/env python
 
 import copy
+
 from sqlalchemy import *
+from sqlalchemy.orm import mapper, relation, backref
+
+# from tp.server.db import DatabaseManager
+from tp.server.db.enum import Enum
 
 from SQL import SQLBase
 
-class Attribute( object ):#{{{
-	def __init__(self, name, default, level, type=-1, desc=""):
-		if level not in ('public', 'protected', 'private'):
-			raise ValueError("Invalid access level for attribute.")
+class VectorParameter( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id', Integer, index = True, primary_key = True ),
+				Column('x',  Integer, nullable = False ),
+				Column('y',  Integer, nullable = False ),
+				Column('z',  Integer, nullable = False ),
+				Column('parent_id', ForeignKey( Object.id ), nullable = True ))
 
-		self.name = name
-		self._default = default
-		self.level = level
-		self.type = type
-		self.desc = desc
+		mapper( cls, cls.__table__ )
 
-	@property
-	def default(self):
-		return copy.deepcopy(self._default)
-#}}}
+class ObjectSlotParameter( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',        Integer, index = True, primary_key = True ),
+				Column('number',    Integer, nullable = False ),
+				Column('object_id', ForeignKey( Object.id ), nullable = True ))
+
+		mapper( cls, cls.__table__ )
+
+class OrderQueueParameter( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',        Integer, index = True, primary_key = True ),
+				Column('count',     Integer, nullable = False ),
+				Column('maxcount',  Integer, nullable = False ))
+
+		mapper( cls, cls.__table__ )
+
+class ResourceParameter( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Resource ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',          Integer, index = True, primary_key = True ),
+				Column('resource_id', ForeignKey( Resource.id ), nullable = False ),
+				Column('stored',      Integer, nullable = False ),
+				Column('minable',     Integer, nullable = False ),
+				Column('unavailable', Integer, nullable = False ))
+
+		mapper( cls, cls.__table__ )
+
+class Attribute( SQLBase ):
+	AccessType  = [ 'public', 'protected', 'private' ]
+	OrderParam  = [ 'AbsSpaceCoords', 'Time', 'Object', 'Player',
+			'RelSpaceCoords', 'Range', 'List', 'String', 'Reference',
+			'ReferenceList', 'ResourceList', 'GenericReferenceQuantityList' ]
+	
+	ObjectParam = [	'Position3D', 'Velocity3D', 'Acceleration3D',
+			'BoundPosition', 'OrderQueue', 'ResourceList', 'Reference',
+			'ReferenceQuantityList', 'Integer', 'Size', 'Media' ]
+
+	Parameter	= [ 'Vector' ]
+
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',      Integer, index = True, primary_key = True ),
+				Column('name',    String(255), nullable = False, index = True),
+				Column('type',    Text),
+				Column('access',  Enum( cls.AccessType ), nullable = False ),
+				Column('default', Binary, nullable = True ),
+				Column('mtime',   DateTime,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+
+		mapper( cls, cls.__table__ )
+
+class AttributeValue( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		cls.__tablename__ = "_".join([ cls.__tablename__, Object.__origname__ ])
+
+		cls.__table__ = Table( cls.__tablename__, metadata,
+			Column('%s_id' % Object.__origname__, ForeignKey( Object.id ), index = True )
+			)
+
+		mapper( cls, cls.__table__ )
 
 class SQLTypedBase(SQLBase):#{{{
-	"""\
+	"""
 	A class which stores it's data in a SQL database.
 	It also has a subclass associated with it which stores extra data.
 	"""
@@ -217,4 +286,4 @@ Extra attributes this type defines.
 		return self, args
 #}}}
 
-__all__ = [ 'Attribute' ]
+__all__ = [ 'Attribute', 'AttributeValue' ]

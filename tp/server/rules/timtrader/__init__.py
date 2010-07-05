@@ -33,29 +33,24 @@ class Ruleset(RulesetBase):
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 
-	def initialise(self, seed=None):
-		"""\
-		TIM Trader
-		"""
-		trans = dbconn.begin()
-		try:
-			RulesetBase.initialise(self)
+	def initialise(self, seed = None):
+		super( Ruleset, self ).initialise()
 
+		with DatabaseManager().session() as session:
 			# Need to create the top level universe object...
-			universe = Object(type='tp.server.rules.base.objects.Universe')
-			universe.id     = 0
-			universe.name   = "The Universe"
-			universe.size   = SIZE
-			universe.parent = 0
-			universe.posx   = 0
-			universe.posy   = 0
-			universe.turn   = 0
-			universe.insert()
+			universe = Object(
+					type = 'Universe',
+					name = "The Universe",
+					size = SIZE)
+
+			session.add( universe )
 
 			# Create all the resources, they consist of,
 			#   - One resource for each resource specified in resources.csv
 			#   - One resource for each factory specified  in prodcon.csv
+
 			reader = csv.DictReader(open(os.path.join(self.files, "resources.csv"), "r"))
+
 			for row in reader:
 				if row['namesingular'] is '':
 					continue
@@ -75,6 +70,7 @@ class Ruleset(RulesetBase):
 				r.insert()
 
 			import ProducersConsumers
+
 			for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
 				# FIXME: Make these auto generated resources much nicer...
 				# Ignore the special case factories which are also goods.
@@ -98,9 +94,6 @@ class Ruleset(RulesetBase):
 				r.save()
 
 			trans.commit()
-		except:
-			trans.rollback()
-			raise
 
 		# FIXME: Need to populate the database with the MiniSec design stuff,
 

@@ -4,20 +4,22 @@ import copy
 
 from tp.server.bases import Object, Order, Attribute
 
-from tp.server.rules.minisec.objects.Fleet import Fleet
+#from tp.server.rules.minisec.objects.Fleet import Fleet
 
 class SplitFleet(Order):
 	"""
 	Split some ships into a new fleet.
 	"""
-	typeno = 3
+	@property
+	def typeno( self ):
+		return 3
 
-	attributes = {\
-		'call': Attribute("call", "New Fleet", 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
-				desc="What to call the new fleet."),
-		'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
-				desc="Ships to move into new fleet.")
-	}
+	#attributes = {\
+	#	'call': Attribute("call", "New Fleet", 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
+	#			desc="What to call the new fleet."),
+	#	'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
+	#			desc="Ships to move into new fleet.")
+	#}
 	
 	def do(self):
 		# We need the original fleet

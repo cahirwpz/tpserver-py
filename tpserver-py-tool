@@ -216,12 +216,12 @@ class MainMenu( CommandLineInterface ):
 				self.do_help( "game" )
 
 	@staticmethod
-	def game_add( shortname, longname, ruleset, admin, comment ):
+	def game_add( name, longname, ruleset, admin, comment ):
 		try:
-			GameManager().addGame( shortname, longname, ruleset, admin, comment )
-			GameManager().game[ shortname ].initialise()
+			GameManager().addGame( name, longname, ruleset, admin, comment )
+			GameManager()[ name ].initialise()
 
-			print "Game successfully created! You can use the '%s' name as game identifier." % shortname
+			print "Game successfully created! You can use the '%s' name as game identifier." % name
 			print ""
 			print "You probably want to populate the universe now."
 		except AlreadyExists, ex:
@@ -239,7 +239,7 @@ class MainMenu( CommandLineInterface ):
 	@staticmethod
 	def game_use( name ):
 		try:
-			game = GameManager().game[ name ]
+			game = GameManager()[ name ]
 		except KeyError, ex:
 			print "Error:", ex
 		else:

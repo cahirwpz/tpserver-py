@@ -11,7 +11,7 @@ def datetime2int( _time ):
 class PacketFactory( object ):#{{{
 	__metaclass__ = SingletonClass
 
-	ProtocolDefinitionFile = "libtpproto2-py/tp/netlib/protocol.xml"
+	ProtocolDefinitionFile = "libtpproto2-py/tp/netlib/protocol3.xml"
 
 	def __init__( self ):
 		self.__objectsById = {}
@@ -51,7 +51,7 @@ class PacketFactory( object ):#{{{
 		return packet
 
 	def fromObject( self, packet, seq, obj ):
-		return getattr( self, "make%sPacket" % packet )( seq, obj )
+		return getattr( self, "make%sPacket" % packet.split("_")[-1] )( seq, obj )
 
 	@property
 	def server_version( self ):
@@ -79,34 +79,31 @@ class PacketFactory( object ):#{{{
 				obj.ruleset.version, self.locations, obj.parameters)
 
 	def makeCategoryPacket( self, seq, obj ):
-		return self.objects.Category( seq, obj.id, obj.time, obj.name, obj.desc )
+		return self.objects.Category( seq, obj.id, obj.mtime, obj.name, obj.description )
 	
 	def makeComponentPacket( self, seq, obj ):
-		return self.objects.Component( seq, obj.id, obj.time, obj.categories,
-				obj.name, obj.desc, obj.requirements, obj.properties )
+		return self.objects.Component( seq, obj.id, obj.mtime, obj.categories,
+				obj.name, obj.description, obj.requirements, obj.properties )
 
 	def makeDesignPacket( self, seq, obj ):
 		return self.objects.Design( seq, obj.id, obj.time, obj.categories,
-				obj.name, obj.desc, obj.used, obj.owner, obj.components,
+				obj.name, obj.description, obj.used, obj.owner, obj.components,
 				obj.feedback, obj.properties)
 
 	def makeBoardPacket( self, seq, obj ):
-		return self.objects.Board( seq, obj.id, obj.name, str(obj.desc).strip(), obj.id, datetime2int( obj.time ) )
+		return self.objects.Board( seq, obj.id, obj.name, str(obj.description).strip(), obj.id, datetime2int( obj.mtime ) )
 		#return self.objects.Board( seq, Board.mangleid( obj.id ), obj.name,
 		#		obj.desc, Message.number( obj.id ), self.time)
 
 	def makeMessagePacket( self, seq, obj):
 		# FIXME: The reference system needs to be added and so does the turn
-		return self.objects.Message( seq, obj.bid, obj.slot, [], obj.subject,
+		return self.objects.Message( seq, obj.slot.board_id, obj.slot.number, [], obj.subject,
 				str(obj.body), 0, [])
 
 	def makeObjectPacket( self, seq, obj ):
-		from tp.server.bases.SQLTypedBase import quickimport
-
-		return self.objects.Object( seq, obj.id, quickimport(obj.type).typeno, str(obj.name),
-				"Description", 1, obj.contains, 2, 3, [ [[obj.posx, obj.posy,
-					obj.posz], -1], [[obj.velx, obj.vely, obj.velz], -1] ] )
-				# 1 => parent, 2 => modtime, 3 => padding
+		return self.objects.Object( seq, obj.id, 0, str(obj.name), obj.size,
+				[obj.position.x, obj.position.y, obj.position.z], [obj.velocity.x, obj.velocity.y, obj.velocity.z],
+				[ child.id for child in obj.children ], [], 0, datetime2int( obj.mtime ), "0" * 8, [] )
 
 	def makePropertyPacket( self, seq, obj ):
 		return self.objects.Property( seq, obj.id, obj.time, obj.categories,
@@ -123,6 +120,9 @@ class PacketFactory( object ):#{{{
 
 	def makeObjectIDsPacket( self, seq, obj ):
 		return self.objects.ObjectIDs( seq, obj.key, obj.left, obj.ids, -1 )
+
+	def makeCategoryIDsPacket( self, seq, obj ):
+		return self.objects.CategoryIDs( seq, obj.key, obj.left, obj.ids, -1 )
 #}}}
 
 """

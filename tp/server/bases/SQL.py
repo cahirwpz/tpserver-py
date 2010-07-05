@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
+import csv, datetime
+
 from sqlalchemy import *
 from tp.server.db import *
-
-from datetime import datetime
 
 class NoSuchThing( Exception ):#{{{
 	pass
@@ -17,78 +17,99 @@ class PermissionDenied( Exception ):#{{{
 	pass
 #}}}
 
-class SQLUtils( object ):#{{{
-	def __get__( self, owner, cls):
-		self.cls = cls
-		return self
+class SelectableByName( object ):
+	@classmethod
+	def ByName( cls, name ):
+		return DatabaseManager().query( cls ).filter_by( name = name ).first()
 
-	def modified(self, user):
+class SQLBase( object ):#{{{
+	def __init__( self, **kwargs ):
+		for key, val in kwargs.items():
+			if key not in self._sa_instance_state.manager.local_attrs:
+				raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
+
+			object.__setattr__( self, key, val )
+	
+	def __setattr__( self, key, val ):
+		if key is not '_sa_instance_state':
+			attrs = list( self.__dict__ )
+
+			if hasattr( self, '_sa_instance_state' ):
+				attrs += list( self._sa_instance_state.manager.local_attrs )
+
+			if key not in attrs:
+				print( "%s has no %s attribute" % ( self.__class__.__name__, key ) )
+
+		object.__setattr__( self, key, val )
+
+	@classmethod
+	def ByModTime( cls, user = None ):
 		"""
-		modified(user) -> unixtime
+		ByModTime() -> cls()
 		
 		Gets the last modified time for the type.
 		"""
-		t = self.cls.table
-		# FIXME: This gives the last modified for anyone time, not for the specific user.
-		result = select([t], order_by=[desc(t.c.time)], limit=1).execute().fetchall()
-		if len(result) == 0:
-			return datetime.fromtimestamp(0)
-		return result[0]['time']
+		return DatabaseManager().query( cls ).order_by( cls.__table__.c.mtime ).first()
 
-	def ids(self, user=None, start=0, amount=-1):
+	@classmethod
+	def ByIdRange( cls, user = None, start = 0, amount = -1 ):
 		"""
-		ids([user, start, amount]) -> [id, ...]
+		ByIdRange( start, amount ) -> [ cls(), ...]
 		
 		Get the last ids for this (that the user can see).
 		"""
-		t = self.cls.table
-
-		if amount == -1:
-			result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], offset=start).execute().fetchall()
+		if amount >= 0:
+			end = start + 1
 		else:
-			result = select([t.c.id, t.c.time], order_by=[desc(t.c.time)], offset=start, limit=amount).execute().fetchall()
-		return [(x['id'], x['time']) for x in result]
+			end = -1
 
-	def amount(self, user=None):
+		return DatabaseManager().query( cls ).order_by( cls.__table__.c.mtime )[start:amount]
+
+	@classmethod
+	def Count( cls, user = None ):
 		"""
-		amount(user) -> int
+		Count( user ) -> int
 
 		Get the number of records in this table (that the user can see).
 		"""
-		t = self.cls.table
+		return DatabaseManager().query( cls ).count()
 
-		result = select([func.count(t.c.time).label('count')]).execute().fetchall()
-
-		if len(result) == 0:
-			return 0
-		else:
-			return result[0]['count']
-
-	def realid(self, user, id):
+	@classmethod
+	def ByRealId( cls, user, id ):
 		"""
-		realid(user, id) -> id
+		ByRealId( user, id ) -> cls()
 		
 		Get the real id for an object (from id the user sees).
 		"""
-		return id
+		return cls.ById( id )
 
-	def findById( self, _id ):
-		session = DatabaseManager().session()
-
-		result = session.query( self.cls ).filter_by( id=_id ).first()
+	@classmethod
+	def ById( cls, id ):
+		result = DatabaseManager().query( cls ).filter_by( id = id ).first()
 
 		if result is None:
 			raise NoSuchThing
-		else:
-			return result
+
+		return result
+	
+	@classmethod
+	def FromCSV( cls, filename ):
+		with DatabaseManager().session() as session:
+			reader = csv.DictReader( open( filename, "r" ) )
+
+			for row in reader:
+				obj = cls()
+
+				for name, value in row.iteritems():
+					if name is '':
+						continue
+
+					if name == 'mtime':
+						value = datetime.datetime.strptime( value, "%Y-%m-%d %H:%M:%S" )
+
+					setattr( obj, name, value )
+
+				session.add( obj )
 #}}}
 
-class SQLBase( object ):#{{{
-	Utils = SQLUtils()
-
-	def __init__( self, **kwargs ):
-		for key, val in kwargs.items():
-			setattr( self, key, val )
-#}}}
-
-__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLUtils', 'SQLBase' ]
+__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLBase', 'SelectableByName' ]

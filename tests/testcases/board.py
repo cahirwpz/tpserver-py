@@ -42,4 +42,4 @@ class GetMultipleBoards( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different BoardIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
-__tests__ = [ GetExistingBoard, GetNonExistentBoard ] #GetCurrentBoard, GetMultipleBoards ]
+__tests__ = [ GetExistingBoard, GetNonExistentBoard, GetCurrentBoard, GetMultipleBoards ]

@@ -1,89 +1,56 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
+from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import SQLBase, SQLUtils
+from SQL import SQLBase, SelectableByName
 
-class PropertyUtils( SQLUtils ):#{{{
-	def byname(self, name):
-		c = self.cls.table.c
-		return select([c.id], c.name == name, limit=1).execute().fetchall()[0]['id']
-#}}}
-
-class Property( SQLBase ):#{{{
-	Utils = PropertyUtils()
-
+class Property( SQLBase, SelectableByName ):#{{{
 	@classmethod
-	def getTable( cls, name, metadata ):
-		return Table( name, metadata,
-				Column('id',	       Integer,      index = True, primary_key = True),
-				Column('name',	       String(255),  nullable = False),
-				Column('display_name', Binary,       nullable = False),
-				Column('description',  Binary,       nullable = False),
-				Column('rank',         Integer,      nullable = False, default=127), # FIXME: Should be a SmallInteger...
-				Column('calculate',    Binary,       nullable = False),
-				Column('requirements', Binary,       nullable = False, default="""(lambda (design) (cons #t ""))"""),
-				Column('comment',      Binary,       nullable = False, default=''),
-				Column('mtime',	       DateTime,     nullable = False,
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()))
+	def InitMapper( cls, metadata ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',	       Integer, index = True, primary_key = True),
+				Column('name',	       String(255), index = True, nullable = False),
+				Column('display_name', Text, nullable = False),
+				Column('description',  Text, nullable = False),
+				Column('rank',         Integer, nullable = False, default=127), # FIXME: Should be a SmallInteger...
+				Column('calculate',    Text, nullable = False),
+				Column('requirements', Text, nullable = False, default="""(lambda (design) (cons #t ""))"""),
+				Column('comment',      Text, nullable = False, default=''),
+				Column('mtime',	       DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()),
+				UniqueConstraint( 'name' ))
 
-	def get_categories(self):
-		"""
-		categories() -> [id, ...]
-
-		Returns the categories the property is in.
-		"""
-		t = self.table_category
-		results = select([t.c.category], t.c.property==self.id).execute().fetchall()
-		return [x['category'] for x in results]
+		mapper( cls, cls.__table__ )
 
 	def __str__(self):
 		return "<Component id=%s name=%s>" % (self.id, self.name)
-
-	def load(self, id):
-		"""\
-		load(id)
-
-		Loads a thing from the database.
-		"""
-		SQLBase.load(self, id)
-
-		# Load the categories now
-		self.categories = self.get_categories()
-
-	def save(self, forceinsert=False):
-		"""\
-		save()
-
-		Saves a thing to the database.
-		"""
-		SQLBase.save(self, forceinsert)
-
-		# Save the categories now
-		t = self.table_category
-		current = self.get_categories()
-		for cid in current+self.categories:
-			if (cid in current) and (not cid in self.categories):
-				# Remove the category
-				results = delete(t, (t.c.property==self.id) & (t.c.category==cid)).execute()
-			
-			if (not cid in current) and (cid in self.categories):
-				# Add the category
-				results = insert(t).execute(property=self.id, category=cid)
 #}}}
 
 class PropertyCategory( SQLBase ):#{{{
 	@classmethod
-	def getTable( cls, name, metadata, property_table, category_table ):
-		return Table( name, metadata,
-				Column('id',        Integer,  index = True, primary_key = True),
-				Column('property',  ForeignKey( '%s.id' % property_table ), nullable = False),
-				Column('category',  ForeignKey( '%s.id' % category_table), nullable = False),
-				Column('comment',   Binary,   nullable = False, default = ''),
-				Column('mtime',	    DateTime, nullable = False, 
-					onupdate = func.current_timestamp(),
-					default = func.current_timestamp()))
+	def InitMapper( cls, metadata, Property, Category ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('property_id', ForeignKey( Property.id ), primary_key = True),
+				Column('category_id', ForeignKey( Category.id ), primary_key = True),
+				Column('comment',     Text, nullable = False, default = ''),
+				Column('mtime',	      DateTime, nullable = False, 
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+
+		cols = cls.__table__.c
+
+		Index('idx_%s_property_category' % cls.__tablename__, cols.property_id, cols.category_id)
+
+		mapper( cls, cls.__table__, properties = {
+			'property': relation( Property,
+				uselist = False,
+				backref = backref( 'categories' ),
+				cascade = 'all'),
+			'category': relation( Category,
+				uselist = False,
+				backref = backref( 'properties' ),
+				cascade = 'all')
+			})
 #}}}
 
 __all__ = [ 'Property', 'PropertyCategory' ]

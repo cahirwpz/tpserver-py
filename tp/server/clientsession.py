@@ -4,6 +4,7 @@ from tp.server.bases import Player
 
 from cmdhandler import CommandsHandler
 from packet import PacketFactory
+from gamemanager import GameManager
 
 class ClientData( object ):#{{{
 	def __init__( self ):
@@ -35,6 +36,7 @@ class ClientSessionHandler( object ):#{{{
 		self._objects = PacketFactory().objects
 		self._client = ClientData()
 		self._commands = dict( CommandsHandler( self._objects, self._client ).commands() )
+		self._games = GameManager()
 		
 		self.lastSeq = None
 

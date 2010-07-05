@@ -1,16 +1,15 @@
 
 from tp.server.db import *
 
-from tp.server.bases import Attribute
-from tp.server.bases import Resource as ResourceBase
+from tp.server.bases import ResourceType as ResourceTypeBase
 
 from tp.server.rules.timtrader.ProducersConsumers import split
 
-class Resource(ResourceBase):
-	attributes = {
-			'_products':     Attribute('_products',        {}, 'private'),
-			'transportable': Attribute('transportable', False, 'private'),
-			}
+class ResourceType( ResourceTypeBase ):
+	#attributes = {
+	#		'_products':     Attribute('_products',        {}, 'private'),
+	#		'transportable': Attribute('transportable', False, 'private'),
+	#		}
 
 	def products_set(self, value):
 		self._products = {}

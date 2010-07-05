@@ -21,7 +21,7 @@ class Ruleset(object):#{{{
 		Initialise a ruleset.
 		"""
 		self.game = game
-		self.setup()
+		#self.setup()
 
 	@property
 	def information( self ):
@@ -97,7 +97,7 @@ class Ruleset(object):#{{{
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
-		# Event.new('gameadded', self.game)
+		pass
 
 	def update(self):
 		"""
@@ -139,14 +139,19 @@ class Ruleset(object):#{{{
 			board.description = "This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe."
 
 			session.add( board )
-
+			
 			message = self.game.Message()
-			message.board   = user.id
-			message.slot    = -1
 			message.subject = "Welcome to the Universe!"
 			message.body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun! This game is currently playing version %s of %s." % (username, self.version, self.name)
 
 			session.add( message )
+
+			slot = self.game.Slot()
+			slot.message = message
+			slot.board   = board
+			slot.number  = 0
+
+			session.add( slot )
 
 		return user
 

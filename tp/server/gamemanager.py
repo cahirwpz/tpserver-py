@@ -1,12 +1,15 @@
+#!/usr/bin/env
+
 import sqlalchemy.exc
+from collections import Mapping
 
 from tp.server.db import DatabaseManager, make_mapping, make_dependant_mapping
 from tp.server.bases import *
 from tp.server.logging import msg, logctx
-from tp.server.singleton import SingletonClass
+from tp.server.singleton import SingletonContainerClass
 
-class GameManager( object ):
-	__metaclass__ = SingletonClass
+class GameManager( Mapping ):
+	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
 		# Remove any order mapping from the network libray...
@@ -24,19 +27,29 @@ class GameManager( object ):
 
 		for cls in [ make_mapping( Game, metadata ),
 					 make_mapping( ConnectionEvent, metadata ),
-					 make_mapping( GameEvent, metadata, Game.__tablename__ ) ]:
+					 make_mapping( GameEvent, metadata, Game ) ]:
 			cls.__table__.create( checkfirst = True )
 
-		self.game = {}
+		self.__game = {}
 
 		with DatabaseManager().session() as session:
 			for g in session.query( Game ).all():
+				g.__init__()
 				g.load()
 
-				self.game[ g.name ] = g
+				self.__game[ g.name ] = g
+	
+	def __getitem__( self, name ):
+		return self.__game[ name ]
+
+	def __iter__( self ):
+		return self.__game.__iter__()
+
+	def __len__( self ):
+		return self.__game.__len__()
 
 	def addGame( self, name, longname, rulesetname, admin, comment ):
-		if self.game.has_key( name ):
+		if self.__game.has_key( name ):
 			raise AlreadyExists( "Game '%s' already exists!" % name )
 
 		g = Game( ruleset_name = rulesetname, name = name, longname = longname, admin = admin, comment = comment )
@@ -47,19 +60,21 @@ class GameManager( object ):
 		g.load()
 		g.createTables()
 
-		self.game[ name ] = g
+		self.__game[ name ] = g
 	
 	def removeGame( self, name ):
-		if not self.game.has_key( name ):
+		if not self.__game.has_key( name ):
 			raise NoSuchThing( "Game '%s' does not exists!" % name )
+
+		g = self[ name ]
 		
-		self.game[ name ].createTables()
-		self.game[ name ].dropTables()
+		g.createTables()
+		g.dropTables()
 
 		with DatabaseManager().session() as session:
-			session.delete( self.game[ name ] )
+			session.delete( g )
 
-		del self.game[ name ]
+		del self.__game[ name ]
 		
 	def startZeroconf( self ):
 		pass

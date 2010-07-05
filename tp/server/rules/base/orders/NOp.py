@@ -6,9 +6,11 @@ class NOp( Order ):#{{{
 	"""
 	Wait around and do nothing...
 	"""
-	typeno = 0
+	@property
+	def typeno( self ):
+		return 0
 
-	attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
+	#attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
 	
 	def do(self):
 		self.wait -= 1
