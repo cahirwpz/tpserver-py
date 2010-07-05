@@ -264,29 +264,27 @@ class Game( SQLBase, SelectableByName ):#{{{
 			Design, MessageReference, ComponentCategory, ComponentProperty, 	\
 			DesignCategory, DesignComponent, PropertyCategory
 
-		metadata = DatabaseManager().metadata
-
 		objs = self.objects
 
-		objs.add('Player',				make_dependant_mapping( Player,				metadata, self ))
-		objs.add('Object',				make_dependant_mapping( Object,				metadata, self ))
-		objs.add('Reference',			make_dependant_mapping( Reference,			metadata, self ))
-		objs.add('Lock',				make_dependant_mapping( Lock,				metadata, self ))
-		objs.add('Component',			make_dependant_mapping( Component,			metadata, self ))
-		objs.add('Property',			make_dependant_mapping( Property,			metadata, self ))
-		objs.add('ResourceType',		make_dependant_mapping( ResourceType,		metadata, self ))
-		objs.add('Category',			make_dependant_mapping( Category,			metadata, self ))
-		objs.add('Message',				make_dependant_mapping( Message,			metadata, self ))
-		objs.add('Board',				make_dependant_mapping( Board,				metadata, self, objs.Player ))
-		objs.add('Slot',				make_dependant_mapping( Slot,				metadata, self, objs.Board, objs.Message ))
-		objs.add('Order',				make_dependant_mapping( Order,				metadata, self, objs.Object ))
-		objs.add('Design',				make_dependant_mapping( Design,				metadata, self, objs.Player ))
-		objs.add('MessageReference',	make_dependant_mapping( MessageReference,	metadata, self, objs.Message, objs.Reference ))
-		objs.add('ComponentCategory',	make_dependant_mapping( ComponentCategory,	metadata, self, objs.Component, objs.Category ))
-		objs.add('ComponentProperty',	make_dependant_mapping( ComponentProperty,	metadata, self, objs.Component, objs.Property ))
-		objs.add('DesignCategory',		make_dependant_mapping( DesignCategory,		metadata, self, objs.Design, objs.Category ))
-		objs.add('DesignComponent',		make_dependant_mapping( DesignComponent,	metadata, self, objs.Design, objs.Component ))
-		objs.add('PropertyCategory',	make_dependant_mapping( PropertyCategory,	metadata, self, objs.Property, objs.Category ))
+		objs.add('Player',				make_dependant_mapping( Player,				self ))
+		objs.add('Object',				make_dependant_mapping( Object,				self ))
+		objs.add('Reference',			make_dependant_mapping( Reference,			self ))
+		objs.add('Lock',				make_dependant_mapping( Lock,				self ))
+		objs.add('Component',			make_dependant_mapping( Component,			self ))
+		objs.add('Property',			make_dependant_mapping( Property,			self ))
+		objs.add('ResourceType',		make_dependant_mapping( ResourceType,		self ))
+		objs.add('Category',			make_dependant_mapping( Category,			self ))
+		objs.add('Message',				make_dependant_mapping( Message,			self ))
+		objs.add('Board',				make_dependant_mapping( Board,				self, objs.Player ))
+		objs.add('Slot',				make_dependant_mapping( Slot,				self, objs.Board, objs.Message ))
+		objs.add('Order',				make_dependant_mapping( Order,				self, objs.Object ))
+		objs.add('Design',				make_dependant_mapping( Design,				self, objs.Player ))
+		objs.add('MessageReference',	make_dependant_mapping( MessageReference,	self, objs.Message, objs.Reference ))
+		objs.add('ComponentCategory',	make_dependant_mapping( ComponentCategory,	self, objs.Component, objs.Category ))
+		objs.add('ComponentProperty',	make_dependant_mapping( ComponentProperty,	self, objs.Component, objs.Property ))
+		objs.add('DesignCategory',		make_dependant_mapping( DesignCategory,		self, objs.Design, objs.Category ))
+		objs.add('DesignComponent',		make_dependant_mapping( DesignComponent,	self, objs.Design, objs.Component ))
+		objs.add('PropertyCategory',	make_dependant_mapping( PropertyCategory,	self, objs.Property, objs.Category ))
 
 		self.ruleset.load()
 

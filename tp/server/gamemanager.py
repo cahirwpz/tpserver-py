@@ -3,7 +3,7 @@
 import sqlalchemy.exc
 from collections import Mapping
 
-from tp.server.db import DatabaseManager, make_mapping, make_dependant_mapping
+from tp.server.db import DatabaseManager, make_mapping
 from tp.server.bases import *
 from tp.server.logging import msg, logctx
 from tp.server.singleton import SingletonContainerClass
@@ -23,11 +23,9 @@ class GameManager( Mapping ):
 		#for _id, _time in Game.ids():
 		#	self.onGameAdded( Game( _id ) )
 
-		metadata = DatabaseManager().metadata
-
-		for cls in [ make_mapping( Game, metadata ),
-					 make_mapping( ConnectionEvent, metadata ),
-					 make_mapping( GameEvent, metadata, Game ) ]:
+		for cls in [ make_mapping( Game ),
+					 make_mapping( ConnectionEvent ),
+					 make_mapping( GameEvent, Game ) ]:
 			cls.__table__.create( checkfirst = True )
 
 		self.__game = {}

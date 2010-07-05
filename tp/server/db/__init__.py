@@ -14,7 +14,9 @@ sqlalchemy.func.current_timestamp = datetime.datetime.now
 def untitle( s ):
 	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
 
-def make_mapping( cls, metadata, *args, **kwargs ):#{{{
+def make_mapping( cls, *args, **kwargs ):#{{{
+	metadata = DatabaseManager().metadata
+
 	cls.__tablename__ = untitle( cls.__name__ )
 	
 	cls.InitMapper( metadata, *args, **kwargs )
@@ -22,7 +24,9 @@ def make_mapping( cls, metadata, *args, **kwargs ):#{{{
 	return cls
 #}}}
 
-def make_dependant_mapping( cls, metadata, Game, *args, **kwargs ):#{{{
+def make_dependant_mapping( cls, Game, *args, **kwargs ):#{{{
+	metadata = DatabaseManager().metadata
+
 	class newcls( cls ):
 		__origname__  = cls.__name__
 		__module__    = cls.__module__
@@ -36,7 +40,9 @@ def make_dependant_mapping( cls, metadata, Game, *args, **kwargs ):#{{{
 	return newcls
 #}}}
 
-def make_parametrized_mapping( cls, metadata, Object, *args, **kwargs ):
+def make_parametrized_mapping( cls, Object, *args, **kwargs ):
+	metadata = DatabaseManager().metadata
+
 	cls.__origname__  = cls.__name__
 	cls.__tablename__ = str( "%s_%s" % ( Object.__tablename__, untitle( cls.__origname__ ) ) )
 	cls.__name__      = str( "%s_%s" % ( cls.__game__.name, cls.__name__ ) )

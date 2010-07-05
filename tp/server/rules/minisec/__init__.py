@@ -56,8 +56,6 @@ class Ruleset( RulesetBase ):#{{{
 
 
 	def load( self ):
-		metadata = DatabaseManager().metadata
-
 		from tp.server.bases.objects import UniverseClass, GalaxyClass, StarSystemClass, PlanetClass, WormholeClass
 		from tp.server.rules.minisec.objects import Resource, FleetClass, Ship, FleetComposition
 
@@ -65,16 +63,16 @@ class Ruleset( RulesetBase ):#{{{
 
 		Object, Player = objs.use( 'Object', 'Player' )
 
-		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		metadata, Object ))
-		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		metadata, Object ))
-		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	metadata, Object ))
-		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		metadata, Object, Player ))
-		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		metadata, Object, Player ))
-		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		metadata, Object ))
+		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		Object ))
+		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		Object ))
+		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	Object ))
+		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		Object, Player ))
+		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		Object, Player ))
+		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		Object ))
 
-		objs.add('Ship', 				make_dependant_mapping( Ship,				metadata, self.game ))
-		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	metadata, self.game, objs.Fleet, objs.Ship ))
-		objs.add('Resource',			make_dependant_mapping( Resource, 			metadata, self.game, objs.Planet, objs.ResourceType ))
+		objs.add('Ship', 				make_dependant_mapping( Ship,				self.game ))
+		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	self.game, objs.Fleet, objs.Ship ))
+		objs.add('Resource',			make_dependant_mapping( Resource, 			self.game, objs.Planet, objs.ResourceType ))
 
 	def createUniverse( self, name ):
 		Universe = self.game.objects.use( 'Universe' )

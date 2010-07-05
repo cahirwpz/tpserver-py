@@ -20,8 +20,6 @@ class Ruleset( MinisecRuleset ):
 	files = os.path.join(os.path.dirname( __file__ ), "other")
 
 	def load( self ):
-		metadata = DatabaseManager().metadata
-
 		from tp.server.bases.objects import UniverseClass, GalaxyClass, StarSystemClass, PlanetClass, WormholeClass
 		from tp.server.rules.minisec.objects import Resource, FleetClass, FleetComposition
 
@@ -29,15 +27,15 @@ class Ruleset( MinisecRuleset ):
 
 		Object, Player = objs.use( 'Object', 'Player' )
 
-		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		metadata, Object ))
-		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		metadata, Object ))
-		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	metadata, Object ))
-		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		metadata, Object, Player ))
-		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		metadata, Object, Player ))
-		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		metadata, Object ))
+		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		Object ))
+		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		Object ))
+		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	Object ))
+		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		Object, Player ))
+		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		Object, Player ))
+		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		Object ))
 
-		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	metadata, self.game, objs.Fleet, objs.Design ))
-		objs.add('Resource',			make_dependant_mapping( Resource, 			metadata, self.game, objs.Planet, objs.ResourceType ))
+		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	self.game, objs.Fleet, objs.Design ))
+		objs.add('Resource',			make_dependant_mapping( Resource, 			self.game, objs.Planet, objs.ResourceType ))
 
 	def createFleet( self, parent, name, owner = None):
 		Fleet, FleetComposition, Design = self.game.objects.use( 'Fleet', 'FleetComposition', 'Design' )
