@@ -54,68 +54,64 @@ class Ruleset( RulesetBase ):#{{{
 		self.SIZE   = 10000000
 		self.SPEED  = 300000000
 
+
 	def load( self ):
 		metadata = DatabaseManager().metadata
 
 		from tp.server.bases.objects import UniverseClass, GalaxyClass, StarSystemClass, PlanetClass, WormholeClass
 		from tp.server.rules.minisec.objects import Resource, FleetClass, Ship, FleetComposition
 
-		game = self.game
+		objs = self.game.objects
 
-		Object = game.Object
+		Object, Player = objs.use( 'Object', 'Player' )
 
-		game.Universe			= make_parametrized_mapping( UniverseClass( Object ),	metadata, Object )
-		game.Galaxy   			= make_parametrized_mapping( GalaxyClass( Object ),		metadata, Object )
-		game.StarSystem			= make_parametrized_mapping( StarSystemClass( Object ),	metadata, Object )
-		game.Planet				= make_parametrized_mapping( PlanetClass( Object ),		metadata, Object, game.Player )
-		game.Fleet				= make_parametrized_mapping( FleetClass( Object ),		metadata, Object, game.Player )
-		game.Wormhole			= make_parametrized_mapping( WormholeClass( Object ),	metadata, Object )
-		game.Ship 				= make_dependant_mapping( Ship, metadata, game )
-		game.FleetComposition	= make_dependant_mapping( FleetComposition, metadata, game, game.Fleet, game.Ship )
-		game.Resource			= make_dependant_mapping( Resource, metadata, game, game.Planet, game.ResourceType )
+		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		metadata, Object ))
+		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		metadata, Object ))
+		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	metadata, Object ))
+		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		metadata, Object, Player ))
+		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		metadata, Object, Player ))
+		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		metadata, Object ))
+
+		objs.add('Ship', 				make_dependant_mapping( Ship,				metadata, self.game ))
+		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	metadata, self.game, objs.Fleet, objs.Ship ))
+		objs.add('Resource',			make_dependant_mapping( Resource, 			metadata, self.game, objs.Planet, objs.ResourceType ))
 
 	def createUniverse( self, name ):
-		universe = self.game.Universe()
-		universe.name = name
-		universe.size = self.SIZE
+		Universe = self.game.objects.use( 'Universe' )
 
-		return universe
+		return Universe( name = name, size = self.SIZE )
 
 	def createStarSystem( self, parent, name ):
-		system = self.game.StarSystem()
-		system.name     = name
-		system.parent   = parent
-		system.position = Vector3D(
-				self.random.randint(-self.SIZE, self.SIZE) * 1000,
-				self.random.randint(-self.SIZE, self.SIZE) * 1000,
-				0 )
-		system.size     = self.random.randint(800000, 2000000)
-		
-		return system
+		StarSystem = self.game.objects.use( 'StarSystem' )
+
+		return StarSystem(
+				name		= name,
+				parent		= parent,
+				position	= Vector3D( self.random.randint(-self.SIZE, self.SIZE) * 1000,
+										self.random.randint(-self.SIZE, self.SIZE) * 1000),
+				size		= self.random.randint(800000, 2000000))
 
 	def createPlanet( self, parent, name, owner = None ):
-		planet = self.game.Planet()
-		planet.name     = name
-		planet.parent   = parent
-		planet.position = Vector3D(
-				parent.position.x + self.random.randint(1, 100) * 1000,
-				parent.position.y + self.random.randint(1, 100) * 1000,
-				0 )
-		planet.size     = self.random.randint(1000, 10000)
-		planet.owner    = owner
+		Planet = self.game.objects.use( 'Planet' )
 
-		return planet
+		return Planet(
+				name		= name,
+				parent		= parent,
+				position	= Vector3D( parent.position.x + self.random.randint(1, 100) * 1000,
+										parent.position.y + self.random.randint(1, 100) * 1000),
+				size		= self.random.randint(1000, 10000),
+				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None):
-		fleet = self.game.Fleet()
-		fleet.parent   = parent
-		fleet.size     = 3
-		fleet.name     = name
-		fleet.ships    = [ self.game.FleetComposition( ship = self.game.Ship.ByName('Frigate'), number = 3 ) ]
-		fleet.position = parent.position
-		fleet.owner    = owner
+		Fleet, Ship, FleetComposition = self.game.objects.use( 'Fleet', 'Ship', 'FleetComposition' )
 
-		return fleet
+		return Fleet(
+				parent   = parent,
+				size     = 3,
+				name     = name,
+				ships    = [ FleetComposition( ship = Ship.ByName('Frigate'), number = 3 ) ],
+				position = parent.position,
+				owner    = owner)
 
 	def initialise( self ):
 		RulesetBase.initialise( self )
@@ -125,27 +121,28 @@ class Ruleset( RulesetBase ):#{{{
 
 			session.add( universe )
 
-			Ship = self.game.Ship
+			Ship = self.game.objects.use( 'Ship' )
 
-			SPEED = 30000000
+			scout = Ship(
+					name			= "Scout",
+					hp				= 2,
+					primary_damage	= 0,
+					backup_damage	= 0,
+					speed 			= 3 * self.SPEED )
 
-			scout = Ship( name = "Scout",
-					hp = 2,
-					primary_damage = 0,
-					backup_damage = 0,
-					speed = 3 * self.SPEED )
+			frigate = Ship(
+					name			= "Frigate",
+					hp 				= 4,
+					primary_damage	= 2,
+					backup_damage	= 0,
+					speed			= 2 * self.SPEED )
 
-			frigate = Ship( name = "Frigate",
-					hp = 4,
-					primary_damage = 2,
-					backup_damage = 0,
-					speed = 2 * self.SPEED )
-
-			battleship = Ship( name = "Battleship",
-					hp = 6,
-					primary_damage = 3, 
-					backup_damage = 1,
-					speed = 1 * self.SPEED )
+			battleship = Ship(
+					name			= "Battleship",
+					hp				= 6,
+					primary_damage	= 3, 
+					backup_damage	= 1,
+					speed			= 1 * self.SPEED )
 
 			session.add( scout )
 			session.add( frigate )
@@ -159,46 +156,45 @@ class Ruleset( RulesetBase ):#{{{
 		"""
 		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
 
-		universe = self.game.Object.ByType( 'Universe' )[-1]
+		Object = self.game.objects.use( 'Object' )
+
+		universe = Object.ByType( 'Universe' )[-1]
 
 		with DatabaseManager().session() as session:
 			# FIXME: Assuming that the Universe and the Galaxy exist.
 			self.random.seed( int(seed) )
 
 			# Create this many systems
-			for i in range(0, self.random.randint(system_min, system_max)):
+			for i in range( self.random.randint( system_min, system_max ) ):
 				system = self.createStarSystem( parent = universe, name = "System %s" % i )
 				session.add( system )
 				
 				# In each system create a number of planets
-				for j in range(0, self.random.randint(planet_min, planet_max)):
+				for j in range( self.random.randint( planet_min, planet_max ) ):
 					session.add( self.createPlanet( parent = system, name = "Planet %i in %s" % (j, system.name) ) )
 
-	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
+	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		user   = super( Ruleset, self ).player(username, password, email, comment)
-		system = None
-		planet = None
-		fleet  = None
+		user = super( Ruleset, self ).player( username, password, email, comment )
 
-		universe = self.game.Object.ByType( 'Universe' )[-1]
+		# FIXME: Hack! This however means that player x will always end up in the same place..
+		self.random.seed( user.id )
+
+		Object = self.game.objects.use( 'Object' )
+
+		universe	= Object.ByType( 'Universe' )[-1]
+		system		= self.createStarSystem( parent = universe, name = "%s Solar System" % username )
+		planet		= self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
+		fleet		= self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )
 
 		with DatabaseManager().session() as session:
-			# FIXME: Hack! This however means that player x will always end up in the same place..
-			self.random.seed( user.id )
-
-			system = self.createStarSystem( parent = universe, name = "%s Solar System" % username )
 			session.add( system )
-
-			planet = self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
 			session.add( planet )
-
-			fleet = self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )
 			session.add( fleet )
 
-		return (user, system, planet, fleet)
+		return ( user, system, planet, fleet )
 #}}}
 
 __all__ = [ 'Ruleset' ]

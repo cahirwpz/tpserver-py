@@ -12,15 +12,21 @@ class Board( SQLBase ):#{{{
 	Board which contains posts about stuff.
 	"""
 	@classmethod
-	def InitMapper( cls, metadata ):
+	def InitMapper( cls, metadata, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',          Integer, index = True, primary_key = True),
+				Column('id',          Integer, index = True, primary_key = True ),
+				Column('owner_id',    ForeignKey( Player.id ), index = True, nullable = True ),
 				Column('name',        String(255), nullable = False ),
 				Column('description', Text, nullable = False ),
 				Column('mtime',	      DateTime, nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
-		mapper( cls, cls.__table__ )
+		mapper( cls, cls.__table__, properties = {
+			'owner': relation( Player,
+				uselist = False,
+				backref = backref( 'board', uselist = False ),
+				cascade = 'all')
+			})
 
 	@classmethod
 	def ByRealId( cls, user, id ):

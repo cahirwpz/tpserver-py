@@ -4,13 +4,15 @@
 Classes for dealing with games hosted on the machine.
 """
 
+from collections import Mapping
+
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.rules import RulesetManager
 from tp.server.db import DatabaseManager, make_dependant_mapping
 from tp.server.db.enum import Enum
-from SQL import SQLBase
+from SQL import SQLBase, SelectableByName
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -203,7 +205,32 @@ class ConnectionEvent( SQLBase ):#{{{
 		mapper( cls, cls.__table__ )
 #}}}
 
-class Game( SQLBase ):#{{{
+class ObjectManager( Mapping ):#{{{
+	def __init__( self ):
+		self.__objects = {}
+
+	def add( self, name, cls ):
+		self.__objects[ name ] = cls
+
+		setattr( self, name, cls )
+
+	def use( self, *names ):
+		if len( names ) == 1:
+			return self.__objects[ names[0] ]
+		else:
+			return tuple( self.__objects[ name ] for name in names )
+
+	def __getitem__( self, name ):
+		return self.__objects[ name ]
+
+	def __len__( self ):
+		return self.__objects.__len__()
+
+	def __iter__( self ):
+		return self.__objects.__iter__()
+#}}}
+
+class Game( SQLBase, SelectableByName ):#{{{
 	"""
 	This class represents games which exist on the server. Only one instance exists for each game.
 	"""
@@ -227,38 +254,39 @@ class Game( SQLBase ):#{{{
 	def __init__( self, **kwargs ):
 		super( Game, self ).__init__( **kwargs )
 
+		# hack to prevent warnings about nonexisiting attributes
 		object.__setattr__( self, '_Game__ruleset', None )
+		object.__setattr__( self, 'objects', ObjectManager() )
 
 	def load( self ):
-		base = __import__( 'tp.server.bases', globals(), locals(), [
-				'Player', 'Object', 'Board', 'Reference', 'Lock', 'Component',
-				'Property', 'ResourceType', 'Category', 'Message', 'Slot', 'Order',
-				'Design', 'MessageReference', 'ComponentCategory',
-				'ComponentProperty', 'DesignCategory', 'DesignComponent',
-				'PropertyCategory' ], -1 )
+		from tp.server.bases import Player, Object, Board, Reference, Lock, 	\
+			Component, Property, ResourceType, Category, Message, Slot, Order,	\
+			Design, MessageReference, ComponentCategory, ComponentProperty, 	\
+			DesignCategory, DesignComponent, PropertyCategory
 
 		metadata = DatabaseManager().metadata
 
-		self.Player  			= make_dependant_mapping( base.Player,				metadata, self )
-		self.Object  			= make_dependant_mapping( base.Object,				metadata, self )
-		self.Board				= make_dependant_mapping( base.Board,				metadata, self )
-		self.Reference			= make_dependant_mapping( base.Reference,			metadata, self )
-		self.Lock				= make_dependant_mapping( base.Lock,				metadata, self )
-		self.Component			= make_dependant_mapping( base.Component,			metadata, self )
-		self.Property			= make_dependant_mapping( base.Property,			metadata, self )
-		self.ResourceType		= make_dependant_mapping( base.ResourceType,		metadata, self )
-		self.Category			= make_dependant_mapping( base.Category,			metadata, self )
-		self.Message			= make_dependant_mapping( base.Message,				metadata, self )
+		objs = self.objects
 
-		self.Slot				= make_dependant_mapping( base.Slot,				metadata, self, self.Board, self.Message )
-		self.Order   			= make_dependant_mapping( base.Order,				metadata, self, self.Object )
-		self.Design				= make_dependant_mapping( base.Design,				metadata, self, self.Player )
-		self.MessageReference	= make_dependant_mapping( base.MessageReference,	metadata, self, self.Message, self.Reference )
-		self.ComponentCategory	= make_dependant_mapping( base.ComponentCategory,	metadata, self, self.Component, self.Category )
-		self.ComponentProperty	= make_dependant_mapping( base.ComponentProperty,	metadata, self, self.Component, self.Property )
-		self.DesignCategory		= make_dependant_mapping( base.DesignCategory,		metadata, self, self.Design, self.Category )
-		self.DesignComponent	= make_dependant_mapping( base.DesignComponent,		metadata, self, self.Design, self.Component )
-		self.PropertyCategory	= make_dependant_mapping( base.PropertyCategory,	metadata, self, self.Property, self.Category )
+		objs.add('Player',				make_dependant_mapping( Player,				metadata, self ))
+		objs.add('Object',				make_dependant_mapping( Object,				metadata, self ))
+		objs.add('Reference',			make_dependant_mapping( Reference,			metadata, self ))
+		objs.add('Lock',				make_dependant_mapping( Lock,				metadata, self ))
+		objs.add('Component',			make_dependant_mapping( Component,			metadata, self ))
+		objs.add('Property',			make_dependant_mapping( Property,			metadata, self ))
+		objs.add('ResourceType',		make_dependant_mapping( ResourceType,		metadata, self ))
+		objs.add('Category',			make_dependant_mapping( Category,			metadata, self ))
+		objs.add('Message',				make_dependant_mapping( Message,			metadata, self ))
+		objs.add('Board',				make_dependant_mapping( Board,				metadata, self, objs.Player ))
+		objs.add('Slot',				make_dependant_mapping( Slot,				metadata, self, objs.Board, objs.Message ))
+		objs.add('Order',				make_dependant_mapping( Order,				metadata, self, objs.Object ))
+		objs.add('Design',				make_dependant_mapping( Design,				metadata, self, objs.Player ))
+		objs.add('MessageReference',	make_dependant_mapping( MessageReference,	metadata, self, objs.Message, objs.Reference ))
+		objs.add('ComponentCategory',	make_dependant_mapping( ComponentCategory,	metadata, self, objs.Component, objs.Category ))
+		objs.add('ComponentProperty',	make_dependant_mapping( ComponentProperty,	metadata, self, objs.Component, objs.Property ))
+		objs.add('DesignCategory',		make_dependant_mapping( DesignCategory,		metadata, self, objs.Design, objs.Category ))
+		objs.add('DesignComponent',		make_dependant_mapping( DesignComponent,	metadata, self, objs.Design, objs.Component ))
+		objs.add('PropertyCategory',	make_dependant_mapping( PropertyCategory,	metadata, self, objs.Property, objs.Category ))
 
 		self.ruleset.load()
 
@@ -287,15 +315,6 @@ class Game( SQLBase ):#{{{
 	def populate( self ):
 		self.ruleset.initialise(self, 0xdeadc0de, 10, 10, 2, 2)
 	
-	@classmethod
-	def ByName( cls, name ):
-		result = None
-
-		with DatabaseManager().session() as session:
-			result = session.query( cls ).filter_by( name = name ).first()
-
-		return result
-
 	@property
 	def ruleset(self):
 		"""

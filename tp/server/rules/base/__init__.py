@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Ruleset base.
 """
@@ -6,7 +8,6 @@ import sys
 from types import TupleType
 
 from tp.server.db import DatabaseManager
-from tp.server.bases import *
 from tp.server.utils import OrderGet
 
 class Ruleset(object):#{{{
@@ -113,49 +114,45 @@ class Ruleset(object):#{{{
 		"""
 		pass
 
-	def player(self, username, password, email = 'N/A', comment = ''):
+	def player( self, username, password, email = 'N/A', comment = '' ):
 		"""
-		--player <game> <username> <password> [<email>, <comment>]
-			Create a player for this game.
+		Create a player for this game.
 
-			The default function creates a new user, a board for the user and adds a
-			welcome message. It returns the newly created user object.
+		The default function creates a new user, a board for the user and adds a
+		welcome message. It returns the newly created user object.
 		"""
-		user = None
+		Player, Board, Message, Slot = self.game.objects.use( 'Player', 'Board', 'Message', 'Slot' )
+
+		player = Player(
+			username	= username,
+			password	= password,
+			email		= email,
+			comment		= comment)
+
+		board = Board(
+			owner		= player,
+			name        = "Private message board for %s" % username,
+			description = "This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe.")
+
+		message = Message(
+			subject = "Welcome to the Universe!",
+			body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun!" \
+					  "This game is currently playing version %s of %s." % ( username, self.version, self.name ))
+
+		slot = Slot(
+			message	= message,
+			board	= board,
+			number	= 0)
 
 		with DatabaseManager().session() as session:
-			user = self.game.Player()
-			user.username = username
-			user.password = password
-			user.email    = email
-			user.comment  = comment
-
-			session.add( user )
-
-		with DatabaseManager().session() as session:
-			board = self.game.Board()
-			board.id          = user.id
-			board.name        = "Private message board for %s" % username
-			board.description = "This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe."
-
+			session.add( player )
 			session.add( board )
-			
-			message = self.game.Message()
-			message.subject = "Welcome to the Universe!"
-			message.body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun! This game is currently playing version %s of %s." % (username, self.version, self.name)
-
 			session.add( message )
-
-			slot = self.game.Slot()
-			slot.message = message
-			slot.board   = board
-			slot.number  = 0
-
 			session.add( slot )
 
-		return user
+		return player
 
-	def turn(self):
+	def turn( self ):
 		"""
 		generate a turn for this ruleset
 
