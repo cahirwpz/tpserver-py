@@ -24,33 +24,6 @@ def make_mapping( cls, *args, **kwargs ):#{{{
 	return cls
 #}}}
 
-def make_dependant_mapping( cls, Game, *args, **kwargs ):#{{{
-	metadata = DatabaseManager().metadata
-
-	class newcls( cls ):
-		__origname__  = cls.__name__
-		__module__    = cls.__module__
-		__tablename__ = "_".join( [ Game.name, untitle( cls.__name__ ) ] )
-		__game__      = Game
-	
-	newcls.__name__  = str( '%s_%s' % ( Game.name, cls.__name__ ) )
-
-	newcls.InitMapper( metadata, *args, **kwargs )
-	
-	return newcls
-#}}}
-
-def make_parametrized_mapping( cls, Object, *args, **kwargs ):
-	metadata = DatabaseManager().metadata
-
-	cls.__origname__  = cls.__name__
-	cls.__tablename__ = str( "%s_%s" % ( Object.__tablename__, untitle( cls.__origname__ ) ) )
-	cls.__name__      = str( "%s_%s" % ( cls.__game__.name, cls.__name__ ) )
-
-	cls.InitMapper( metadata, *args, **kwargs )
-	
-	return cls
-
 class DatabaseManager( object ):#{{{
 	__metaclass__ = SingletonClass
 
@@ -89,4 +62,4 @@ class DatabaseConfiguration( ComponentConfiguration ):#{{{
 							help='Database engine supported by SQLAlchemy.', arg_name='DATABASE' )
 #}}}
 
-__all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping', 'make_dependant_mapping', 'make_parametrized_mapping' ]
+__all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping' ]

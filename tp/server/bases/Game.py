@@ -4,15 +4,19 @@
 Classes for dealing with games hosted on the machine.
 """
 
+import re
 from collections import Mapping
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.rules import RulesetManager
-from tp.server.db import DatabaseManager, make_dependant_mapping
+from tp.server.db import DatabaseManager
 from tp.server.db.enum import Enum
 from SQL import SQLBase, SelectableByName
+
+def untitle( s ):
+	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -206,13 +210,47 @@ class ConnectionEvent( SQLBase ):#{{{
 #}}}
 
 class ObjectManager( Mapping ):#{{{
-	def __init__( self ):
+	def __init__( self, game ):
 		self.__objects = {}
+		self.game = game
 
 	def add( self, name, cls ):
 		self.__objects[ name ] = cls
 
 		setattr( self, name, cls )
+
+	def add_class( self, cls, *args ):
+		metadata = DatabaseManager().metadata
+
+		class newcls( cls ):
+			__origname__  = cls.__name__
+			__module__    = cls.__module__
+			__tablename__ = "_".join( [ self.game.name, untitle( cls.__name__ ) ] )
+			__game__      = self.game
+		
+		newcls.__name__  = str( '%s_%s' % ( self.game.name, cls.__name__ ) )
+
+		args = tuple( self.__objects[ name ] for name in args )
+
+		newcls.InitMapper( metadata, *args )
+
+		self.add( cls.__name__, newcls )
+
+	def add_object_class( self, cls, *args ):
+		metadata = DatabaseManager().metadata
+
+		class newcls( cls, self.Object ):
+			__origname__  = cls.__name__
+			__tablename__ = str( "%s_%s" % ( self.Object.__tablename__, untitle( cls.__name__ ) ) )
+			__game__      = self.game
+
+		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
+
+		args = tuple( self.__objects[ name ] for name in args )
+
+		newcls.InitMapper( metadata, self.Object, *args )
+		
+		self.add( newcls.__origname__, newcls )
 
 	def use( self, *names ):
 		if len( names ) == 1:
@@ -256,35 +294,36 @@ class Game( SQLBase, SelectableByName ):#{{{
 
 		# hack to prevent warnings about nonexisiting attributes
 		object.__setattr__( self, '_Game__ruleset', None )
-		object.__setattr__( self, 'objects', ObjectManager() )
+		object.__setattr__( self, 'objects', ObjectManager( self ) )
 
 	def load( self ):
-		from tp.server.bases import Player, Object, Board, Reference, Lock, 	\
-			Component, Property, ResourceType, Category, Message, Slot, Order,	\
-			Design, MessageReference, ComponentCategory, ComponentProperty, 	\
+		from tp.server.bases import Player, Object, Board, Reference,	\
+			Lock, Component, Property, ResourceType, Category,			\
+			Message, Slot, Order, Design, MessageReference,				\
+			ComponentCategory, ComponentProperty,						\
 			DesignCategory, DesignComponent, PropertyCategory
 
 		objs = self.objects
 
-		objs.add('Player',				make_dependant_mapping( Player,				self ))
-		objs.add('Object',				make_dependant_mapping( Object,				self ))
-		objs.add('Reference',			make_dependant_mapping( Reference,			self ))
-		objs.add('Lock',				make_dependant_mapping( Lock,				self ))
-		objs.add('Component',			make_dependant_mapping( Component,			self ))
-		objs.add('Property',			make_dependant_mapping( Property,			self ))
-		objs.add('ResourceType',		make_dependant_mapping( ResourceType,		self ))
-		objs.add('Category',			make_dependant_mapping( Category,			self ))
-		objs.add('Message',				make_dependant_mapping( Message,			self ))
-		objs.add('Board',				make_dependant_mapping( Board,				self, objs.Player ))
-		objs.add('Slot',				make_dependant_mapping( Slot,				self, objs.Board, objs.Message ))
-		objs.add('Order',				make_dependant_mapping( Order,				self, objs.Object ))
-		objs.add('Design',				make_dependant_mapping( Design,				self, objs.Player ))
-		objs.add('MessageReference',	make_dependant_mapping( MessageReference,	self, objs.Message, objs.Reference ))
-		objs.add('ComponentCategory',	make_dependant_mapping( ComponentCategory,	self, objs.Component, objs.Category ))
-		objs.add('ComponentProperty',	make_dependant_mapping( ComponentProperty,	self, objs.Component, objs.Property ))
-		objs.add('DesignCategory',		make_dependant_mapping( DesignCategory,		self, objs.Design, objs.Category ))
-		objs.add('DesignComponent',		make_dependant_mapping( DesignComponent,	self, objs.Design, objs.Component ))
-		objs.add('PropertyCategory',	make_dependant_mapping( PropertyCategory,	self, objs.Property, objs.Category ))
+		self.objects.add_class( Player )
+		self.objects.add_class( Object )
+		self.objects.add_class( Reference )
+		self.objects.add_class( Lock )
+		self.objects.add_class( Component )
+		self.objects.add_class( Property )
+		self.objects.add_class( ResourceType )
+		self.objects.add_class( Category )
+		self.objects.add_class( Message )
+		self.objects.add_class( Board, 'Player' )
+		self.objects.add_class( Slot, 'Board', 'Message' )
+		self.objects.add_class( Order, 'Object' )
+		self.objects.add_class( Design, 'Player' )
+		self.objects.add_class( MessageReference, 'Message', 'Reference' )
+		self.objects.add_class( ComponentCategory, 'Component', 'Category' )
+		self.objects.add_class( ComponentProperty, 'Component', 'Property' )
+		self.objects.add_class( DesignCategory, 'Design', 'Category' )
+		self.objects.add_class( DesignComponent, 'Design', 'Component' )
+		self.objects.add_class( PropertyCategory,	'Property', 'Category' )
 
 		self.ruleset.load()
 

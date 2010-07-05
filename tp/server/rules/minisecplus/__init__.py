@@ -2,7 +2,7 @@
 
 import os.path 
 
-from tp.server.db import DatabaseManager, make_dependant_mapping, make_parametrized_mapping
+from tp.server.db import DatabaseManager
 
 from tp.server.rules.minisec import Ruleset as MinisecRuleset
 
@@ -20,22 +20,22 @@ class Ruleset( MinisecRuleset ):
 	files = os.path.join(os.path.dirname( __file__ ), "other")
 
 	def load( self ):
-		from tp.server.bases.objects import UniverseClass, GalaxyClass, StarSystemClass, PlanetClass, WormholeClass
-		from tp.server.rules.minisec.objects import Resource, FleetClass, FleetComposition
+		from tp.server.bases.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
+		from tp.server.rules.minisec.objects import Resource, Fleet, FleetComposition
 
 		objs = self.game.objects
 
 		Object, Player = objs.use( 'Object', 'Player' )
 
-		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		Object ))
-		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		Object ))
-		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	Object ))
-		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		Object, Player ))
-		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		Object, Player ))
-		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		Object ))
+		objs.add_object_class( Universe )
+		objs.add_object_class( Galaxy )
+		objs.add_object_class( StarSystem )
+		objs.add_object_class( Planet, 'Player' )
+		objs.add_object_class( Fleet, 'Player' )
+		objs.add_object_class( Wormhole )
 
-		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	self.game, objs.Fleet, objs.Design ))
-		objs.add('Resource',			make_dependant_mapping( Resource, 			self.game, objs.Planet, objs.ResourceType ))
+		objs.add_class( FleetComposition, 'Fleet', 'Design' )
+		objs.add_class( Resource, 'Planet', 'ResourceType' )
 
 	def createFleet( self, parent, name, owner = None):
 		Fleet, FleetComposition, Design = self.game.objects.use( 'Fleet', 'FleetComposition', 'Design' )

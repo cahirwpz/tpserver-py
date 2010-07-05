@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.bases import Object, Order, Attribute, Message, NoSuchThing
+from tp.server.bases import Order
 
 class MergeFleet(Order):#{{{
 	"""

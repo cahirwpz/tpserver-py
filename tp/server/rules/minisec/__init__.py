@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.db import DatabaseManager, make_dependant_mapping, make_parametrized_mapping
+from tp.server.db import DatabaseManager
 from tp.server.bases import Vector3D
 
 # Generic Actions
@@ -56,23 +56,23 @@ class Ruleset( RulesetBase ):#{{{
 
 
 	def load( self ):
-		from tp.server.bases.objects import UniverseClass, GalaxyClass, StarSystemClass, PlanetClass, WormholeClass
-		from tp.server.rules.minisec.objects import Resource, FleetClass, Ship, FleetComposition
+		from tp.server.bases.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
+		from tp.server.rules.minisec.objects import Resource, Fleet, Ship, FleetComposition
 
 		objs = self.game.objects
 
 		Object, Player = objs.use( 'Object', 'Player' )
 
-		objs.add('Universe',	make_parametrized_mapping( UniverseClass( Object ),		Object ))
-		objs.add('Galaxy',   	make_parametrized_mapping( GalaxyClass( Object ),		Object ))
-		objs.add('StarSystem',	make_parametrized_mapping( StarSystemClass( Object ),	Object ))
-		objs.add('Planet',		make_parametrized_mapping( PlanetClass( Object ),		Object, Player ))
-		objs.add('Fleet',		make_parametrized_mapping( FleetClass( Object ),		Object, Player ))
-		objs.add('Wormhole',	make_parametrized_mapping( WormholeClass( Object ),		Object ))
+		objs.add_object_class( Universe )
+		objs.add_object_class( Galaxy )
+		objs.add_object_class( StarSystem )
+		objs.add_object_class( Planet, 'Player' )
+		objs.add_object_class( Fleet, 'Player' )
+		objs.add_object_class( Wormhole )
 
-		objs.add('Ship', 				make_dependant_mapping( Ship,				self.game ))
-		objs.add('FleetComposition',	make_dependant_mapping( FleetComposition,	self.game, objs.Fleet, objs.Ship ))
-		objs.add('Resource',			make_dependant_mapping( Resource, 			self.game, objs.Planet, objs.ResourceType ))
+		objs.add_class( Ship )
+		objs.add_class( FleetComposition, 'Fleet', 'Ship' )
+		objs.add_class( Resource, 'Planet', 'ResourceType' )
 
 	def createUniverse( self, name ):
 		Universe = self.game.objects.use( 'Universe' )
