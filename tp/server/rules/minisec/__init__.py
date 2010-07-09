@@ -5,20 +5,12 @@ from tp.server.bases import Vector3D
 
 # Generic Actions
 from tp.server.rules.base import Ruleset as RulesetBase
-import tp.server.rules.base.orders.NOp as NOp
-import tp.server.rules.base.orders.MergeFleet as MergeFleet
-import tp.server.rules.base.orders.Colonise as Colonise
-import tp.server.rules.base.actions.Move as MoveAction
-import tp.server.rules.base.actions.Clean as Clean
-import tp.server.rules.base.actions.Win as Win
+from tp.server.rules.base.orders import NOpOrder, MergeFleetOrder, ColoniseOrder
+from tp.server.rules.base.actions import MoveAction, Clean, Win
 
 # Minisec specific imports
-import orders.Move as Move
-import orders.BuildFleet as BuildFleet
-import orders.SplitFleet as SplitFleet
-import actions.FleetCombat as FleetCombat
-import actions.Heal as Heal
-import actions.Turn as Turn
+from tp.server.rules.minisec.orders import MoveOrder, BuildFleetOrder, SplitFleetOrder
+from tp.server.rules.minisec.actions import FleetCombat, Heal, Turn
 
 from random import Random
 
@@ -31,20 +23,20 @@ class Ruleset( RulesetBase ):#{{{
 
 	# The order orders and actions occur
 	orderOfOrders = [
-			BuildFleet, 		# Build all ships
-			MergeFleet, 		# Merge fleets together
-			SplitFleet, 		# Split any fleets - this means you can merge then split in one turn
-			Clean, 				# Clean up fleets which no longer exist
-			(Move, 'prepare'),  # Set the velocity of objects
-			MoveAction, 		# Move all the objects about
-			(Move, 'finalise'), # Check for objects which may have overshot the destination
-			FleetCombat, 		# Perform a combat, ships may have escaped by moving away
-			Colonise, 			# Colonise any planets, ships may have been destoryed or reached their destination
-			Clean, 				# Remove all empty fleets
-			Heal, 				# Repair any ships orbiting a friendly planet
-			Win, 				# Figure out if there is any winner
-			NOp, 				# NOp needs to occur last
-			Turn, 				# Increase the Universe's "Turn" value
+			BuildFleetOrder, 			# Build all ships
+			MergeFleetOrder, 			# Merge fleets together
+			SplitFleetOrder, 			# Split any fleets - this means you can merge then split in one turn
+			Clean, 						# Clean up fleets which no longer exist
+			(MoveOrder, 'prepare'),		# Set the velocity of objects
+			MoveAction, 				# Move all the objects about
+			(MoveOrder, 'finalise'),	# Check for objects which may have overshot the destination
+			FleetCombat, 				# Perform a combat, ships may have escaped by moving away
+			ColoniseOrder, 				# Colonise any planets, ships may have been destoryed or reached their destination
+			Clean, 						# Remove all empty fleets
+			Heal, 						# Repair any ships orbiting a friendly planet
+			Win, 						# Figure out if there is any winner
+			NOpOrder, 					# NOp needs to occur last
+			Turn, 						# Increase the Universe's "Turn" value
 	]
 
 	def __init__( self, game ):
@@ -53,7 +45,6 @@ class Ruleset( RulesetBase ):#{{{
 		self.random = Random()
 		self.SIZE   = 10000000
 		self.SPEED  = 300000000
-
 
 	def load( self ):
 		from tp.server.bases.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
@@ -69,6 +60,13 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_object_class( Planet, 'Player' )
 		objs.add_object_class( Fleet, 'Player' )
 		objs.add_object_class( Wormhole )
+
+		objs.add_order_class( NOpOrder )
+		objs.add_order_class( MergeFleetOrder )
+		objs.add_order_class( ColoniseOrder )
+		objs.add_order_class( MoveOrder )
+		objs.add_order_class( BuildFleetOrder )
+		objs.add_order_class( SplitFleetOrder )
 
 		objs.add_class( Ship )
 		objs.add_class( FleetComposition, 'Fleet', 'Ship' )

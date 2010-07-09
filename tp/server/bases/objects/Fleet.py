@@ -7,8 +7,8 @@ class Fleet( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column( 'object_id',   ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column( 'owner_id',    ForeignKey( Player.id ), nullable = True ))
+				Column( 'object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
+				Column( 'owner_id',  ForeignKey( Player.id ), nullable = True ))
 
 		mapper( cls, cls.__table__, inherits = Object, polymorphic_identity = 'Fleet', properties = {
 			'owner' : relation( Player,

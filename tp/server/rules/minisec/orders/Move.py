@@ -1,27 +1,35 @@
 #!/usr/bin/env python
 
-import math
+from sqlalchemy import *
+from sqlalchemy.orm import mapper
 
-from tp.server.bases import Order, Attribute, Object, Message
 from tp.server.utils import ReparentOne
 
-def away(x):
+import math
+
+def away( x ):#{{{
 	if x < 0:
 		return int(-math.ceil(-x))
 	else: 
 		return int(math.ceil(x))
+#}}}
 
-def closest(*args):
+def closest( *args ):#{{{
 	x = args[0]
 	for y in args[1:]:
 		if min(abs(y), abs(x)) == abs(y):
 			x = y
 	return x
+#}}}
 
-class Move(Order):
+class MoveOrder( object ):#{{{
 	"""
 	Move to a point in space.
 	"""
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		mapper( cls, inherits = Order, polymorphic_identity = 'Move' )
+
 	@property
 	def typeno( self ):
 		return 1
@@ -100,3 +108,6 @@ class Move(Order):
 
 	def resources(self):
 		return []
+#}}}
+
+__all__ = [ 'MoveOrder' ]

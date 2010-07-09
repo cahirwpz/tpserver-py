@@ -10,62 +10,7 @@ from tp.server.db.enum import Enum
 
 from SQL import SQLBase
 
-class VectorParameter( SQLBase ):
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id', Integer, index = True, primary_key = True ),
-				Column('x',  Integer, nullable = False ),
-				Column('y',  Integer, nullable = False ),
-				Column('z',  Integer, nullable = False ),
-				Column('parent_id', ForeignKey( Object.id ), nullable = True ))
-
-		mapper( cls, cls.__table__ )
-
-class ObjectSlotParameter( SQLBase ):
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',        Integer, index = True, primary_key = True ),
-				Column('number',    Integer, nullable = False ),
-				Column('object_id', ForeignKey( Object.id ), nullable = True ))
-
-		mapper( cls, cls.__table__ )
-
-class OrderQueueParameter( SQLBase ):
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',        Integer, index = True, primary_key = True ),
-				Column('count',     Integer, nullable = False ),
-				Column('maxcount',  Integer, nullable = False ))
-
-		mapper( cls, cls.__table__ )
-
-class ResourceParameter( SQLBase ):
-	@classmethod
-	def InitMapper( cls, metadata, Resource ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',          Integer, index = True, primary_key = True ),
-				Column('resource_id', ForeignKey( Resource.id ), nullable = False ),
-				Column('stored',      Integer, nullable = False ),
-				Column('minable',     Integer, nullable = False ),
-				Column('unavailable', Integer, nullable = False ))
-
-		mapper( cls, cls.__table__ )
-
-class Attribute( SQLBase ):
-	AccessType  = [ 'public', 'protected', 'private' ]
-	OrderParam  = [ 'AbsSpaceCoords', 'Time', 'Object', 'Player',
-			'RelSpaceCoords', 'Range', 'List', 'String', 'Reference',
-			'ReferenceList', 'ResourceList', 'GenericReferenceQuantityList' ]
-	
-	ObjectParam = [	'Position3D', 'Velocity3D', 'Acceleration3D',
-			'BoundPosition', 'OrderQueue', 'ResourceList', 'Reference',
-			'ReferenceQuantityList', 'Integer', 'Size', 'Media' ]
-
-	Parameter	= [ 'Vector' ]
-
+class AttributeSet( SQLBase ):
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -79,14 +24,30 @@ class Attribute( SQLBase ):
 
 		mapper( cls, cls.__table__ )
 
-class AttributeValue( SQLBase ):
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		cls.__tablename__ = "_".join([ cls.__tablename__, Object.__origname__ ])
+class AttributeType( SQLBase ):
+	AccessType  = [ 'public', 'protected', 'private' ]
 
+	@classmethod
+	def InitMapper( cls, metadata, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-			Column('%s_id' % Object.__origname__, ForeignKey( Object.id ), index = True )
-			)
+				Column('id',      Integer, index = True, primary_key = True ),
+				Column('name',    String(255), nullable = False, index = True ),
+				Column('type',    Text, nullable = False ),
+				Column('access',  Enum( cls.AccessType ), nullable = False ),
+				Column('default', Binary, nullable = True ))
+
+		mapper( cls, cls.__table__ )
+
+class Attribute( SQLBase ):
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',       Integer, index = True, primary_key = True ),
+				Column('name',     String( 255 ), index = True, nullable = False ),   
+				Column('order_id', ForeignKey( Order.id ), nullable = False, index = True ),
+				Column('value_id', ForeignKey( AttributeValue.id ), nullable = False ),
+				Column('type_id',  ForeignKey( AttributeType.id ), nullable = False ),
+				UniqueConstraint( 'order_id', 'value_id', 'type_id' ))
 
 		mapper( cls, cls.__table__ )
 
@@ -286,4 +247,4 @@ Extra attributes this type defines.
 		return self, args
 #}}}
 
-__all__ = [ 'Attribute', 'AttributeValue' ]
+__all__ = [ 'Attribute' ]

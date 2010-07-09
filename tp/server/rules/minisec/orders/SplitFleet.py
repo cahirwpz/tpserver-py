@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 
+from sqlalchemy import *
+from sqlalchemy.orm import mapper
+
 import copy
 
-from tp.server.bases import Object, Order, Attribute
-
-#from tp.server.rules.minisec.objects.Fleet import Fleet
-
-class SplitFleet(Order):
+class SplitFleetOrder( object ):#{{{
 	"""
 	Split some ships into a new fleet.
 	"""
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		mapper( cls, inherits = Order, polymorphic_identity = 'SplitFleet' )
+
 	@property
 	def typeno( self ):
 		return 3
@@ -80,3 +83,6 @@ class SplitFleet(Order):
 				pass
 
 			self.ships = ships
+#}}}
+
+__all__ = [ 'SplitFleetOrder' ]

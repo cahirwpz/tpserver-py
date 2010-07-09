@@ -237,18 +237,42 @@ class ObjectManager( Mapping ):#{{{
 		self.add( cls.__name__, newcls )
 
 	def add_object_class( self, cls, *args ):
+		self.add_parametrized_class( cls, self.Object, *args )
+
+	def add_order_class( self, cls, *args ):
+		self.add_parametrized_class( cls, self.Order, *args )
+
+	def add_parametrized_class( self, cls, paramcls, *args ):
 		metadata = DatabaseManager().metadata
 
-		class newcls( cls, self.Object ):
+		class newcls( cls, paramcls ):
 			__origname__  = cls.__name__
-			__tablename__ = str( "%s_%s" % ( self.Object.__tablename__, untitle( cls.__name__ ) ) )
+			__tablename__ = str( "%s_%s" % ( paramcls.__tablename__, untitle( cls.__name__ ) ) )
 			__game__      = self.game
 
 		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
 
 		args = tuple( self.__objects[ name ] for name in args )
 
-		newcls.InitMapper( metadata, self.Object, *args )
+		newcls.InitMapper( metadata, paramcls, *args )
+		
+		self.add( newcls.__origname__, newcls )
+
+	def add_parameter_class( self, cls, *args ):
+		metadata = DatabaseManager().metadata
+		
+		name = "_".join( untitle( cls.__name__ ).split('_')[0:-1] )
+		
+		class newcls( cls, self.Parameter ):
+			__origname__  = cls.__name__
+			__tablename__ = str( "%s_%s" % ( self.Parameter.__tablename__, name ) )
+			__game__      = self.game
+
+		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
+
+		args = tuple( self.__objects[ name ] for name in args )
+
+		newcls.InitMapper( metadata, self.Parameter, *args )
 		
 		self.add( newcls.__origname__, newcls )
 
@@ -297,11 +321,16 @@ class Game( SQLBase, SelectableByName ):#{{{
 		object.__setattr__( self, 'objects', ObjectManager( self ) )
 
 	def load( self ):
-		from tp.server.bases import Player, Object, Board, Reference,	\
-			Lock, Component, Property, ResourceType, Category,			\
-			Message, Slot, Order, Design, MessageReference,				\
-			ComponentCategory, ComponentProperty,						\
-			DesignCategory, DesignComponent, PropertyCategory
+		from tp.server.bases import ( Player, Object, Board, Reference, Lock,
+				Component, Property, ResourceType, Category, Message, Slot,
+				Order, Design, MessageReference, ComponentCategory,
+				ComponentProperty, DesignCategory, DesignComponent,
+				PropertyCategory )
+		from tp.server.bases.parameters import ( Parameter, Number, Selection,
+				NumberList, SelectionList, AbsCoordParam, TimeParam,
+				ObjectParam, PlayerParam, RelCoordParam, RangeParam,
+				SelectionListParam, StringParam, ReferenceParam,
+				ReferenceListParam )
 
 		objs = self.objects
 
@@ -324,6 +353,22 @@ class Game( SQLBase, SelectableByName ):#{{{
 		self.objects.add_class( DesignCategory, 'Design', 'Category' )
 		self.objects.add_class( DesignComponent, 'Design', 'Component' )
 		self.objects.add_class( PropertyCategory,	'Property', 'Category' )
+
+		self.objects.add_class( Parameter )
+		self.objects.add_class( Number )
+		self.objects.add_class( Selection )
+		self.objects.add_class( NumberList, 'Number' )
+		self.objects.add_class( SelectionList, 'Selection' )
+		self.objects.add_parameter_class( AbsCoordParam )
+		self.objects.add_parameter_class( TimeParam )
+		self.objects.add_parameter_class( ObjectParam, 'Object' )
+		self.objects.add_parameter_class( PlayerParam, 'Player' )
+		self.objects.add_parameter_class( RelCoordParam, 'Object' )
+		self.objects.add_parameter_class( RangeParam )
+		self.objects.add_parameter_class( SelectionListParam, 'SelectionList' )
+		self.objects.add_parameter_class( StringParam )
+		self.objects.add_parameter_class( ReferenceParam, 'NumberList' )
+		self.objects.add_parameter_class( ReferenceListParam, 'NumberList' )
 
 		self.ruleset.load()
 

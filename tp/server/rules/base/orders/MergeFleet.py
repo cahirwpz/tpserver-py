@@ -1,20 +1,25 @@
 #!/usr/bin/env python
 
-from tp.server.bases import Order
+from sqlalchemy import *
+from sqlalchemy.orm import mapper
 
-class MergeFleet(Order):#{{{
+class MergeFleetOrder( object ):#{{{
 	"""
 	Merge two fleets together.
 	"""
-	
-	@property
-	def typeno( self ):
-		return 4
+
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		mapper( cls, inherits = Order, polymorphic_identity = 'MergeFleet' )
 
 	#attributes = {
 	#		'fleet': Attribute("fleet", -1, 'protected', type=2, #netlib.objects.constants.ARG_OBJECT, 
 	#			desc="Fleet to merge with.")
 	#		}
+	
+	@property
+	def typeno( self ):
+		return 4
 	
 	def do(self):
 		# We need the original fleet
@@ -94,4 +99,4 @@ The merge order has been removed.
 			return
 #}}}
 
-__all__ = [ 'MergeFleet' ]
+__all__ = [ 'MergeFleetOrder' ]

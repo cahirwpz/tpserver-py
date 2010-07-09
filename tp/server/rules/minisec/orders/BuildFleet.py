@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
-from tp.server.bases import Object, Order, Attribute, Message
-#from tp.server.rules.minisec.objects.Fleet import Fleet
+from sqlalchemy import *
+from sqlalchemy.orm import mapper
 
-class BuildFleet(Order):
+class BuildFleetOrder( object ):#{{{
 	"""
 	Build a new star ship fleet.
 	"""
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		mapper( cls, inherits = Order, polymorphic_identity = 'BuildFleet' )
+
 	@property
 	def	typeno( self ):
 		return 2
@@ -102,4 +106,6 @@ It consists of:
 			return (255, self.name)
 		else:
 			self.name = value[1]
+#}}}
 
+__all__ = [ 'BuildFleetOrder' ]

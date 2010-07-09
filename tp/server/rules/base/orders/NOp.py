@@ -1,16 +1,22 @@
 #!/usr/bin/env python
 
-from tp.server.bases import Order, Attribute
+from sqlalchemy import *
+from sqlalchemy.orm import mapper
 
-class NOp( Order ):#{{{
+class NOpOrder( object ):#{{{
 	"""
 	Wait around and do nothing...
 	"""
+
+	@classmethod
+	def InitMapper( cls, metadata, Order ):
+		mapper( cls, inherits = Order, polymorphic_identity = 'NOp' )
+
+		#attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
+
 	@property
 	def typeno( self ):
 		return 0
-
-	#attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
 	
 	def do(self):
 		self.wait -= 1
@@ -32,3 +38,5 @@ class NOp( Order ):#{{{
 		else:
 			self.wait = value[0]
 #}}}
+
+__all__ = [ 'NOpOrder' ]
