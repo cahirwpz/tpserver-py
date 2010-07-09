@@ -1,4 +1,4 @@
-import os.path
+import os.path, traceback
 from collections import Mapping
 
 from tp.server.singleton import SingletonContainerClass
@@ -18,7 +18,8 @@ class RulesetManager( Mapping ):
 
 					self.__ruleset[ ruleset.__name__.split('.')[-1] ] = ruleset.Ruleset
 				except ImportError, msg:
-					print "Could not import %s: %s" % ( name, msg )
+					traceback.print_exc()
+					print "\033[31;1mDisabling %s ruleset!\033[0m" % name
 	
 	def __getitem__( self, name ):
 		return self.__ruleset[ name ]
