@@ -12,7 +12,7 @@ from tp.server.rules.base import Ruleset as RulesetBase
 from tp.server.rules.base.orders import WaitOrder
 from tp.server.rules.minisec.actions import Turn
 
-from bases.Resource import Resource
+from bases.Resource import ResourceType
 	
 SIZE = 10000000
 
@@ -55,12 +55,12 @@ class Ruleset(RulesetBase):
 				if row['namesingular'] is '':
 					continue
 
-				r = Resource()
+				r = ResourceType()
 				for name, cell in row.iteritems():
 					if cell is '':
 						continue
 					try:
-						setattr(r, name, convert(getattr(Resource.table.c, name), cell))
+						setattr(r, name, convert(getattr(ResourceType.table.c, name), cell))
 					except AttributeError, e:
 						# FIXME: These shouldn't really occur...
 						pass
@@ -75,10 +75,10 @@ class Ruleset(RulesetBase):
 				# FIXME: Make these auto generated resources much nicer...
 				# Ignore the special case factories which are also goods.
 				try:
-					r = Resource(Resource.byname(factory.name))
+					r = ResourceType(ResourceType.byname(factory.name))
 					r.desc += "\n"
 				except NoSuch:
-					r = Resource()
+					r = ResourceType()
 					r.namesingular = factory.name
 					r.nameplural   = factory.name
 					r.desc         = ""				
@@ -114,7 +114,7 @@ class Ruleset(RulesetBase):
 		try:
 			RulesetBase.populate(self, seed)
 
-			r = Resource(Resource.byname('Ship Parts Factory'))
+			r = ResourceType(ResourceType.byname('Ship Parts Factory'))
 
 			# FIXME: Assuming that the Universe and the Galaxy exist.
 			r = random.Random()
@@ -157,16 +157,16 @@ class Ruleset(RulesetBase):
 
 					# Add a mine to each planet which has minerals
 					if mine:
-						planet.resources_add(Resource.byname('Mine'), 1, Planet.ACCESSABLE)
+						planet.resources_add(ResourceType.byname('Mine'), 1, Planet.ACCESSABLE)
 						
 					# FIXME: Add growing resources
 					for grow in growing:
 						if r.random()*100 > grow.probability:
 							# Add a smattering of breeding grounds
-							planet.resources_add(Resource.byname(''), 1, Planet.ACCESSABLE)
+							planet.resources_add(ResourceType.byname(''), 1, Planet.ACCESSABLE)
 							
 							# Add a smattering of the same stocks
-							planet.resources_add(Resource.byname(''), r.randint(0, grow.density), Planet.MINEABLE)
+							planet.resources_add(ResourceType.byname(''), r.randint(0, grow.density), Planet.MINEABLE)
 						
 
 							# Add 1 fishery/slaughter house to each location
@@ -217,8 +217,8 @@ class Ruleset(RulesetBase):
 			planet.owner = user.id
 
 			# Get the player's planet object and add the empire capital
-			planet.resources_add(Resource.byname('Header Quarter'), 1)
-			planet.resources_add(Resource.byname('Credit'), 10000)
+			planet.resources_add(ResourceType.byname('Header Quarter'), 1)
+			planet.resources_add(ResourceType.byname('Credit'), 10000)
 
 			planet.save()
 

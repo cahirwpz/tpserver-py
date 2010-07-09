@@ -199,14 +199,17 @@ class Ruleset( RulesetBase ):#{{{
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )
 
-		Object = self.game.objects.use( 'Object' )
+		Object, TimeParam, ObjectAttribute = self.game.objects.use( 'Object', 'TimeParam', 'ObjectAttribute' )
 
 		universe	= Object.ByType( 'Universe' )[-1]
 		system		= self.createStarSystem( parent = universe, name = "%s Solar System" % username )
 		planet		= self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
 		fleet		= self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )
 
+		#universe.attributes['age'] = ObjectAttribute( name = 'age', param = TimeParam( turns = 1, max = 1000 ) )
+
 		with DatabaseManager().session() as session:
+			session.add( universe )
 			session.add( system )
 			session.add( planet )
 			session.add( fleet )

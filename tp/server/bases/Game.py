@@ -325,7 +325,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 				Reference, Lock, Component, Property, ResourceType, Category,
 				Message, Slot, Order, Design, MessageReference,
 				ComponentCategory, ComponentProperty, DesignCategory,
-				DesignComponent, PropertyCategory )
+				DesignComponent, PropertyCategory, ObjectAttribute )
 
 		objs = self.objects
 
@@ -347,9 +347,10 @@ class Game( SQLBase, SelectableByName ):#{{{
 		self.objects.add_class( ComponentProperty, 'Component', 'Property' )
 		self.objects.add_class( DesignCategory, 'Design', 'Category' )
 		self.objects.add_class( DesignComponent, 'Design', 'Component' )
-		self.objects.add_class( PropertyCategory,	'Property', 'Category' )
+		self.objects.add_class( PropertyCategory, 'Property', 'Category' )
 
 		self.objects.add_class( Parameter )
+		self.objects.add_class( ObjectAttribute, 'Object', 'Parameter' )
 
 		self.ruleset.load()
 

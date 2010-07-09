@@ -4,13 +4,14 @@ import copy
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 # from tp.server.db import DatabaseManager
 from tp.server.db.enum import Enum
 
 from SQL import SQLBase
 
-class AttributeSet( SQLBase ):
+class AttributeSet_( SQLBase ):
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -38,18 +39,24 @@ class AttributeType( SQLBase ):
 
 		mapper( cls, cls.__table__ )
 
-class Attribute_( SQLBase ):
+class ObjectAttribute( SQLBase ):
 	@classmethod
-	def InitMapper( cls, metadata, Order ):
+	def InitMapper( cls, metadata, Object, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',       Integer, index = True, primary_key = True ),
-				Column('name',     String( 255 ), index = True, nullable = False ),   
-				Column('order_id', ForeignKey( Order.id ), nullable = False, index = True ),
-				Column('value_id', ForeignKey( AttributeValue.id ), nullable = False ),
-				Column('type_id',  ForeignKey( AttributeType.id ), nullable = False ),
-				UniqueConstraint( 'order_id', 'value_id', 'type_id' ))
+				Column('object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
+				Column('name',      String( 255 ), index = True, primary_key = True ),
+				Column('param_id',  ForeignKey( Parameter.id ), nullable = True ),
+				UniqueConstraint( 'object_id', 'name' ))
 
-		mapper( cls, cls.__table__ )
+		mapper( cls, cls.__table__, properties = {
+			'object' : relation( Object,
+				uselist = False,
+				backref = backref( 'attributes',
+					collection_class = attribute_mapped_collection( 'name' ))
+				),
+			'param' : relation( Parameter,
+				uselist = False )
+			})
 	
 class Attribute( object ):
 	def __init__( self, type, level, default = None, description = None ):
@@ -254,4 +261,4 @@ Extra attributes this type defines.
 		return self, args
 #}}}
 
-__all__ = [ 'Attribute' ]
+__all__ = [ 'Attribute', 'ObjectAttribute' ]
