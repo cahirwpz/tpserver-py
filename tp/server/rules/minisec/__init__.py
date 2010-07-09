@@ -61,7 +61,7 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_object_class( Fleet, 'Player' )
 		objs.add_object_class( Wormhole )
 
-		objs.add_order_class( NOpOrder )
+		objs.add_order_class( WaitOrder )
 		objs.add_order_class( MergeFleetOrder )
 		objs.add_order_class( ColoniseOrder )
 		objs.add_order_class( MoveOrder )
@@ -71,6 +71,27 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_class( Ship )
 		objs.add_class( FleetComposition, 'Fleet', 'Ship' )
 		objs.add_class( Resource, 'Planet', 'ResourceType' )
+
+		from tp.server.rules.base.parameters import ( Number, Selection,
+				NumberList, SelectionList, AbsCoordParam, TimeParam,
+				ObjectParam, PlayerParam, RelCoordParam, RangeParam,
+				SelectionListParam, StringParam, ReferenceParam,
+				ReferenceListParam )
+
+		objs.add_class( Number )
+		objs.add_class( Selection )
+		objs.add_class( NumberList, 'Number' )
+		objs.add_class( SelectionList, 'Selection' )
+		objs.add_parameter_class( AbsCoordParam )
+		objs.add_parameter_class( TimeParam )
+		objs.add_parameter_class( ObjectParam, 'Object' )
+		objs.add_parameter_class( PlayerParam, 'Player' )
+		objs.add_parameter_class( RelCoordParam, 'Object' )
+		objs.add_parameter_class( RangeParam )
+		objs.add_parameter_class( SelectionListParam, 'SelectionList' )
+		objs.add_parameter_class( StringParam )
+		objs.add_parameter_class( ReferenceParam, 'NumberList' )
+		objs.add_parameter_class( ReferenceListParam, 'NumberList' )
 
 	def createUniverse( self, name ):
 		Universe = self.game.objects.use( 'Universe' )

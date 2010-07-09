@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.utils import ReparentOne
 
 from tp.server.bases import Attribute
-from tp.server.bases.parameters import AbsCoordParam
+from tp.server.rules.base.parameters import AbsCoordParam
 
 import math
 

@@ -321,16 +321,11 @@ class Game( SQLBase, SelectableByName ):#{{{
 		object.__setattr__( self, 'objects', ObjectManager( self ) )
 
 	def load( self ):
-		from tp.server.bases import ( Player, Object, Board, Reference, Lock,
-				Component, Property, ResourceType, Category, Message, Slot,
-				Order, Design, MessageReference, ComponentCategory,
-				ComponentProperty, DesignCategory, DesignComponent,
-				PropertyCategory )
-		from tp.server.bases.parameters import ( Parameter, Number, Selection,
-				NumberList, SelectionList, AbsCoordParam, TimeParam,
-				ObjectParam, PlayerParam, RelCoordParam, RangeParam,
-				SelectionListParam, StringParam, ReferenceParam,
-				ReferenceListParam )
+		from tp.server.bases import ( Parameter, Player, Object, Board,
+				Reference, Lock, Component, Property, ResourceType, Category,
+				Message, Slot, Order, Design, MessageReference,
+				ComponentCategory, ComponentProperty, DesignCategory,
+				DesignComponent, PropertyCategory )
 
 		objs = self.objects
 
@@ -355,20 +350,6 @@ class Game( SQLBase, SelectableByName ):#{{{
 		self.objects.add_class( PropertyCategory,	'Property', 'Category' )
 
 		self.objects.add_class( Parameter )
-		self.objects.add_class( Number )
-		self.objects.add_class( Selection )
-		self.objects.add_class( NumberList, 'Number' )
-		self.objects.add_class( SelectionList, 'Selection' )
-		self.objects.add_parameter_class( AbsCoordParam )
-		self.objects.add_parameter_class( TimeParam )
-		self.objects.add_parameter_class( ObjectParam, 'Object' )
-		self.objects.add_parameter_class( PlayerParam, 'Player' )
-		self.objects.add_parameter_class( RelCoordParam, 'Object' )
-		self.objects.add_parameter_class( RangeParam )
-		self.objects.add_parameter_class( SelectionListParam, 'SelectionList' )
-		self.objects.add_parameter_class( StringParam )
-		self.objects.add_parameter_class( ReferenceParam, 'NumberList' )
-		self.objects.add_parameter_class( ReferenceListParam, 'NumberList' )
 
 		self.ruleset.load()
 

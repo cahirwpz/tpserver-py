@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.bases import Attribute
-from tp.server.bases.parameters import ObjectParam
+from tp.server.rules.base.parameters import ObjectParam
 
 class ColoniseOrderAttributes( object ):#{{{
 	target	= Attribute(
