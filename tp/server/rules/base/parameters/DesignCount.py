@@ -3,11 +3,15 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-class DesignCountParam( object ):#{{{
+from GenericListParam import *
+
+from tp.server.bases import SQLBase, GenericList
+
+class DesignCount( SQLBase ):#{{{
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, Design ):
+	def InitMapper( cls, metadata, Design ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
+				Column('id',        ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('design_id', ForeignKey( Design.id ), nullable = False ),
 				Column('count',     Integer ))
 
@@ -17,4 +21,12 @@ class DesignCountParam( object ):#{{{
 			})
 #}}}
 
-__all__ = [ 'DesignCountParam' ]
+class DesignCountList( GenericList ):#{{{
+	pass
+#}}}
+
+class DesignCountListParam( GenericListParam ):#{{{
+	pass
+#}}}
+
+__all__ = [ 'DesignCount', 'DesignCountList', 'DesignCountListParam' ]

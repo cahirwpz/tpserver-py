@@ -3,6 +3,15 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
+from tp.server.bases import Attribute
+from tp.server.rules.base.parameters import AbsCoordParam
+
+class WormholeAttributes( object ):
+	end = Attribute(
+			type		= AbsCoordParam,
+			level		= 'public',
+			description	= "Target location of the wormhole." )
+
 class Wormhole( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):

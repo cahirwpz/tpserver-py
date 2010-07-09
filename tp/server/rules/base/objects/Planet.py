@@ -3,6 +3,20 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
+from tp.server.bases import Attribute
+from tp.server.rules.base.parameters import PlayerParam, ResourceListParam
+
+class PlanetAttributes( object ):
+	owner = Attribute(
+			type		= PlayerParam,
+			level		= 'public',
+			description	= "Current owner of the planet.")
+
+	resources = Attribute(
+			type		= ResourceListParam,
+			level		= 'protected',
+			description	= "Resources present on the planet.")
+
 class Planet( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Player ):

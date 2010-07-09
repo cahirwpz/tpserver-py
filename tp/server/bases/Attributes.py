@@ -52,7 +52,7 @@ class Attribute_( SQLBase ):
 		mapper( cls, cls.__table__ )
 	
 class Attribute( object ):
-	def __init__( self, type, level, default, description ):
+	def __init__( self, type, level, default = None, description = None ):
 		self.type			= type
 		self.level			= level
 		self.default		= default

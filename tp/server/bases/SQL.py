@@ -113,4 +113,18 @@ class SQLBase( object ):#{{{
 				session.add( obj )
 #}}}
 
-__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLBase', 'SelectableByName' ]
+class GenericList( SQLBase ):#{{{
+	@classmethod
+	def InitMapper( cls, metadata, Item ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',      Integer, index = True, primary_key = True ),
+				Column('item_id', ForeignKey( Item.id ), index = True, nullable = False ))
+
+		mapper( cls, cls.__table__, properties = {
+			'items' : relation( Item,
+				backref = 'list',
+				cascade = 'all' )
+			})
+#}}}
+
+__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLBase', 'SelectableByName', 'GenericList' ]

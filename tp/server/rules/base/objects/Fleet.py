@@ -3,6 +3,26 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
+from tp.server.bases import Attribute
+
+from tp.server.rules.base.parameters import PlayerParam, DesignCountListParam, NumberParam
+
+class FleetAttributes( object ):
+	owner = Attribute(
+			type		= PlayerParam,
+			level		= 'public',
+			description	= "Owner of the fleet." )
+
+	ships = Attribute(
+			type		= DesignCountListParam,
+			level		= 'protected',
+			description	= "Listing of ships in the fleet.")
+
+	damage = Attribute(
+			type		= NumberParam,
+			level		= 'protected',
+			description = "How much in HP is the fleet damaged.")
+
 class Fleet( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Player ):
