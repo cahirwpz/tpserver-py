@@ -3,6 +3,23 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
+from tp.server.bases import Attribute
+from tp.server.bases.parameters import ReferenceListParam, StringParam
+
+class BuildFleetOrderAttributes( object ):#{{{
+	ships = Attribute(
+			type		= ReferenceListParam,
+			default		= None,
+			level		= 'protected', 
+			description	= "Ships to build and launch." )
+
+	name = Attribute(
+			type		= StringParam,
+			default		= dict( value = 'New Fleet' ),
+			level		= 'protected',
+			description	= "The new fleet's name." )
+#}}}
+
 class BuildFleetOrder( object ):#{{{
 	"""
 	Build a new star ship fleet.
@@ -15,13 +32,6 @@ class BuildFleetOrder( object ):#{{{
 	def	typeno( self ):
 		return 2
 
-	#attributes = {
-	#	'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
-	#				desc="Ships to build and launch."),
-	#	'name':  Attribute("name", 'New Fleet', 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
-	#				desc="The new fleet's name.")
-	#}
-	
 	def do(self):
 		builder = Object(self.oid)
 

@@ -9,8 +9,8 @@ from tp.server.db import *
 from tp.server.bases import Object
 
 from tp.server.rules.base import Ruleset as RulesetBase
-import tp.server.rules.base.orders.NOp as NOp
-import tp.server.rules.minisec.actions.Turn as Turn
+from tp.server.rules.base.orders import WaitOrder
+from tp.server.rules.minisec.actions import Turn
 
 from bases.Resource import Resource
 	
@@ -29,7 +29,7 @@ class Ruleset(RulesetBase):
 	files = os.path.join(os.path.dirname(__file__), "other")
 	# The order orders and actions occur
 	orderOfOrders = [
-			NOp, 				# NOp needs to occur last
+			WaitOrder, 			# Wait needs to occur last
 			Turn, 				# Increase the Universe's "Turn" value
 	]
 

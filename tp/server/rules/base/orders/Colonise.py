@@ -3,6 +3,17 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
+from tp.server.bases import Attribute
+from tp.server.bases.parameters import ObjectParam
+
+class ColoniseOrderAttributes( object ):#{{{
+	target	= Attribute(
+			type		= ObjectParam,
+			default		= None,
+			level		= 'public',
+			description	= "ID of object to colonise." )
+#}}}
+
 class ColoniseOrder( object ):#{{{
 	"""
 	Colonise the planet this fleet is orbiting. Will use one frigate class ship.
@@ -10,11 +21,6 @@ class ColoniseOrder( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
 		mapper( cls, inherits = Order, polymorphic_identity = 'Colonise' )
-
-	#attributes = {
-	#	'target': Attribute("target", -1, 'public', type=2, #netlib.objects.constants.ARG_OBJECT, 
-	#				desc="ID of object to colonise."),
-	#}
 
 	@property
 	def typeno( self ):

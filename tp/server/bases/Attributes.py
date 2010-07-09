@@ -38,7 +38,7 @@ class AttributeType( SQLBase ):
 
 		mapper( cls, cls.__table__ )
 
-class Attribute( SQLBase ):
+class Attribute_( SQLBase ):
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -50,6 +50,13 @@ class Attribute( SQLBase ):
 				UniqueConstraint( 'order_id', 'value_id', 'type_id' ))
 
 		mapper( cls, cls.__table__ )
+	
+class Attribute( object ):
+	def __init__( self, type, level, default, description ):
+		self.type			= type
+		self.level			= level
+		self.default		= default
+		self.description	= description
 
 class SQLTypedBase(SQLBase):#{{{
 	"""

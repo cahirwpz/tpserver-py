@@ -3,16 +3,25 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-class NOpOrder( object ):#{{{
+from tp.server.bases import Attribute
+from tp.server.bases.parameters import TimeParam
+
+class WaitOrderAttributes( object ):#{{{
+	wait = Attribute(
+			default		= 0,
+			level		= 'protected',
+			type		= TimeParam,
+			description	= "How long to wait for." )
+#}}}
+
+class WaitOrder( object ):#{{{
 	"""
 	Wait around and do nothing...
 	"""
 
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
-		mapper( cls, inherits = Order, polymorphic_identity = 'NOp' )
-
-		#attributes = { 'wait': Attribute("wait", 0, 'protected', type=1, desc="How long to wait for.") } #netlib.objects.constants.ARG_TIME 
+		mapper( cls, inherits = Order, polymorphic_identity = 'Wait' )
 
 	@property
 	def typeno( self ):
@@ -39,4 +48,4 @@ class NOpOrder( object ):#{{{
 			self.wait = value[0]
 #}}}
 
-__all__ = [ 'NOpOrder' ]
+__all__ = [ 'WaitOrder' ]

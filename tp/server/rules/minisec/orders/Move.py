@@ -5,6 +5,9 @@ from sqlalchemy.orm import mapper
 
 from tp.server.utils import ReparentOne
 
+from tp.server.bases import Attribute
+from tp.server.bases.parameters import AbsCoordParam
+
 import math
 
 def away( x ):#{{{
@@ -22,6 +25,14 @@ def closest( *args ):#{{{
 	return x
 #}}}
 
+class MoveOrderAttributes( object ):#{{{
+	pos = Attribute(
+			type		= AbsCoordParam,
+			default		= dict( x = 0, y = 0, z = 0 ),
+			level		= 'public',
+			description = 'Where to go.' )
+#}}}
+
 class MoveOrder( object ):#{{{
 	"""
 	Move to a point in space.
@@ -33,11 +44,6 @@ class MoveOrder( object ):#{{{
 	@property
 	def typeno( self ):
 		return 1
-
-	#attributes = {
-	#	'pos': Attribute("pos", (0,0,0), 'public', type=0, #netlib.objects.constants.ARG_ABS_COORD, 
-	#			desc="Where to go.")
-	#}
 	
 	def do(self, action):
 		# We are going to have to modify the object so lets load it

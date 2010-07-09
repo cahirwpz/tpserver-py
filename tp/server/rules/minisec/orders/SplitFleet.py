@@ -5,6 +5,23 @@ from sqlalchemy.orm import mapper
 
 import copy
 
+from tp.server.bases import Attribute
+from tp.server.bases.parameters import ReferenceListParam, StringParam
+
+class SplitFleetAttributes( object ):#{{{
+	call = Attribute(
+			type		= StringParam,
+			default		= dict( name = "New Fleet" ),
+			level		= 'protected', 
+	 		description = "What to call the new fleet." )
+
+	ships = Attribute(
+			type		= ReferenceListParam,
+			default		= None,
+			level		= 'protected',
+	 		description	= "Ships to move into new fleet.")
+	#}}}
+
 class SplitFleetOrder( object ):#{{{
 	"""
 	Split some ships into a new fleet.
@@ -17,13 +34,6 @@ class SplitFleetOrder( object ):#{{{
 	def typeno( self ):
 		return 3
 
-	#attributes = {\
-	#	'call': Attribute("call", "New Fleet", 'protected', type=7, #netlib.objects.constants.ARG_STRING, 
-	#			desc="What to call the new fleet."),
-	#	'ships': Attribute("ships", {}, 'protected', type=6, #netlib.objects.constants.ARG_LIST, 
-	#			desc="Ships to move into new fleet.")
-	#}
-	
 	def do(self):
 		# We need the original fleet
 		fleet1 = Object(self.oid)

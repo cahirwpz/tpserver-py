@@ -5,7 +5,7 @@ from tp.server.bases import Vector3D
 
 # Generic Actions
 from tp.server.rules.base import Ruleset as RulesetBase
-from tp.server.rules.base.orders import NOpOrder, MergeFleetOrder, ColoniseOrder
+from tp.server.rules.base.orders import WaitOrder, MergeFleetOrder, ColoniseOrder
 from tp.server.rules.base.actions import Move, Clean, Win
 
 # Minisec specific imports
@@ -35,7 +35,7 @@ class Ruleset( RulesetBase ):#{{{
 			Clean, 						# Remove all empty fleets
 			Heal, 						# Repair any ships orbiting a friendly planet
 			Win, 						# Figure out if there is any winner
-			NOpOrder, 					# NOp needs to occur last
+			WaitOrder, 					# Wait needs to occur last
 			Turn, 						# Increase the Universe's "Turn" value
 	]
 
