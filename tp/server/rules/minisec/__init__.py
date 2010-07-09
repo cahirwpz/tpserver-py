@@ -6,7 +6,7 @@ from tp.server.bases import Vector3D
 # Generic Actions
 from tp.server.rules.base import Ruleset as RulesetBase
 from tp.server.rules.base.orders import NOpOrder, MergeFleetOrder, ColoniseOrder
-from tp.server.rules.base.actions import MoveAction, Clean, Win
+from tp.server.rules.base.actions import Move, Clean, Win
 
 # Minisec specific imports
 from tp.server.rules.minisec.orders import MoveOrder, BuildFleetOrder, SplitFleetOrder
@@ -28,7 +28,7 @@ class Ruleset( RulesetBase ):#{{{
 			SplitFleetOrder, 			# Split any fleets - this means you can merge then split in one turn
 			Clean, 						# Clean up fleets which no longer exist
 			(MoveOrder, 'prepare'),		# Set the velocity of objects
-			MoveAction, 				# Move all the objects about
+			Move, 						# Move all the objects about
 			(MoveOrder, 'finalise'),	# Check for objects which may have overshot the destination
 			FleetCombat, 				# Perform a combat, ships may have escaped by moving away
 			ColoniseOrder, 				# Colonise any planets, ships may have been destoryed or reached their destination
@@ -47,7 +47,7 @@ class Ruleset( RulesetBase ):#{{{
 		self.SPEED  = 300000000
 
 	def load( self ):
-		from tp.server.bases.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
+		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
 		from tp.server.rules.minisec.objects import Resource, Fleet, Ship, FleetComposition
 
 		objs = self.game.objects

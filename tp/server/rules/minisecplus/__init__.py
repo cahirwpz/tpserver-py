@@ -20,7 +20,7 @@ class Ruleset( MinisecRuleset ):
 	files = os.path.join(os.path.dirname( __file__ ), "other")
 
 	def load( self ):
-		from tp.server.bases.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
+		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
 		from tp.server.rules.minisec.objects import Resource, Fleet, FleetComposition
 
 		objs = self.game.objects

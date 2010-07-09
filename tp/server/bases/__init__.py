@@ -17,4 +17,3 @@ from Object import *
 from Order import *
 from ResourceType import *
 from Player import *
-from Parameters import *
