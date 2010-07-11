@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from tp.server.bases import SQLBase
+from tp.server.bases import SQLBase, TableListMixin
 
 class ResourceCount( SQLBase ):	#{{{
 	@classmethod
@@ -40,14 +40,18 @@ class ResourceList( SQLBase ):#{{{
 			'resource' : relation( Item,
 				uselist = False,
 				backref = backref( 'parameters' ),
-				cascade = 'all' ),
+				cascade = 'all' )
 			})
 #}}}
 
-class ResourceListParam( object ):#{{{
+class ResourceListParam( TableListMixin ):#{{{
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
+	def InitMapper( cls, metadata, Parameter, ResourceList ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = 'ResourceList' )
+
+		cls._item_type = ResourceList
+		cls._item_name = 'resource'
+		cls._list_attr = 'resources'
 #}}}
 
 __all__ = [ 'ResourceCount', 'ResourceList', 'ResourceListParam' ]

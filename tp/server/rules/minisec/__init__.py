@@ -47,8 +47,8 @@ class Ruleset( RulesetBase ):#{{{
 		self.SPEED  = 300000000
 
 	def load( self ):
-		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
-		from tp.server.rules.minisec.objects import Resource, Fleet, Ship, FleetComposition
+		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
+		from tp.server.rules.minisec.objects import Ship
 
 		objs = self.game.objects
 
@@ -69,11 +69,17 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_order_class( SplitFleetOrder )
 
 		objs.add_class( Ship, 'Design' )
-		objs.add_class( FleetComposition, 'Fleet', 'Design' )
-		objs.add_class( Resource, 'Planet', 'ResourceType' )
 
 		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
-				ObjectParam, PlayerParam, NumberParam, StringParam )
+				ObjectParam, PlayerParam, NumberParam, StringParam,
+				ResourceCount, ResourceList, ResourceListParam, DesignCount,
+				DesignList, DesignListParam )
+
+		objs.add_class( ResourceCount, 'ResourceType' )
+		objs.add_class( ResourceList, 'Parameter', 'ResourceCount' )
+
+		objs.add_class( DesignCount, 'Design' )
+		objs.add_class( DesignList, 'Parameter', 'DesignCount' )
 
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
@@ -81,6 +87,8 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_parameter_class( PlayerParam, 'Player' )
 		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
+		objs.add_parameter_class( DesignListParam, 'DesignList' )
+		objs.add_parameter_class( ResourceListParam, 'ResourceList' )
 
 		objs.Object._row_type = objs.ObjectAttribute
 
@@ -111,13 +119,13 @@ class Ruleset( RulesetBase ):#{{{
 				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, Design, FleetComposition = self.game.objects.use( 'Fleet', 'Design', 'FleetComposition' )
+		Fleet, Design, DesignCount = self.game.objects.use( 'Fleet', 'Design', 'DesignCount' )
 
 		return Fleet(
 				parent   = parent,
 				size     = 3,
 				name     = name,
-				ships    = [ FleetComposition( ship = Design.ByName('Frigate'), number = 3 ) ],
+				ships    = [ DesignCount( design = Design.ByName('Frigate'), count = 3 ) ],
 				damage   = 0,
 				position = parent.position,
 				owner    = owner)

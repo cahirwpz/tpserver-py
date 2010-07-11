@@ -88,6 +88,41 @@ class AttributeDictMixin( MutableMapping ):#{{{
 		return self.__map.__len__()
 #}}}
 
+from collections import MutableSequence
+
+class TableListMixin( MutableSequence ):#{{{
+	_item_type	= None
+	_item_name	= None
+	_list_attr	= None
+
+	__list = property( lambda self: getattr( self, self._list_attr ) )
+
+	def __getitem__( self, index ):
+		return getattr( self.__list[ index ], self._item_name )
+
+	def __setitem__( self, index, value ):
+		item = self.__list[ key ]
+		
+		setattr( item, self._item_name, value )
+	
+	def insert( self, index, value ):
+		kwargs = { self._item_name : value }
+
+		self.__list.insert( index, self._item_type( **kwargs ) )
+
+	def __delitem__( self, index ):
+		del self.__list[ index ]
+
+	def __contains__( self, item ):
+		return item in self.__list
+
+	def __iter__( self ):
+		return self.__list.__iter__()
+
+	def __len__( self ):
+		return self.__list.__len__()
+#}}}
+
 class Attribute( object ):#{{{
 	def __init__( self, type, level, default = None, description = None ):
 		self.type			= type
@@ -292,4 +327,4 @@ Extra attributes this type defines.
 		return self, args
 #}}}
 
-__all__ = [ 'Attribute', 'ObjectAttribute', 'AttributeDictMixin' ]
+__all__ = [ 'Attribute', 'ObjectAttribute', 'AttributeDictMixin', 'TableListMixin' ]

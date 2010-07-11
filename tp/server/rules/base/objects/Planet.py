@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper
 
 from tp.server.bases import Attribute
 from tp.server.rules.base.parameters import PlayerParam, ResourceListParam
@@ -45,24 +45,23 @@ class Planet( object ):#{{{
 	@property
 	def resources( self ):
 		try:
-			return self['resources'].resources
+			return self['resources']
 		except KeyError:
-			ResourceListParam, ResourceList = self.__game__.objects.use('ResourceListParam', 'ResourceList')
+			ResourceListParam = self.__game__.objects.use('ResourceListParam')
 
 			self['resources'] = ResourceListParam()
 
-			return self['resources'].resources
+			return self['resources']
 
 	@resources.setter
 	def resources( self, value ):
 		if value is not None:
-			ResourceListParam, ResourceList = self.__game__.objects.use('ResourceListParam', 'ResourceList')
+			ResourceListParam = self.__game__.objects.use('ResourceListParam')
 
-			try:
-				self['resources'].resources = value
-			except (KeyError, AttributeError):
-				self['resources'] = ResourceListParam()
-				self['resources'].resources = value
+			self['resources'] = ResourceListParam()
+
+			for v in value:
+				self['resources'].append( v )
 
 	@property
 	def typeno( self ):

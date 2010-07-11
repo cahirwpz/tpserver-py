@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from tp.server.bases import SQLBase
+from tp.server.bases import SQLBase, TableListMixin
 
 class DesignCount( SQLBase ):#{{{
 	@classmethod
@@ -38,14 +38,18 @@ class DesignList( SQLBase ):#{{{
 			'design' : relation( Item,
 				uselist = False,
 				backref = backref( 'parameters' ),
-				cascade = 'all')
+				cascade = 'all' )
 			})
 #}}}
 
-class DesignListParam( object ):#{{{
+class DesignListParam( TableListMixin ):#{{{
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
+	def InitMapper( cls, metadata, Parameter, DesignList ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignList' )
+
+		cls._item_type = DesignList
+		cls._item_name = 'design'
+		cls._list_attr = 'designs'
 #}}}
 
 __all__ = [ 'DesignCount', 'DesignList', 'DesignListParam' ]

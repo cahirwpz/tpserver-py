@@ -20,8 +20,7 @@ class Ruleset( MinisecRuleset ):
 	files = os.path.join(os.path.dirname( __file__ ), "other")
 
 	def load( self ):
-		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole
-		from tp.server.rules.minisec.objects import Fleet
+		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 
 		objs = self.game.objects
 
@@ -51,8 +50,8 @@ class Ruleset( MinisecRuleset ):
 		objs.add_parameter_class( PlayerParam, 'Player' )
 		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignListParam )
-		objs.add_parameter_class( ResourceListParam )
+		objs.add_parameter_class( DesignListParam, 'DesignList' )
+		objs.add_parameter_class( ResourceListParam, 'ResourceList' )
 
 		# quick hack - to be removed
 		objs.Object._row_type = objs.ObjectAttribute
@@ -64,7 +63,7 @@ class Ruleset( MinisecRuleset ):
 			parent   = parent,
 			size     = 3,
 			name     = name,
-			ships    = [ DesignList( design = DesignCount( design = Design.ByName('Frigate'), count = 3 ) ) ],
+			ships    = [ DesignCount( design = Design.ByName('Frigate'), count = 3 ) ],
 			position = parent.position,
 			owner    = owner)
 
@@ -265,12 +264,11 @@ class Ruleset( MinisecRuleset ):
 			for planet in Object.ByType('Planet'):
 				for Type in self.random.sample( NaturalResourceTypes, self.random.randint(0, 4) ):
 					planet.resources.append(
-							ResourceList(
-								resource = ResourceCount(
+								ResourceCount(
 									type = Type,
 									accessible   = self.random.randint( 0, 10 ),
 									extractable  = self.random.randint( 0, 100 ),
-									inaccessible = self.random.randint( 0, 1000 ))))
+									inaccessible = self.random.randint( 0, 1000 )))
 
 				session.add( planet )
 
@@ -284,9 +282,9 @@ class Ruleset( MinisecRuleset ):
 		ResourceCount, ResourceList, ResourceType = self.game.objects.use( 'ResourceCount', 'ResourceList', 'ResourceType' )
 
 		# Get the player's planet object and add the empire capital
-		planet.resources = [
-				ResourceList( resource = ResourceCount( type = ResourceType.ByName('House'), accessible = 1 ) ),
-				ResourceList( resource = ResourceCount( type = ResourceType.ByName('Empire Capital'), accessible = 1 ) ) ]
+		planet.resources = [ 
+				ResourceCount( type = ResourceType.ByName('House'), accessible = 1 ),
+				ResourceCount( type = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
 		with DatabaseManager().session() as session:
 			session.add( planet )
