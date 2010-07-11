@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref
 
 from tp.server.bases import Attribute
 
-from tp.server.rules.base.parameters import PlayerParam, DesignCountListParam, NumberParam
+from tp.server.rules.base.parameters import PlayerParam, DesignListParam, NumberParam
 
 class FleetAttributes( object ):
 	owner = Attribute(
@@ -14,7 +14,7 @@ class FleetAttributes( object ):
 			description	= "Owner of the fleet." )
 
 	ships = Attribute(
-			type		= DesignCountListParam,
+			type		= DesignListParam,
 			level		= 'protected',
 			description	= "Listing of ships in the fleet.")
 

@@ -11,8 +11,7 @@ class GenericListParam( object ):#{{{
 				Column('list_id',   ForeignKey( List.id ), nullable = False ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = List.__origname__, properties = {
-			'list': relation( List, 
-				uselist = False )
+			'list': relation( List )
 			})
 #}}}
 

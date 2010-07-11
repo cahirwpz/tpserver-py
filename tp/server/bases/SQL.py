@@ -3,6 +3,7 @@
 import csv, datetime
 
 from sqlalchemy import *
+from sqlalchemy.orm import mapper, relation
 from tp.server.db import *
 
 class NoSuchThing( Exception ):#{{{
@@ -25,13 +26,20 @@ class SelectableByName( object ):#{{{
 
 class SQLBase( object ):#{{{
 	def __init__( self, **kwargs ):
-		for key, val in kwargs.items():
-			if key not in self._sa_instance_state.manager.local_attrs:
-				raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
+		for key, value in kwargs.items():
+			if key in self._sa_instance_state.manager.local_attrs:
+				object.__setattr__( self, key, value )
+				continue
 
-			object.__setattr__( self, key, val )
+			if hasattr( self, '__attributes__' ):
+				if key in self.__attributes__:
+					object.__setattr__( self, key, value )
+					continue
+
+			print dir(self)
+			raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
 	
-	def __setattr__( self, key, val ):
+	def __setattr__( self, key, value ):
 		if key is not '_sa_instance_state':
 			attrs = list( self.__dict__ )
 
@@ -41,7 +49,7 @@ class SQLBase( object ):#{{{
 			if key not in attrs:
 				print( "%s has no %s attribute" % ( self.__class__.__name__, key ) )
 
-		object.__setattr__( self, key, val )
+		object.__setattr__( self, key, value )
 
 	@classmethod
 	def ByModTime( cls, user = None ):
@@ -118,11 +126,11 @@ class GenericList( SQLBase ):#{{{
 	def InitMapper( cls, metadata, Item ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',      Integer, index = True, primary_key = True ),
-				Column('item_id', ForeignKey( Item.id ), index = True, nullable = False ))
+				Column('item_id', ForeignKey( Item.id ), index = True, primary_key = True ))
 
 		mapper( cls, cls.__table__, properties = {
-			'items' : relation( Item,
-				backref = 'list',
+			'item' : relation( Item,
+				uselist = False,
 				cascade = 'all' )
 			})
 #}}}

@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper
+from sqlalchemy.orm import mapper, composite
+
+from tp.server.bases import Vector3D
 
 class AbsCoordParam( object ):#{{{
 	@classmethod
@@ -12,7 +14,13 @@ class AbsCoordParam( object ):#{{{
 				Column('y',         Integer, nullable = False ),
 				Column('z',         Integer, nullable = False ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'AbsCoord' )
+		cols = cls.__table__.c
+
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'AbsCoord',
+				exclude_properties = [ 'param_id', 'x', 'y', 'z' ],
+				properties = {
+						'position': composite( Vector3D, cols.x, cols.y, cols.z ),
+					})
 #}}}
 
 __all__ = [ 'AbsCoordParam' ]

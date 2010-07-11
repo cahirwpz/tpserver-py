@@ -1,24 +1,71 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper
 
 from types import TupleType, ListType
 
 class Fleet( object ):#{{{
-	@classmethod
-	def InitMapper( cls, metadata, Object, Player ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column('owner_id',  ForeignKey( Player.id ), nullable = True ),
-				Column('damage',    Integer, nullable = True, default = 0 ))
+	__attributes__ = [ 'owner', 'damage', 'ships' ]
 
-		mapper( cls, cls.__table__, inherits = Object, polymorphic_identity = 'Fleet', properties = {
-			'owner' : relation( Player,
-				uselist = False,
-				backref = backref( 'fleets' ),
-				cascade = 'all')
-			})
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		mapper( cls, inherits = Object, polymorphic_identity = 'Fleet' )
+
+	@property
+	def damage( self ):
+		try:
+			return self['damage'].value
+		except KeyError:
+			return 0
+
+	@damage.setter
+	def damage( self, value ):
+		try:
+			self['damage'].value = value
+		except KeyError:
+			NumberParam = self.__game__.objects.use('NumberParam')
+
+			self['damage'] = NumberParam( value = value )
+
+	@property
+	def owner( self ):
+		try:
+			return self['owner'].player
+		except KeyError:
+			return None
+
+	@owner.setter
+	def owner( self, value ):
+		if value is not None:
+			try:
+				self['owner'].player = value
+			except KeyError:
+				PlayerParam = self.__game__.objects.use('PlayerParam')
+
+				self['owner'] = PlayerParam( player = value )
+
+	@property
+	def ships( self ):
+		try:
+			return self['ships'].designs
+		except KeyError:
+			DesignListParam = self.__game__.objects.use('DesignListParam')
+
+			self['ships'] = DesignListParam()
+
+			return self['ships'].designs
+
+	@ships.setter
+	def ships( self, value ):
+		if value is not None:
+			DesignListParam = self.__game__.objects.use('DesignListParam')
+
+			try:
+				self['ships'].designs = value
+			except (KeyError, AttributeError):
+				self['ships'] = DesignListParam()
+				self['ships'].designs = value
 
 	@property
 	def typeno( self ):

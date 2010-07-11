@@ -6,30 +6,63 @@ from sqlalchemy.orm import mapper, relation, backref
 from tp.server.bases import Attribute
 from tp.server.rules.base.parameters import PlayerParam, ResourceListParam
 
-class PlanetAttributes( object ):
-	owner = Attribute(
-			type		= PlayerParam,
-			level		= 'public',
-			description	= "Current owner of the planet.")
-
-	resources = Attribute(
-			type		= ResourceListParam,
-			level		= 'protected',
-			description	= "Resources present on the planet.")
-
 class Planet( object ):#{{{
-	@classmethod
-	def InitMapper( cls, metadata, Object, Player ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column('owner_id',  ForeignKey( Player.id ), nullable = True ))
+	__attributes__ = {
+			'owner' : Attribute(
+				type		= PlayerParam,
+				level		= 'public',
+				description	= "Current owner of the planet."),
+			'resources' : Attribute(
+				type		= ResourceListParam,
+				level		= 'protected',
+				description	= "Resources present on the planet.") }
 
-		mapper( cls, cls.__table__, inherits = Object, polymorphic_identity = 'Planet', properties = {
-			'owner' : relation( Player,
-				uselist = False,
-				backref = backref( 'planets' ),
-				cascade = 'all')
-			})
+	@classmethod
+	def InitMapper( cls, metadata, Object ):
+		mapper( cls, inherits = Object, polymorphic_identity = 'Planet' )
+	
+	@property
+	def owner( self ):
+		try:
+			return self['owner'].player
+		except KeyError:
+			PlayerParam = self.__game__.objects.use('PlayerParam')
+
+			self['owner'] = PlayerParam( player = None ) # default
+
+			return self['owner'].player
+
+	@owner.setter
+	def owner( self, value ):
+		if value is not None:
+			try:
+				self['owner'].player = value
+			except KeyError:
+				PlayerParam = self.__game__.objects.use('PlayerParam')
+
+				self['owner'] = PlayerParam( player = value )
+
+	@property
+	def resources( self ):
+		try:
+			return self['resources'].resources
+		except KeyError:
+			ResourceListParam, ResourceList = self.__game__.objects.use('ResourceListParam', 'ResourceList')
+
+			self['resources'] = ResourceListParam()
+
+			return self['resources'].resources
+
+	@resources.setter
+	def resources( self, value ):
+		if value is not None:
+			ResourceListParam, ResourceList = self.__game__.objects.use('ResourceListParam', 'ResourceList')
+
+			try:
+				self['resources'].resources = value
+			except (KeyError, AttributeError):
+				self['resources'] = ResourceListParam()
+				self['resources'].resources = value
 
 	@property
 	def typeno( self ):

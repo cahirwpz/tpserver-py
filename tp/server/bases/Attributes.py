@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-import copy
-
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -39,7 +37,7 @@ class AttributeType( SQLBase ):
 
 		mapper( cls, cls.__table__ )
 
-class ObjectAttribute( SQLBase ):
+class ObjectAttribute( SQLBase ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -57,13 +55,46 @@ class ObjectAttribute( SQLBase ):
 			'param' : relation( Parameter,
 				uselist = False )
 			})
-	
-class Attribute( object ):
+	#}}}
+
+from collections import MutableMapping
+
+class AttributeDictMixin( MutableMapping ):#{{{
+	_row_type		= None
+
+	__map	= property( lambda self: self.attributes )
+
+	def __getitem__( self, key ):
+		return self.__map[ key ].param
+
+	def __setitem__( self, key, value ):
+		item = self.__map.get( key, None )
+
+		if item is None:
+			self.__map[ key ] = self._row_type( name = key, param = value )
+		else:
+			item.param = value
+
+	def __delitem__(self, key):
+		del self.__map[ key ]
+
+	def __contains__( self, key ):
+		return key in self.__map
+
+	def __iter__( self ):
+		return self.__map.__iter__()
+
+	def __len__( self ):
+		return self.__map.__len__()
+#}}}
+
+class Attribute( object ):#{{{
 	def __init__( self, type, level, default = None, description = None ):
 		self.type			= type
 		self.level			= level
 		self.default		= default
 		self.description	= description
+#}}}
 
 class SQLTypedBase(SQLBase):#{{{
 	"""
@@ -261,4 +292,4 @@ Extra attributes this type defines.
 		return self, args
 #}}}
 
-__all__ = [ 'Attribute', 'ObjectAttribute' ]
+__all__ = [ 'Attribute', 'ObjectAttribute', 'AttributeDictMixin' ]

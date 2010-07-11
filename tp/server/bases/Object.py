@@ -6,6 +6,7 @@ from sqlalchemy.orm import mapper, relation, backref, composite
 from tp.server.db import DatabaseManager
 
 from SQL import SQLBase
+from Attributes import AttributeDictMixin
 
 class Vector3D( object ):#{{{
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -28,7 +29,7 @@ class Vector3D( object ):#{{{
 		return not self.__eq__( other )
 #}}}
 
-class Object( SQLBase ):#{{{
+class Object( SQLBase, AttributeDictMixin ):#{{{
 	"""
 	The basis for all objects that exist.
 	"""
@@ -60,9 +61,9 @@ class Object( SQLBase ):#{{{
 				backref = backref( 'parent', remote_side = [ cols.id ] ),
 				cascade = "all"),
 			# Object position in 3D space
-			'position': composite( Vector3D, cols.pos_x, cols.pos_y, cols.pos_z),
+			'position': composite( Vector3D, cols.pos_x, cols.pos_y, cols.pos_z ),
 			# Object velocity in 3D space
-			'velocity': composite( Vector3D, cols.vel_x, cols.vel_y, cols.vel_z)
+			'velocity': composite( Vector3D, cols.vel_x, cols.vel_y, cols.vel_z )
 			})
 
 	@classmethod
@@ -159,7 +160,7 @@ class Object( SQLBase ):#{{{
 #}}}
 
 	def __str__(self):
-		return "<Object %s id=%s>" % (".".join(self.type.split('.')[3:]), self.id)
+		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type )
 #}}}
 
 __all__ = [ 'Object', 'Vector3D' ]

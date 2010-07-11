@@ -15,13 +15,20 @@ class WormholeAttributes( object ):
 class Wormhole( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column( 'object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column( 'end_x',     Integer, nullable = False ),
-				Column( 'end_y',     Integer, nullable = False ),
-				Column( 'end_z',     Integer, nullable = False ))
+		mapper( cls, inherits = Object, polymorphic_identity = 'Wormhole' )
 
-		mapper( cls, cls.__table__, inherits = Object, polymorphic_identity = 'Wormhole' )
+	@property
+	def end( self ):
+		return self['end'].position
+
+	@end.setter
+	def end( self, value ):
+		try:
+			self['end'].position = value
+		except KeyError:
+			AbsCoordParam = self.__game__.objects.use('AbsCoordParam')
+
+			self['end'] = AbsCoordParam( position = value )
 
 	@property
 	def	typeno( self ):

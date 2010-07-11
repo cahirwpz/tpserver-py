@@ -8,14 +8,13 @@ class PlayerParam( object ):#{{{
 	def InitMapper( cls, metadata, Parameter, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
-				Column('player_id', ForeignKey( Player.id ), index = True, nullable = False ),
-				Column('mask',      Integer, nullable = False ),
-				CheckConstraint( 'mask >= 0 and mask < 16', name = 'mask in [0,15]' ))
+				Column('player_id', ForeignKey( Player.id ), index = True, nullable = False ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Player', properties = {
-			'player' : relation( Player,
-				uselist = False )
-			})
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Player',
+				properties = {
+					'player' : relation( Player,
+						uselist = False )
+					})
 #}}}
 
 __all__ = [ 'PlayerParam' ]

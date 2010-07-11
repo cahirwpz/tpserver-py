@@ -1,5 +1,5 @@
 from AbsCoord import *
-from DesignCount import *
+from DesignList import *
 from Number import *
 from Object import *
 from Player import *
@@ -7,6 +7,7 @@ from Range import *
 from Reference import *
 from ReferenceList import *
 from RelCoord import *
+from ResourceList import *
 from SelectionList import *
 from String import *
 from Time import *

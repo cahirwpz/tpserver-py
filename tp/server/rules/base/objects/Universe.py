@@ -3,14 +3,38 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
+from tp.server.bases import Attribute
+from tp.server.rules.base.parameters import NumberParam
+
+class UniverseAttributes( object ):
+	turn = Attribute(
+			type		= NumberParam,
+			default		= 0,
+			level		= 'public',
+			description	= "How many turns has passed in the universe." )
+
 class Universe( object ):#{{{
+	__attributes__ = [ 'age' ]
+
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column( 'object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column( 'age',       Integer, nullable = False, default = 0 ))
+		mapper( cls, inherits = Object, polymorphic_identity = 'Universe' )
+	
+	@property
+	def age( self ):
+		try:
+			return self['age'].value
+		except KeyError:
+			return 0
 
-		mapper( cls, cls.__table__, inherits = Object, polymorphic_identity = 'Universe' )
+	@age.setter
+	def age( self, value ):
+		try:
+			self['age'].value = value
+		except KeyError:
+			NumberParam = self.__game__.objects.use('NumberParam')
+
+			self['age'] = NumberParam( value = value )
 
 	@property
 	def typeno( self ):

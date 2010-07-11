@@ -57,8 +57,8 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_object_class( Universe )
 		objs.add_object_class( Galaxy )
 		objs.add_object_class( StarSystem )
-		objs.add_object_class( Planet, 'Player' )
-		objs.add_object_class( Fleet, 'Player' )
+		objs.add_object_class( Planet )
+		objs.add_object_class( Fleet )
 		objs.add_object_class( Wormhole )
 
 		objs.add_order_class( WaitOrder )
@@ -68,35 +68,26 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_order_class( BuildFleetOrder )
 		objs.add_order_class( SplitFleetOrder )
 
-		objs.add_class( Ship )
-		objs.add_class( FleetComposition, 'Fleet', 'Ship' )
+		objs.add_class( Ship, 'Design' )
+		objs.add_class( FleetComposition, 'Fleet', 'Design' )
 		objs.add_class( Resource, 'Planet', 'ResourceType' )
 
-		from tp.server.rules.base.parameters import ( Number, Selection,
-				NumberList, SelectionList, AbsCoordParam, TimeParam,
-				ObjectParam, PlayerParam, RelCoordParam, RangeParam,
-				SelectionListParam, StringParam, ReferenceParam,
-				ReferenceListParam )
+		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
+				ObjectParam, PlayerParam, NumberParam, StringParam )
 
-		objs.add_class( Number )
-		objs.add_class( Selection )
-		objs.add_class( NumberList, 'Number' )
-		objs.add_class( SelectionList, 'Selection' )
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
 		objs.add_parameter_class( ObjectParam, 'Object' )
 		objs.add_parameter_class( PlayerParam, 'Player' )
-		objs.add_parameter_class( RelCoordParam, 'Object' )
-		objs.add_parameter_class( RangeParam )
-		objs.add_parameter_class( SelectionListParam, 'SelectionList' )
+		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( ReferenceParam, 'NumberList' )
-		objs.add_parameter_class( ReferenceListParam, 'NumberList' )
+
+		objs.Object._row_type = objs.ObjectAttribute
 
 	def createUniverse( self, name ):
 		Universe = self.game.objects.use( 'Universe' )
 
-		return Universe( name = name, size = self.SIZE )
+		return Universe( name = name, size = self.SIZE, age = 0 )
 
 	def createStarSystem( self, parent, name ):
 		StarSystem = self.game.objects.use( 'StarSystem' )
@@ -120,50 +111,68 @@ class Ruleset( RulesetBase ):#{{{
 				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, Ship, FleetComposition = self.game.objects.use( 'Fleet', 'Ship', 'FleetComposition' )
+		Fleet, Design, FleetComposition = self.game.objects.use( 'Fleet', 'Design', 'FleetComposition' )
 
 		return Fleet(
 				parent   = parent,
 				size     = 3,
 				name     = name,
-				ships    = [ FleetComposition( ship = Ship.ByName('Frigate'), number = 3 ) ],
+				ships    = [ FleetComposition( ship = Design.ByName('Frigate'), number = 3 ) ],
+				damage   = 0,
 				position = parent.position,
 				owner    = owner)
 
 	def initialise( self ):
 		RulesetBase.initialise( self )
 
-		with DatabaseManager().session() as session:
-			universe = self.createUniverse( name = "The Universe" )
+		universe = self.createUniverse( name = "The Universe" )
 
+		Design, Ship = self.game.objects.use( 'Design', 'Ship' )
+
+		scout_design = Design(
+				name		= "Scout",
+				description	= "N/A" )
+
+		frigate_design = Design(
+				name		= "Frigate",
+				description	= "N/A" )
+
+		battleship_design = Design(
+				name		= "Battleship",
+				description	= "N/A" )
+
+		scout = Ship(
+				design			= scout_design,
+				hp				= 2,
+				primary_damage	= 0,
+				backup_damage	= 0,
+				speed 			= 3 * self.SPEED )
+
+		frigate = Ship(
+				design			= frigate_design,
+				hp 				= 4,
+				primary_damage	= 2,
+				backup_damage	= 0,
+				speed			= 2 * self.SPEED )
+
+		battleship = Ship(
+				design			= battleship_design,
+				hp				= 6,
+				primary_damage	= 3, 
+				backup_damage	= 1,
+				speed			= 1 * self.SPEED )
+
+		with DatabaseManager().session() as session:
 			session.add( universe )
 
-			Ship = self.game.objects.use( 'Ship' )
-
-			scout = Ship(
-					name			= "Scout",
-					hp				= 2,
-					primary_damage	= 0,
-					backup_damage	= 0,
-					speed 			= 3 * self.SPEED )
-
-			frigate = Ship(
-					name			= "Frigate",
-					hp 				= 4,
-					primary_damage	= 2,
-					backup_damage	= 0,
-					speed			= 2 * self.SPEED )
-
-			battleship = Ship(
-					name			= "Battleship",
-					hp				= 6,
-					primary_damage	= 3, 
-					backup_damage	= 1,
-					speed			= 1 * self.SPEED )
+			session.add( scout_design )
+			session.add( frigate_design )
+			session.add( battleship_design )
 
 			session.add( scout )
 			session.add( frigate )
 			session.add( battleship )
+
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""
@@ -199,14 +208,12 @@ class Ruleset( RulesetBase ):#{{{
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )
 
-		Object, TimeParam, ObjectAttribute = self.game.objects.use( 'Object', 'TimeParam', 'ObjectAttribute' )
+		Object, NumberParam, ObjectAttribute = self.game.objects.use( 'Object', 'NumberParam', 'ObjectAttribute' )
 
 		universe	= Object.ByType( 'Universe' )[-1]
 		system		= self.createStarSystem( parent = universe, name = "%s Solar System" % username )
 		planet		= self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
 		fleet		= self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )
-
-		#universe.attributes['age'] = ObjectAttribute( name = 'age', param = TimeParam( turns = 1, max = 1000 ) )
 
 		with DatabaseManager().session() as session:
 			session.add( universe )
