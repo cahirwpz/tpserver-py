@@ -3,16 +3,16 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
 
 class Planet( object ):#{{{
-	__attributes__ = {
-			'owner' : Attribute(
+	__parameters__ = {
+			'owner' : ParameterDesc(
 				type		= PlayerParam,
 				level		= 'public',
 				description	= "Current owner of the planet."),
-			'resources' : Attribute(
+			'resources' : ParameterDesc(
 				type		= ResourceQuantityParam,
 				level		= 'protected',
 				description	= "Resources present on the planet.") }

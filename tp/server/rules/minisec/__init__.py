@@ -87,8 +87,6 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
 		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
 
-		objs.Object._row_type = objs.ObjectAttribute
-
 	def createUniverse( self, name ):
 		Universe = self.game.objects.use( 'Universe' )
 
@@ -213,7 +211,7 @@ class Ruleset( RulesetBase ):#{{{
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )
 
-		Object, NumberParam, ObjectAttribute = self.game.objects.use( 'Object', 'NumberParam', 'ObjectAttribute' )
+		Object = self.game.objects.use( 'Object' )
 
 		universe	= Object.ByType( 'Universe' )[-1]
 		system		= self.createStarSystem( parent = universe, name = "%s Solar System" % username )

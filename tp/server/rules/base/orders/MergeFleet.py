@@ -3,21 +3,20 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import ObjectParam
-
-class MergeFleetOrderAttributes( object ):#{{{
-	fleet = Attribute(
-			type		= ObjectParam,
-			default		= None,
-			level		= 'protected',
-			description	= "Fleet to merge with.")
-#}}}
 
 class MergeFleetOrder( object ):#{{{
 	"""
 	Merge two fleets together.
 	"""
+	__parameters__ = dict(
+			fleet = ParameterDesc(
+				type		= ObjectParam,
+				default		= None,
+				level		= 'protected',
+				description	= "Fleet to merge with."))
+
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
 		mapper( cls, inherits = Order, polymorphic_identity = 'MergeFleet' )

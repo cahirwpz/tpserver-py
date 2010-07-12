@@ -2,11 +2,12 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from tp.server.db import DatabaseManager
 
 from SQL import SQLBase
-from Attributes import AttributeDictMixin
+from Parameter import ParameterDictMixin
 
 class Vector3D( object ):#{{{
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -29,7 +30,7 @@ class Vector3D( object ):#{{{
 		return not self.__eq__( other )
 #}}}
 
-class Object( SQLBase, AttributeDictMixin ):#{{{
+class Object( SQLBase, ParameterDictMixin ):#{{{
 	"""
 	The basis for all objects that exist.
 	"""
@@ -163,4 +164,23 @@ class Object( SQLBase, AttributeDictMixin ):#{{{
 		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type )
 #}}}
 
-__all__ = [ 'Object', 'Vector3D' ]
+class ObjectParameters( SQLBase ):#{{{
+	@classmethod
+	def InitMapper( cls, metadata, Object, Parameter ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
+				Column('name',      String( 255 ), index = True, primary_key = True ),
+				Column('param_id',  ForeignKey( Parameter.id ), nullable = True ))
+
+		mapper( cls, cls.__table__, properties = {
+			'object' : relation( Object,
+				uselist = False,
+				backref = backref( 'parameters',
+					collection_class = attribute_mapped_collection( 'name' ))
+				),
+			'parameter' : relation( Parameter,
+				uselist = False )
+			})
+	#}}}
+
+__all__ = [ 'Object', 'ObjectParameters', 'Vector3D' ]

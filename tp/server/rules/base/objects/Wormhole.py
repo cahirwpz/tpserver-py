@@ -3,16 +3,16 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import AbsCoordParam
 
-class WormholeAttributes( object ):
-	end = Attribute(
-			type		= AbsCoordParam,
-			level		= 'public',
-			description	= "Target location of the wormhole." )
-
 class Wormhole( object ):#{{{
+	__parameters__ = {
+			'end' : ParameterDesc(
+				type		= AbsCoordParam,
+				level		= 'public',
+				description	= "Target location of the wormhole." ) }
+
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Wormhole' )

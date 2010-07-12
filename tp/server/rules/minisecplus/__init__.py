@@ -50,9 +50,6 @@ class Ruleset( MinisecRuleset ):
 		objs.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
 		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
 
-		# quick hack - to be removed
-		objs.Object._row_type = objs.ObjectAttribute
-
 	def createFleet( self, parent, name, owner = None):
 		Fleet, DesignQuantity, Design = self.game.objects.use( 'Fleet', 'DesignQuantity', 'Design' )
 

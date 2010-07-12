@@ -3,27 +3,25 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import ReferenceListParam, StringParam
-
-class BuildFleetOrderAttributes( object ):#{{{
-	ships = Attribute(
-			type		= ReferenceListParam,
-			default		= None,
-			level		= 'protected', 
-			description	= "Ships to build and launch." )
-
-	name = Attribute(
-			type		= StringParam,
-			default		= dict( value = 'New Fleet' ),
-			level		= 'protected',
-			description	= "The new fleet's name." )
-#}}}
 
 class BuildFleetOrder( object ):#{{{
 	"""
 	Build a new star ship fleet.
 	"""
+	__parameters__ = dict(
+			ships = ParameterDesc(
+				type		= ReferenceListParam,
+				default		= None,
+				level		= 'protected', 
+				description	= "Ships to build and launch." ),
+			name = ParameterDesc(
+				type		= StringParam,
+				default		= dict( value = 'New Fleet' ),
+				level		= 'protected',
+				description	= "The new fleet's name." ))
+
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
 		mapper( cls, inherits = Order, polymorphic_identity = 'BuildFleet' )

@@ -3,7 +3,6 @@
 import csv, datetime
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation
 from tp.server.db import *
 
 class NoSuchThing( Exception ):#{{{
@@ -31,12 +30,17 @@ class SQLBase( object ):#{{{
 				object.__setattr__( self, key, value )
 				continue
 
-			if hasattr( self, '__attributes__' ):
-				if key in self.__attributes__:
+			if hasattr( self, '__parameters__' ):
+				if key in self.__parameters__:
 					object.__setattr__( self, key, value )
 					continue
 
-			print dir(self)
+
+			print self.__class__.__name__
+			print "  dictionary:", dir(self)
+			if hasattr( self, '__parameters' ):
+				print "  parameters:", self.__parameters__
+
 			raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
 	
 	def __setattr__( self, key, value ):

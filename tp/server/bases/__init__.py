@@ -3,7 +3,6 @@ from tp.server.db import DatabaseManager
 DatabaseManager()
 
 from SQL import *
-from Attributes import *
 from Reference import *
 from Category import *
 from Property import *

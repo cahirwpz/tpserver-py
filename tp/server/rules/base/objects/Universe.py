@@ -3,18 +3,16 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import NumberParam
 
-class UniverseAttributes( object ):
-	turn = Attribute(
-			type		= NumberParam,
-			default		= 0,
-			level		= 'public',
-			description	= "How many turns has passed in the universe." )
-
 class Universe( object ):#{{{
-	__attributes__ = [ 'age' ]
+	__parameters__ = {
+			'age' : ParameterDesc(
+				type		= NumberParam,
+				default		= 0,
+				level		= 'public',
+				description	= "How many turns has passed in the universe." ) }
 
 	@classmethod
 	def InitMapper( cls, metadata, Object ):

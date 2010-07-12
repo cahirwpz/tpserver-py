@@ -3,27 +3,24 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 from tp.server.rules.base.parameters import RangeParam
-
-class MineOrderAttributes( object ):#{{{
-	resource = Attribute(
-			type		= RangeParam, 
-			default		= dict( value = 0 ),
-			level		= 'public',
-			description	= "Which resource to dig up." )
-
-	amount = Attribute(
-			type		= RangeParam,
-			default		= dict( value = 0 ),	
-			level		= 'public',
-			description	= "How much to dig up." )
-#}}}
 
 class MineOrder( object ):#{{{
 	"""
 	Turn a mineable resource into a surface resource.
 	"""
+	__parameters__ = dict(
+			resource = ParameterDesc(
+				type		= RangeParam, 
+				default		= dict( value = 0 ),
+				level		= 'public',
+				description	= "Which resource to dig up." ),
+			amount = ParameterDesc(
+				type		= RangeParam,
+				default		= dict( value = 0 ),	
+				level		= 'public',
+				description	= "How much to dig up." ))
 
 	@classmethod
 	def InitMapper( cls, metadata, Order ):

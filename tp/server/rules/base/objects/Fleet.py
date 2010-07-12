@@ -5,21 +5,21 @@ from sqlalchemy.orm import mapper
 
 from types import TupleType, ListType
 
-from tp.server.bases import Attribute
+from tp.server.bases import ParameterDesc
 
 from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam
 
 class Fleet( object ):#{{{
-	__attributes__ = {
-			'owner' : Attribute(
+	__parameters__ = {
+			'owner' : ParameterDesc(
 				type		= PlayerParam,
 				level		= 'public',
 				description	= "Owner of the fleet." ),
-			'ships' : Attribute(
+			'ships' : ParameterDesc(
 				type		= DesignQuantityParam,
 				level		= 'protected',
 				description	= "Listing of ships in the fleet."),
-			'damage' : Attribute(
+			'damage' : ParameterDesc(
 				type		= NumberParam,
 				level		= 'protected',
 				description = "How much in HP is the fleet damaged.") }
