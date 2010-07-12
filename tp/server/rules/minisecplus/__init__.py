@@ -38,8 +38,8 @@ class Ruleset( MinisecRuleset ):
 				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
 				DesignQuantityParam )
 
-		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
 		objs.add_class( DesignQuantity, 'Parameter', 'Design' )
+		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
 
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
@@ -47,8 +47,8 @@ class Ruleset( MinisecRuleset ):
 		objs.add_parameter_class( PlayerParam, 'Player' )
 		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignQuantityParam )
-		objs.add_parameter_class( ResourceQuantityParam )
+		objs.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
+		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
 
 		# quick hack - to be removed
 		objs.Object._row_type = objs.ObjectAttribute

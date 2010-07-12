@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper, relation
 
 from tp.server.bases import SQLBase
 
@@ -20,10 +20,6 @@ class ResourceQuantity( SQLBase ):	#{{{
 		Index('ix_%s_parameter_resource' % cls.__tablename__, cols.parameter_id, cols.resource_id)
 
 		mapper( cls, cls.__table__, properties = {
-			'parameter' : relation( Parameter,
-				uselist = False,
-				backref = backref( 'resource_quantity_list' ),
-				cascade = 'all' ),
 			'resource': relation( ResourceType,
 				uselist = False )
 			})
@@ -31,8 +27,11 @@ class ResourceQuantity( SQLBase ):	#{{{
 
 class ResourceQuantityParam( object ):#{{{
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
-		mapper( cls, inherits = Parameter, polymorphic_identity = 'ResourceQuantityList' )
+	def InitMapper( cls, metadata, Parameter, ResourceQuantity ):
+		mapper( cls, inherits = Parameter, polymorphic_identity = 'ResourceQuantityList', properties = {
+			'list' : relation( ResourceQuantity,
+				cascade = 'all' )
+			})
 #}}}
 
 __all__ = [ 'ResourceQuantity', 'ResourceQuantityParam' ]

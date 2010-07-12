@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper, relation
 
 from tp.server.bases import SQLBase
 
@@ -18,10 +18,6 @@ class DesignQuantity( SQLBase ):#{{{
 		Index('ix_%s_param_design' % cls.__tablename__, cols.param_id, cols.design_id)
 
 		mapper( cls, cls.__table__, properties = {
-			'parameter' : relation( Parameter,
-				uselist = False,
-				backref = backref( 'design_quantity_list' ),
-				cascade = 'all' ),
 			'design': relation( Design,
 				uselist = False )
 			})
@@ -29,8 +25,11 @@ class DesignQuantity( SQLBase ):#{{{
 
 class DesignQuantityParam( object ):#{{{
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
-		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignQuantityList' )
+	def InitMapper( cls, metadata, Parameter, DesignQuantity ):
+		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignQuantityList', properties = {
+			'list' : relation( DesignQuantity,
+				cascade = 'all' )
+			})
 #}}}
 
 __all__ = [ 'DesignQuantity', 'DesignQuantityParam' ]

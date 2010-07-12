@@ -51,7 +51,7 @@ class Planet( object ):#{{{
 
 			self['resources'] = ResourceQuantityParam()
 
-		return self['resources'].resource_quantity_list
+		return self['resources'].list
 
 	@resources.setter
 	def resources( self, value ):
@@ -63,7 +63,7 @@ class Planet( object ):#{{{
 
 				self['resources'] = ResourceQuantityParam()
 
-			self['resources'].resource_quantity_list = value
+			self['resources'].list = value
 
 	@property
 	def typeno( self ):

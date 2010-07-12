@@ -70,7 +70,7 @@ class Fleet( object ):#{{{
 			
 			self['ships'] = DesignQuantityParam()
 
-		return self['ships'].design_quantity_list
+		return self['ships'].list
 
 	@ships.setter
 	def ships( self, value ):
@@ -82,7 +82,7 @@ class Fleet( object ):#{{{
 
 				self['ships'] = DesignQuantityParam()
 			
-			self['ships'].design_quantity_list = value
+			self['ships'].list = value
 
 	@property
 	def typeno( self ):
