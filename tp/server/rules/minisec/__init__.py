@@ -72,14 +72,11 @@ class Ruleset( RulesetBase ):#{{{
 
 		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
 				ObjectParam, PlayerParam, NumberParam, StringParam,
-				ResourceQuantity, ResourceList, ResourceListParam, DesignQuantity,
-				DesignList, DesignListParam )
+				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
+				DesignQuantityParam )
 
-		objs.add_class( ResourceQuantity, 'ResourceType' )
-		objs.add_class( ResourceList, 'Parameter', 'ResourceQuantity' )
-
-		objs.add_class( DesignQuantity, 'Design' )
-		objs.add_class( DesignList, 'Parameter', 'DesignQuantity' )
+		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
+		objs.add_class( DesignQuantity, 'Parameter', 'Design' )
 
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
@@ -87,8 +84,8 @@ class Ruleset( RulesetBase ):#{{{
 		objs.add_parameter_class( PlayerParam, 'Player' )
 		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignListParam, 'DesignList' )
-		objs.add_parameter_class( ResourceListParam, 'ResourceList' )
+		objs.add_parameter_class( DesignQuantityParam )
+		objs.add_parameter_class( ResourceQuantityParam )
 
 		objs.Object._row_type = objs.ObjectAttribute
 

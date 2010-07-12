@@ -35,14 +35,11 @@ class Ruleset( MinisecRuleset ):
 
 		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
 				ObjectParam, PlayerParam, NumberParam, StringParam,
-				ResourceQuantity, ResourceList, ResourceListParam, DesignQuantity,
-				DesignList, DesignListParam )
+				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
+				DesignQuantityParam )
 
-		objs.add_class( ResourceQuantity, 'ResourceType' )
-		objs.add_class( ResourceList, 'Parameter', 'ResourceQuantity' )
-
-		objs.add_class( DesignQuantity, 'Design' )
-		objs.add_class( DesignList, 'Parameter', 'DesignQuantity' )
+		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
+		objs.add_class( DesignQuantity, 'Parameter', 'Design' )
 
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
@@ -50,14 +47,14 @@ class Ruleset( MinisecRuleset ):
 		objs.add_parameter_class( PlayerParam, 'Player' )
 		objs.add_parameter_class( NumberParam )
 		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignListParam, 'DesignList' )
-		objs.add_parameter_class( ResourceListParam, 'ResourceList' )
+		objs.add_parameter_class( DesignQuantityParam )
+		objs.add_parameter_class( ResourceQuantityParam )
 
 		# quick hack - to be removed
 		objs.Object._row_type = objs.ObjectAttribute
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, DesignList, DesignQuantity, Design = self.game.objects.use( 'Fleet', 'DesignList', 'DesignQuantity', 'Design' )
+		Fleet, DesignQuantity, Design = self.game.objects.use( 'Fleet', 'DesignQuantity', 'Design' )
 
 		return Fleet(
 			parent   = parent,
@@ -255,7 +252,7 @@ class Ruleset( MinisecRuleset ):
 		"""
 		super( Ruleset, self ).populate(seed, system_min, system_max, planet_min, planet_max)
 
-		Object, ResourceQuantity, ResourceList, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceList', 'ResourceType' )
+		Object, ResourceQuantity, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceType' )
 
 		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
 
@@ -265,7 +262,7 @@ class Ruleset( MinisecRuleset ):
 				for Type in self.random.sample( NaturalResourceTypes, self.random.randint(0, 4) ):
 					planet.resources.append(
 								ResourceQuantity(
-									type = Type,
+									resource     = Type,
 									accessible   = self.random.randint( 0, 10 ),
 									extractable  = self.random.randint( 0, 100 ),
 									inaccessible = self.random.randint( 0, 1000 )))
@@ -279,12 +276,12 @@ class Ruleset( MinisecRuleset ):
 
 		user, system, planet, fleet = super( Ruleset, self ).player( username, password, email, comment )
 
-		ResourceQuantity, ResourceList, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceList', 'ResourceType' )
+		ResourceQuantity, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceType' )
 
 		# Get the player's planet object and add the empire capital
 		planet.resources = [ 
-				ResourceQuantity( type = ResourceType.ByName('House'), accessible = 1 ),
-				ResourceQuantity( type = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
+				ResourceQuantity( resource = ResourceType.ByName('House'), accessible = 1 ),
+				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
 		with DatabaseManager().session() as session:
 			session.add( planet )

@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.bases import Attribute
-from tp.server.rules.base.parameters import PlayerParam, ResourceListParam
+from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
 
 class Planet( object ):#{{{
 	__attributes__ = {
@@ -13,7 +13,7 @@ class Planet( object ):#{{{
 				level		= 'public',
 				description	= "Current owner of the planet."),
 			'resources' : Attribute(
-				type		= ResourceListParam,
+				type		= ResourceQuantityParam,
 				level		= 'protected',
 				description	= "Resources present on the planet.") }
 
@@ -45,23 +45,25 @@ class Planet( object ):#{{{
 	@property
 	def resources( self ):
 		try:
-			return self['resources']
+			self['resources']
 		except KeyError:
-			ResourceListParam = self.__game__.objects.use('ResourceListParam')
+			ResourceQuantityParam = self.__game__.objects.use('ResourceQuantityParam')
 
-			self['resources'] = ResourceListParam()
+			self['resources'] = ResourceQuantityParam()
 
-			return self['resources']
+		return self['resources'].resource_quantity_list
 
 	@resources.setter
 	def resources( self, value ):
 		if value is not None:
-			ResourceListParam = self.__game__.objects.use('ResourceListParam')
+			try:
+				self['resources']
+			except KeyError:
+				ResourceQuantityParam = self.__game__.objects.use('ResourceQuantityParam')
 
-			self['resources'] = ResourceListParam()
+				self['resources'] = ResourceQuantityParam()
 
-			for v in value:
-				self['resources'].append( v )
+			self['resources'].resource_quantity_list = value
 
 	@property
 	def typeno( self ):

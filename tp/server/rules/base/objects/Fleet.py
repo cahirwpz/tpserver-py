@@ -7,7 +7,7 @@ from types import TupleType, ListType
 
 from tp.server.bases import Attribute
 
-from tp.server.rules.base.parameters import PlayerParam, DesignListParam, NumberParam
+from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam
 
 class Fleet( object ):#{{{
 	__attributes__ = {
@@ -16,7 +16,7 @@ class Fleet( object ):#{{{
 				level		= 'public',
 				description	= "Owner of the fleet." ),
 			'ships' : Attribute(
-				type		= DesignListParam,
+				type		= DesignQuantityParam,
 				level		= 'protected',
 				description	= "Listing of ships in the fleet."),
 			'damage' : Attribute(
@@ -64,23 +64,25 @@ class Fleet( object ):#{{{
 	@property
 	def ships( self ):
 		try:
-			return self['ships']
+			self['ships']
 		except KeyError:
-			DesignListParam = self.__game__.objects.use('DesignListParam')
+			DesignQuantityParam = self.__game__.objects.use('DesignQuantityParam')
+			
+			self['ships'] = DesignQuantityParam()
 
-			self['ships'] = DesignListParam()
-
-			return self['ships']
+		return self['ships'].design_quantity_list
 
 	@ships.setter
 	def ships( self, value ):
 		if value is not None:
-			DesignListParam = self.__game__.objects.use('DesignListParam')
+			try:
+				self['ships']
+			except KeyError:
+				DesignQuantityParam = self.__game__.objects.use('DesignQuantityParam')
 
-			self['ships'] = DesignListParam()
-
-			for v in value:
-				self['ships'].append( v )
+				self['ships'] = DesignQuantityParam()
+			
+			self['ships'].design_quantity_list = value
 
 	@property
 	def typeno( self ):
