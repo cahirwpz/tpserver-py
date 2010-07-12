@@ -72,14 +72,14 @@ class Ruleset( RulesetBase ):#{{{
 
 		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
 				ObjectParam, PlayerParam, NumberParam, StringParam,
-				ResourceCount, ResourceList, ResourceListParam, DesignCount,
+				ResourceQuantity, ResourceList, ResourceListParam, DesignQuantity,
 				DesignList, DesignListParam )
 
-		objs.add_class( ResourceCount, 'ResourceType' )
-		objs.add_class( ResourceList, 'Parameter', 'ResourceCount' )
+		objs.add_class( ResourceQuantity, 'ResourceType' )
+		objs.add_class( ResourceList, 'Parameter', 'ResourceQuantity' )
 
-		objs.add_class( DesignCount, 'Design' )
-		objs.add_class( DesignList, 'Parameter', 'DesignCount' )
+		objs.add_class( DesignQuantity, 'Design' )
+		objs.add_class( DesignList, 'Parameter', 'DesignQuantity' )
 
 		objs.add_parameter_class( AbsCoordParam )
 		objs.add_parameter_class( TimeParam )
@@ -119,13 +119,13 @@ class Ruleset( RulesetBase ):#{{{
 				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, Design, DesignCount = self.game.objects.use( 'Fleet', 'Design', 'DesignCount' )
+		Fleet, Design, DesignQuantity = self.game.objects.use( 'Fleet', 'Design', 'DesignQuantity' )
 
 		return Fleet(
 				parent   = parent,
 				size     = 3,
 				name     = name,
-				ships    = [ DesignCount( design = Design.ByName('Frigate'), count = 3 ) ],
+				ships    = [ DesignQuantity( design = Design.ByName('Frigate'), quantity = 3 ) ],
 				damage   = 0,
 				position = parent.position,
 				owner    = owner)

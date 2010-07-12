@@ -5,13 +5,13 @@ from sqlalchemy.orm import mapper, relation, backref
 
 from tp.server.bases import SQLBase, TableListMixin
 
-class DesignCount( SQLBase ):#{{{
+class DesignQuantity( SQLBase ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Design ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',        Integer, index = True, primary_key = True ),
 				Column('design_id', ForeignKey( Design.id ), nullable = False ),
-				Column('count',     Integer ))
+				Column('quantity',  Integer ))
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
@@ -52,4 +52,4 @@ class DesignListParam( TableListMixin ):#{{{
 		cls._list_attr = 'designs'
 #}}}
 
-__all__ = [ 'DesignCount', 'DesignList', 'DesignListParam' ]
+__all__ = [ 'DesignQuantity', 'DesignList', 'DesignListParam' ]

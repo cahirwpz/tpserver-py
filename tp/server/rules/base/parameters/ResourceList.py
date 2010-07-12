@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref
 
 from tp.server.bases import SQLBase, TableListMixin
 
-class ResourceCount( SQLBase ):	#{{{
+class ResourceQuantity( SQLBase ):	#{{{
 	@classmethod
 	def InitMapper( cls, metadata, ResourceType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -54,4 +54,4 @@ class ResourceListParam( TableListMixin ):#{{{
 		cls._list_attr = 'resources'
 #}}}
 
-__all__ = [ 'ResourceCount', 'ResourceList', 'ResourceListParam' ]
+__all__ = [ 'ResourceQuantity', 'ResourceList', 'ResourceListParam' ]
