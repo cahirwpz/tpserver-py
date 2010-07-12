@@ -20,48 +20,42 @@ class Planet( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Planet' )
+
+	def __check_owner_attribute( self ):
+		try:
+			return self['owner']
+		except KeyError:
+			self['owner'] = self.__game__.objects.use('PlayerParam')()
 	
 	@property
 	def owner( self ):
-		try:
-			return self['owner'].player
-		except KeyError:
-			PlayerParam = self.__game__.objects.use('PlayerParam')
+		self.__check_owner_attribute()
 
-			self['owner'] = PlayerParam( player = None ) # default
-
-			return self['owner'].player
+		return self['owner'].player
 
 	@owner.setter
 	def owner( self, value ):
 		if value is not None:
-			try:
-				self['owner'].player = value
-			except KeyError:
-				PlayerParam = self.__game__.objects.use('PlayerParam')
+			self.__check_owner_attribute()
 
-				self['owner'] = PlayerParam( player = value )
+			self['owner'].player = value
 
-	@property
-	def resources( self ):
+	def __check_resources_attribute( self ):
 		try:
 			self['resources']
 		except KeyError:
-			ResourceQuantityParam = self.__game__.objects.use('ResourceQuantityParam')
+			self['resources'] = self.__game__.objects.use('ResourceQuantityParam')()
 
-			self['resources'] = ResourceQuantityParam()
+	@property
+	def resources( self ):
+		self.__check_resources_attribute()
 
 		return self['resources'].list
 
 	@resources.setter
 	def resources( self, value ):
 		if value is not None:
-			try:
-				self['resources']
-			except KeyError:
-				ResourceQuantityParam = self.__game__.objects.use('ResourceQuantityParam')
-
-				self['resources'] = ResourceQuantityParam()
+			self.__check_resources_attribute()
 
 			self['resources'].list = value
 

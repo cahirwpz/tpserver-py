@@ -19,22 +19,24 @@ class Universe( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Universe' )
+
+	def __check_age_attribute( self ):
+		try:
+			self['age']
+		except KeyError:
+			self['age'] = self.__game__.objects.use('NumberParam')()
 	
 	@property
 	def age( self ):
-		try:
-			return self['age'].value
-		except KeyError:
-			return 0
+		self.__check_age_attribute()
+
+		return self['age'].value
 
 	@age.setter
 	def age( self, value ):
-		try:
-			self['age'].value = value
-		except KeyError:
-			NumberParam = self.__game__.objects.use('NumberParam')
+		self.__check_age_attribute()
 
-			self['age'] = NumberParam( value = value )
+		self['age'].value = value
 
 	@property
 	def typeno( self ):

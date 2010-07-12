@@ -17,18 +17,23 @@ class Wormhole( object ):#{{{
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Wormhole' )
 
+	def __check_end_attribute( self ):
+		try:
+			self['end']
+		except KeyError:
+			self['end'] = self.__game__.objects.use('AbsCoordParam')()
+
 	@property
 	def end( self ):
+		self.__check_end_attribute()
+
 		return self['end'].position
 
 	@end.setter
 	def end( self, value ):
-		try:
-			self['end'].position = value
-		except KeyError:
-			AbsCoordParam = self.__game__.objects.use('AbsCoordParam')
+		self.__check_end_attribute()
 
-			self['end'] = AbsCoordParam( position = value )
+		self['end'].position = value
 
 	@property
 	def	typeno( self ):

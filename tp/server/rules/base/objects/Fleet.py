@@ -28,59 +28,59 @@ class Fleet( object ):#{{{
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Fleet' )
 
+	def __check_damage_attribute( self ):
+		try:
+			self['damage']
+		except KeyError:
+			self['damage'] = self.__game__.objects.use('NumberParam')()
+
 	@property
 	def damage( self ):
-		try:
-			return self['damage'].value
-		except KeyError:
-			return 0
+		self.__check_damage_attribute()
+
+		return self['damage'].value
 
 	@damage.setter
 	def damage( self, value ):
-		try:
-			self['damage'].value = value
-		except KeyError:
-			NumberParam = self.__game__.objects.use('NumberParam')
+		self.__check_damage_attribute()
 
-			self['damage'] = NumberParam( value = value )
+		self['damage'].value = value
+
+	def __check_owner_attribute( self ):
+		try:
+			self['owner']
+		except KeyError:
+			self['owner'] = self.__game__.objects.use('PlayerParam')()
 
 	@property
 	def owner( self ):
-		try:
-			return self['owner'].player
-		except KeyError:
-			return None
+		self.__check_owner_attribute()
+		
+		self['owner'].player
 
 	@owner.setter
 	def owner( self, value ):
 		if value is not None:
-			try:
-				self['owner'].player = value
-			except KeyError:
-				PlayerParam = self.__game__.objects.use('PlayerParam')
+			self.__check_owner_attribute()
 
-				self['owner'] = PlayerParam( player = value )
+			self['owner'].player = value
 
-	@property
-	def ships( self ):
+	def __check_ships_attribute( self ):
 		try:
 			self['ships']
 		except KeyError:
-			DesignQuantityParam = self.__game__.objects.use('DesignQuantityParam')
-			
-			self['ships'] = DesignQuantityParam()
+			self['ships'] = self.__game__.objects.use('DesignQuantityParam')()
+
+	@property
+	def ships( self ):
+		self.__check_ships_attribute()
 
 		return self['ships'].list
 
 	@ships.setter
 	def ships( self, value ):
 		if value is not None:
-			try:
-				self['ships']
-			except KeyError:
-				DesignQuantityParam = self.__game__.objects.use('DesignQuantityParam')
-
-				self['ships'] = DesignQuantityParam()
+			self.__check_ships_attribute()
 			
 			self['ships'].list = value
 
