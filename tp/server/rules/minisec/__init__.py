@@ -149,21 +149,24 @@ class Ruleset( RulesetBase ):#{{{
 				hp				= 2,
 				primary_damage	= 0,
 				backup_damage	= 0,
-				speed 			= 3 * self.SPEED )
+				speed 			= 3 * self.SPEED,
+				build_time		= 1 )
 
 		frigate = Ship(
 				design			= frigate_design,
 				hp 				= 4,
 				primary_damage	= 2,
 				backup_damage	= 0,
-				speed			= 2 * self.SPEED )
+				speed			= 2 * self.SPEED,
+				build_time		= 2 )
 
 		battleship = Ship(
 				design			= battleship_design,
 				hp				= 6,
 				primary_damage	= 3, 
 				backup_damage	= 1,
-				speed			= 1 * self.SPEED )
+				speed			= 1 * self.SPEED,
+				build_time		= 4 )
 
 		with DatabaseManager().session() as session:
 			session.add( universe )
