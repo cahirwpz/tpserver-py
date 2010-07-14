@@ -22,7 +22,7 @@ class Ruleset( RulesetBase ):#{{{
 	version = "0.0.1"
 
 	# The order orders and actions occur
-	orderOfOrders = [
+	OrderOfOrders = [
 			BuildFleetOrder, 			# Build all ships
 			MergeFleetOrder, 			# Merge fleets together
 			SplitFleetOrder, 			# Split any fleets - this means you can merge then split in one turn
@@ -37,7 +37,21 @@ class Ruleset( RulesetBase ):#{{{
 			WinAction, 					# Figure out if there is any winner
 			WaitOrder, 					# Wait needs to occur last
 			TurnAction, 				# Increase the Universe's "Turn" value
-	]
+			]
+
+	ApplicableOrders = {
+			'Fleet'		: [ WaitOrder, MoveOrder, SplitFleetOrder, MergeFleetOrder, ColoniseOrder ],
+			'Planet'	: [ WaitOrder, BuildFleetOrder ]
+			}
+
+	ObjectTypeNumbers = {
+			'Universe'		: 0,
+			'Galaxy'		: 1,
+			'StarSystem'	: 2,
+			'Planet'		: 3,
+			'Fleet'			: 4,
+			'Wormhole'		: 5
+			}
 
 	def __init__( self, game ):
 		super( Ruleset, self ).__init__( game )

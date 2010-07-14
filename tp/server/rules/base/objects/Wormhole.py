@@ -15,10 +15,6 @@ class Wormhole( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Wormhole' )
-
-	@property
-	def	typeno( self ):
-		return 4
 #}}}
 
 __all__ = [ 'Wormhole' ]

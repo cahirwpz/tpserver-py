@@ -23,13 +23,7 @@ class Planet( object ):#{{{
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Planet' )
 
-	@property
-	def typeno( self ):
-		return 3
-
 #{{{
-	#orderclasses = ('tp.server.rules.base.orders.NOp', 'tp.server.rules.minisec.orders.BuildFleet')
-
 	#def ghost(self):
 	#	"""
 	#	Planets never die - even when owned by the universe.

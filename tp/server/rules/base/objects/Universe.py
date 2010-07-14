@@ -18,10 +18,6 @@ class Universe( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Universe' )
-
-	@property
-	def typeno( self ):
-		return 0
 #}}}
 
 __all__ = [ 'Universe' ]

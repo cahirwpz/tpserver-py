@@ -31,16 +31,6 @@ class Fleet( object ):#{{{
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Fleet' )
 
-	@property
-	def typeno( self ):
-		return 4
-
-	orderclasses = ('tp.server.rules.base.orders.NOp', 
-					'tp.server.rules.minisec.orders.Move',
-					'tp.server.rules.minisec.orders.SplitFleet',
-					'tp.server.rules.base.orders.MergeFleet',
-					'tp.server.rules.base.orders.Colonise',)
-	
 	def fn_ships(self, value=None):
 		if value == None:
 			return self.ships.items()
