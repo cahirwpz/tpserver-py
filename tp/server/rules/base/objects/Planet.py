@@ -3,61 +3,25 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import ParameterDesc
+from tp.server.bases import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
 
 class Planet( object ):#{{{
-	__parameters__ = {
-			'owner' : ParameterDesc(
-				type		= PlayerParam,
-				level		= 'public',
-				description	= "Current owner of the planet."),
-			'resources' : ParameterDesc(
-				type		= ResourceQuantityParam,
-				level		= 'protected',
-				description	= "Resources present on the planet.") }
+	__metaclass__ = ParametrizedClass
+
+	owner = ParameterDesc(
+		type		= PlayerParam,
+		level		= 'public',
+		description	= "Current owner of the planet.")
+
+	resources = ParameterDesc(
+		type		= ResourceQuantityParam,
+		level		= 'protected',
+		description	= "Resources present on the planet.")
 
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Planet' )
-
-	def __check_owner_attribute( self ):
-		try:
-			return self['owner']
-		except KeyError:
-			self['owner'] = self.__game__.objects.use('PlayerParam')()
-	
-	@property
-	def owner( self ):
-		self.__check_owner_attribute()
-
-		return self['owner'].player
-
-	@owner.setter
-	def owner( self, value ):
-		if value is not None:
-			self.__check_owner_attribute()
-
-			self['owner'].player = value
-
-	def __check_resources_attribute( self ):
-		try:
-			self['resources']
-		except KeyError:
-			self['resources'] = self.__game__.objects.use('ResourceQuantityParam')()
-
-	@property
-	def resources( self ):
-		self.__check_resources_attribute()
-
-		return self['resources'].list
-
-	@resources.setter
-	def resources( self, value ):
-		if value is not None:
-			self.__check_resources_attribute()
-
-			self['resources'].list = value
 
 	@property
 	def typeno( self ):

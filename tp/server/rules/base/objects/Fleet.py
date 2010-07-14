@@ -5,84 +5,31 @@ from sqlalchemy.orm import mapper
 
 from types import TupleType, ListType
 
-from tp.server.bases import ParameterDesc
+from tp.server.bases import ParameterDesc, ParametrizedClass
 
 from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam
 
 class Fleet( object ):#{{{
-	__parameters__ = {
-			'owner' : ParameterDesc(
-				type		= PlayerParam,
-				level		= 'public',
-				description	= "Owner of the fleet." ),
-			'ships' : ParameterDesc(
-				type		= DesignQuantityParam,
-				level		= 'protected',
-				description	= "Listing of ships in the fleet."),
-			'damage' : ParameterDesc(
-				type		= NumberParam,
-				level		= 'protected',
-				description = "How much in HP is the fleet damaged.") }
+	__metaclass__ = ParametrizedClass
+
+	owner = ParameterDesc(
+			type		= PlayerParam,
+			level		= 'public',
+			description	= "Owner of the fleet." )
+
+	ships = ParameterDesc(
+			type		= DesignQuantityParam,
+			level		= 'protected',
+			description	= "Listing of ships in the fleet." )
+
+	damage = ParameterDesc(
+			type		= NumberParam,
+			level		= 'protected',
+			description = "How much in HP is the fleet damaged." )
 
 	@classmethod
 	def InitMapper( cls, metadata, Object ):
 		mapper( cls, inherits = Object, polymorphic_identity = 'Fleet' )
-
-	def __check_damage_attribute( self ):
-		try:
-			self['damage']
-		except KeyError:
-			self['damage'] = self.__game__.objects.use('NumberParam')()
-
-	@property
-	def damage( self ):
-		self.__check_damage_attribute()
-
-		return self['damage'].value
-
-	@damage.setter
-	def damage( self, value ):
-		self.__check_damage_attribute()
-
-		self['damage'].value = value
-
-	def __check_owner_attribute( self ):
-		try:
-			self['owner']
-		except KeyError:
-			self['owner'] = self.__game__.objects.use('PlayerParam')()
-
-	@property
-	def owner( self ):
-		self.__check_owner_attribute()
-		
-		self['owner'].player
-
-	@owner.setter
-	def owner( self, value ):
-		if value is not None:
-			self.__check_owner_attribute()
-
-			self['owner'].player = value
-
-	def __check_ships_attribute( self ):
-		try:
-			self['ships']
-		except KeyError:
-			self['ships'] = self.__game__.objects.use('DesignQuantityParam')()
-
-	@property
-	def ships( self ):
-		self.__check_ships_attribute()
-
-		return self['ships'].list
-
-	@ships.setter
-	def ships( self, value ):
-		if value is not None:
-			self.__check_ships_attribute()
-			
-			self['ships'].list = value
 
 	@property
 	def typeno( self ):

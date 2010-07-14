@@ -325,7 +325,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 				Reference, Lock, Component, Property, ResourceType, Category,
 				Message, Slot, Order, Design, MessageReference,
 				ComponentCategory, ComponentProperty, DesignCategory,
-				DesignComponent, PropertyCategory, ObjectParameters )
+				DesignComponent, PropertyCategory, ObjectParameter )
 
 		objs = self.objects
 
@@ -350,10 +350,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 		self.objects.add_class( PropertyCategory, 'Property', 'Category' )
 
 		self.objects.add_class( Parameter )
-		self.objects.add_class( ObjectParameters, 'Object', 'Parameter' )
-
-		# quick hack - to be removed
-		objs.Object._row_type = objs.ObjectParameters
+		self.objects.add_class( ObjectParameter, 'Object', 'Parameter' )
 
 		self.ruleset.load()
 

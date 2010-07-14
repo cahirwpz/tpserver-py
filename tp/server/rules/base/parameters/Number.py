@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation
-
-from tp.server.bases import SQLBase
+from sqlalchemy.orm import mapper
 
 class NumberParam( object ):#{{{
+	__maps_to__ = 'value'
+
 	@classmethod
 	def InitMapper( cls, metadata, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

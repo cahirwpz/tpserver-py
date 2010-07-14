@@ -5,24 +5,26 @@ from sqlalchemy.orm import mapper
 
 import copy
 
-from tp.server.bases import ParameterDesc
+from tp.server.bases import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ReferenceListParam, StringParam
 
 class SplitFleetOrder( object ):#{{{
 	"""
 	Split some ships into a new fleet.
 	"""
-	__parameters__ = dict(
-		call = ParameterDesc(
-				type		= StringParam,
-				default		= dict( name = "New Fleet" ),
-				level		= 'protected', 
-				description = "What to call the new fleet." ),
-		ships = ParameterDesc(
-				type		= ReferenceListParam,
-				default		= None,
-				level		= 'protected',
-				description	= "Ships to move into new fleet."))
+	__metaclass__ = ParametrizedClass
+
+	call = ParameterDesc(
+			type		= StringParam,
+			default		= dict( name = "New Fleet" ),
+			level		= 'protected', 
+			description = "What to call the new fleet." )
+
+	ships = ParameterDesc(
+			type		= ReferenceListParam,
+			default		= None,
+			level		= 'protected',
+			description	= "Ships to move into new fleet.")
 
 	@classmethod
 	def InitMapper( cls, metadata, Order ):

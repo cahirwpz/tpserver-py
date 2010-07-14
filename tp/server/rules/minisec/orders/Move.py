@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 from tp.server.utils import ReparentOne
 
-from tp.server.bases import ParameterDesc
+from tp.server.bases import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import AbsCoordParam
 
 import math
@@ -29,12 +29,13 @@ class MoveOrder( object ):#{{{
 	"""
 	Move to a point in space.
 	"""
-	__parameters__ = dict(
-			pos = ParameterDesc(
-				type		= AbsCoordParam,
-				default		= dict( x = 0, y = 0, z = 0 ),
-				level		= 'public',
-				description = 'Where to go.' ))
+	__metaclass__ = ParametrizedClass
+
+	pos = ParameterDesc(
+		type		= AbsCoordParam,
+		default		= dict( x = 0, y = 0, z = 0 ),
+		level		= 'public',
+		description = 'Where to go.' )
 
 	@classmethod
 	def InitMapper( cls, metadata, Order ):

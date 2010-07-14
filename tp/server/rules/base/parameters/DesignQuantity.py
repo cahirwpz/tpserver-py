@@ -24,6 +24,8 @@ class DesignQuantity( SQLBase ):#{{{
 #}}}
 
 class DesignQuantityParam( object ):#{{{
+	__maps_to__ = 'list'
+
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, DesignQuantity ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignQuantityList', properties = {

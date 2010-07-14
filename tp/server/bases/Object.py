@@ -7,7 +7,6 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from tp.server.db import DatabaseManager
 
 from SQL import SQLBase
-from Parameter import ParameterDictMixin
 
 class Vector3D( object ):#{{{
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -30,7 +29,7 @@ class Vector3D( object ):#{{{
 		return not self.__eq__( other )
 #}}}
 
-class Object( SQLBase, ParameterDictMixin ):#{{{
+class Object( SQLBase ):#{{{
 	"""
 	The basis for all objects that exist.
 	"""
@@ -164,7 +163,7 @@ class Object( SQLBase, ParameterDictMixin ):#{{{
 		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type )
 #}}}
 
-class ObjectParameters( SQLBase ):#{{{
+class ObjectParameter( SQLBase ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -183,4 +182,4 @@ class ObjectParameters( SQLBase ):#{{{
 			})
 	#}}}
 
-__all__ = [ 'Object', 'ObjectParameters', 'Vector3D' ]
+__all__ = [ 'Object', 'ObjectParameter', 'Vector3D' ]

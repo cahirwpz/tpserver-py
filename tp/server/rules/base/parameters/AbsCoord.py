@@ -6,6 +6,8 @@ from sqlalchemy.orm import mapper, composite
 from tp.server.bases import Vector3D
 
 class AbsCoordParam( object ):#{{{
+	__maps_to__ = 'position'
+
 	@classmethod
 	def InitMapper( cls, metadata, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

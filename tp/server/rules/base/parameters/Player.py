@@ -4,6 +4,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
 class PlayerParam( object ):#{{{
+	__maps_to__ = 'player'
+
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

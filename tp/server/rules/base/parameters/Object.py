@@ -4,6 +4,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
 class ObjectParam( object ):#{{{
+	__maps_to__ = 'object'
+
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

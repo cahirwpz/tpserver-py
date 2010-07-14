@@ -4,6 +4,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 class StringParam( object ):#{{{
+	__maps_to__ = 'value'
+
 	# TODO: constraint checking!
 	#  - 'value' string must be shorter than 'max' characters
 	@classmethod

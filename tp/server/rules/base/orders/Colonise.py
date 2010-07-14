@@ -3,19 +3,20 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import ParameterDesc
+from tp.server.bases import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ObjectParam
 
 class ColoniseOrder( object ):#{{{
 	"""
 	Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 	"""
-	__parameters__ = dict(
-			target	= ParameterDesc(
-				type		= ObjectParam,
-				default		= None,
-				level		= 'public',
-				description	= "ID of object to colonise." ))
+	__metaclass__ = ParametrizedClass
+
+	target	= ParameterDesc(
+			type		= ObjectParam,
+			default		= None,
+			level		= 'public',
+			description	= "ID of object to colonise." )
 
 	@classmethod
 	def InitMapper( cls, metadata, Order ):
