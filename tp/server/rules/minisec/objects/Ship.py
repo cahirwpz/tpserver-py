@@ -15,7 +15,8 @@ class Ship( SQLBase, SelectableByName ):
 				Column('primary_damage', Integer, nullable = False ),
 				Column('backup_damage',  Integer, nullable = False ),
 				Column('backup_damage',  Integer, nullable = False ),
-				Column('speed',          Integer, nullable = False ))
+				Column('speed',          Integer, nullable = False ),
+				Column('build_time',     Integer, nullable = False ))
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
