@@ -1,24 +1,9 @@
+#!/usr/bin/env
 
 from tp.server.bases.Object import Object
 from tp.server.bases.Order import Order
 
-def WalkUniverse(top, order, callback, *args, **kw):
-	"""\
-	Walks around the universe and calls a command for each object.
-	
-	If the first argument is "before" parents will be called before there children.
-	If the first argument is "after" parents will be called after there children.
-	"""
-	if order == "before":
-		callback(top, *args, **kw)
-
-	for id in top.contains():
-		WalkUniverse(Object(id), order, callback, *args, **kw)
-
-	if order == "after":
-		callback(top, *args, **kw)
-
-def OrderGet():
+def OrderGet():#{{{
 	d = {}
 
 	for id in Order.active():
@@ -28,8 +13,9 @@ def OrderGet():
 
 		d[order.type].append(order)
 	return d
+#}}}
 
-def ReparentOne(obj):
+def ReparentOne(obj):#{{{
 	# Reparent the object
 	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby=Object.bypos_size)
 	print "Possible parents", parents
@@ -40,3 +26,6 @@ def ReparentOne(obj):
 		obj.parent = parents[0]
 	else:
 		print "No parents left! Using Universe."
+#}}}
+
+__all__ = [ 'OrderGet', 'ReparentOne' ]

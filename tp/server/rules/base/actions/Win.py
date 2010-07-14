@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-"""
-This action sends the player a message to the winning player.
-"""
+from tp.server.rules.base import UniverseAction
 
-from tp.server.utils import WalkUniverse
-from tp.server.rules.base import Action
+class WinAction( UniverseAction ):#{{{
+	"""
+	This action sends the player a message to the winning player.
+	"""
 
-class WinAction( Action ):#{{{
 	def __call__( self, top ):
 		owners = {}
 
@@ -15,7 +14,7 @@ class WinAction( Action ):#{{{
 			if hasattr(obj, "owner") and obj.owner > 0:
 				owners[obj.owner] = None
 
-		WalkUniverse(top, "after", h)
+		super( WinAction, self)( top, "after", h )
 
 		if len(owners.keys()) == 1:
 			winner = owners.keys()[0]

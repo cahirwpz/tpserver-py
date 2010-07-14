@@ -1,12 +1,12 @@
-"""
-Heals a fleet to full health if they are orbiting a friendly planet.
-"""
+#!/usr/bin/env python
 
-from tp.server.bases.Object import Object
-from tp.server.rules.base import Action
-from tp.server.utils import WalkUniverse
+from tp.server.rules.base import UniverseAction
 
-class HealAction( Action ):#{{{
+class HealAction( UniverseAction ):#{{{
+	"""
+	Heals a fleet to full health if they are orbiting a friendly planet.
+	"""
+
 	def heal( self, obj ):
 		if obj.type == "sobjects.Fleet":
 			parent = Object(obj.parent)
@@ -17,7 +17,7 @@ class HealAction( Action ):#{{{
 					obj.save()
 			
 	def __call__( self, top ):
-		WalkUniverse( top, "before", self.heal )
+		super( HealAction, self)( top, "before", self.heal )
 #}}}
 
 __all__ = [ 'HealAction' ]

@@ -521,10 +521,9 @@ def combat(working, bxmloutput=None):
 ##		m.body += "<ul>%s</ul><ul>%s</ul>" % (you, other)
 ##		m.insert()
 
-from tp.server.rules.base import Action, Combatant
-from tp.server.utils import WalkUniverse
+from tp.server.rules.base import UniverseAction, Combatant
 
-class FleetCombatAction( Action ):
+class FleetCombatAction( UniverseAction ):
 	def __call__( self, top ):
 		def h(obj, d):
 			# Check the object can go into combat
@@ -543,7 +542,7 @@ class FleetCombatAction( Action ):
 
 		d = {}
 
-		WalkUniverse(top, "before", h, d)
+		super( FleetCombatAction, self)( top, "before", h, d )
 
 		for pos, fleets in d.items():
 			if len(fleets) < 2:

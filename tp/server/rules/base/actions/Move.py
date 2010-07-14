@@ -4,10 +4,10 @@
 Moves any object which has a velocity.
 """
 
-from tp.server.utils import WalkUniverse, ReparentOne
-from tp.server.rules.base import Action
+from tp.server.utils import ReparentOne
+from tp.server.rules.base import UniverseAction
 
-class MoveAction( Action ):
+class MoveAction( UniverseAction ):
 	def move( self, obj ):
 		if (obj.velx, obj.vely, obj.velz) != (0,0,0):
 			print "Moving object %s from (%s, %s, %s) to (%s, %s, %s)" % (
@@ -21,6 +21,6 @@ class MoveAction( Action ):
 			obj.save()
 			
 	def __call__( self, top ):
-		WalkUniverse( top, "after", self.move )
+		super( MoveAction, self )( top, "after", self.move )
 
 __all__ = [ 'MoveAction' ]
