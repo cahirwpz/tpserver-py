@@ -3,17 +3,13 @@ import os.path
 import csv
 import random
 
-from tp.server.utils import ReparentOne
 from tp.server.db import *
-
-from tp.server.bases import Object
 
 from tp.server.rules.base import Ruleset as RulesetBase
 from tp.server.rules.base.orders import WaitOrder
-from tp.server.rules.minisec.actions import Turn
+from tp.server.rules.base.utils import ReparentOne
+from tp.server.rules.minisec.actions import TurnAction
 
-from bases.Resource import ResourceType
-	
 SIZE = 10000000
 
 class Ruleset(RulesetBase):
@@ -30,7 +26,7 @@ class Ruleset(RulesetBase):
 	# The order orders and actions occur
 	orderOfOrders = [
 			WaitOrder, 			# Wait needs to occur last
-			Turn, 				# Increase the Universe's "Turn" value
+			TurnAction,			# Increase the Universe's "Turn" value
 	]
 
 	def initialise(self, seed = None):

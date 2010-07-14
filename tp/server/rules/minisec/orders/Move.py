@@ -3,9 +3,8 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.utils import ReparentOne
-
 from tp.server.bases import ParameterDesc, ParametrizedClass
+from tp.server.rules.base.utils import ReparentOne
 from tp.server.rules.base.parameters import AbsCoordParam
 
 import math

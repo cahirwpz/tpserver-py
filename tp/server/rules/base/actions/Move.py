@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-"""
-Moves any object which has a velocity.
-"""
-
-from tp.server.utils import ReparentOne
 from tp.server.rules.base import UniverseAction
+from tp.server.rules.base.utils import ReparentOne
 
 class MoveAction( UniverseAction ):
+	"""
+	Moves any object which has a velocity.
+	"""
+
 	def move( self, obj ):
 		if (obj.velx, obj.vely, obj.velz) != (0,0,0):
 			print "Moving object %s from (%s, %s, %s) to (%s, %s, %s)" % (

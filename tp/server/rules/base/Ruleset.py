@@ -4,7 +4,7 @@ import sys
 from types import TupleType
 
 from tp.server.db import DatabaseManager
-from tp.server.utils import OrderGet
+from tp.server.rules.base.utils import OrderGet
 
 class Ruleset(object):#{{{
 	"""
