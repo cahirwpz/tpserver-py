@@ -1,12 +1,17 @@
-"""\
-Heals a fleet to full health if they are orbiting a friendly planet.
-"""
+#!/usr/bin/env python
 
-from tp.server.bases.Object import Object
+from tp.server.rules.base import Action
 
-def do(top):
-	universe = Object(id=0)
-	universe.turn += 1
-	print "Turn number is now", universe.turn
-	universe.save()
+class TurnAction( Action ):#{{{
+	"""
+	Increases age of the universe.
+	"""
 
+	def __call__( self, top ):
+		universe = Object(id=0)
+		universe.turn += 1
+		print "Turn number is now", universe.turn
+		universe.save()
+#}}}
+
+__all__ = [ 'TurnAction' ]

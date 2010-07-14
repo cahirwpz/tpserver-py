@@ -1,7 +1,8 @@
+#!/usr/bin/env python
 
 import random
 
-class Ship:
+class Ship( object ):
     draw_damage = 0
     win_damage = 0
 
@@ -14,7 +15,7 @@ class Ship:
     def alive(self):    
         return self.hp > 0
 
-class Frigate(Ship):
+class Frigate( Ship ):
     """
     I cause 2 hp of damage on win. I always fire first.
     I move 2 units per turn.
@@ -76,7 +77,7 @@ class Planet(Ship):
     def own(self, fleet):
         fleet.planets.append(self)
 
-class Fleet:    
+class Fleet( object ):
     def __init__(self, ships):
         # For scouts, so they can run away.
         self.running = 0
@@ -217,11 +218,5 @@ def battle(red, blue):
     elif blue.running:
         print "Blue Ran Away"
 
-
-battle(
-    Fleet([Frigate(), Battleship(), Scout(), Battleship(),Battleship(), Battleship(),  ]),
-    Fleet([Battleship(), Battleship(), Planet()])
-    )
-
-
-
+battle( Fleet([Frigate(), Battleship(), Scout(), Battleship(),Battleship(),
+		Battleship(),  ]), Fleet([Battleship(), Battleship(), Planet()]))

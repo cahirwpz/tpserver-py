@@ -521,51 +521,50 @@ def combat(working, bxmloutput=None):
 ##		m.body += "<ul>%s</ul><ul>%s</ul>" % (you, other)
 ##		m.insert()
 
-def do(top):
-	from tp.server.bases.Combattant import Combattant
+from tp.server.rules.base import Action, Combatant
+from tp.server.utils import WalkUniverse
 
-	from tp.server.bases.Message import Message
-	from tp.server.utils import WalkUniverse
+class FleetCombatAction( Action ):
+	def __call__( self, top ):
+		def h(obj, d):
+			# Check the object can go into combat
+			if not isinstance(obj, Combatant):
+				return
 
-	def h(obj, d):
-		# Check the object can go into combat
-		if not isinstance(obj, Combattant):
-			return
+			# Check the object isn't owned by the universe
+			if obj.owner == -1:
+				return
 
-		# Check the object isn't owned by the universe
-		if obj.owner == -1:
-			return
+			pos = obj.posx, obj.posy, obj.posz
+			if not d.has_key(pos):
+				d[pos] = []
 
-		pos = obj.posx, obj.posy, obj.posz
-		if not d.has_key(pos):
-			d[pos] = []
+			d[pos].append(obj)
 
-		d[pos].append(obj)
+		d = {}
 
-	d = {}
-	WalkUniverse(top, "before", h, d)
+		WalkUniverse(top, "before", h, d)
 
-	for pos, fleets in d.items():
-		if len(fleets) < 2:
-			continue
-			
-		if len(dict.fromkeys([fleet.owner for fleet in fleets])) <= 1:
-			continue
-	
-		# Build the sides
-		sides = {}
-		for fleet in fleets:
-			if not sides.has_key(fleet.owner):
-				sides[fleet.owner] = Side(fleet.owner, 0, 0, 0, 0, 0)
+		for pos, fleets in d.items():
+			if len(fleets) < 2:
+				continue
+				
+			if len(dict.fromkeys([fleet.owner for fleet in fleets])) <= 1:
+				continue
+		
+			# Build the sides
+			sides = {}
+			for fleet in fleets:
+				if not sides.has_key(fleet.owner):
+					sides[fleet.owner] = Side(fleet.owner, 0, 0, 0, 0, 0)
 
-			if fleet.type.endswith("Planet"):
-				sides[fleet.owner].addships(Planet=1)
-			else:
-				for type, amount in fleet.ships.items():
-					sides[fleet.owner].addships(**{['Scout', 'Frigate', 'Battleship'][type]: amount})
+				if fleet.type.endswith("Planet"):
+					sides[fleet.owner].addships(Planet=1)
+				else:
+					for type, amount in fleet.ships.items():
+						sides[fleet.owner].addships(**{['Scout', 'Frigate', 'Battleship'][type]: amount})
 
-		r = combat(sides.values())
-
+			r = combat(sides.values())
 
 def main():
 	"""\
@@ -607,3 +606,5 @@ Input file format,
 
 if __name__ == "__main__":
 	main()
+
+__all__ = [ 'FleetCombatAction' ]
