@@ -1,18 +1,15 @@
 
 import os.path
-import csv
-import random
 
 from tp.server.db import *
 
-from tp.server.rules.base import Ruleset as RulesetBase
+from tp.server.rules.minisec import Ruleset as RulesetBase
 from tp.server.rules.base.orders import WaitOrder
-from tp.server.rules.base.utils import ReparentOne
 from tp.server.rules.minisec.actions import TurnAction
 
-SIZE = 10000000
+import ProducersConsumers
 
-class Ruleset(RulesetBase):
+class Ruleset( RulesetBase ):
 	"""
 	TIM Trader Ruleset.
 
@@ -23,211 +20,127 @@ class Ruleset(RulesetBase):
 	version = "0.0.1"
 
 	files = os.path.join(os.path.dirname(__file__), "other")
+
 	# The order orders and actions occur
 	orderOfOrders = [
 			WaitOrder, 			# Wait needs to occur last
 			TurnAction,			# Increase the Universe's "Turn" value
 	]
 
-	def initialise(self, seed = None):
+	def initialise( self, seed = None ):
 		super( Ruleset, self ).initialise()
 
+		ResourceType = self.game.objects.use( 'ResourceType' )
+
+		# Create all the resources, they consist of,
+		#  - One resource for each resource specified in resources.csv
+		#  - One resource for each factory specified  in prodcon.csv
+
+		ResourceType.FromCSV( os.path.join( self.files, "resources.csv" ) )
+
+		resources = []
+
+		for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
+			# FIXME: Make these auto generated resources much nicer...
+			# Ignore the special case factories which are also goods.
+
+			r = ResourceType.ByName( factory.name )
+
+			if r is None:
+				r = ResourceType(
+						name_singular	= factory.name,
+						name_plural		= factory.name,
+						description		= "",		
+						weight			= 1000,
+						size			= 1000 )
+			else:
+				r.description += "\n"
+
+			r.description += "Converts"
+
+			for product in factory.products:
+				# FIXME: Should also display if usage of this resource is required to grow....
+				r.description += "\n\t%s -> %s" % product
+
+			r.products = factory.products
+
+			resources.append( r )
+
 		with DatabaseManager().session() as session:
-			# Need to create the top level universe object...
-			universe = Object(
-					type = 'Universe',
-					name = "The Universe",
-					size = SIZE)
-
-			session.add( universe )
-
-			# Create all the resources, they consist of,
-			#   - One resource for each resource specified in resources.csv
-			#   - One resource for each factory specified  in prodcon.csv
-
-			reader = csv.DictReader(open(os.path.join(self.files, "resources.csv"), "r"))
-
-			for row in reader:
-				if row['namesingular'] is '':
-					continue
-
-				r = ResourceType()
-				for name, cell in row.iteritems():
-					if cell is '':
-						continue
-					try:
-						setattr(r, name, convert(getattr(ResourceType.table.c, name), cell))
-					except AttributeError, e:
-						# FIXME: These shouldn't really occur...
-						pass
-
-				r.transportable = bool(row['transportable'])
-
-				r.insert()
-
-			import ProducersConsumers
-
-			for factory in ProducersConsumers.loadfile(os.path.join(self.files, "prodcon.csv")):
-				# FIXME: Make these auto generated resources much nicer...
-				# Ignore the special case factories which are also goods.
-				try:
-					r = ResourceType(ResourceType.byname(factory.name))
-					r.desc += "\n"
-				except NoSuch:
-					r = ResourceType()
-					r.namesingular = factory.name
-					r.nameplural   = factory.name
-					r.desc         = ""				
-					r.weight = 1000
-					r.size   = 1000
-
-				r.desc  += "Converts"
-				for product in factory.products:
-					# FIXME: Should also display if usage of this resource is required to grow....
-					r.desc += "\n\t%s -> %s" % product
-
-				r.products = factory.products
-				r.save()
-
-			trans.commit()
-
-		# FIXME: Need to populate the database with the MiniSec design stuff,
-
+			for r in resources:
+				session.add( r )
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
-		"""\
+		"""
 		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
 		
 			Populate a universe with a number of systems and planets.
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		# Convert arguments to integers
-		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
+		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
 
-		dbconn.use(self.game)
-		trans = dbconn.begin()
-		try:
-			RulesetBase.populate(self, seed)
+		Object, ResourceQuantity, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceType' )
 
-			r = ResourceType(ResourceType.byname('Ship Parts Factory'))
+		ship_parts_factory = ResourceType.ByName('Ship Parts Factory')
 
-			# FIXME: Assuming that the Universe and the Galaxy exist.
-			r = random.Random()
-			r.seed(seed)
+		Minerals	= [ ResourceType.ByName( name ) for name in [ 'Uranium', 'Iron Ore' ] ]
+		Growing		= []
+		Factories	= []
 
-			# Create the actual systems and planets.
-			for i in range(0, r.randint(system_min, system_max)):
-				pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
-				
-				# Add system
-				system = Object(type='tp.server.rules.base.objects.System')
-				system.name = "System %s" % i
-				system.size = r.randint(800000, 2000000)
-				system.posx = pos[0]
-				system.posy = pos[1]
-				system.insert()
-				ReparentOne(system)
-				system.save()
-				print "Created system (%s) with the id: %i" % (system.name, system.id)
-				
-				# In each system create a number of planets
-				for j in range(0, r.randint(planet_min, planet_max)):
-					planet = Object(type='tp.server.rules.timtrader.objects.Planet')
-					planet.name = "Planet %i in %s" % (j, system.name)
-					planet.size = r.randint(1000, 10000)
-					planet.parent = system.id
-					planet.posx = pos[0]+r.randint(1,100)*1000
-					planet.posy = pos[1]+r.randint(1,100)*1000
-					planet.insert()
-					print "Created planet (%s) with the id: %i" % (planet.name, planet.id)
+		for planet in Object.ByType('Planet'):
+			# FIXME: Add minerals Iron, Uranium
+			mine = False
 
-					# FIXME: Add minerals Iron, Uranium
-					mine = False
-					for mineral in minerals:
-						# Does this planet have this mineral
-						if r.random()*100 > mineral.probability:
-							# Add a smattering of minerals 
-							planet.resources_add(id, r.randint(0, mineral.density), Planet.MINEABLE)
-							mine = True
+			for mineral in Minerals:
+				# Does this planet have this mineral
+				if self.random.random() * 100 > mineral.probability:
+					# Add a smattering of minerals 
+					planet.resources.append(
+							resource	= mineral,
+							extractable	= self.random( 0, mineral.density ) )
 
-					# Add a mine to each planet which has minerals
-					if mine:
-						planet.resources_add(ResourceType.byname('Mine'), 1, Planet.ACCESSABLE)
-						
-					# FIXME: Add growing resources
-					for grow in growing:
-						if r.random()*100 > grow.probability:
-							# Add a smattering of breeding grounds
-							planet.resources_add(ResourceType.byname(''), 1, Planet.ACCESSABLE)
-							
-							# Add a smattering of the same stocks
-							planet.resources_add(ResourceType.byname(''), r.randint(0, grow.density), Planet.MINEABLE)
-						
+					mine = True
 
-							# Add 1 fishery/slaughter house to each location
+			# Add a mine to each planet which has minerals
+			if mine:
+				planet.resources.append(
+						resource	= ResourceType.ByName('Mine'),
+						acessible	= 1 )
+			
+			# FIXME: Add growing resources
+			for resource in Growing:
+				if self.random.random() * 100 > resource.probability:
+					# Add a smattering of breeding grounds
+					planet.resources.append(
+							resource	= ResourceType.ByName(''),
+							accessible	= 1 )
+					
+					# Add a smattering of the same stocks
+					planet.resources.append(
+							resource	= ResourceType.ByName(''),
+							extractable	= self.random.randint( 0, resource.density ))
 
-					# FIXME: Add a other industries in random locations
-					for factory in factories:
-						pass
+					# Add 1 fishery/slaughter house to each location
 
-					# FIXME: Add a bunch of cities					
-					planet.save()
+			# FIXME: Add a other industries in random locations
+			for factory in Factories:
+				pass
 
-			trans.commit()
-		except:
-			trans.rollback()
-			raise
+			# FIXME: Add a bunch of cities
 
-	def player(self, username, password, email='Unknown', comment='A Minisec Player'):
-		"""\
+	def player( self, username, password, email = 'Unknown', comment = 'A TimTrader Player' ):
+		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		dbconn.use(self.game)
-	
-		trans = dbconn.begin()
-		try:
-			user = RulesetBase.player(self, username, password, email, comment)
+		user, system, planet, fleet = super( Ruleset, self ).player( username, password, email, comment )
 
-			# FIXME: Hack! This however means that player x will always end up in the same place..
-			r = random.Random()
-			r.seed(user.id)
+		ResourceQuantity, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceType' )
 
-			pos = r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000, r.randint(SIZE*-1, SIZE)*1000
+		# Get the player's planet object and add the empire capital
+		planet.resources = [ 
+				ResourceQuantity( resource = ResourceType.ByName('Header Quarter'), accessible = 1 ),
+				ResourceQuantity( resource = ResourceType.ByName('Credit'), accessible = 10000 ) ]
 
-			system = Object(type='tp.server.rules.base.objects.System')
-			system.name = "%s Solar System" % username
-			system.parent = 0
-			system.size = r.randint(800000, 2000000)
-			(system.posx, system.posy, junk) = pos
-			ReparentOne(system)
-			system.owner = user.id
-			system.save()
-
-			planet = Object(type='tp.server.rules.timtrader.objects.Planet')
-			planet.name = "%s Planet" % username
-			planet.parent = system.id
-			planet.size = 100
-			planet.posx = system.posx+r.randint(1,100)*1000
-			planet.posy = system.posy+r.randint(1,100)*1000
-			planet.owner = user.id
-
-			# Get the player's planet object and add the empire capital
-			planet.resources_add(ResourceType.byname('Header Quarter'), 1)
-			planet.resources_add(ResourceType.byname('Credit'), 10000)
-
-			planet.save()
-
-			fleet = Object(type='tp.server.rules.minisec.objects.Fleet')
-			fleet.parent = planet.id
-			fleet.size = 3
-			fleet.name = "%s First Fleet" % username
-			fleet.ships = {1:3}
-			(fleet.posx, fleet.posy, fleet.posz) = (planet.posx, planet.posy, planet.posz)
-			fleet.owner = user.id
-			fleet.save()
-
-			trans.commit()
-		except:
-			trans.rollback()
-			raise
+		with DatabaseManager().session() as session:
+			session.add( planet )
