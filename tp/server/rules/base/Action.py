@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+
+class Action( object ):#{{{
+	def __call__( self, *args, **kwargs ):
+		pass
+#}}}
+
 class ActionMixin( object ):#{{{
 	"""
 	Anything that happens without requiring the user to initiate.
@@ -11,3 +18,5 @@ class ActionMixin( object ):#{{{
 		A parent will appear before it's child.
 		"""
 #}}}
+
+__all__ = [ 'Action' ]

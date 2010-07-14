@@ -1,6 +1,4 @@
-"""
-Ruleset base.
-"""
+#!/usr/bin/env python
 
 import sys
 from types import TupleType
