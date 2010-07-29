@@ -22,7 +22,7 @@ class ObjectFactoryMixin( FactoryMixin ):#{{{
 				[] )
 #}}}
 
-class GetObjectIDs( GetIDSequenceHandler, ObjectFactoryMixin ):#{{{
+class GetObjectIDs( GetIDSequenceHandler ):#{{{
 	"""
 	Request:  GetObjectIDs :: GetIDSequence
 	Response: IDSequence

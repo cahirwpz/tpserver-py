@@ -34,9 +34,12 @@ class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):#{{{
 
 	def getItem( self, board, slot ):
 		try:
-			return board.messages[ slot ]
+			msg = board.messages[ slot ]
 		except IndexError:
 			return None
+		else:
+			msg.number = slot
+			return msg
 #}}}
 
 class RemoveMessage( GetWithIDSlotHandler ):#{{{

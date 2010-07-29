@@ -53,7 +53,7 @@ class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):#{{{
 		return bool( category.owner in [ None, self.player ] )
 #}}}
 
-class GetCategoryIDs( GetIDSequenceHandler, CategoryFactoryMixin ):#{{{
+class GetCategoryIDs( GetIDSequenceHandler ):#{{{
 	"""
 	Request:  GetCategoryIDs :: GetIDSequence
 	Response: IDSequence

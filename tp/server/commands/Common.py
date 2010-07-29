@@ -105,7 +105,25 @@ class RemoveWithIDHandler( RequestHandler ):#{{{
 		return response
 #}}}
 
-class GetIDSequenceHandler( RequestHandler ):#{{{
+class IDSequence( object ):#{{{
+	def __init__( self, key, remaining, objects ):
+		self.key       = key
+		self.remaining = remaining
+		self.objects   = objects
+	#}}}
+
+class IDSequenceFactoryMixin( FactoryMixin ):#{{{
+	def toPacket( self, request, obj ):
+		Packet = self.protocol.use( self.__packet__ )
+
+		return Packet(
+				request._sequence,
+				obj.key,
+				obj.remaining,
+				[ ( obj.id, self.datetimeToInt( obj.mtime ) ) for obj in obj.objects ] )
+#}}}
+
+class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 	__object__ = None
 	__packet__ = None
 
@@ -116,9 +134,7 @@ class GetIDSequenceHandler( RequestHandler ):#{{{
 	def __call__( self, request ):
 		Object = self.game.objects.use( self.__object__ )
 
-		msg( self.__packet__ )
-
-		Packet, Fail = self.protocol.use( self.__packet__, 'Fail' )
+		Fail = self.protocol.use( 'Fail' )
 
 		last = Object.query().filter( self.filter ).order_by( Object.mtime ).first()
 
@@ -134,19 +150,14 @@ class GetIDSequenceHandler( RequestHandler ):#{{{
 			return Fail( request._sequence, "NoSuchThing", "Requested too many IDs. (Requested %s, actually %s)" % (request.start + request.amount, total))
 
 		if request.amount == -1:
-			left  = 0
-			end   = request.start + total
+			# if amount equals to -1 then only give number of available items
+			response = IDSequence( key, total, [] )
 		else:
-			left = total - ( request.start + request.amount )
-			end  = request.start + request.amount
+			response = IDSequence( key, 
+					total - ( request.start + request.amount ),
+					Object.query().filter( self.filter ).order_by( Object.mtime )[ request.start : request.start + request.amount ] )
 
-		objs = Object.query().filter( self.filter ).order_by( Object.mtime )[ request.start : end ]
-
-		return Packet(
-				request._sequence,
-				key,
-				left,
-				[ ( obj.id, self.datetimeToInt( obj.mtime ) ) for obj in objs ] )
+		return self.toPacket( request, response )
 	#}}}
 
 class GetWithIDSlotHandler( RequestHandler ):#{{{
