@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import ParameterDesc
+from tp.server.model import ParameterDesc
 from tp.server.rules.base.parameters import AbsCoordParam
 
 class Wormhole( object ):#{{{

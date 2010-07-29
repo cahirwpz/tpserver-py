@@ -1,6 +1,6 @@
 from logging import logctx, msg, err
 
-from tp.server.bases import Game, Player
+from tp.server.model import Game, Player
 from cmdhandler import CommandDispatcher
 
 from packet import PacketFactory

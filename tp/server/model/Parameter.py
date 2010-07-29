@@ -5,7 +5,7 @@ import inspect
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import SQLBase
+from tp.server.model import SQLBase
 
 class ParameterDesc( object ):#{{{
 	def __init__( self, type, level, default = None, description = None ):

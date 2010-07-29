@@ -2,8 +2,9 @@
 
 import csv, datetime
 
+import sqlalchemy as sql
 from sqlalchemy import *
-from tp.server.db import *
+from tp.server.model import *
 
 class NoSuchThing( Exception ):#{{{
 	pass
@@ -21,6 +22,42 @@ class SelectableByName( object ):#{{{
 	@classmethod
 	def ByName( cls, name ):
 		return DatabaseManager().query( cls ).filter_by( name = name ).first()
+#}}}
+
+class Enum( sql.types.Unicode ):#{{{
+	def __init__( self, values, empty_to_none = False ):      
+		"""
+		contruct an Enum type
+
+		values : a list of values that are valid for this column
+		empty_to_none : treat the empty string '' as None
+		"""
+		if values is None or len(values) is 0:
+			raise exceptions.AssertionError('Enum requires a list of values')
+
+		self.empty_to_none = empty_to_none
+		self.values = values
+
+		# the length of the string/unicode column should be the longest string
+		# in values
+		size = max( len(v) for v in values if v is not None )
+
+		super( Enum, self ).__init__( size )
+
+	def convert_bind_param( self, value, engine ):
+		if self.empty_to_none and value is '':
+			value = None
+
+		if value not in self.values:
+			raise exceptions.AssertionError( '"%s" not in Enum.values' % value )
+
+		return super( Enum, self ).convert_bind_param( value, engine )
+
+	def convert_result_value( self, value, engine ):
+		if value not in self.values:
+			raise exceptions.AssertionError( '"%s" not in Enum.values' % value )
+
+		return super( Enum, self ).convert_result_value( value, engine )
 #}}}
 
 class SQLBase( object ):#{{{
@@ -129,4 +166,4 @@ class SQLBase( object ):#{{{
 				session.add( obj )
 #}}}
 
-__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'SQLBase', 'SelectableByName' ]
+__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'Enum', 'SQLBase', 'SelectableByName' ]

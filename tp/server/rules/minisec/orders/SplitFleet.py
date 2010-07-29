@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 import copy
 
-from tp.server.bases import ParameterDesc, ParametrizedClass
+from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ReferenceListParam, StringParam
 
 class SplitFleetOrder( object ):#{{{

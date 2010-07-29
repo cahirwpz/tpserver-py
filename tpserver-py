@@ -5,7 +5,7 @@ import requirements
 from twisted.internet import reactor
 
 from tp.server.configuration import CLIConfigurator, ConfigurationError
-from tp.server.db import DatabaseManager, DatabaseConfiguration
+from tp.server.model import DatabaseManager, DatabaseConfiguration
 
 DatabaseManager()
 

@@ -1,5 +1,5 @@
 
-from tp.server.bases import Object, Order, Message
+from tp.server.model import Object, Order, Message
 
 from tp.server.rules.minisec.objects.Fleet import Fleet
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env
 
-from tp.server.bases.Object import Object
-from tp.server.bases.Order import Order
+from tp.server.model.Object import Object
+from tp.server.model.Order import Order
 
 def OrderGet():#{{{
 	d = {}

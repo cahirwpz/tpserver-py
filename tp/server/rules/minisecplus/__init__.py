@@ -2,7 +2,7 @@
 
 import os.path 
 
-from tp.server.db import DatabaseManager
+from tp.server.model import DatabaseManager
 
 from tp.server.rules.minisec import Ruleset as MinisecRuleset
 

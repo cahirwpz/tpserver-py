@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from tp.server.db import DatabaseManager
+from tp.server.model import DatabaseManager
 
 from SQL import SQLBase
 

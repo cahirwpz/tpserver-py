@@ -11,9 +11,8 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.rules import RulesetManager
-from tp.server.db import DatabaseManager
-from tp.server.db.enum import Enum
-from SQL import SQLBase, SelectableByName
+from tp.server.model import DatabaseManager
+from SQL import Enum, SQLBase, SelectableByName
 
 def untitle( s ):
 	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
@@ -321,7 +320,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 		object.__setattr__( self, 'objects', ObjectManager( self ) )
 
 	def load( self ):
-		from tp.server.bases import ( Parameter, Player, Object, Board,
+		from tp.server.model import ( Parameter, Player, Object, Board,
 				Reference, Lock, Component, Property, ResourceType, Category,
 				Message, Order, Design, MessageReference,
 				ComponentCategory, ComponentProperty, DesignCategory,

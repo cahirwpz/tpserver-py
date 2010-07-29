@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases.SQL import SQLBase
+from tp.server.model.SQL import SQLBase
 
 class Reference( SQLBase ):#{{{
 	@classmethod

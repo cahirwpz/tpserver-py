@@ -1,7 +1,7 @@
 
 import os.path
 
-from tp.server.db import *
+from tp.server.model import *
 
 from tp.server.rules.minisec import Ruleset as RulesetBase
 from tp.server.rules.base.orders import WaitOrder

@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.bases import ParameterDesc, ParametrizedClass
+from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import TimeParam
 
 class WaitOrder( object ):#{{{

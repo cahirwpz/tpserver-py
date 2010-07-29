@@ -2,9 +2,9 @@
 
 import time
 
-from tp.server.bases import NoSuchThing, PermissionDenied
+from tp.server.model import NoSuchThing, PermissionDenied
 
-from tp.server.db import DatabaseManager
+from tp.server.model import DatabaseManager
 from tp.server.logging import msg
 
 class FactoryMixin( object ):#{{{

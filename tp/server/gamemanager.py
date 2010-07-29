@@ -2,8 +2,8 @@
 
 from collections import Mapping
 
-from tp.server.db import DatabaseManager, make_mapping
-from tp.server.bases import *
+from tp.server.model import DatabaseManager, make_mapping
+from tp.server.model import *
 from tp.server.logging import msg, logctx
 from tp.server.singleton import SingletonContainerClass
 

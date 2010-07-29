@@ -3,7 +3,7 @@
 import sys
 from types import TupleType
 
-from tp.server.db import DatabaseManager
+from tp.server.model import DatabaseManager
 from tp.server.rules.base.utils import OrderGet
 
 class Ruleset(object):#{{{

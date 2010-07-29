@@ -4,8 +4,8 @@ from sqlalchemy import *
 
 from types import TupleType, ListType
 
-from tp.server.bases import Object, Attribute, Design
-from tp.server.bases.Combattant import Combattant
+from tp.server.model import Object, Attribute, Design
+from tp.server.model.Combattant import Combattant
 
 UNIT = 300000000
 

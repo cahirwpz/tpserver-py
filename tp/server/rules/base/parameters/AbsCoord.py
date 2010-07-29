@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, composite
 
-from tp.server.bases import Vector3D
+from tp.server.model import Vector3D
 
 class AbsCoordParam( object ):#{{{
 	__maps_to__ = 'position'

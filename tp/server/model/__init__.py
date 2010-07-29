@@ -1,4 +1,4 @@
-from tp.server.db import DatabaseManager
+from DatabaseManager import *
 
 DatabaseManager()
 

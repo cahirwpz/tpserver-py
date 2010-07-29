@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-from tp.server.bases import SQLBase, SelectableByName
+from tp.server.model import SQLBase, SelectableByName
 
 class Ship( SQLBase, SelectableByName ):	
 	@classmethod

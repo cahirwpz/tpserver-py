@@ -1,7 +1,7 @@
 
-from tp.server.db import *
+from tp.server.model import *
 
-from tp.server.bases import ResourceType as ResourceTypeBase
+from tp.server.model import ResourceType as ResourceTypeBase
 
 from tp.server.rules.timtrader.ProducersConsumers import split
 

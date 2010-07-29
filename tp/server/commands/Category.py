@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.db import DatabaseManager
+from tp.server.model import DatabaseManager
 
 from Common import ( FactoryMixin, RequestHandler, GetWithIDHandler,
 		GetIDSequenceHandler, RemoveWithIDHandler )
