@@ -1,9 +1,36 @@
-from logging import logctx, msg, err
+#!/usr/bin/env python
 
+import inspect
+
+from collections import Mapping
+
+from tp.server.logging import logctx, msg, err
 from tp.server.model import Game, Player
-from cmdhandler import CommandDispatcher
+from tp.server.singleton import SingletonContainerClass
+from tp.server.packet import PacketFactory
 
-from packet import PacketFactory
+import tp.server.commands
+
+class CommandDispatcher( Mapping ):#{{{
+	__metaclass__ = SingletonContainerClass
+
+	def __init__( self ):
+		self.__commands = {}
+
+		for name, cls in inspect.getmembers( tp.server.commands, lambda o: inspect.isclass(o) ):
+			msg( "${grn1}Loaded %s command handler.${coff}" % cls.__name__ )
+
+			self.__commands[ name ] = cls
+		
+	def __getitem__( self, name ):
+		return self.__commands[ name ]
+
+	def __iter__( self ):
+		return self.__commands.__iter__()
+
+	def __len__( self ):
+		return self.__commands.__len__()
+#}}}
 
 class ClientSessionContext( object ):#{{{
 	def __init__( self ):
