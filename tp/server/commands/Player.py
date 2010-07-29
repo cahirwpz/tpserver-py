@@ -30,6 +30,12 @@ class GetPlayer( GetWithIDHandler, PlayerFactoryMixin ):#{{{
 	"""
 	__packet__ = 'Player'
 	__object__ = 'Player'
+
+	def fetch( self, obj, id ):
+		if id == 0:
+			return self.player
+
+		return GetWithIDHandler.fetch( self, obj, id )
 #}}}
 
 class Login( RequestHandler ):#{{{

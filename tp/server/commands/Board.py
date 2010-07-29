@@ -26,6 +26,12 @@ class GetBoards( GetWithIDHandler, BoardFactoryMixin ):#{{{
 
 	def authorize( self, board ):
 		return bool( board.owner in [ None, self.player ] )
+
+	def fetch( self, obj, id ):
+		if id == 0:
+			return self.player.board
+
+		return GetWithIDHandler.fetch( self, obj, id )
 #}}}
 
 class GetBoardIDs( GetIDSequenceHandler ):#{{{

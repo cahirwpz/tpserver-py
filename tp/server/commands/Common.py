@@ -41,6 +41,12 @@ class GetWithIDHandler( RequestHandler ):#{{{
 		"""
 		return True
 
+	def fetch( self, obj, id ):
+		"""
+		Fetches object with given id number.
+		"""
+		return obj.ById( id )
+
 	def __call__( self, request ):
 		Object = self.game.objects.use( self.__object__ )
 
@@ -49,7 +55,7 @@ class GetWithIDHandler( RequestHandler ):#{{{
 		response = []
 
 		for id in request.ids:
-			obj = Object.ById( id )
+			obj = self.fetch( Object, id )
 
 			if obj:
 				if self.authorize( obj ):
