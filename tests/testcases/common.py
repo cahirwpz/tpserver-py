@@ -82,7 +82,7 @@ class TestSession( ClientSessionHandler ):#{{{
 		self.bundle = []
 		self.count  = 0
 		self.status = True
-		self.protocol = PacketFactory().objects
+		self.protocol = PacketFactory()["TP03"]
 		self.scenarioList = []
 
 		self.failRequest  = None
@@ -101,7 +101,7 @@ class TestSession( ClientSessionHandler ):#{{{
 
 	@logctx
 	def packetReceived( self, packet ):
-		packet.type = PacketFactory().commandAsString( packet._type )
+		packet.type = packet.__class__.__name__
 
 		msg( "Received ${cyn1}%s${coff} packet." % packet.type, level="info" )
 
@@ -147,7 +147,7 @@ class TestSession( ClientSessionHandler ):#{{{
 			self.transport.sendPacket( request )
 
 			self.failRequest = request
-			self.failRequest.type = PacketFactory().commandAsString( request.type )
+			self.failRequest.type = request.__class__.__name__
 
 			if request is not None:
 				msg( "Sending ${cyn1}%s${coff} packet." % request._name, level="info" )
@@ -167,7 +167,9 @@ class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		self.scenarioList.append( self.__connect() )
 
 	def __connect( self ):
-		yield self.protocol.Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
+		Connect = self.protocol.use( 'Connect' )
+
+		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
 #}}}
 
 class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
@@ -181,6 +183,10 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		self.scenarioList.append( self.__login() )
 
 	def __login( self ):
-		yield self.protocol.Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-		yield self.protocol.Login( self.seq, "%s@%s" % ( self.Login, self.Game), self.Password ), Expect( 'Okay' )
+		Connect, Login = self.protocol.use( 'Connect', 'Login' )
+
+		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
+		yield Login( self.seq, "%s@%s" % ( self.Login, self.Game), self.Password ), Expect( 'Okay' )
 #}}}
+
+__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession', 'ConnectedTestSession', 'AuthorizedTestSession' ]

@@ -69,7 +69,7 @@ __all__ = [ 'TestSelector', 'TestSelectorConfiguration', 'TestManager' ]
 
 class TestRunner( object ):#{{{
 	def __init__( self, selector ):
-		self.__protocol	= PacketFactory().objects
+		self.__protocol	= PacketFactory()["TP03"]
 		self.__factory	= ThousandParsecClientFactory()
 		self.__selector	= selector
 

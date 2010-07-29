@@ -4,6 +4,8 @@ class PingRequest( ConnectedTestSession ):
 	""" Check if a server answers Ping packet properly. """
 
 	def __iter__( self ):
-		yield self.protocol.Ping( self.seq ), Expect( 'Okay' )
+		Ping = self.protocol.use( 'Ping' )
+
+		yield Ping( self.seq ), Expect( 'Okay' )
 
 __tests__ = [ PingRequest ]

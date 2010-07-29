@@ -56,36 +56,45 @@ class SQLBase( object ):#{{{
 		object.__setattr__( self, key, value )
 
 	@classmethod
-	def ByModTime( cls, user = None ):
-		"""
-		ByModTime() -> cls()
-		
-		Gets the last modified time for the type.
-		"""
-		return DatabaseManager().query( cls ).order_by( cls.__table__.c.mtime ).first()
+	def query( cls ):
+		return DatabaseManager().query( cls )
 
-	@classmethod
-	def ByIdRange( cls, user = None, start = 0, amount = -1 ):
-		"""
-		ByIdRange( start, amount ) -> [ cls(), ...]
-		
-		Get the last ids for this (that the user can see).
-		"""
-		if amount >= 0:
-			end = start + 1
-		else:
-			end = -1
+	#@classmethod
+	#def ByModTime( cls, filter = None ):
+	#	"""
+	#	ByModTime() -> cls()
+	#	
+	#	Gets the last modified time for the type.
+	#	"""
+	#	return DatabaseManager().query( cls ).filter( filter ).order_by( cls.mtime ).first()
 
-		return DatabaseManager().query( cls ).order_by( cls.__table__.c.mtime )[start:amount]
+	#@classmethod
+	#def ByIdRange( cls, filter = None, start = 0, amount = -1 ):
+	#	"""
+	#	ByIdRange( start, amount ) -> [ cls(), ...]
+	#	
+	#	Get the last ids for this (that the user can see).
+	#	"""
+	#	query = DatabaseManager().query( cls ).filter( filter ).order_by( cls.mtime )
+	#
+	#	if amount >= 0:
+	#		return query[start:(start + amount)]
+	#	else:
+	#		return query[start:]
 
-	@classmethod
-	def Count( cls, user = None ):
-		"""
-		Count( user ) -> int
-
-		Get the number of records in this table (that the user can see).
-		"""
-		return DatabaseManager().query( cls ).count()
+	#@classmethod
+	#def Count( cls, filter = None ):
+	#	"""
+	#	Count( filter ) -> int
+	#
+	#	Get the number of records in this table.
+	#	"""
+	#	query = DatabaseManager().query( cls )
+	#
+	#	if filter:
+	#		query = query.filter( filter )
+	#
+	#	return query.count()
 
 	@classmethod
 	def ByRealId( cls, user, id ):
@@ -98,12 +107,7 @@ class SQLBase( object ):#{{{
 
 	@classmethod
 	def ById( cls, id ):
-		result = DatabaseManager().query( cls ).filter_by( id = id ).first()
-
-		if result is None:
-			raise NoSuchThing
-
-		return result
+		return DatabaseManager().query( cls ).filter_by( id = id ).first()
 	
 	@classmethod
 	def FromCSV( cls, filename ):

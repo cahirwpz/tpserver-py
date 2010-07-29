@@ -117,7 +117,7 @@ class Ruleset(object):#{{{
 		The default function creates a new user, a board for the user and adds a
 		welcome message. It returns the newly created user object.
 		"""
-		Player, Board, Message, Slot = self.game.objects.use( 'Player', 'Board', 'Message', 'Slot' )
+		Player, Board, Message = self.game.objects.use( 'Player', 'Board', 'Message' )
 
 		player = Player(
 			username	= username,
@@ -130,21 +130,15 @@ class Ruleset(object):#{{{
 			name        = "Private message board for %s" % username,
 			description = "This board is used so that stuff you own (such as fleets and planets) can inform you of what is happening in the universe.")
 
-		message = Message(
-			subject = "Welcome to the Universe!",
-			body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun!" \
-					  "This game is currently playing version %s of %s." % ( username, self.version, self.name ))
-
-		slot = Slot(
-			message	= message,
-			board	= board,
-			number	= 0)
+		board.messages.append(
+			Message(
+				subject = "Welcome to the Universe!",
+				body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun!" \
+						  "This game is currently playing version %s of %s." % ( username, self.version, self.name )))
 
 		with DatabaseManager().session() as session:
 			session.add( player )
 			session.add( board )
-			session.add( message )
-			session.add( slot )
 
 		return player
 

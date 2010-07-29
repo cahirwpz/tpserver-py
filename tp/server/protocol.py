@@ -38,12 +38,12 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 
 					version, sequence, command, length = self.header
 
-					if version not in [ "TP03", "TP\x04\x00" ]:
-						self.sendPacket( PacketFactory().objects.Fail( 0, "Protocol %s not supported" % version ) )
+					if version not in PacketFactory():
+						self.sendPacket( PacketFactory()['default']['Fail']( 0, "Protocol %s not supported" % version ) )
 						self.loseConnection()
 
 					if length > 2**20:
-						self.sendPacket( PacketFactory().objects.Fail( 0, "Payload is too long (%d bytes)" % length ) )
+						self.sendPacket( PacketFactory()['default']['Fail']( 0, "Payload is too long (%d bytes)" % length ) )
 						self.loseConnection()
 
 			if self.header:
@@ -56,7 +56,7 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 
 					msg( "Received binary: %s" % binary.encode("hex"), level='debug2' )
 
-					packet = PacketFactory().fromBinary( command, binary )
+					packet = PacketFactory().fromBinary( version, command, binary )
 
 					if packet:
 						msg( "${cyn1}Received %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
@@ -87,3 +87,5 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 	def logPrefix( self ):
 		return self.__class__.__name__
 #}}}
+
+__all__ = [ 'ThousandParsecProtocol' ]

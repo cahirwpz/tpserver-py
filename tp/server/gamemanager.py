@@ -1,6 +1,5 @@
 #!/usr/bin/env
 
-import sqlalchemy.exc
 from collections import Mapping
 
 from tp.server.db import DatabaseManager, make_mapping

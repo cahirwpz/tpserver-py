@@ -1,155 +1,95 @@
-from singleton import SingletonClass
+#!/usr/bin/env python
+
+from singleton import SingletonContainerClass
 from logging import msg
 
 from tp.netlib import parser, structures
 
-import time
+import inspect, time
 
-def datetime2int( _time ):
-	return int( time.mktime( time.strptime( _time.ctime() ) ) )
+from collections import Mapping
 
-class PacketFactory( object ):#{{{
-	__metaclass__ = SingletonClass
+class ProtocolPackets( Mapping ):#{{{
+	def __init__( self, filename ):
+		packets = parser.parseFile( filename )
 
-	ProtocolDefinitionFile = "libtpproto2-py/tp/netlib/protocol3.xml"
+		self.__byId   = {}
+		self.__byName = {}
+
+		for name, cls in inspect.getmembers( packets, inspect.isclass ):
+			if hasattr( cls, '_id' ):
+				self.__byId[ cls._id ] = cls
+				self.__byName[ name ] = cls
+
+		self.__version = packets.version
+
+	@property
+	def version( self ):
+		return self.__version
+
+	def use( self, *names ):
+		if len( names ) == 1:
+			return self.__byName[ names[0] ]
+		else:
+			return tuple( self.__byName[ name ] for name in names )
+
+	def __getitem__( self, key ):
+		if isinstance( key, str ):
+			return self.__byName[ key ]
+		elif isinstance( key, int ):
+			return self.__byId[ key ]
+		else:
+			raise TypeError( "PacketTypes container can be indexed by %s or %s only" % ( int, str ) )
+
+	def __iter__( self ):
+		return self.__byName.__iter__()
+
+	def __len__( self ):
+		return self.__byName.__len__()
+#}}}
+
+ProtocolDefinitionFiles = [
+	( "TP03", "libtpproto2-py/tp/netlib/protocol3.xml" ) ]
+
+# Second protocol cannot be loaded because libtpproto2-py has a few global
+# variables which are used by both protocols causing errors
+# ( "TP\x04\x00", "libtpproto2-py/tp/netlib/protocol.xml" )
+
+class PacketFactory( Mapping ):#{{{
+	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
-		self.__objectsById = {}
-		self.__commandById = {}
+		self.__protocol = {}
 
-		self.objects = parser.parseFile( PacketFactory.ProtocolDefinitionFile )
+		for version, filename in ProtocolDefinitionFiles:
+			protocol = ProtocolPackets( filename )
 
-		msg("${yel1}Loaded definition for Thousand Parsec Protocol version %d${coff}" % int( self.objects.version[2:]))
+			self.__protocol[ version ] = protocol
 
-		# FIXME: use inspect module
-		for name in dir( self.objects ):
-			attr = getattr( self.objects, name )
+			msg("${yel1}Loaded definition for Thousand Parsec Protocol version %s.${coff}" % protocol.version )
 
-			try:
-				self.__objectsById[ attr._id ] = attr
-				self.__commandById[ attr._id ] = name
-			except AttributeError:
-				pass
+	def __getitem__( self, version ):
+		if version == 'default':
+			version = "TP03"
 
-	def isCommandValid( self, command ):
-		return self.__objectsById.has_key( command )
+		return self.__protocol.__getitem__( version )
 
-	def commandAsString( self, command ):
-		return self.__commandById[ command ]
+	def __iter__( self ):
+		return self.__protocol.__iter__()
 
-	def fromBinary( self, command, binary ):
-		if self.isCommandValid( command ):
-			try:
-				packet = self.__objectsById[ command ]()
-				packet.unpack( binary )
-			except AttributeError, ex:
-				msg(ex)
-				packet = None
-		else:
+	def __len__( self ):
+		return self.__protocol.__len__()
+
+	def fromBinary( self, version, command, binary ):
+		try:
+			packet = self.__protocol[ version ][ command ]()
+			packet.unpack( binary )
+		except AttributeError, ex:
+			msg(ex)
 			packet = None
 
 		return packet
-
-	def fromObject( self, packet, seq, obj ):
-		return getattr( self, "make%sPacket" % packet.split("_")[-1] )( seq, obj )
-
-	@property
-	def server_version( self ):
-		return "%d.%d.%d" % (0,4,0)
-
-	@property
-	def server_software( self ):
-		return "tpserver-py"
-
-	@property
-	def locations( self ):
-		servername	= "localhost"
-		serverip	= "127.0.0.1"
-		port		= "6923"
-
-		locations = []
-		locations.append(('tp',       servername, serverip, port))
-		#locations.append(('tp+http',  servername, serverip, port))
-		#locations.append(('tps',      servername, serverip, port))
-		#locations.append(('tp+https', servername, serverip, port))
-
-	def makeGamePacket( self, seq, obj ):
-		return self.objects.Game( seq, obj.longname, obj.key, ["0.3", "0.3+"],
-				self.server_version, self.server_software, obj.ruleset.name,
-				obj.ruleset.version, self.locations, obj.parameters)
-
-	def makeCategoryPacket( self, seq, obj ):
-		return self.objects.Category( seq, obj.id, obj.mtime, obj.name, obj.description )
-	
-	def makeComponentPacket( self, seq, obj ):
-		return self.objects.Component( seq, obj.id, obj.mtime, obj.categories,
-				obj.name, obj.description, obj.requirements, obj.properties )
-
-	def makeDesignPacket( self, seq, obj ):
-		return self.objects.Design( seq, obj.id, obj.time, obj.categories,
-				obj.name, obj.description, obj.used, obj.owner, obj.components,
-				obj.feedback, obj.properties)
-
-	def makeBoardPacket( self, seq, obj ):
-		return self.objects.Board( seq, obj.id, obj.name, str(obj.description).strip(), obj.id, datetime2int( obj.mtime ) )
-		#return self.objects.Board( seq, Board.mangleid( obj.id ), obj.name,
-		#		obj.desc, Message.number( obj.id ), self.time)
-
-	def makeMessagePacket( self, seq, obj):
-		# FIXME: The reference system needs to be added and so does the turn
-		return self.objects.Message( seq, obj.slot.board_id, obj.slot.number, [], obj.subject,
-				str(obj.body), 0, [])
-
-	def makeObjectPacket( self, seq, obj ):
-		return self.objects.Object( seq, obj.id, 0, str(obj.name), obj.size,
-				[obj.position.x, obj.position.y, obj.position.z], [obj.velocity.x, obj.velocity.y, obj.velocity.z],
-				[ child.id for child in obj.children ], [], 0, datetime2int( obj.mtime ), "0" * 8, [] )
-
-	def makePropertyPacket( self, seq, obj ):
-		return self.objects.Property( seq, obj.id, obj.time, obj.categories,
-				obj.rank, obj.name, obj.displayname, obj.desc, obj.calculate,
-				obj.requirements)
-
-	def makeResourcePacket( self, seq, obj ):
-		return self.objects.Resource( seq, obj.id, obj.namesingular,
-				obj.nameplural, obj.unitsingular, obj.unitplural, obj.desc,
-				obj.weight, obj.size, obj.time)
-
-	def makePlayerPacket( self, seq, obj ):
-		return self.objects.Player( seq, obj.id, obj.username, "" )
-
-	def makeObjectIDsPacket( self, seq, obj ):
-		return self.objects.ObjectIDs( seq, obj.key, obj.left, obj.ids, -1 )
-
-	def makeCategoryIDsPacket( self, seq, obj ):
-		return self.objects.CategoryIDs( seq, obj.key, obj.left, obj.ids, -1 )
 #}}}
-
-"""
-	# Taken from Design
-	def from_packet(self, user, packet):
-		# Check the design meets a few guide lines
-		
-		# FIXME: Check each component exists and the amount is posative
-		for id, amount in packet.components:
-			pass
-		
-		# Check we have at least one category
-		if len(packet.categories) < 1:
-			raise ValueError("Designs must have atleast one category")
-		else:
-			# FIXME: Check that the categories are valid
-			pass
-		
-		# FIXME: Check the owner is sane
-	
-		# FIXME: Check the id
-		if packet.id != -1:
-			self.id = packet.id
-			
-		for key in ["categories", "name", "desc", "owner", "components"]:
-			setattr(self, key, getattr(packet, key))
-"""
 
 def PacketFormatter( packet ):#{{{
 	attrs = []
@@ -165,7 +105,7 @@ def PacketFormatter( packet ):#{{{
 			except ValueError:
 				value = "%d.%d" % ( ord(value[2]), ord(value[3]) )
 		elif name == "type":
-			value = PacketFactory().commandAsString( packet._type )
+			value = packet.__class__.__name__
 		elif isinstance( structure, structures.DateTime.DateTimeStructure ) or (name == "modtime" and type(value) == int):
 			value = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(value))
 		elif isinstance( structure, structures.String.StringStructure ): # type(value) in [str, unicode]:
@@ -188,3 +128,5 @@ def PacketFormatter( packet ):#{{{
 
 	return "\n".join( [ " %s%s" % (name.ljust(column_size), val) for name, val in attrs ] )
 #}}}
+
+__all__ = [ 'PacketFactory', 'PacketFormatter' ]

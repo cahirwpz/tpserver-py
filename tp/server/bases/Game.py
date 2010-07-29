@@ -323,7 +323,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 	def load( self ):
 		from tp.server.bases import ( Parameter, Player, Object, Board,
 				Reference, Lock, Component, Property, ResourceType, Category,
-				Message, Slot, Order, Design, MessageReference,
+				Message, Order, Design, MessageReference,
 				ComponentCategory, ComponentProperty, DesignCategory,
 				DesignComponent, PropertyCategory, ObjectParameter )
 
@@ -336,12 +336,11 @@ class Game( SQLBase, SelectableByName ):#{{{
 		self.objects.add_class( Component )
 		self.objects.add_class( Property )
 		self.objects.add_class( ResourceType )
-		self.objects.add_class( Category )
-		self.objects.add_class( Message )
+		self.objects.add_class( Category, 'Player' )
 		self.objects.add_class( Board, 'Player' )
-		self.objects.add_class( Slot, 'Board', 'Message' )
-		self.objects.add_class( Order, 'Object' )
 		self.objects.add_class( Design, 'Player' )
+		self.objects.add_class( Message, 'Board' )
+		self.objects.add_class( Order, 'Object' )
 		self.objects.add_class( MessageReference, 'Message', 'Reference' )
 		self.objects.add_class( ComponentCategory, 'Component', 'Category' )
 		self.objects.add_class( ComponentProperty, 'Component', 'Property' )
