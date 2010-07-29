@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from Common import RequestHandler, GetWithIDSlotHandler
+from Common import FactoryMixin, RequestHandler, GetWithIDSlotHandler
 
-class MessageFactoryMixin( object ):#{{{
+class MessageFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
 		# FIXME: The reference system needs to be added and so does the turn
 		Message = self.protocol.use( 'Message' )
@@ -30,7 +30,6 @@ class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):#{{{
 	Response: Message | Sequence + Message{2,n}
 	"""
 	__container__ = 'Board'
-	__packet__    = 'Message'
 
 	def getItem( self, board, slot ):
 		try:

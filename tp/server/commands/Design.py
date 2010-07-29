@@ -32,7 +32,6 @@ class GetDesign( GetWithIDHandler, DesignFactoryMixin ):#{{{
 	Request:  GetDesign :: GetWithID
 	Response: Design | Sequence + Design{2,n}
 	"""
-	__packet__ = 'Design'
 	__object__ = 'Design'
 #}}}
 

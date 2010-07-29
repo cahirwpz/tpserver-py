@@ -58,7 +58,6 @@ class GetObjectsByID( GetWithIDHandler, ObjectFactoryMixin ):#{{{
 	Response: IDSequence
 	"""
 	# FIXME: This should show the correct number of orders for a certain person
-	__packet__ = 'Object'
 	__object__ = 'Object'
 #}}}
 

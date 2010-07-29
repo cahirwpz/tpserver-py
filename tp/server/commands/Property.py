@@ -24,7 +24,6 @@ class GetProperty( GetWithIDHandler, PropertyFactoryMixin ):#{{{
 	Request:  GetProperty :: GetWithID
 	Response: Property | Sequence + Property{2,n}
 	"""
-	__packet__ = 'Property'
 	__object__ = 'Property'
 #}}}
 

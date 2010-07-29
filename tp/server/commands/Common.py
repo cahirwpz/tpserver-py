@@ -2,10 +2,23 @@
 
 import time
 
-from tp.server.model import NoSuchThing, PermissionDenied
-
 from tp.server.model import DatabaseManager
 from tp.server.logging import msg
+
+def MustBeLogged( func ):#{{{
+	def check( self, request ):
+		"""
+		Checks if the user is logged in (TODO: and the turn is not being currently processed)
+		"""
+		if self.player is None:
+			Fail = self.protocol.use( 'Fail' )
+
+			return Fail( request._sequence, "UnavailableTemporarily", "You need to be logged in to use this functionality.", [] )
+
+		return func( self, request )
+	
+	return check
+#}}}
 
 class FactoryMixin( object ):#{{{
 	def datetimeToInt( self, t ):
@@ -26,12 +39,19 @@ class RequestHandler( object ):#{{{
 		return self.context.game
 
 	def __call__( self, request ):
-		Fail = self.protocol.objects.use( 'Fail' )
+		return self.Fail( request, 'Protocol', 'Command not handled!' )
 
-		return Fail( request._sequence, 'Protocol', 'Command not handled!' )
+	def Okay( self, request, result ):
+		return self.protocol['Okay']( request._sequence, result )
+
+	def Fail( self, request, code, result ):
+		return self.protocol['Fail']( request._sequence, code, result, [] )
+
+	def Sequence( self, request, length ):
+		return self.protocol['Sequence']( request._sequence, length )
 #}}}
 
-class GetWithIDHandler( RequestHandler ):#{{{
+class WithIDHandler( RequestHandler ):#{{{
 	__object__ = None
 	__packet__ = None
 
@@ -47,10 +67,12 @@ class GetWithIDHandler( RequestHandler ):#{{{
 		"""
 		return obj.ById( id )
 
+	def process( self, request, obj ):
+		raise NotImplementedError
+
+	@MustBeLogged
 	def __call__( self, request ):
 		Object = self.game.objects.use( self.__object__ )
-
-		Packet, Sequence, Fail = self.protocol.use( self.__packet__, 'Sequence', 'Fail' )
 
 		response = []
 
@@ -59,56 +81,37 @@ class GetWithIDHandler( RequestHandler ):#{{{
 
 			if obj:
 				if self.authorize( obj ):
-					response.append( self.toPacket( request, obj ) )
+					response.append( self.process( request, obj ) )
 				else:
 					msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
-					response.append( Fail( request._sequence, "PermissionDenied", "You cannot read %s with id = %d." % ( Object.__origname__, id ), []) )
+					response.append( self.Fail( request, "PermissionDenied", "You cannot read %s with id = %d." % ( Object.__origname__, id ) ) )
 			else:
 				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
-				response.append( Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ), []) )
+				response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ) ) )
 
 		if len( response ) > 1:
-			response.insert( 0, Sequence( request._sequence, len( response ) ) )
+			response.insert( 0, self.Sequence( request, len( response ) ) )
 
 		return response
 #}}}
 
-class RemoveWithIDHandler( RequestHandler ):#{{{
+class GetWithIDHandler( WithIDHandler ):#{{{
 	__object__ = None
 
-	def authorize( self, obj ):
-		"""
-		Returns true when the user is allowed to removed an object, false in other case.
-		"""
-		return False
+	def process( self, request, obj ):
+		return self.toPacket( request, obj )
+#}}}
 
-	def __call__( self, request ):
+class RemoveWithIDHandler( WithIDHandler ):#{{{
+	__object__ = None
+
+	def process( self, request, obj ):
 		Object = self.game.objects.use( self.__object__ )
 
-		Okay, Fail, Sequence = self.protocol.objects.use( 'Okay', 'Fail', 'Sequence' )
+		with DatabaseManager().session() as session:
+			session.remove( obj )
 
-		response = []
-
-		for id in request.ids:
-			obj = Object.ById( id )
-
-			if obj:
-				if self.authorize( obj ):
-					with DatabaseManager().session() as session:
-						session.remove( obj )
-
-					response.append( Okay( request._sequence, "%s with id = %d removed." % ( Object.__origname__, id ) ) )
-				else:
-					msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
-					response.append( Fail( request._sequence, "PermissionDenied", "You cannot remove %s with id = %d." % ( Object.__origname__, id ), []) )
-			else:
-				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
-				response.append( Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ), []) )
-
-		if len( response ) > 1:
-			response.insert( 0, Sequence( request._sequence, len( response ) ) )
-
-		return response
+		return self.Okay( request, "%s with id = %d removed." % ( Object.__origname__, id ) )
 #}}}
 
 class IDSequence( object ):#{{{
@@ -119,6 +122,8 @@ class IDSequence( object ):#{{{
 	#}}}
 
 class IDSequenceFactoryMixin( FactoryMixin ):#{{{
+	__packet__ = None
+
 	def toPacket( self, request, obj ):
 		Packet = self.protocol.use( self.__packet__ )
 
@@ -131,29 +136,27 @@ class IDSequenceFactoryMixin( FactoryMixin ):#{{{
 
 class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 	__object__ = None
-	__packet__ = None
 
 	@property
 	def filter( self ):
 		pass
 
+	@MustBeLogged
 	def __call__( self, request ):
 		Object = self.game.objects.use( self.__object__ )
-
-		Fail = self.protocol.use( 'Fail' )
 
 		last = Object.query().filter( self.filter ).order_by( Object.mtime ).first()
 
 		key = long( last.mtime.strftime('%s') ) if last else -1
 
 		if request.key != -1 and key != request.key:
-			return Fail( request._sequence, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
+			return self.Fail( request, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
 
 		total = Object.query().filter( self.filter ).count()
 		
 		if request.start + request.amount > total:
 			msg( "Requested %d items starting at %d. Actually %s." % ( request.amount, request.amount, total ) )
-			return Fail( request._sequence, "NoSuchThing", "Requested too many IDs. (Requested %s, actually %s)" % (request.start + request.amount, total))
+			return self.Fail( request, "NoSuchThing", "Requested too many IDs. (Requested %s, actually %s)" % (request.start + request.amount, total))
 
 		if request.amount == -1:
 			# if amount equals to -1 then only give number of available items
@@ -168,9 +171,8 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 
 class GetWithIDSlotHandler( RequestHandler ):#{{{
 	__container__ = None
-	__packet__    = None
 
-	def getItems( self, obj ):
+	def getItem( self, container, number ):
 		raise NotImplementedError
 
 	def authorize( self, obj ):
@@ -179,6 +181,13 @@ class GetWithIDSlotHandler( RequestHandler ):#{{{
 		"""
 		return True
 
+	def fetch( self, obj, id ):
+		"""
+		Fetches object with given id number.
+		"""
+		return obj.ById( id )
+
+	@MustBeLogged
 	def __call__( self, request ):
 		"""
 		request - Get request to be processes, it must have the following
@@ -187,11 +196,9 @@ class GetWithIDSlotHandler( RequestHandler ):#{{{
 		"""
 		Container = self.game.objects.use( self.__container__ )
 
-		Packet, Sequence, Fail = self.protocol.use( self.__packet__, 'Sequence', 'Fail' )
-
 		response = []
 
-		container = Container.ById( request.id )
+		container = self.fetch( Container, request.id )
 
 		if container:
 			if self.authorize( container ):
@@ -202,13 +209,13 @@ class GetWithIDSlotHandler( RequestHandler ):#{{{
 						response.append( self.toPacket( request, obj ) )
 					else:
 						msg( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-						response.append( Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % (Container.__origname__, request.id), []) )
+						response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) ) )
 			else:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-				response.append( Fail( request._sequence, "PermissionDenied", "You cannot read %s with id = %d." % ( Container.__origname__, request.id ), []) )
+				response.append( self.Fail( request, "PermissionDenied", "You cannot read %s with id = %d." % ( Container.__origname__, request.id ) ) )
 		else:
 			msg( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-			response.append( Fail( request._sequence, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ), []) )
+			response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) ) )
 
 		return response
 #}}}

@@ -22,7 +22,6 @@ class GetComponent( GetWithIDHandler, ComponentFactoryMixin ):#{{{
 	Request:  GetComponent :: GetWithID
 	Response: Component | Sequence + Component{2,n}
 	"""
-	__packet__ = 'Component'
 	__object__ = 'Component'
 #}}}
 

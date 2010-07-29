@@ -21,7 +21,6 @@ class GetBoards( GetWithIDHandler, BoardFactoryMixin ):#{{{
 	Request:  GetBoards :: GetWithID
 	Response: Board | Sequence + Board{2,n}
 	"""
-	__packet__ = 'Board'
 	__object__ = 'Board'
 
 	def authorize( self, board ):

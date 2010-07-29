@@ -46,7 +46,6 @@ class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):#{{{
 	Request:  GetCategory :: GetWithID
 	Response: Category | Sequence + Category{2,n}
 	"""
-	__packet__ = 'Category'
 	__object__ = 'Category'
 
 	def authorize( self, category ):

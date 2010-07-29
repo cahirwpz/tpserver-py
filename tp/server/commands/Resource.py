@@ -24,7 +24,6 @@ class GetResource( GetWithIDHandler, ResourceFactoryMixin ):#{{{
 	Request:  GetResource :: GetWithID
 	Response: Resource | Sequence + Resource{2,n}
 	"""
-	__packet__ = 'Resource'
 	__object__ = 'Resource'
 #}}}
 

@@ -3,9 +3,9 @@
 from tp.server.logging import msg
 from tp.server.gamemanager import GameManager
 
-from Common import RequestHandler, GetWithIDHandler
+from Common import FactoryMixin, RequestHandler, GetWithIDHandler
 
-class PlayerFactoryMixin( object ):#{{{
+class PlayerFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
 		Player = self.protocol.use( 'Player' )
 
@@ -28,7 +28,6 @@ class GetPlayer( GetWithIDHandler, PlayerFactoryMixin ):#{{{
 	Request:  GetPlayer :: GetWithID
 	Response: Player | Sequence + Player{2,n}
 	"""
-	__packet__ = 'Player'
 	__object__ = 'Player'
 
 	def fetch( self, obj, id ):
