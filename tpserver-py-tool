@@ -1,7 +1,7 @@
 #!/usr/bin/env python 
 
 import requirements
-import sys, time
+
 from cmd import Cmd as CommandLineInterface
 
 from tp.server.configuration import CLIConfigurator, ConfigurationError
@@ -10,8 +10,6 @@ from tp.server.rules import RulesetManager
 from tp.server.gamemanager import GameManager
 
 DatabaseManager()
-
-import sqlalchemy
 
 from contextlib import contextmanager
 
@@ -49,6 +47,9 @@ class GameMenu( CommandLineInterface ):
 		words = line.split()
 
 		self.game.ruleset.populate( *words )
+
+	def do_reset( self, line ):
+		self.game.reset()
 	
 	def do_player( self, line ):
 		"""

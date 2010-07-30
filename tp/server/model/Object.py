@@ -58,13 +58,24 @@ class Object( SQLBase ):#{{{
 		mapper( cls, cls.__table__, polymorphic_on = cols.type, polymorphic_identity = 'Object', properties = {
 			# Tree like hierarchy for objects ie. Universe => Solar systems => Planets => etc.
 			'children': relation( cls,
-				backref = backref( 'parent', remote_side = [ cols.id ] ),
-				cascade = "all"),
+				backref = backref( 'parent', remote_side = [ cols.id ] )),
 			# Object position in 3D space
 			'position': composite( Vector3D, cols.pos_x, cols.pos_y, cols.pos_z ),
 			# Object velocity in 3D space
 			'velocity': composite( Vector3D, cols.vel_x, cols.vel_y, cols.vel_z )
 			})
+
+	def remove( self, session ):
+		for name, parameter in self.parameters.iteritems():
+			parameter.remove( session )
+
+		session.commit()
+		
+		for child in self.children:
+			child.parent = None
+			session.add( child )
+		
+		session.delete( self )
 
 	@classmethod
 	def ByType( cls, type_id ):
@@ -183,6 +194,11 @@ class ObjectParameter( SQLBase ):#{{{
 			'parameter' : relation( Parameter,
 				uselist = False )
 			})
+	
+	def remove( self, session ):
+		self.parameter.remove( session )
+
+		session.delete( self )
 	#}}}
 
 __all__ = [ 'Object', 'ObjectParameter', 'Vector3D' ]

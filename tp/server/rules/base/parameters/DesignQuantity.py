@@ -29,9 +29,14 @@ class DesignQuantityParam( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, DesignQuantity ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignQuantityList', properties = {
-			'list' : relation( DesignQuantity,
-				cascade = 'all' )
+			'list' : relation( DesignQuantity )
 			})
+	
+	def remove( self, session ):
+		for item in self.list:
+			item.remove( session )
+
+		session.delete( self )
 #}}}
 
 __all__ = [ 'DesignQuantity', 'DesignQuantityParam' ]

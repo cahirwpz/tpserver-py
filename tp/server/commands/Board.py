@@ -28,7 +28,7 @@ class GetBoards( GetWithIDHandler, BoardFactoryMixin ):#{{{
 
 	def fetch( self, obj, id ):
 		if id == 0:
-			return self.player.board
+			return self.player.boards[0]
 
 		return GetWithIDHandler.fetch( self, obj, id )
 #}}}

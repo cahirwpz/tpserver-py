@@ -26,9 +26,19 @@ class Design( SQLBase, SelectableByName ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'owner': relation( Player,
 				uselist = False,
-				backref = backref( 'designs' ),
-				cascade = 'all')
+				backref = backref( 'designs' ))
 			})
+	
+	def remove( self, session ):
+		for category in self.categories:
+			category.remove( session )
+
+		for component in self.components:
+			component.remove( session )
+
+		session.commit()
+
+		session.delete( self )
 
 #{{{
 	# @property
@@ -262,12 +272,10 @@ class DesignCategory( SQLBase ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
 				uselist = False,
-				backref = backref( 'categories' ),
-				cascade = 'all'),
+				backref = backref( 'categories' )),
 			'category': relation( Category,
 				uselist = False,
-				backref = backref( 'designs' ),
-				cascade = 'all')
+				backref = backref( 'designs' ))
 			})
 #}}}
 
@@ -289,12 +297,10 @@ class DesignComponent( SQLBase ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
 				uselist = False,
-				backref = backref( 'components' ),
-				cascade = 'all'),
+				backref = backref( 'components' )),
 			'component': relation( Component,
 				uselist = False,
-				backref = backref( 'designs' ),
-				cascade = 'all')
+				backref = backref( 'designs' ))
 			})
 #}}}
 

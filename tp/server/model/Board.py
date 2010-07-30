@@ -24,9 +24,14 @@ class Board( SQLBase ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'owner': relation( Player,
 				uselist = False,
-				backref = backref( 'board', uselist = False ),
-				cascade = 'all')
+				backref = backref( 'boards' ))
 			})
+
+	def remove( self, session ):
+		for message in self.messages:
+			message.remove( session )
+
+		session.delete( self )
 
 	def __str__(self):
 		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )

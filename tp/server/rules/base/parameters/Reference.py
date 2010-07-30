@@ -17,7 +17,6 @@ class ReferenceParam( object ):#{{{
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Reference', properties = {
 			'allowed' : relation( NumberList,
 				primaryjoin = cls.__table__.c.allowed_list_id == NumberList.__table__.c.id,
-				cascade = 'all',
 				collection_class = set )
 			})
 #}}}

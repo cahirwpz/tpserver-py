@@ -31,9 +31,14 @@ class ResourceQuantityParam( object ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, ResourceQuantity ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = 'ResourceQuantityList', properties = {
-			'list' : relation( ResourceQuantity,
-				cascade = 'all' )
+			'list' : relation( ResourceQuantity )
 			})
+
+	def remove( self, session ):
+		for item in self.list:
+			item.remove( session )
+
+		session.delete( self )
 #}}}
 
 __all__ = [ 'ResourceQuantity', 'ResourceQuantityParam' ]

@@ -26,8 +26,7 @@ class SelectionList( SQLBase ):#{{{
 
 		mapper( cls, cls.__table__, properties = {
 			'values' : relation( Selection,
-				backref = 'list',
-				cascade = 'all' )
+				backref = 'list')
 			})
 #}}}
 
@@ -40,7 +39,6 @@ class SelectionListParam( object ):#{{{
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'SelectionList', properties = {
 			'selections' : relation( SelectionList,
-				cascade = 'all',
 				collection_class = list )
 			})
 #}}}

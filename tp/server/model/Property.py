@@ -23,6 +23,14 @@ class Property( SQLBase, SelectableByName ):#{{{
 
 		mapper( cls, cls.__table__ )
 
+	def remove( self, session ):
+		for category in self.categories:
+			category.remove( session )
+
+		session.commit()
+
+		session.delete( self )
+
 	def __str__(self):
 		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
 #}}}
@@ -44,12 +52,10 @@ class PropertyCategory( SQLBase ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'property': relation( Property,
 				uselist = False,
-				backref = backref( 'categories' ),
-				cascade = 'all'),
+				backref = backref( 'categories' )),
 			'category': relation( Category,
 				uselist = False,
-				backref = backref( 'properties' ),
-				cascade = 'all')
+				backref = backref( 'properties' ))
 			})
 #}}}
 

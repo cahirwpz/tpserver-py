@@ -322,9 +322,9 @@ class Game( SQLBase, SelectableByName ):#{{{
 	def load( self ):
 		from tp.server.model import ( Parameter, Player, Object, Board,
 				Reference, Lock, Component, Property, ResourceType, Category,
-				Message, Order, Design, MessageReference,
-				ComponentCategory, ComponentProperty, DesignCategory,
-				DesignComponent, PropertyCategory, ObjectParameter )
+				Message, Order, Design, MessageReference, ComponentCategory,
+				ComponentProperty, DesignCategory, DesignComponent,
+				PropertyCategory, ObjectParameter, OrderParameter )
 
 		objs = self.objects
 
@@ -349,6 +349,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 
 		self.objects.add_class( Parameter )
 		self.objects.add_class( ObjectParameter, 'Object', 'Parameter' )
+		self.objects.add_class( OrderParameter, 'Order', 'Parameter' )
 
 		self.ruleset.load()
 
@@ -367,9 +368,17 @@ class Game( SQLBase, SelectableByName ):#{{{
 		tables = list( metadata.tables )
 
 		for table in tables:
-			if table.startswith( "%s:" % self.name ):
+			if table.startswith( "%s_" % self.name ):
 				metadata.tables[ table ].drop()
 				del metadata.tables[ table ]
+	
+	def reset( self ):
+		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
+			Object = self.objects.use( name )
+
+			with DatabaseManager().session() as session:
+				for obj in Object.query().all():
+					obj.remove( session )
 	
 	def initialise( self ):
 		self.ruleset.initialise()

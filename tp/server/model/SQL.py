@@ -92,6 +92,9 @@ class SQLBase( object ):#{{{
 
 		object.__setattr__( self, key, value )
 
+	def remove( self, session ):
+		session.delete( self )
+
 	@classmethod
 	def query( cls ):
 		return DatabaseManager().query( cls )
