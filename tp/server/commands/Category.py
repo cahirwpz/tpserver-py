@@ -38,7 +38,7 @@ class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
 		with DatabaseManager().session() as session:
 			session.add( category )
 
-		return self.createPacket( request, category )
+		return self.toPacket( request, category )
 #}}}
 
 class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):#{{{
