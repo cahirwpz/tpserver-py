@@ -5,14 +5,11 @@ import sys, time
 from cmd import Cmd as CommandLineInterface
 
 from tp.server.configuration import CLIConfigurator, ConfigurationError
-from tp.server.db import DatabaseManager, DatabaseConfiguration
+from tp.server.model import *
 from tp.server.rules import RulesetManager
 from tp.server.gamemanager import GameManager
 
 DatabaseManager()
-
-from tp.server.db import DatabaseManager
-from tp.server.bases import *
 
 import sqlalchemy
 
