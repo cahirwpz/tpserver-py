@@ -36,6 +36,7 @@ class Message( SQLBase ):#{{{
 					Column('board_id',  ForeignKey( Board.id ), index = True, nullable = False ),
 					Column('subject',   String(255), nullable = False ),
 					Column('body',      Text, nullable = False ),
+					Column('turn',		Integer, nullable = False ),
 					Column('mtime',	    DateTime, nullable = False,
 						onupdate = func.current_timestamp(), default = func.current_timestamp()))
 

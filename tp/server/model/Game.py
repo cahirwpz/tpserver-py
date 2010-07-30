@@ -429,6 +429,10 @@ class Game( SQLBase, SelectableByName ):#{{{
 	#		)
 #}}}
 
+	@property
+	def turn( self ):
+		return 0
+
 	def __str__(self):
 		if hasattr(self, 'id'):
 			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.name, self.longname, self.turn)

@@ -6,7 +6,7 @@ from types import TupleType
 from tp.server.model import DatabaseManager
 from tp.server.rules.base.utils import OrderGet
 
-class Ruleset(object):#{{{
+class Ruleset( object ):#{{{
 	"""
 	Rulesets define how gameplay works.
 	"""
@@ -134,7 +134,8 @@ class Ruleset(object):#{{{
 			Message(
 				subject = "Welcome to the Universe!",
 				body    = "Welcome, %s, to the python Thousand Parsec server. Hope you have fun!" \
-						  "This game is currently playing version %s of %s." % ( username, self.version, self.name )))
+						  "This game is currently playing version %s of %s." % ( username, self.version, self.name ),
+				turn    = self.game.turn ))
 
 		with DatabaseManager().session() as session:
 			session.add( player )
