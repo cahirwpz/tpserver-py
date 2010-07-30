@@ -53,7 +53,6 @@ class RequestHandler( object ):#{{{
 
 class WithIDHandler( RequestHandler ):#{{{
 	__object__ = None
-	__packet__ = None
 
 	def authorize( self, obj ):
 		"""
@@ -169,11 +168,8 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 		return self.toPacket( request, response )
 	#}}}
 
-class GetWithIDSlotHandler( RequestHandler ):#{{{
+class WithIDSlotHandler( RequestHandler ):#{{{
 	__container__ = None
-
-	def getItem( self, container, number ):
-		raise NotImplementedError
 
 	def authorize( self, obj ):
 		"""
@@ -187,6 +183,12 @@ class GetWithIDSlotHandler( RequestHandler ):#{{{
 		"""
 		return obj.ById( id )
 
+	def getItem( self, container, slot ):
+		raise NotImplementedError
+
+	def process( self, request, item, slot ):
+		raise NotImplementedError
+
 	@MustBeLogged
 	def __call__( self, request ):
 		"""
@@ -196,29 +198,46 @@ class GetWithIDSlotHandler( RequestHandler ):#{{{
 		"""
 		Container = self.game.objects.use( self.__container__ )
 
-		response = []
-
 		container = self.fetch( Container, request.id )
 
 		if container:
 			if self.authorize( container ):
-				for slot in request.slots:
-					obj = self.getItem( container, slot )
+				items = [ ( slot, self.getItem( container, slot ) ) for slot in request.slots ]
 
-					if obj:
-						response.append( self.toPacket( request, obj ) )
+				response = []
+
+				for slot, item in items:
+					if item:
+						response.append( self.process( request, item, slot ) )
 					else:
-						msg( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-						response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) ) )
+						msg( "${yel1}No such %s with id %s.${coff}" % ( container.__origname__, request.id ) )
+						response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( container.__origname__, request.id ) ) )
+
+				if len( response ) > 1:
+					response.insert( 0, self.Sequence( request, len( response ) ) )
 			else:
 				msg( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-				response.append( self.Fail( request, "PermissionDenied", "You cannot read %s with id = %d." % ( Container.__origname__, request.id ) ) )
+				response = self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Container.__origname__, request.id ) )
 		else:
 			msg( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
-			response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) ) )
+			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response
 #}}}
 
+class GetWithIDSlotHandler( WithIDSlotHandler ):#{{{
+	def process( self, request, item, slot ):
+		return self.toPacket( request, item )
+#}}}
+
+class RemoveWithIDSlotHandler( WithIDSlotHandler ):#{{{
+	def process( self, request, item, slot ):
+		with DatabaseManager().session() as session:
+			session.remove( item )
+
+		return self.Okay( request, "Removed %s with slot = %d." % ( item.__origname__, slot ) )
+#}}}
+
 __all__ = [ 'FactoryMixin', 'RequestHandler', 'GetWithIDHandler',
-			'RemoveWithIDHandler', 'GetIDSequenceHandler', 'GetWithIDSlotHandler' ]
+			'RemoveWithIDHandler', 'GetIDSequenceHandler',
+			'GetWithIDSlotHandler', 'RemoveWithIDSlotHandler' ]
