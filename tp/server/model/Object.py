@@ -75,43 +75,46 @@ class Object( SQLBase ):#{{{
 		"""
 		return DatabaseManager().query( cls ).filter_by( type = type_id ).all()
 
-#{{{
-	# @classmethod
-	# def ByPos( cls, center, size = 0, limit = -1, order_by = None ):
-	#	"""
-	#	Object.ByPos([x, y, z], size) -> [Object, ...]
-	#
-	#	Return all objects which are centered inside a sphere centerd on
-	#	size and radius of size.
-	#	"""
-	#	pos = long(center[0]), long(center[1]), long(center[2])
-	#
-	#	c = cls.table.c
-	#
-	#	bp_x = bindparam('x')
-	#	bp_y = bindparam('y')
-	#	bp_z = bindparam('z')
-	#	bp_s = bindparam('size')
-	#	where = ((c.size + bp_s) >= \
-	#			func.abs((c.pos_x - bp_x)) + \
-	#			func.abs((c.pos_y - bp_y)) + \
-	#			func.abs((c.pos_z - bp_z)))
-	#	# where = (((c.size+bp_s)*(c.size+bp_s)) >= \
-	#			# ((c.posx-bp_x) * (c.posx-bp_x)) + \
-	#			# ((c.posy-bp_y) * (c.posy-bp_y)) + \
-	#			# ((c.posz-bp_z) * (c.posz-bp_z)))
-	#
-	#	if order_by is None:
-	#		order_by = [asc(c.mtime), desc(c.size)]
-	#
-	#	s = select([c.id, c.mtime], where, order_by = order_by)
-	#
-	#	if limit != -1:
-	#		s.limit = limit
-	#
-	#	results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
-	#	return [(x['id'], x['time']) for x in results]
+	@classmethod
+	def ByPos( cls, center, size = 0, limit = -1, order_by = None ):
+		"""
+		Object.ByPos([x, y, z], size) -> [Object, ...]
+
+		Return all objects which are centered inside a sphere centerd on
+		size and radius of size.
+		"""
+		pos = long(center[0]), long(center[1]), long(center[2])
+
+		c = cls.table.c
+
+		bp_x = bindparam('x')
+		bp_y = bindparam('y')
+		bp_z = bindparam('z')
+		bp_s = bindparam('size')
+
+		where = ((c.size + bp_s) >= \
+			  func.abs((c.pos_x - bp_x)) + \
+			  func.abs((c.pos_y - bp_y)) + \
+			  func.abs((c.pos_z - bp_z)))
+
+		# where = (((c.size+bp_s)*(c.size+bp_s)) >= \
+			  # ((c.posx-bp_x) * (c.posx-bp_x)) + \
+			  # ((c.posy-bp_y) * (c.posy-bp_y)) + \
+			  # ((c.posz-bp_z) * (c.posz-bp_z)))
+
+		if order_by is None:
+			order_by = [asc(c.mtime), desc(c.size)]
+
+		s = select([c.id, c.mtime], where, order_by = order_by)
+
+		if limit != -1:
+			s.limit = limit
+
+		results = s.execute(x=pos[0], y=pos[1], z=pos[2], size=size).fetchall()
+
+		return [(x['id'], x['time']) for x in results]
 	
+#{{{
 	# orderclasses = {}
 
 	# bypos_size = [asc(table.c.size)]

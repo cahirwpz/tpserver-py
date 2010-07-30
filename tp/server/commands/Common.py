@@ -56,13 +56,13 @@ class WithIDHandler( RequestHandler ):#{{{
 
 	def authorize( self, obj ):
 		"""
-		Returns true if the user is allowed to fetch an object, false in other case.
+		Returns true if the user is allowed to access an object, false in other case.
 		"""
 		return True
 
 	def fetch( self, obj, id ):
 		"""
-		Fetches object with given id number.
+		Fetches an object with given Id number.
 		"""
 		return obj.ById( id )
 
@@ -238,6 +238,6 @@ class RemoveWithIDSlotHandler( WithIDSlotHandler ):#{{{
 		return self.Okay( request, "Removed %s with slot = %d." % ( item.__origname__, slot ) )
 #}}}
 
-__all__ = [ 'FactoryMixin', 'RequestHandler', 'GetWithIDHandler',
+__all__ = [ 'FactoryMixin', 'MustBeLogged', 'RequestHandler', 'GetWithIDHandler',
 			'RemoveWithIDHandler', 'GetIDSequenceHandler',
 			'GetWithIDSlotHandler', 'RemoveWithIDSlotHandler' ]
