@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession
+from common import AuthorizedTestSession, TestSuite
 
 class GetObjectIds( AuthorizedTestSession ):
 	""" Sends some random Object related requests. """
@@ -11,4 +11,12 @@ class GetObjectIds( AuthorizedTestSession ):
 
 		yield GetObjectsByID( self.seq, [ id for id, modtime in response.modtimes ] )
 
-__tests__ = [ GetObjectIds ]
+class ObjectTestSuite( TestSuite ):
+	__name__ = 'Objects'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetObjectIds )
+
+__tests__ = [ ObjectTestSuite ]

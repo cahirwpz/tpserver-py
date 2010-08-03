@@ -1,4 +1,4 @@
-from common import TestSession, Expect
+from common import TestSession, Expect, TestSuite
 
 class SameSequenceInHeader( TestSession ):
 	""" Checks if a server drops second packet with same sequence. """
@@ -19,4 +19,12 @@ class SameSequenceInHeader( TestSession ):
 		else:
 			self.status = True
 
-__tests__ = [ SameSequenceInHeader ]
+class ProtocolTestSuite( TestSuite ):
+	__name__ = 'Protocol'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( SameSequenceInHeader )
+
+__tests__ = [ ProtocolTestSuite ]

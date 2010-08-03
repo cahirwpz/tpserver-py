@@ -1,10 +1,7 @@
 from tp.server.protocol import ThousandParsecProtocol
 from tp.server.logging import logctx, msg
 
-from twisted.internet import reactor
 from twisted.internet.protocol import ClientFactory
-
-from clientsession import ClientSessionHandler
 
 class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 	protocol = ThousandParsecProtocol
@@ -35,3 +32,5 @@ class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 	def logPrefix( self ):
 		return self.__class__.__name__
 #}}}
+
+__all__ = [ 'ThousandParsecClientFactory' ]

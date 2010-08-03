@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, TestSuite
 
 class GetExistingMessage( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing message? """
@@ -58,4 +58,12 @@ class PutMessage( AuthorizedTestSession ):
 
 		packet = yield Message( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
 
-__tests__ = [ GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2 ]
+class MessageTestSuite( TestSuite ):
+	__name__ = 'Messages'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2 )
+
+__tests__ = [ MessageTestSuite ]

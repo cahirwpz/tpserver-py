@@ -15,28 +15,29 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 		self.loseConnection = self.transport.loseConnection
 
 		try:
-			self.handler = self.SessionHandlerType()
+			if self.SessionHandlerType:
+				self.handler = self.SessionHandlerType()
 		except Exception, ex:
 			err()
 			self.handler = None
 			self.transport.loseConnection()
 		
-		if self.handler:
+		if self.handler is not None:
 			self.handler.sessionStarted( self )
 
-		self.header = None
-		self.buffer = ""
+		self.__header = None
+		self.__buffer = ""
 
 	@logctx
 	def dataReceived( self, data ):
-		self.buffer += data
+		self.__buffer += data
 
-		while len( self.buffer ) >= 16:
-			if not self.header:
-				if len( self.buffer ) >= 16:
-					self.header = struct.unpack('!4sLLL', self.buffer[:16] )
+		while len( self.__buffer ) >= 16:
+			if not self.__header:
+				if len( self.__buffer ) >= 16:
+					self.__header = struct.unpack('!4sLLL', self.__buffer[:16] )
 
-					version, sequence, command, length = self.header
+					version, sequence, command, length = self.__header
 
 					if version not in PacketFactory():
 						self.sendPacket( PacketFactory()['default']['Fail']( 0, "Protocol %s not supported" % version ) )
@@ -46,13 +47,13 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 						self.sendPacket( PacketFactory()['default']['Fail']( 0, "Payload is too long (%d bytes)" % length ) )
 						self.loseConnection()
 
-			if self.header:
-				version, sequence, command, length = self.header
+			if self.__header:
+				version, sequence, command, length = self.__header
 
 				packetSize = length + 16
 
-				if len( self.buffer ) >= packetSize:
-					binary = self.buffer[:packetSize]
+				if len( self.__buffer ) >= packetSize:
+					binary = self.__buffer[:packetSize]
 
 					msg( "Received binary: %s" % binary.encode("hex"), level='debug2' )
 
@@ -65,14 +66,14 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 					else:
 						self.loseConnection()
 
-					self.header = None
-					self.buffer = self.buffer[packetSize:]
+					self.__header = None
+					self.__buffer = self.__buffer[packetSize:]
 
 	@logctx
 	def connectionLost( self, reason ):
 		msg( "${red1}Connection was lost: %s${coff}" % reason.value )
 
-		if self.handler:
+		if self.handler is not None:
 			self.handler.connectionLost( reason )
 
 	@logctx

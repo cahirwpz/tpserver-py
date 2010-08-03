@@ -1,4 +1,4 @@
-from common import ConnectedTestSession, Expect
+from common import ConnectedTestSession, Expect, TestSuite
 
 class GetTimeRemainingRequest( ConnectedTestSession ):
 	""" Checks if server responds to GetTimeRemaining request properly. """
@@ -8,4 +8,12 @@ class GetTimeRemainingRequest( ConnectedTestSession ):
 
 		yield GetTimeRemaining( self.seq ), Expect( 'TimeRemaining' )
 
-__tests__ = [ GetTimeRemainingRequest ]
+class TimeRemainingTestSuite( TestSuite ):
+	__name__ = 'TimeRemaining'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetTimeRemainingRequest )
+
+__tests__ = [ TimeRemainingTestSuite ]

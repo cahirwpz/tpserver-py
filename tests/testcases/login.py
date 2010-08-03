@@ -1,4 +1,4 @@
-from common import ConnectedTestSession, Expect
+from common import ConnectedTestSession, Expect, TestSuite
 
 class KnownUserAuthorized( ConnectedTestSession ):
 	""" Does server know a user that we know to exist? """
@@ -12,4 +12,12 @@ class KnownUserAuthorized( ConnectedTestSession ):
 
 		yield Login( self.seq, "%s@%s" % ( self.Login, self.Game), self.Password ), Expect( 'Okay' )
 
-__tests__ = [ KnownUserAuthorized ]
+class LoginTestSuite( TestSuite ):
+	__name__ = 'Login'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( KnownUserAuthorized )
+
+__tests__ = [ LoginTestSuite ]

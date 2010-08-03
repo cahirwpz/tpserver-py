@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, TestSuite
 
 class GetExistingCategory( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing category? """
@@ -47,4 +47,13 @@ class GetAllCategoryIDs( AuthorizedTestSession ):
 		if packet.remaining == 0:
 			self.failed( "Server responded with different CategoryId than requested!" )
 
-__tests__ = [ GetExistingCategory, GetNonExistentCategory, GetMultipleCategories, GetAllCategoryIDs ]
+class CategoryTestSuite( TestSuite ):
+	__name__ = 'Categories'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetExistingCategory, GetNonExistentCategory,
+				GetMultipleCategories, GetAllCategoryIDs )
+
+__tests__ = [ CategoryTestSuite ]

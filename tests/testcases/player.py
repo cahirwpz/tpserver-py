@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, TestSuite
 
 class GetCurrentPlayer( AuthorizedTestSession ):
 	""" Does server respond with current player information? """
@@ -50,4 +50,12 @@ class GetMultiplePlayers( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different PlayerIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
-__tests__ = [ GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
+class PlayerTestSuite( TestSuite ):
+	__name__ = 'Players'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers )
+
+__tests__ = [ PlayerTestSuite ]

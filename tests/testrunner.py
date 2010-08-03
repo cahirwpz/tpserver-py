@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import fnmatch
-from collections import Iterator
 
 from twisted.internet import reactor, ssl
 from OpenSSL import SSL
@@ -12,13 +11,14 @@ from tp.server.protocol import ThousandParsecProtocol
 from tp.server.packet import PacketFactory, PacketFormatter
 
 from client import ThousandParsecClientFactory
+from test import TestSuite
 
 from testcases import __manager__
 
 class ClientTLSContext( ssl.ClientContextFactory ):
 	method = SSL.TLSv1_METHOD
 
-class TestSelector( Iterator ):#{{{
+class TestSelector( TestSuite ):#{{{
 	def __init__( self ):
 		self.__manager	= __manager__
 		self.__tests	= []
@@ -65,31 +65,51 @@ class TestSelectorConfiguration( ComponentConfiguration ):#{{{
 						  help='Specifies which tests will be added to test run. TEST-LIST is a list of test names or glob (see unix manual pages) patterns separated by comma. There are some arguments to this option that have a special meaning. \'LIST\' will force to display all available tests and finish the application. \'ALL\' will add all available test to test run.', arg_name='TEST-LIST' )
 #}}}
 
-__all__ = [ 'TestSelector', 'TestSelectorConfiguration', 'TestManager' ]
-
 class TestRunner( object ):#{{{
 	def __init__( self, selector ):
 		self.__protocol	= PacketFactory()["TP03"]
 		self.__factory	= ThousandParsecClientFactory()
-		self.__selector	= selector
+		self.__suites   = [ selector ]
 
 	@logctx
 	def __continue( self ):
 		try:
-			test = self.__selector.next()
+			TestType = self.__suites[-1].next()
 		except StopIteration, ex:
-			reactor.stop()
-		else:
-			test.finished = self.__finished
+			suite = self.__suites.pop()
 
-			ThousandParsecProtocol.SessionHandlerType = test
+			msg( "${cyn1}Tearing down %s test suite...${coff}" % suite.__class__.__name__, level='info' ) 
+			suite.tearDown()
 
-			msg( "${wht1}Starting %s test...${coff}" % test.__name__, level='info' ) 
+			Logger.updateContext( self )
 
-			if self.__use_tls:
-				reactor.connectSSL( self.__hostname, self.__tls_port_num, self.__factory, ssl.ClientContextFactory() )
+			if len( self.__suites ):
+				self.__continue()
 			else:
-				reactor.connectTCP( self.__hostname, self.__tcp_port_num, self.__factory )
+				reactor.stop()
+		else:
+			if issubclass( TestType, TestSuite ):
+				suite = TestType()
+
+				self.__suites.append( suite )
+				Logger.updateContext( self )
+
+				msg( "${cyn1}Setting up %s test suite...${coff}" % suite.__class__.__name__, level='info' ) 
+				suite.setUp()
+
+				self.__continue()
+			else:
+				test = TestType()
+				test.finished = self.__finished
+
+				ThousandParsecProtocol.handler = test
+
+				msg( "${wht1}Starting %s test...${coff}" % test.__class__.__name__, level='info' ) 
+
+				if self.__use_tls:
+					reactor.connectSSL( self.__hostname, self.__tls_port_num, self.__factory, ssl.ClientContextFactory() )
+				else:
+					reactor.connectTCP( self.__hostname, self.__tcp_port_num, self.__factory )
 
 	@logctx
 	def __finished( self, test ):
@@ -131,7 +151,15 @@ class TestRunner( object ):#{{{
 		reactor.callLater( 0, self.__continue )
 	
 	def logPrefix( self ):
-		return self.__class__.__name__
+		if len( self.__suites ):
+			suite = self.__suites[-1]
+			
+			try:
+				return suite.__name__
+			except AttributeError:
+				return suite.__class__.__name__
+		else:
+			return self.__class__.__name__
 #}}}
 
 class TestRunnerConfiguration( ComponentConfiguration ):#{{{

@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, TestSuite
 
 class GetExistingDesign( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing board? """
@@ -36,4 +36,13 @@ class GetMultipleDesigns( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different DesignIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
-__tests__ = [ GetExistingDesign, GetNonExistentDesign, GetMultipleDesigns ]
+class DesignTestSuite( TestSuite ):
+	__name__ = 'Designs'
+
+	def __init__( self ):
+		super( DesignTestSuite, self ).__init__()
+
+		self.addTest( GetExistingDesign, GetNonExistentDesign,
+				GetMultipleDesigns )
+
+__tests__ = [ DesignTestSuite ]

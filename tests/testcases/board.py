@@ -1,4 +1,4 @@
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, TestSuite
 
 class GetCurrentBoard( AuthorizedTestSession ):
 	""" Does server respond with current board information? """
@@ -50,4 +50,13 @@ class GetMultipleBoards( AuthorizedTestSession ):
 		if p1.id != 1 or p2.id != 2:
 			self.failed( "Server returned different BoardIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
-__tests__ = [ GetExistingBoard, GetNonExistentBoard, GetCurrentBoard, GetMultipleBoards ]
+class BoardTestSuite( TestSuite ):
+	__name__ = 'Boards'
+
+	def __init__( self ):
+		TestSuite.__init__( self )
+
+		self.addTest( GetExistingBoard, GetNonExistentBoard, GetCurrentBoard,
+				GetMultipleBoards )
+
+__tests__ = [ BoardTestSuite ]

@@ -1,6 +1,7 @@
 import collections
 
 from clientsession import ClientSessionHandler
+from test import TestCase, TestSuite
 
 from tp.server.packet import PacketFactory
 from tp.server.logging import logctx, msg
