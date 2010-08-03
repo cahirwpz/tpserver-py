@@ -1,4 +1,5 @@
-from common import AuthorizedTestSession, Expect, TestSuite
+from test import TestSuite
+from common import AuthorizedTestSession, Expect
 
 class GetExistingDesign( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing board? """

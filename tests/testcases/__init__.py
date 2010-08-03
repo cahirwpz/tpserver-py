@@ -1,4 +1,4 @@
-import inspect, glob, os.path, textwrap
+import inspect, glob, os.path, textwrap, traceback
 from collections import MutableSet, Mapping
 
 class TestManager( MutableSet, Mapping ):#{{{
@@ -27,6 +27,7 @@ class TestManager( MutableSet, Mapping ):#{{{
 					self.add( _type )
 			except ImportError, msg:
 				print "Could not import %s: %s" % ( moduleName, msg )
+				traceback.print_exc()
 
 	def add( self, _type ):
 		_name = _type.__name__

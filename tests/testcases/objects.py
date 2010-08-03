@@ -1,4 +1,5 @@
-from common import AuthorizedTestSession, TestSuite
+from test import TestSuite
+from common import AuthorizedTestSession
 
 class GetObjectIds( AuthorizedTestSession ):
 	""" Sends some random Object related requests. """

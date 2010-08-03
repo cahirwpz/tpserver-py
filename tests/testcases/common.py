@@ -1,9 +1,10 @@
 import collections
 
 from clientsession import ClientSessionHandler
-from test import TestCase, TestSuite
+from client import ThousandParsecClientFactory
+from test import TestCase
 
-from tp.server.packet import PacketFactory
+from tp.server.packet import PacketFactory, PacketFormatter
 from tp.server.logging import logctx, msg
 
 def ichain( *args ):#{{{
@@ -76,18 +77,28 @@ class Expect( collections.Container ):#{{{
 		return ", ".join( s )
 #}}}
 
-class TestSession( ClientSessionHandler ):#{{{
+class TestSession( TestCase, ClientSessionHandler ):#{{{
 	NoFailAllowed = True
 
 	def __init__( self ):
+		super( TestSession, self ).__init__()
+
 		self.bundle = []
 		self.count  = 0
-		self.status = True
 		self.protocol = PacketFactory()["TP03"]
 		self.scenarioList = []
+		self.request = None
+	
+	def setUp( self ):
+		msg( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__, level='info' ) 
 
-		self.failRequest  = None
-		self.failResponse = None
+		ThousandParsecClientFactory().makeTestSession( self )
+	
+	def tearDown( self ):
+		msg( "${wht1}Tearing down %s test...${coff}" % self.__class__.__name__, level='info' ) 
+
+	def run( self ):
+		msg( "${wht1}Starting %s test...${coff}" % self.__class__.__name__, level='info' ) 
 	
 	@logctx
 	def sessionStarted( self, transport ):
@@ -107,9 +118,7 @@ class TestSession( ClientSessionHandler ):#{{{
 		msg( "Received ${cyn1}%s${coff} packet." % packet.type, level="info" )
 
 		if self.NoFailAllowed and packet.type == "Fail":
-			self.failed( "Fail packet received!" )
-			self.failResponse = packet
-			self.transport.loseConnection()
+			self.failed( packet, "Fail packet received!" )
 		elif packet.type == "Sequence":
 			self.count = packet.number
 			self.bundle.append( packet )
@@ -122,15 +131,11 @@ class TestSession( ClientSessionHandler ):#{{{
 				self.bundle = []
 
 				if self.expected and bundle not in self.expected:
-					self.failed( "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
-					self.failResponse = bundle
-					self.transport.loseConnection()
+					self.failed( bundle, "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
 				else:
 					self.step( bundle )
 		elif self.expected and packet not in self.expected:
-			self.failed( "Received unexpected packet %s!" % packet.type )
-			self.failResponse = packet
-			self.transport.loseConnection()
+			self.failed( packet, "Received unexpected packet %s!" % packet.type )
 		else:
 			self.step( packet )
 
@@ -138,7 +143,7 @@ class TestSession( ClientSessionHandler ):#{{{
 		try:
 			instruction = self.scenario.send( response )
 		except StopIteration, ex:
-			self.transport.loseConnection()
+			self.succeeded()
 		else:
 			if isinstance( instruction, tuple ):
 				request, self.expected = instruction
@@ -147,8 +152,8 @@ class TestSession( ClientSessionHandler ):#{{{
 
 			self.transport.sendPacket( request )
 
-			self.failRequest = request
-			self.failRequest.type = request.__class__.__name__
+			self.request = request
+			self.request.type = request.__class__.__name__
 
 			if request is not None:
 				msg( "Sending ${cyn1}%s${coff} packet." % request._name, level="info" )
@@ -156,9 +161,40 @@ class TestSession( ClientSessionHandler ):#{{{
 			if isinstance( self.expected, Expect ):
 				msg( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected, level="info" )
 	
-	def failed( self, reason ):
-		self.status = False
-		self.reason = reason
+	def succeeded( self ):
+		msg( "${grn1}Test %s succeeded!${coff}" % self.__class__.__name__, level='notice' ) 
+
+		self.transport.loseConnection()
+		
+		super( TestSession, self ).succeeded()
+
+	def failed( self, response, reason ):
+		msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
+		msg( "${red1}Failed test name:${coff}\n %s" % self.__class__.__name__, level='error' ) 
+		msg( "${red1}Description:${coff}\n %s" % self.__doc__.strip(), level='error' ) 
+		msg( "${red1}Reason:${coff}\n %s" % reason, level='error' ) 
+
+		if self.request:
+			msg( "${red1}Failing request %s:${coff}" % self.request.type, level='error' )
+			msg( PacketFormatter( self.request ), level='error' )
+
+		if response:
+			if isinstance( response, list ):
+				msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in response ), level='error' )
+				for r in response:
+					msg( PacketFormatter( r ), level='error' )
+			else:
+				msg( "${red1}Wrong response %s:${coff}" % response.type, level='error' )
+				msg( PacketFormatter( response ), level='error' )
+
+		if self.expected:
+			msg( "${red1}Expected:${coff}\n %s" % self.expected, level='error' ) 
+
+		msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
+
+		self.transport.loseConnection()
+
+		super( TestSession, self ).failed( reason )
 #}}}
 
 class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{

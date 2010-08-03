@@ -1,4 +1,5 @@
-from common import AuthorizedTestSession, Expect, TestSuite
+from test import TestSuite
+from common import AuthorizedTestSession, Expect
 
 class GetCurrentBoard( AuthorizedTestSession ):
 	""" Does server respond with current board information? """

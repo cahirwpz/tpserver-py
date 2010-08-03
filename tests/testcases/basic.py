@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect, TestSuite
+from test import TestSuite
+from common import ConnectedTestSession, Expect
 
 class PingRequest( ConnectedTestSession ):
 	""" Check if a server answers Ping packet properly. """

@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect, TestSuite
+from test import TestSuite
+from common import ConnectedTestSession, Expect
 
 class GetTimeRemainingRequest( ConnectedTestSession ):
 	""" Checks if server responds to GetTimeRemaining request properly. """

@@ -1,4 +1,5 @@
-from common import TestSession, Expect, TestSuite
+from test import TestSuite
+from common import TestSession, Expect
 
 class SameSequenceInHeader( TestSession ):
 	""" Checks if a server drops second packet with same sequence. """

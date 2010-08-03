@@ -12,8 +12,8 @@ from tp.server.logging import Logger, LoggerConfiguration
 from tp.server.configuration import CLIConfigurator, ConfigurationError
 from tp.server.model import DatabaseManager, DatabaseConfiguration
 
-from testrunner import TestRunner, TestRunnerConfiguration
-from testrunner import TestSelector, TestSelectorConfiguration
+from testrunner import TestRunner, TestSelector, TestSelectorConfiguration
+from client import ThousandParsecClientFactory, ThousandParsecClientFactoryConfiguration
 
 def main():
 	logger = Logger()
@@ -23,7 +23,7 @@ def main():
 	configurator = CLIConfigurator( "Thousand Parsec Test Client" )
 	configurator.registerComponent( logger, LoggerConfiguration() )
 	configurator.registerComponent( selector, TestSelectorConfiguration() )
-	configurator.registerComponent( runner, TestRunnerConfiguration() )
+	configurator.registerComponent( ThousandParsecClientFactory(), ThousandParsecClientFactoryConfiguration() )
 	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
 
 	try:

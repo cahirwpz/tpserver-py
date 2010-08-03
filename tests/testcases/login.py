@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect, TestSuite
+from test import TestSuite
+from common import ConnectedTestSession, Expect
 
 class KnownUserAuthorized( ConnectedTestSession ):
 	""" Does server know a user that we know to exist? """
