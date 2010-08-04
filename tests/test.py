@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import textwrap, glob, os.path, traceback
+import textwrap, glob, os.path
 from collections import Mapping
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
+from twisted.python.failure import Failure
 
 from tp.server.logging import msg, err, logctx
 
@@ -13,32 +14,32 @@ class TestCase( object ):#{{{
 		self.status = True
 		self.reason = None
 		self.result = Deferred()
+		self.failure = None
 
+	@logctx
 	def __setUp( self ):
 		try:
 			self.setUp()
-		except Exception, ex:
-			err()
+		except Exception:
+			self.failure = Failure()
+			self.status  = False
+			self.reason  = "SetUp method failed!"
 
-			try:
-				self.tearDown()
-			except Exception, ex:
-				err()
-
-			self.status = False
-			self.reason = "SetUp method failed!"
 			self.__tearDown()
 		else:
 			reactor.callLater( 0, self.run )
 
+	@logctx
 	def __tearDown( self ):
 		try:
 			self.tearDown()
-		except Exception, ex:
-			err()
+		except Exception:
+			if self.status:
+				self.failure = Failure()
+				self.status  = False
+				self.reason  = "TearDown method failed!"
 
-			self.status = False
-			self.reason = "TearDown method failed!"
+		self.report()
 
 		if self.status:
 			self.result.callback( self )
@@ -48,6 +49,7 @@ class TestCase( object ):#{{{
 	def setUp( self ):
 		pass
 
+	@logctx
 	def run( self ):
 		self.succeeded()
 
@@ -66,6 +68,22 @@ class TestCase( object ):#{{{
 		self.status = False
 		self.reason = reason
 		reactor.callLater( 0, self.__tearDown )
+	
+	def report( self, part = 'all' ):
+		if self.status:
+			msg( "${grn1}Test %s succeeded!${coff}" % self.__class__.__name__, level = 'notice' )
+		else:
+			if part in [ 'prologue', 'all' ]:
+				msg( "${red1}Test %s failed!${coff}" % self.__class__.__name__, level = 'error' ) 
+				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
+				msg( "${red1}Test name:${coff}\n %s" % self.__class__.__name__, level='error' ) 
+				msg( "${red1}Description:${coff}\n %s" % self.__doc__.strip(), level='error' ) 
+				msg( "${red1}Reason:${coff}\n %s" % self.reason, level='error' ) 
+
+			if part in [ 'epilogue', 'all' ]:
+				if self.failure:
+					err( _stuff = self.failure )
+				msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
 
 	def logPrefix( self ):
 		try:
@@ -81,6 +99,8 @@ class TestSuite( Mapping, TestCase ):#{{{
 		self.__tests = []
 		self.__names = {}
 		self.__iter  = None
+
+		self.__failedTest = []
 	
 	def setUp( self ):
 		msg( "${cyn1}Setting up %s test suite...${coff}" % self.__class__.__name__, level='info' ) 
@@ -120,10 +140,10 @@ class TestSuite( Mapping, TestCase ):#{{{
 		try:
 			TestType = self.__iter.next()
 		except StopIteration:
-			if self.result:
-				self.result.callback( self )
+			if len( self.__failedTest ):
+				self.failed( "%s test failed!" % self.__failedTest )
 			else:
-				self.result.errback( self )
+				self.succeeded()
 		else:
 			test = TestType()
 			test.result.addCallbacks( self.__succeeded, self.__failed )
@@ -133,9 +153,12 @@ class TestSuite( Mapping, TestCase ):#{{{
 		self.run()
 
 	def __failed( self, failure ):
-		self.status = False
-		self.reason = "One or more tests failed!"
+		self.__failedTest.append( failure.value )
 		self.run()
+
+	def report( self ):
+		if not self.status:
+			msg( "${red1}Some of the tests failed!${coff}", level = 'error' ) 
 
 	def getListing( self ):
 		"""
@@ -161,6 +184,12 @@ class TestSuite( Mapping, TestCase ):#{{{
 		report.append( '${cyn0}Available test cases count: %d${coff}' % len( self ) )
 
 		return report
+
+	def logPrefix( self ):
+		try:
+			return self.__name__
+		except AttributeError:
+			return self.__class__.__name__
 #}}}
 
 class TestLoader( TestSuite ):#{{{
@@ -188,8 +217,8 @@ class TestLoader( TestSuite ):#{{{
 
 				self.addTest( *classes )
 			except ImportError, msg:
-				print "Could not import %s: %s" % ( moduleName, msg )
-				traceback.print_exc()
+				msg( "${yel1}Could not import %s: %s!${coff}" % ( moduleName, msg ), level = 'warning' )
+				err()
 #}}}
 
 __all__ = [ 'TestCase', 'TestSuite', 'TestLoader' ]

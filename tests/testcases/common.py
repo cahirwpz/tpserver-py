@@ -83,11 +83,14 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 	def __init__( self ):
 		super( TestSession, self ).__init__()
 
-		self.bundle = []
-		self.count  = 0
-		self.protocol = PacketFactory()["TP03"]
+		self.bundle		= []
+		self.count 		= 0
+		self.protocol	= PacketFactory()["TP03"]
 		self.scenarioList = []
-		self.request = None
+
+		self.request	= None
+		self.response	= None
+		self.expected	= None
 	
 	def setUp( self ):
 		msg( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__, level='info' ) 
@@ -162,39 +165,38 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				msg( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected, level="info" )
 	
 	def succeeded( self ):
-		msg( "${grn1}Test %s succeeded!${coff}" % self.__class__.__name__, level='notice' ) 
-
 		self.transport.loseConnection()
-		
 		super( TestSession, self ).succeeded()
 
 	def failed( self, response, reason ):
-		msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
-		msg( "${red1}Failed test name:${coff}\n %s" % self.__class__.__name__, level='error' ) 
-		msg( "${red1}Description:${coff}\n %s" % self.__doc__.strip(), level='error' ) 
-		msg( "${red1}Reason:${coff}\n %s" % reason, level='error' ) 
-
-		if self.request:
-			msg( "${red1}Failing request %s:${coff}" % self.request.type, level='error' )
-			msg( PacketFormatter( self.request ), level='error' )
-
-		if response:
-			if isinstance( response, list ):
-				msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in response ), level='error' )
-				for r in response:
-					msg( PacketFormatter( r ), level='error' )
-			else:
-				msg( "${red1}Wrong response %s:${coff}" % response.type, level='error' )
-				msg( PacketFormatter( response ), level='error' )
-
-		if self.expected:
-			msg( "${red1}Expected:${coff}\n %s" % self.expected, level='error' ) 
-
-		msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
+		self.response = response
 
 		self.transport.loseConnection()
-
 		super( TestSession, self ).failed( reason )
+
+	def report( self ):
+		if self.status:
+			TestCase.report( self )
+		else:
+			TestCase.report( self, 'prologue' )
+
+			if self.request:
+				msg( "${red1}Failing request %s:${coff}" % self.request.type, level='error' )
+				msg( PacketFormatter( self.request ), level='error' )
+
+			if self.response:
+				if isinstance( self.response, list ):
+					msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in self.response ), level='error' )
+					for r in self.response:
+						msg( PacketFormatter( r ), level='error' )
+				else:
+					msg( "${red1}Wrong response %s:${coff}" % self.response.type, level='error' )
+					msg( PacketFormatter( self.response ), level='error' )
+
+			if self.expected:
+				msg( "${red1}Expected:${coff}\n %s" % self.expected, level='error' ) 
+
+			TestCase.report( self, 'epilogue' )
 #}}}
 
 class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
