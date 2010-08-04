@@ -2,7 +2,7 @@
 
 import random
 
-class Ship( object ):
+class Ship( object ):#{{{
     draw_damage = 0
     win_damage = 0
 
@@ -14,8 +14,9 @@ class Ship( object ):
 
     def alive(self):    
         return self.hp > 0
+#}}}
 
-class Frigate( Ship ):
+class Frigate( Ship ):#{{{
     """
     I cause 2 hp of damage on win. I always fire first.
     I move 2 units per turn.
@@ -31,8 +32,9 @@ class Frigate( Ship ):
 
     def own(self, fleet):
         fleet.frigates.append(self)
+#}}}
 
-class Battleship(Ship):
+class Battleship( Ship ):#{{{
     """
     I cause 3 hp of damage on win. 1 HP on draw
     I move 1 units per turn.
@@ -49,8 +51,9 @@ class Battleship(Ship):
 
     def own(self, fleet):
         fleet.battleships.append(self)
+#}}}
 
-class Scout(Ship):
+class Scout( Ship ):#{{{
     """
     If I win a match I may escape.
     I move 3 units per turn.
@@ -64,8 +67,9 @@ class Scout(Ship):
 
     def own(self, fleet):
         fleet.scouts.append(self)
+#}}}
 
-class Planet(Ship):
+class Planet( Ship ):#{{{
     win_damage = 6
     draw_damage = 2
 
@@ -76,8 +80,9 @@ class Planet(Ship):
 
     def own(self, fleet):
         fleet.planets.append(self)
+#}}}
 
-class Fleet( object ):
+class Fleet( object ):#{{{
     def __init__(self, ships):
         # For scouts, so they can run away.
         self.running = 0
@@ -138,85 +143,6 @@ class Fleet( object ):
             return False
 
         return sum([1 for s in self.ships if s.alive()])
+#}}}
 
-def display_hits(hits):
-    for (hp, ship) in hits:
-        print ("Hit %s for %d" % (ship.type, hp)),
-        if not ship.alive():
-            print "and destroyed it"
-        else:
-            print
-
-def battle(red, blue):
-    """
-    red and blue are the opposing sides, Fleet objects.
-    """
-
-    round = 0
-
-    while red.alive() and blue.alive():
-        
-        round = round + 1
-        print "Round", round
-        print
-
-        red_hand = red.shake()
-        print "* Red Fleet,", red_hand
-
-        blue_hand = blue.shake()
-        print "* Blue Fleet,", blue_hand
-
-        if red_hand == blue_hand:
-            print "* Draw"
-            blue_dmg = red.draw_damage()
-            red_dmg = blue.draw_damage()
-
-            print
-
-            if red_dmg:
-                print "Blue Fleet does %d damage to Red Fleet" % red_dmg
-                hits = red.hit(red_dmg)
-                display_hits(hits)
-            if blue_dmg:
-                print "Red Fleet does %d damage to Blue Fleet" % blue_dmg
-                hits = blue.hit(blue_dmg)
-                display_hits(hits)
-
-            print
-
-            continue
-
-        if (red_hand, blue_hand) in (
-            ("Rock", "Scissors"), ("Scissors", "Paper"), ("Paper", "Rock")):
-
-            print "* %s beats %s" % (red_hand, blue_hand)
-            print
-            print "Red Fleet does %d damage to Blue Fleet" % red.win_damage()
-
-            hits = blue.hit(red.win_damage())
-            display_hits(hits)
-
-        else:
-            print "* %s beats %s" % (blue_hand, red_hand)
-            print
-            print "Blue Fleet does %d damage to Red Fleet" % blue.win_damage()
-
-            hits = red.hit(blue.win_damage())
-            display_hits(hits)
-
-        print
-
-    if red.alive():
-        print "Red Fleet Wins"
-    elif blue.alive():
-        print "Blue Fleet Wins"
-    else:
-        print "Everybody died"
-
-    if red.running:
-        print "Red Ran Away"
-    elif blue.running:
-        print "Blue Ran Away"
-
-battle( Fleet([Frigate(), Battleship(), Scout(), Battleship(),Battleship(),
-		Battleship(),  ]), Fleet([Battleship(), Battleship(), Planet()]))
+__all__ = [ 'Ship', 'Frigate', 'Battleship', 'Scout', 'Planet', 'Fleet' ]
