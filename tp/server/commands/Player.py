@@ -49,14 +49,14 @@ class Login( RequestHandler ):#{{{
 		try:
 			username, game_name = request.username.split('@', 1)
 		except ValueError, ex:
-			msg( "${yel1}%s${coff}" % ex, level="info" )
+			msg( "${yel1}Player name %s malformed!${coff}" % request.username, level="warning" )
 
 			return Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
 			game = GameManager()[ game_name ]
 		except KeyError, ex:
-			msg( "${yel1}%s${coff}" % ex, level="info" )
+			msg( "${yel1}Game %s not found!${coff}" % game_name, level="warning" )
 
 			return Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
