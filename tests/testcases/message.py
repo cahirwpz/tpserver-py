@@ -31,10 +31,10 @@ class GetNonExistentMessage1( AuthorizedTestSession ):
 
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id + 1000, [ message.id ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
+		packet = yield GetMessage( self.seq, board.id + 666, [ message.id ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
 
 		if packet.type == 'Message':
-			self.failed( "Server does return information for non-existent MessageId = %d!" % self.WrongMessageId )
+			self.failed( "Server does return information for non-existent BoardId = %d!" % ( board.id + 666 ) )
 
 class GetNonExistentMessage2( AuthorizedTestSession ):
 	""" Does server fail to respond if asked about non-existent message (wrong SlotId)? """
@@ -47,10 +47,10 @@ class GetNonExistentMessage2( AuthorizedTestSession ):
 
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id, [ message.id + 1000 ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
+		packet = yield GetMessage( self.seq, board.id, [ message.id + 666 ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
 
 		if packet.type == 'Message':
-			self.failed( "Server does return information for non-existent Message (MessageId = 1, SlotId = %d)!" % self.WrongSlotId )
+			self.failed( "Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 ) )
 
 class GetMultipleMessages( AuthorizedTestSession ):
 	""" Does server return sequence of Message packets if asked about two messages? """
