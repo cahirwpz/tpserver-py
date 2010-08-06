@@ -91,6 +91,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 		self.request	= None
 		self.response	= None
 		self.expected	= None
+
+		self.__finished = False
 	
 	def setUp( self ):
 		msg( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__, level='info' ) 
@@ -99,6 +101,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 	
 	def tearDown( self ):
 		msg( "${wht1}Tearing down %s test...${coff}" % self.__class__.__name__, level='info' ) 
+
+		self.transport.loseConnection()
 
 	def run( self ):
 		msg( "${wht1}Starting %s test...${coff}" % self.__class__.__name__, level='info' ) 
@@ -112,6 +116,7 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 		self.scenarioList.append( self.__iter__() )
 
 		self.scenario = ichain( *self.scenarioList )
+
 		self.step()
 
 	@logctx
@@ -121,7 +126,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 		msg( "Received ${cyn1}%s${coff} packet." % packet.type, level="info" )
 
 		if self.NoFailAllowed and packet.type == "Fail":
-			self.failed( packet, "Fail packet received!" )
+			self.response = packet
+			self.failed( "Fail packet received!" )
 		elif packet.type == "Sequence":
 			self.count = packet.number
 			self.bundle.append( packet )
@@ -134,46 +140,51 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				self.bundle = []
 
 				if self.expected and bundle not in self.expected:
-					self.failed( bundle, "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
+					self.response = bundle
+					self.failed( "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
 				else:
 					self.step( bundle )
 		elif self.expected and packet not in self.expected:
-			self.failed( packet, "Received unexpected packet %s!" % packet.type )
+			self.response = packet
+			self.failed( "Received unexpected packet %s!" % packet.type )
 		else:
 			self.step( packet )
 
 	def step( self, response = None ):
-		try:
-			instruction = self.scenario.send( response )
-		except StopIteration, ex:
-			self.succeeded()
-		else:
-			if isinstance( instruction, tuple ):
-				request, self.expected = instruction
+		if not self.__finished:
+			try:
+				instruction = self.scenario.send( response )
+			except StopIteration, ex:
+				self.succeeded()
 			else:
-				request, self.expected = instruction, None
+				if isinstance( instruction, tuple ):
+					request, self.expected = instruction
+				else:
+					request, self.expected = instruction, None
 
-			self.transport.sendPacket( request )
+				self.transport.sendPacket( request )
 
-			self.request = request
-			self.request.type = request.__class__.__name__
+				self.request = request
+				self.request.type = request.__class__.__name__
 
-			if request is not None:
-				msg( "Sending ${cyn1}%s${coff} packet." % request._name, level="info" )
-			
-			if isinstance( self.expected, Expect ):
-				msg( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected, level="info" )
-	
+				if request is not None:
+					msg( "Sending ${cyn1}%s${coff} packet." % request._name, level="info" )
+				
+				if isinstance( self.expected, Expect ):
+					msg( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected, level="info" )
+
+	def failed( self, reason ):
+		if not self.__finished:
+			self.__finished = True
+
+			super( TestSession, self ).failed( reason )
+
 	def succeeded( self ):
-		self.transport.loseConnection()
-		super( TestSession, self ).succeeded()
+		if not self.__finished:
+			self.__finished = True
 
-	def failed( self, response, reason ):
-		self.response = response
-
-		self.transport.loseConnection()
-		super( TestSession, self ).failed( reason )
-
+			super( TestSession, self ).succeeded()
+	
 	def report( self ):
 		if self.status:
 			TestCase.report( self )
@@ -212,20 +223,21 @@ class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 #}}}
 
 class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
-	Game		= "tp"
-	Login		= "test"
-	Password	= "test"
-
 	def __init__( self, **kwargs ):
 		super( AuthorizedTestSession, self ).__init__( **kwargs )
 
 		self.scenarioList.append( self.__login() )
 
+	def setUp( self ):
+		self.game = self.ctx['game'].name
+		self.login = self.ctx['players'][0].username
+		self.password = self.ctx['players'][0].password
+
 	def __login( self ):
 		Connect, Login = self.protocol.use( 'Connect', 'Login' )
 
 		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-		yield Login( self.seq, "%s@%s" % ( self.Login, self.Game), self.Password ), Expect( 'Okay' )
+		yield Login( self.seq, "%s@%s" % ( self.login, self.game ), self.password ), Expect( 'Okay' )
 #}}}
 
 __all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession', 'ConnectedTestSession', 'AuthorizedTestSession' ]
