@@ -4,8 +4,9 @@ from common import AuthorizedTestSession, Expect
 class GetCurrentPlayer( AuthorizedTestSession ):
 	""" Does server respond with current player information? """
 
-	Login		= "test2"
-	Password	= "test2"
+	def setUp( self ):
+		self.login		= self.ctx['player2'].username
+		self.password	= self.ctx['player2'].password
 
 	def __iter__( self ):
 		GetPlayer = self.protocol.use( 'GetPlayer' )
@@ -52,11 +53,7 @@ class GetMultiplePlayers( AuthorizedTestSession ):
 			self.failed( "Server returned different PlayerIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
 class PlayerTestSuite( TestSuite ):
-	__name__ = 'Players'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers )
+	__name__  = 'Players'
+	__tests__ = [ GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
 
 __tests__ = [ PlayerTestSuite ]

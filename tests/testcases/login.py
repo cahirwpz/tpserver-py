@@ -4,21 +4,18 @@ from common import ConnectedTestSession, Expect
 class KnownUserAuthorized( ConnectedTestSession ):
 	""" Does server know a user that we know to exist? """
 
-	Game		= "tp"
-	Login		= "test"
-	Password	= "test"
+	def setUp( self ):
+		self.game		= self.ctx['game'].name
+		self.login		= self.ctx['player1'].username
+		self.password	= self.ctx['player1'].password
 
 	def __iter__( self ):
 		Login = self.protocol.use( 'Login' )
 
-		yield Login( self.seq, "%s@%s" % ( self.Login, self.Game), self.Password ), Expect( 'Okay' )
+		yield Login( self.seq, "%s@%s" % ( self.login, self.game ), self.password ), Expect( 'Okay' )
 
 class LoginTestSuite( TestSuite ):
-	__name__ = 'Login'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( KnownUserAuthorized )
+	__name__  = 'Login'
+	__tests__ = [ KnownUserAuthorized ]
 
 __tests__ = [ LoginTestSuite ]

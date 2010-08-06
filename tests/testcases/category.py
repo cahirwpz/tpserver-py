@@ -49,12 +49,7 @@ class GetAllCategoryIDs( AuthorizedTestSession ):
 			self.failed( "Server responded with different CategoryId than requested!" )
 
 class CategoryTestSuite( TestSuite ):
-	__name__ = 'Categories'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetExistingCategory, GetNonExistentCategory,
-				GetMultipleCategories, GetAllCategoryIDs )
+	__name__  = 'Categories'
+	__tests__ = [ GetExistingCategory, GetNonExistentCategory, GetMultipleCategories, GetAllCategoryIDs ]
 
 __tests__ = [ CategoryTestSuite ]

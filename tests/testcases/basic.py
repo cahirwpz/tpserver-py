@@ -10,11 +10,7 @@ class PingRequest( ConnectedTestSession ):
 		yield Ping( self.seq ), Expect( 'Okay' )
 
 class BasicRequestsTestSuite( TestSuite ):
-	__name__ = "BasicRequests"
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( PingRequest )
+	__name__  = "BasicRequests"
+	__tests__ = [ PingRequest ]
 
 __tests__ = [ BasicRequestsTestSuite ]

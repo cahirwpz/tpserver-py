@@ -13,11 +13,7 @@ class GetObjectIds( AuthorizedTestSession ):
 		yield GetObjectsByID( self.seq, [ id for id, modtime in response.modtimes ] )
 
 class ObjectTestSuite( TestSuite ):
-	__name__ = 'Objects'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetObjectIds )
+	__name__  = 'Objects'
+	__tests__ = [ GetObjectIds ]
 
 __tests__ = [ ObjectTestSuite ]

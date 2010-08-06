@@ -52,12 +52,7 @@ class GetMultipleBoards( AuthorizedTestSession ):
 			self.failed( "Server returned different BoardIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
 class BoardTestSuite( TestSuite ):
-	__name__ = 'Boards'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetExistingBoard, GetNonExistentBoard, GetCurrentBoard,
-				GetMultipleBoards )
+	__name__  = 'Boards'
+	__tests__ = [ GetExistingBoard, GetNonExistentBoard, GetCurrentBoard, GetMultipleBoards ]
 
 __tests__ = [ BoardTestSuite ]

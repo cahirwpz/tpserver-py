@@ -60,11 +60,7 @@ class PutMessage( AuthorizedTestSession ):
 		packet = yield Message( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
 
 class MessageTestSuite( TestSuite ):
-	__name__ = 'Messages'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2 )
+	__name__  = 'Messages'
+	__tests__ = [ GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2 ]
 
 __tests__ = [ MessageTestSuite ]

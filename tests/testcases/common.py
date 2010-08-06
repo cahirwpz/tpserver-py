@@ -80,8 +80,8 @@ class Expect( collections.Container ):#{{{
 class TestSession( TestCase, ClientSessionHandler ):#{{{
 	NoFailAllowed = True
 
-	def __init__( self ):
-		super( TestSession, self ).__init__()
+	def __init__( self, **kwargs ):
+		super( TestSession, self ).__init__( **kwargs )
 
 		self.bundle		= []
 		self.count 		= 0
@@ -200,8 +200,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 #}}}
 
 class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
-	def __init__( self ):
-		super( ConnectedTestSession, self ).__init__()
+	def __init__( self, **kwargs ):
+		super( ConnectedTestSession, self ).__init__( **kwargs )
 
 		self.scenarioList.append( self.__connect() )
 
@@ -216,8 +216,8 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 	Login		= "test"
 	Password	= "test"
 
-	def __init__( self ):
-		super( AuthorizedTestSession, self ).__init__()
+	def __init__( self, **kwargs ):
+		super( AuthorizedTestSession, self ).__init__( **kwargs )
 
 		self.scenarioList.append( self.__login() )
 

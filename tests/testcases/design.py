@@ -38,12 +38,7 @@ class GetMultipleDesigns( AuthorizedTestSession ):
 			self.failed( "Server returned different DesignIds (%d,%d) than requested (1,2)." % (p1.id, p2.id) )
 
 class DesignTestSuite( TestSuite ):
-	__name__ = 'Designs'
-
-	def __init__( self ):
-		super( DesignTestSuite, self ).__init__()
-
-		self.addTest( GetExistingDesign, GetNonExistentDesign,
-				GetMultipleDesigns )
+	__name__  = 'Designs'
+	__tests__ = [ GetExistingDesign, GetNonExistentDesign, GetMultipleDesigns ]
 
 __tests__ = [ DesignTestSuite ]

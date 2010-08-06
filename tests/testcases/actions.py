@@ -84,12 +84,8 @@ class BaseBattleAction( TestCase ):
 			msg( "Blue Ran Away" )
 
 class RulesetActionTestSuite( TestSuite ):
-	__name__ = 'RulesetActions'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( BaseBattleAction )
+	__name__  = 'RulesetActions'
+	__tests__ = [ BaseBattleAction ]
 
 __tests__ = [ RulesetActionTestSuite ]
 

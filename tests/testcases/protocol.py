@@ -21,11 +21,7 @@ class SameSequenceInHeader( TestSession ):
 			self.status = True
 
 class ProtocolTestSuite( TestSuite ):
-	__name__ = 'Protocol'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( SameSequenceInHeader )
+	__name__  = 'Protocol'
+	__tests__ = [ SameSequenceInHeader ]
 
 __tests__ = [ ProtocolTestSuite ]

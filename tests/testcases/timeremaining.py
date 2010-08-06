@@ -10,11 +10,7 @@ class GetTimeRemainingRequest( ConnectedTestSession ):
 		yield GetTimeRemaining( self.seq ), Expect( 'TimeRemaining' )
 
 class TimeRemainingTestSuite( TestSuite ):
-	__name__ = 'TimeRemaining'
-
-	def __init__( self ):
-		TestSuite.__init__( self )
-
-		self.addTest( GetTimeRemainingRequest )
+	__name__  = 'TimeRemaining'
+	__tests__ = [ GetTimeRemainingRequest ]
 
 __tests__ = [ TimeRemainingTestSuite ]
