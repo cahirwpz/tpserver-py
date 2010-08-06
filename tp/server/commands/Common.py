@@ -91,6 +91,9 @@ class WithIDHandler( RequestHandler ):#{{{
 		if len( response ) > 1:
 			response.insert( 0, self.Sequence( request, len( response ) ) )
 
+		if not len( response ):
+			response.append( self.Fail( request, "Protocol", "List of IDs must be nonempty!" ) )
+
 		return response
 #}}}
 
