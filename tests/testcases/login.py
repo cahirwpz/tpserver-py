@@ -6,8 +6,8 @@ class KnownUserAuthorized( ConnectedTestSession ):
 
 	def setUp( self ):
 		self.game		= self.ctx['game'].name
-		self.login		= self.ctx['player1'].username
-		self.password	= self.ctx['player1'].password
+		self.login		= self.ctx['players'][0].username
+		self.password	= self.ctx['players'][0].password
 
 	def __iter__( self ):
 		Login = self.protocol.use( 'Login' )
