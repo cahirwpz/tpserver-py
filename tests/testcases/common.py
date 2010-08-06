@@ -148,6 +148,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 			self.response = packet
 			self.failed( "Received unexpected packet %s!" % packet.type )
 		else:
+			self.expected = None
+			self.response = packet
 			self.step( packet )
 
 	def step( self, response = None ):
