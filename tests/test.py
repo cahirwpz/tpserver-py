@@ -158,7 +158,13 @@ class TestSuite( Mapping, TestCase ):#{{{
 
 	def report( self ):
 		if not self.status:
-			msg( "${red1}Some of the tests failed!${coff}", level = 'error' ) 
+			msg( "${red1}Test suite %s failed!${coff}" % self.__class__.__name__, level = 'error' ) 
+			if self.failure:
+				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
+				msg( "${red1}Reason:${coff}\n %s" % self.reason, level='error' ) 
+				msg( "${red1}Traceback:${coff}", level='error' )
+				err( _stuff = self.failure )
+				msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
 
 	def getListing( self ):
 		"""
