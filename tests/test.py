@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import textwrap, glob, os.path
-from collections import Mapping
+import textwrap, glob, os.path, copy, traceback
+from collections import Mapping, MutableMapping
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
@@ -9,30 +9,86 @@ from twisted.python.failure import Failure
 
 from tp.server.logging import msg, err, logctx
 
-class TestCase( object ):#{{{
+class TestContext( MutableMapping ):#{{{
 	def __init__( self ):
+		super( TestContext, self ).__init__()
+
+		self.__stack = []
+		self.__data  = {}
+
+	def save( self ):
+		self.__stack.append( self.__data )
+		self.__data = copy.copy( self.__data )
+
+	def restore( self ):
+		self.__data = self.__stack.pop()
+	
+	def __getitem__( self, key ):
+		return self.__data.__getitem__( key )
+
+	def __setitem__( self, key, value ):
+		self.__data.__setitem__( key, value )
+
+	def __delitem__( self, key ):
+		self.__data.__delitem__( key )
+
+	def __len__( self ):
+		return self.__data.__len__()
+
+	def __iter__( self ):
+		return self.__data.__iter__()
+
+	def __contains__( self, key ):
+		return self.__data.__contains__( key )
+#}}}
+
+class TestCase( object ):#{{{
+	def __init__( self, ctx = None ):
+		self.ctx	= ctx or TestContext()
 		self.status = True
 		self.reason = None
 		self.result = Deferred()
 		self.failure = None
 
+		self.__finishing = False
+
 	@logctx
-	def __setUp( self ):
+	def __setUpWrapper( self ):
 		try:
-			self.setUp()
-		except Exception:
+			methods = []
+
+			for cls in reversed( self.__class__.__mro__ ):
+				method = getattr( cls, 'setUp', None )
+
+				if method:
+					if not len( methods ) or method != methods[-1]:
+						methods.append( method )
+
+			for method in methods:
+				method( self )
+		except:
 			self.failure = Failure()
 			self.status  = False
 			self.reason  = "SetUp method failed!"
 
-			self.__tearDown()
+			self.__tearDownWrapper()
 		else:
 			reactor.callLater( 0, self.run )
 
 	@logctx
-	def __tearDown( self ):
+	def __tearDownWrapper( self ):
 		try:
-			self.tearDown()
+			methods = []
+
+			for cls in reversed( self.__class__.__mro__ ):
+				method = getattr( cls, 'tearDown', None )
+
+				if method:
+					if not len( methods ) or method != methods[0]:
+						methods.insert( 0, method )
+
+			for method in methods:
+				method( self )
 		except Exception:
 			if self.status:
 				self.failure = Failure()
@@ -58,16 +114,24 @@ class TestCase( object ):#{{{
 
 	@logctx
 	def start( self ):
-		self.__setUp()
+		self.__setUpWrapper()
 
 	def succeeded( self ):
+		assert self.__finishing is False, "Methods 'succeeded' and 'failed' can be called only once!"
+
+		self.__finishing = True
+
 		self.status = True
-		reactor.callLater( 0, self.__tearDown )
+		reactor.callLater( 0, self.__tearDownWrapper )
 
 	def failed( self, reason ):
+		assert self.__finishing is False
+
+		self.__finishing = True
+
 		self.status = False
 		self.reason = reason
-		reactor.callLater( 0, self.__tearDown )
+		reactor.callLater( 0, self.__tearDownWrapper )
 	
 	def report( self, part = 'all' ):
 		if self.status:
@@ -93,14 +157,21 @@ class TestCase( object ):#{{{
 #}}}
 
 class TestSuite( Mapping, TestCase ):#{{{
-	def __init__( self ):
-		super( TestSuite, self ).__init__()
+	def __init__( self, ctx = None ):
+		super( TestSuite, self ).__init__( ctx = ctx )
 
 		self.__tests = []
 		self.__names = {}
 		self.__iter  = None
 
 		self.__failedTest = []
+
+		try:
+			tests = self.__tests__
+		except AttributeError:
+			pass
+		else:
+			self.addTest( *tests )
 	
 	def setUp( self ):
 		msg( "${cyn1}Setting up %s test suite...${coff}" % self.__class__.__name__, level='info' ) 
@@ -136,6 +207,8 @@ class TestSuite( Mapping, TestCase ):#{{{
 	def run( self ):
 		if not self.__iter:
 			self.__iter = iter( self.__tests )
+		else:
+			self.ctx.restore()
 
 		try:
 			TestType = self.__iter.next()
@@ -145,7 +218,8 @@ class TestSuite( Mapping, TestCase ):#{{{
 			else:
 				self.succeeded()
 		else:
-			test = TestType()
+			self.ctx.save()
+			test = TestType( ctx = self.ctx )
 			test.result.addCallbacks( self.__succeeded, self.__failed )
 			test.start()
 
@@ -222,9 +296,9 @@ class TestLoader( TestSuite ):#{{{
 					classes = []
 
 				self.addTest( *classes )
-			except ImportError, msg:
-				msg( "${yel1}Could not import %s: %s!${coff}" % ( moduleName, msg ), level = 'warning' )
+			except ImportError, ex:
+				msg( "${yel1}Could not import %s!${coff}" % moduleName, level = 'warning' )
 				err()
 #}}}
 
-__all__ = [ 'TestCase', 'TestSuite', 'TestLoader' ]
+__all__ = [ 'TestCase', 'TestSuite', 'TestLoader', 'TestContext' ]
