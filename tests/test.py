@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import textwrap, glob, os.path, copy, traceback
+import textwrap, glob, os.path, copy
 from collections import Mapping, MutableMapping
 
 from twisted.internet import reactor
@@ -43,6 +43,8 @@ class TestContext( MutableMapping ):#{{{
 #}}}
 
 class TestCase( object ):#{{{
+	__testpath__ = []
+
 	def __init__( self, ctx = None ):
 		self.ctx	= ctx or TestContext()
 		self.status = True
@@ -151,7 +153,10 @@ class TestCase( object ):#{{{
 
 	def logPrefix( self ):
 		try:
-			return self.__parent__.__name__
+			if len( self.__testpath__ ):
+				return ".".join( self.__testpath__ )
+			else:
+				return self.__name__
 		except AttributeError:
 			return self.__class__.__name__
 #}}}
@@ -187,7 +192,14 @@ class TestSuite( Mapping, TestCase ):#{{{
 				self.__tests.append( cls )
 				self.__names[ cls.__name__ ] = cls
 
+				if issubclass( cls, TestSuite ):
+					name = cls.__dict__[ '__name__' ]
+				else:
+					name = cls.__name__
+
 				cls.__parent__ = self
+				cls.__testpath__ = copy.copy( self.__testpath__ )
+				cls.__testpath__.append( name )
 
 	def __getitem__( self, name ):
 		return self.__names[ name ]
@@ -264,12 +276,6 @@ class TestSuite( Mapping, TestCase ):#{{{
 		report.append( '${cyn0}Available test cases count: %d${coff}' % len( self ) )
 
 		return report
-
-	def logPrefix( self ):
-		try:
-			return self.__name__
-		except AttributeError:
-			return self.__class__.__name__
 #}}}
 
 class TestLoader( TestSuite ):#{{{
