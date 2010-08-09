@@ -1,5 +1,6 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, WhenNotLogged )
+from common import AuthorizedTestSession, Expect
+from templates import WhenNotLogged
 
 class GetTimeRemainingRequest( AuthorizedTestSession ):#{{{
 	""" Checks if server responds to GetTimeRemaining request properly. """

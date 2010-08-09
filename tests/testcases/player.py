@@ -1,5 +1,6 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, GetWithIDWhenNotLogged )
+from common import AuthorizedTestSession, Expect
+from templates import GetWithIDWhenNotLogged
 
 class GetCurrentPlayer( AuthorizedTestSession ):#{{{
 	""" Does server respond with current player information? """

@@ -1,6 +1,5 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, TestSessionUtils,
-		ConnectedTestSession, GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged )
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged
 
 from tp.server.model import DatabaseManager
 

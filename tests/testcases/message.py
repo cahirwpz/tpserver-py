@@ -1,6 +1,6 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, WhenNotLogged,
-		GetWithIDSlotWhenNotLogged )
+from common import AuthorizedTestSession, Expect
+from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged
 
 from tp.server.model import DatabaseManager
 

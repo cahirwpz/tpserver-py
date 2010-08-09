@@ -1,6 +1,6 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, GetWithIDWhenNotLogged,
-		GetIDSequenceWhenNotLogged, WhenNotLogged )
+from common import AuthorizedTestSession, Expect
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
 from tp.server.model import DatabaseManager, Vector3D
 

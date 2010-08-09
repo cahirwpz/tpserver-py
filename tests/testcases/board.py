@@ -1,6 +1,6 @@
 from test import TestSuite
-from common import ( AuthorizedTestSession, Expect, TestSessionUtils,
-		ConnectedTestSession, GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged )
+from common import AuthorizedTestSession, Expect, TestSessionUtils
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged
 
 from tp.server.model import DatabaseManager
 
@@ -167,14 +167,19 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
 #}}}
 
+class BoardAccessTestSuite( TestSuite ):#{{{
+	""" Groups tests that check if access control for Board objects works properly. """
+	__name__  = 'Access'
+	__tests__ = [ GetCurrentBoard, AllFetchedBoardsAreAccessible,
+			GetPublicBoard, GetPrivateBoard, GetOtherPlayerPrivateBoard ]
+#}}}
+
 class BoardTestSuite( TestSuite ):#{{{
 	""" Performs all tests related to GetBoards and GetBoardIDs requests. """
 	__name__  = 'Boards'
 	__tests__ = [ GetBoardWhenNotLogged, GetBoardIDsWhenNotLogged,
-			GetExistingBoard, GetNonExistentBoard, GetCurrentBoard,
-			GetMultipleBoards, GetNumberOfBoards, GetAllAvailableBoards,
-			AllFetchedBoardsAreAccessible, GetPublicBoard, GetPrivateBoard,
-			GetOtherPlayerPrivateBoard ]
+			GetExistingBoard, GetNonExistentBoard, GetMultipleBoards,
+			GetNumberOfBoards, GetAllAvailableBoards, BoardAccessTestSuite ]
 
 	def setUp( self ):
 		game = self.ctx['game']
