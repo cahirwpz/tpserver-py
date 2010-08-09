@@ -2,7 +2,7 @@
 
 from tp.server.model import DatabaseManager
 
-from Common import ( FactoryMixin, RequestHandler, GetWithIDHandler,
+from Common import ( MustBeLogged, FactoryMixin, RequestHandler, GetWithIDHandler,
 		GetIDSequenceHandler, RemoveWithIDHandler )
 
 class CategoryFactoryMixin( FactoryMixin ):#{{{
@@ -26,6 +26,7 @@ class CategoryFactoryMixin( FactoryMixin ):#{{{
 #}}}
 
 class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
+	@MustBeLogged
 	def __call__( self, request ):
 		"""
 		Request:  AddCategory :: Category

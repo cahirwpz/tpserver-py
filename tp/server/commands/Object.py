@@ -55,6 +55,9 @@ class GetObjectIDsByPos( RequestHandler ):#{{{
 	Request:  GetObjectIDsByPos
 	Response: IDSequence
 	"""
+	@MustBeLogged
+	def __call__( self, request ):
+		pass
 #}}}
 
 class GetObjectsByID( GetWithIDHandler, ObjectFactoryMixin ):#{{{

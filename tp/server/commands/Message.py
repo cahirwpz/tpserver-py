@@ -3,7 +3,8 @@
 from tp.server.logging import msg
 from tp.server.model import DatabaseManager
 
-from Common import FactoryMixin, RequestHandler, GetWithIDSlotHandler, RemoveWithIDSlotHandler
+from Common import ( MustBeLogged, FactoryMixin, RequestHandler,
+		GetWithIDSlotHandler, RemoveWithIDSlotHandler )
 
 class MessageFactoryMixin( FactoryMixin ):#{{{
 	def fromPacket( self, request ):
@@ -37,6 +38,7 @@ class PostMessage( RequestHandler ):#{{{
 	def authorize( self, obj ):
 		return True
 
+	@MustBeLogged
 	def __call__( self, request ):
 		Container = self.game.objects.use( 'Board' )
 

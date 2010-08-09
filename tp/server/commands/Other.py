@@ -2,7 +2,7 @@
 
 from tp.server.version import version as __version__
 
-from Common import RequestHandler
+from Common import RequestHandler, MustBeLogged
 
 class FinishedTurn( RequestHandler ):#{{{
 	"""
@@ -16,6 +16,7 @@ class GetTimeRemaining( RequestHandler ):#{{{
 	Request:  GetTimeRemaining
 	Response: TimeRemaining
 	"""
+	@MustBeLogged
 	def __call__( self, request ):
 		TimeRemaining = self.protocol.use( 'TimeRemaining' )
 

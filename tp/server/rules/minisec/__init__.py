@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.model import DatabaseManager
-from tp.server.model import Vector3D
+from tp.server.model import DatabaseManager, Vector3D
 
 # Generic Actions
 from tp.server.rules.base import Ruleset as RulesetBase

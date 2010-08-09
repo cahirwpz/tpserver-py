@@ -1,21 +1,39 @@
 #!/usr/bin/env python
 
-from Common import RequestHandler, GetWithIDHandler, GetWithIDSlotHandler, GetIDSequenceHandler
+from Common import MustBeLogged, RequestHandler, GetWithIDHandler, GetWithIDSlotHandler, GetIDSequenceHandler, FactoryMixin
 
-class GetOrder( GetWithIDSlotHandler ):#{{{
+class OrderFactoryMixin( FactoryMixin ):#{{{
+	def fromPacket( self, request ):
+		Order = self.game.objects.use( 'Order' )
+
+		return None
+
+	def toPacket( self, request, obj ):
+		Order = self.protocol.use( 'Order' )
+
+		return None
+#}}}
+
+class OrderDescFactoryMixin( FactoryMixin ):#{{{
+	def toPacket( self, request, obj ):
+		OrderDesc = self.protocol.use( 'OrderDesc' )
+
+		return None
+#}}}
+
+class GetOrder( GetWithIDSlotHandler, OrderFactoryMixin ):#{{{
 	"""
 	Request:  GetOrder :: GetWithIDSlot
 	Response: Order | Sequence + Order{2,n}
 	"""
+	__object__ = 'Order'
 #}}}
 
-class GetOrderDesc( GetWithIDHandler ):#{{{
+class GetOrderDesc( GetWithIDHandler, OrderDescFactoryMixin ):#{{{
 	"""
 	Request:  GetOrderDesc :: GetWithID
 	Response: OrderDesc | Sequence + OrderDesc{2,n}
 	"""
-	def __init__( self, *args, **kwargs ):
-		GetWithIDHandler.__init__( self, 'OrderDesc', *args, **kwargs )
 #}}}
 
 class GetOrderDescIDs( GetIDSequenceHandler ):#{{{
@@ -23,6 +41,8 @@ class GetOrderDescIDs( GetIDSequenceHandler ):#{{{
 	Request:  GetOrderDescIDs :: GetIDSequence
 	Response: IDSequence
 	"""
+	__packet__ = 'OrderDescIDs'
+	__object__ = 'Order'
 #}}}
 
 class OrderInsert( RequestHandler ):#{{{
@@ -30,6 +50,9 @@ class OrderInsert( RequestHandler ):#{{{
 	Request:  OrderInsert :: Order
 	Response: Okay | Fail
 	"""
+	@MustBeLogged
+	def __call__( self, request ):
+		return request
 #}}}
 
 class OrderProbe( RequestHandler ):#{{{
@@ -37,6 +60,9 @@ class OrderProbe( RequestHandler ):#{{{
 	Request:  OrderProbe :: Order
 	Response: Order | Fail
 	"""
+	@MustBeLogged
+	def __call__( self, request ):
+		pass
 #}}}
 
 class RemoveOrder( GetWithIDSlotHandler ):#{{{

@@ -73,7 +73,7 @@ class ClientSessionHandler( object ):#{{{
 
 	@logctx
 	def packetReceived( self, packet ):
-		msg( "${wht1}Going to deal with ${mgt1}%s${wht1} packet.${coff}" % packet._name )
+		msg( "${wht1}Going to deal with ${mgt1}%s${wht1} packet.${coff}" % packet.__class__.__name__ )
 
 		if not self.__packets:
 			self.__packets = PacketFactory()[ packet._version ]
@@ -86,7 +86,7 @@ class ClientSessionHandler( object ):#{{{
 			self.lastSeq = packet._sequence
 
 			try:
-				handler = CommandDispatcher()[ packet._name ]( self.__packets, self.__context )
+				handler = CommandDispatcher()[ packet.__class__.__name__ ]( self.__packets, self.__context )
 			except KeyError:
 				msg( "${red1}No handler for %s command!${coff}" % packet._name, level="error" )
 

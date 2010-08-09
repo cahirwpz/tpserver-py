@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-from Common import FactoryMixin, RequestHandler, GetWithIDHandler, GetIDSequenceHandler, RemoveWithIDHandler
+from Common import ( FactoryMixin, MustBeLogged, RequestHandler,
+		GetWithIDHandler, GetIDSequenceHandler, RemoveWithIDHandler )
 
 class DesignFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
@@ -25,6 +26,10 @@ class AddDesign( RequestHandler ):#{{{
 	Request:  AddDesign :: Design
 	Response: Design | Fail
 	"""
+
+	@MustBeLogged
+	def __call__( self, request ):
+		pass
 #}}}
 
 class GetDesign( GetWithIDHandler, DesignFactoryMixin ):#{{{
@@ -49,6 +54,10 @@ class ModifyDesign( RequestHandler ):#{{{
 	Request:  ModifyDesign :: Design
 	Response: Design | Fail
 	"""
+
+	@MustBeLogged
+	def __call__( self, request ):
+		pass
 #}}}
 
 class RemoveDesign( RemoveWithIDHandler ):#{{{
