@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import string, sys, linecache
+import string, sys, linecache, datetime
 
 from twisted.python import log, util, context, failure
 from configuration import ComponentConfiguration, BooleanOption, StringSetOption
@@ -171,6 +171,11 @@ class Logger( log.FileLogObserver ):#{{{
 					util.untilConcludes( self.write, log._safeFormat( '%(time)s%(system)s%(text)s\n', format ) )
 
 			util.untilConcludes( self.flush )
+
+	def formatTime( self, when ):
+		when = datetime.datetime.fromtimestamp( when )
+
+		return '%02d:%02d:%02d.%03d' % ( when.hour, when.minute, when.second, when.microsecond / 1000 )
 #}}}
 
 class LoggerConfiguration( ComponentConfiguration ):#{{{
