@@ -1,11 +1,11 @@
-import collections
+import collections, time
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
 from test import TestCase
 
 from tp.server.packet import PacketFactory, PacketFormatter
-from tp.server.logging import logctx, msg
+from tp.server.logging import logctx, msg, err
 
 def ichain( *args ):#{{{
 	for a in args:
@@ -77,9 +77,12 @@ class Expect( collections.Container ):#{{{
 		return ", ".join( s )
 #}}}
 
-class TestSession( TestCase, ClientSessionHandler ):#{{{
-	NoFailAllowed = True
+class TestSessionUtils( object ):#{{{
+	def datetimeToInt( self, t ):
+		return int( time.mktime( time.strptime( t.ctime() ) ) )
+#}}}
 
+class TestSession( TestCase, ClientSessionHandler ):#{{{
 	def __init__( self, **kwargs ):
 		super( TestSession, self ).__init__( **kwargs )
 
@@ -113,7 +116,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 
 		msg( "Connection established.", level="info" )
 
-		self.scenarioList.append( self.__iter__() )
+		if hasattr( self, '__iter__' ):
+			self.scenarioList.append( self.__iter__() )
 
 		self.scenario = ichain( *self.scenarioList )
 
@@ -125,7 +129,7 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 
 		msg( "Received ${cyn1}%s${coff} packet." % packet.type, level="info" )
 
-		if self.NoFailAllowed and packet.type == "Fail":
+		if self.expected is None and packet.type == "Fail":
 			self.response = packet
 			self.failed( "Fail packet received!" )
 		elif packet.type == "Sequence":
@@ -158,11 +162,17 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				instruction = self.scenario.send( response )
 			except StopIteration, ex:
 				self.succeeded()
+			except AssertionError, ex:
+				self.failed( str(ex) )
+			except Exception, ex:
+				err()
+				self.failed( "Scenario failed with unexpected error: %s: %s" % (ex.__class__.__name__, str(ex)) )
 			else:
 				if isinstance( instruction, tuple ):
 					request, self.expected = instruction
 				else:
 					request, self.expected = instruction, None
+					msg( "${yel1}Yielding a single value (without Expect instance) within a scenario is discouraged!${coff}", level="warning" )
 
 				self.transport.sendPacket( request )
 
@@ -242,4 +252,35 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		yield Login( self.seq, "%s@%s" % ( self.login, self.game ), self.password ), Expect( 'Okay' )
 #}}}
 
-__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession', 'ConnectedTestSession', 'AuthorizedTestSession' ]
+class GetWithIDWhenNotLogged( ConnectedTestSession ):#{{{
+	__request__ = None
+
+	def __iter__( self ):
+		Request = self.protocol.use( self.__request__ )
+
+		yield Request( self.seq, [1] ), Expect( ('Fail', 'UnavailableTemporarily') )
+#}}}
+
+class WhenNotLogged( ConnectedTestSession ):#{{{
+	__request__ = None
+
+	def __iter__( self ):
+		RequestType = self.protocol.use( self.__request__ )
+
+		yield self.makeRequest( RequestType ), Expect( ('Fail', 'UnavailableTemporarily') )
+#}}}
+
+class GetWithIDSlotWhenNotLogged( WhenNotLogged ):#{{{
+	def makeRequest( self, GetWithID ):
+		return GetWithID( self.seq, 1, [1] )
+#}}}
+
+class GetIDSequenceWhenNotLogged( ConnectedTestSession ):#{{{
+	def makeRequest( self, IDSequence):
+		return IDSequence( self.seq, -1, 0, -1 )
+#}}}
+
+__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession',
+			'ConnectedTestSession', 'AuthorizedTestSession', 'TestSessionUtils',
+			'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
+			'GetWithIDSlotWhenNotLogged', 'WhenNotLogged' ]
