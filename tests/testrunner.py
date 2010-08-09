@@ -8,7 +8,8 @@ from tp.server.model import DatabaseManager
 from test import TestLoader
 
 class MainTestSuite( TestLoader ):#{{{
-	__name__ = 'Main'
+	__testpath__ = [ 'Tests' ]
+	__name__ = 'Tests'
 	__path__ = 'testcases'
 
 	def setUp( self ):

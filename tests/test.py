@@ -136,11 +136,8 @@ class TestCase( object ):#{{{
 		reactor.callLater( 0, self.__tearDownWrapper )
 	
 	def report( self, part = 'all' ):
-		if self.status:
-			msg( "${grn1}Test %s succeeded!${coff}" % self.__class__.__name__, level = 'notice' )
-		else:
+		if not self.status:
 			if part in [ 'prologue', 'all' ]:
-				msg( "${red1}Test %s failed!${coff}" % self.__class__.__name__, level = 'error' ) 
 				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
 				msg( "${red1}Test name:${coff}\n %s" % self.__class__.__name__, level='error' ) 
 				msg( "${red1}Description:${coff}\n %s" % self.__doc__.strip(), level='error' ) 
@@ -235,16 +232,29 @@ class TestSuite( Mapping, TestCase ):#{{{
 			test.result.addCallbacks( self.__succeeded, self.__failed )
 			test.start()
 
+	@logctx
 	def __succeeded( self, test ):
+		if isinstance( test, TestSuite ):
+			msg( "${grn1}Test suite %s succeeded!${coff}" % test.logPrefix(), level = 'notice' )
+		else:
+			msg( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__, level = 'notice' )
+
 		self.run()
 
+	@logctx
 	def __failed( self, failure ):
-		self.__failedTest.append( failure.value )
+		test = failure.value
+
+		if isinstance( test, TestSuite ):
+			msg( "${red1}Test suite %s failed!${coff}" % test.logPrefix(), level = 'error' )
+		else:
+			msg( "${red1}Test %s failed!${coff}" % test.__class__.__name__, level = 'error' ) 
+
+		self.__failedTest.append( test )
 		self.run()
 
 	def report( self ):
 		if not self.status:
-			msg( "${red1}Test suite %s failed!${coff}" % self.__class__.__name__, level = 'error' ) 
 			if self.failure:
 				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
 				msg( "${red1}Reason:${coff}\n %s" % self.reason, level='error' ) 
