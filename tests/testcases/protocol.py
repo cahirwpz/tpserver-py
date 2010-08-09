@@ -4,8 +4,6 @@ from common import TestSession, Expect
 class SameSequenceInHeader( TestSession ):
 	""" Checks if a server drops second packet with same sequence. """
 
-	NoFailAllowed = False
-
 	def __iter__( self ):
 		Connect, Ping = self.protocol.use( 'Connect', 'Ping' )
 

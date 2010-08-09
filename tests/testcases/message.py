@@ -1,9 +1,10 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import ( AuthorizedTestSession, Expect, WhenNotLogged,
+		GetWithIDSlotWhenNotLogged )
 
 from tp.server.model import DatabaseManager
 
-class GetExistingMessage( AuthorizedTestSession ):
+class GetExistingMessage( AuthorizedTestSession ):#{{{
 	""" Does server respond properly if asked about existing message? """
 
 	def __iter__( self ):
@@ -14,16 +15,15 @@ class GetExistingMessage( AuthorizedTestSession ):
 
 		packet = yield GetMessage( self.seq, board.id, [ message.id ] ), Expect( 'Message' )
 
-		if packet.id != board.id:
-			self.failed( "Server responded with different BoardId than requested!" )
+		assert packet.id == board.id, \
+				"Server responded with different BoardId than requested!"
 
-		if packet.slot != message.id:
-			self.failed( "Server responded with different SlotId than requested!" )
+		assert packet.slot == message.id, \
+				"Server responded with different SlotId than requested!"
+#}}}
 
-class GetNonExistentMessage1( AuthorizedTestSession ):
+class GetNonExistentMessage1( AuthorizedTestSession ):#{{{
 	""" Does server fail to respond if asked about non-existent message (wrong MessageId)? """
-
-	NoFailAllowed = False
 
 	def __iter__( self ):
 		board   = self.ctx['board']
@@ -33,13 +33,12 @@ class GetNonExistentMessage1( AuthorizedTestSession ):
 
 		packet = yield GetMessage( self.seq, board.id + 666, [ message.id ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
 
-		if packet.type == 'Message':
-			self.failed( "Server does return information for non-existent BoardId = %d!" % ( board.id + 666 ) )
+		assert packet.type != 'Message', \
+			"Server does return information for non-existent BoardId = %d!" % ( board.id + 666 )
+#}}}
 
-class GetNonExistentMessage2( AuthorizedTestSession ):
+class GetNonExistentMessage2( AuthorizedTestSession ):#{{{
 	""" Does server fail to respond if asked about non-existent message (wrong SlotId)? """
-
-	NoFailAllowed = False
 
 	def __iter__( self ):
 		board   = self.ctx['board']
@@ -49,10 +48,11 @@ class GetNonExistentMessage2( AuthorizedTestSession ):
 
 		packet = yield GetMessage( self.seq, board.id, [ message.id + 666 ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
 
-		if packet.type == 'Message':
-			self.failed( "Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 ) )
+		assert packet.type != 'Message', \
+			"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 )
+#}}}
 
-class GetMultipleMessages( AuthorizedTestSession ):
+class GetMultipleMessages( AuthorizedTestSession ):#{{{
 	""" Does server return sequence of Message packets if asked about two messages? """
 
 	def __iter__( self ):
@@ -64,23 +64,49 @@ class GetMultipleMessages( AuthorizedTestSession ):
 
 		s, p1, p2 = yield GetMessage( self.seq, board.id, [ message3.id, message1.id ] ), Expect( ('Sequence', 2, 'Message' ) )
 
-		if p1.id != board.id or p2.id != board.id:
-			self.failed( "Server responded with different BoardId than requested!" )
+		assert p1.id == board.id and p2.id == board.id, \
+			"Server responded with different BoardId than requested!"
 
-		if p1.slot != message3.id or p2.slot != message1.id:
-			self.failed( "Server returned different MessageSlots (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, message3.id, message1.id) )
+		assert p1.slot == message3.id and p2.slot == message1.id, \
+			"Server returned different MessageSlots (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, message3.id, message1.id)
+#}}}
 
-class PutMessage( AuthorizedTestSession ):
+class PostMessage( AuthorizedTestSession ):#{{{
 	""" Tries to send message to default board. """
 
 	def __iter__( self ):
-		Message = self.protocol.use( 'Message' )
+		PostMessage = self.protocol.use( 'PostMessage' )
 
-		packet = yield Message( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
+		packet = yield PostMessage( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
+#}}}
 
-class MessageTestSuite( TestSuite ):
+class GetMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetMessage request? """
+
+	__request__ = 'GetMessage'
+#}}}
+
+class RemoveMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got RemoveMessage request? """
+
+	__request__ = 'RemoveMessage'
+#}}}
+
+class PostMessageWhenNotLogged( WhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got PostMessage request? """
+
+	__request__ = 'PostMessage'
+
+	def makeRequest( self, PostMessage ):
+		return PostMessage( self.seq, 1, 1, [], "Subject", "Body", 0, [] )
+#}}}
+
+class MessageTestSuite( TestSuite ):#{{{
 	__name__  = 'Messages'
-	__tests__ = [ GetExistingMessage, GetNonExistentMessage1, GetNonExistentMessage2, GetMultipleMessages ]
+	__tests__ = [ GetMessageWhenNotLogged, PostMessageWhenNotLogged,
+			RemoveMessageWhenNotLogged, GetExistingMessage,
+			GetNonExistentMessage1, GetNonExistentMessage2,
+			GetMultipleMessages, PostMessage ]
 
 	def setUp( self ):
 		game = self.ctx['game']
@@ -118,5 +144,6 @@ class MessageTestSuite( TestSuite ):
 	def tearDown( self ):
 		with DatabaseManager().session() as session:
 			self.ctx['board'].remove( session )
+#}}}
 
 __tests__ = [ MessageTestSuite ]

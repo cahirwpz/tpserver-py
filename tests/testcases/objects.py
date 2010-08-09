@@ -1,32 +1,75 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import ( AuthorizedTestSession, Expect, GetWithIDWhenNotLogged,
+		GetIDSequenceWhenNotLogged, WhenNotLogged )
 
 from tp.server.model import DatabaseManager, Vector3D
 
-class GetEmptyObjectList( AuthorizedTestSession ):
+class GetEmptyObjectList( AuthorizedTestSession ):#{{{
 	""" Sends empty list of ObjectIDs. """
-
-	NoFailAllowed = False
 
 	def __iter__( self ):
 		GetObjectsByID = self.protocol.use( 'GetObjectsByID' )
 
 		yield GetObjectsByID( self.seq, [] ), Expect( ('Fail', 'Protocol') )
+#}}}
 
-class GetObjectIds( AuthorizedTestSession ):
+class GetObjectIds( AuthorizedTestSession ):#{{{
 	""" Sends some random Object related requests. """
 
 	def __iter__( self ):
 		GetObjectIDs, GetObjectsByID = self.protocol.use( 'GetObjectIDs', 'GetObjectsByID' )
 
-		response = yield GetObjectIDs( self.seq, -1, 0, 0, -1 )
-		response = yield GetObjectIDs( self.seq, -1, 0, response.remaining, -1 )
+		response = yield GetObjectIDs( self.seq, -1, 0, 0, -1 ), Expect( 'ObjectIDs' )
+		response = yield GetObjectIDs( self.seq, -1, 0, response.remaining, -1 ), Expect( 'ObjectIDs' )
 
 		yield GetObjectsByID( self.seq, [ id for id, modtime in response.modtimes ] )
+#}}}
 
-class ObjectTestSuite( TestSuite ):
+class GetObjectsByIDWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetObjectsByID request? """
+
+	__request__ = 'GetObjectsByID'
+#}}}
+
+class GetObjectIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetObjectIDs request? """
+
+	__request__ = 'GetObjectIDs'
+#}}}
+
+class GetObjectIDsByContainerWhenNotLogged( WhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetObjectIDsByContainer request? """
+
+	__request__ = 'GetObjectIDsByContainer'
+
+	def makeRequest( self, GetObjectIDsByContainer ):
+		return GetObjectIDsByContainer( self.seq, 0 )
+#}}}
+
+class GetObjectIDsByPosWhenNotLogged( WhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetObjectIDsByPos request? """
+
+	__request__ = 'GetObjectIDsByPos'
+
+	def makeRequest( self, GetObjectIDsByPos ):
+		return GetObjectIDsByPos( self.seq, ( 0, 0, 0 ), 1000 )
+#}}}
+
+class GetObjectsByPosWhenNotLogged( WhenNotLogged ):#{{{
+	""" Does a server respond properly when player is not logged but got GetObjectsByPos request? """
+
+	__request__ = 'GetObjectsByPos'
+
+	def makeRequest( self, GetObjectsByPos ):
+		return GetObjectsByPos( self.seq, ( 0, 0, 0 ), 1000 )
+#}}}
+
+class ObjectTestSuite( TestSuite ):#{{{
 	__name__  = 'Objects'
-	__tests__ = [ GetEmptyObjectList, GetObjectIds ]
+	__tests__ = [ GetObjectsByIDWhenNotLogged, GetObjectIDsWhenNotLogged,
+			GetObjectIDsByContainerWhenNotLogged,
+			GetObjectIDsByPosWhenNotLogged, GetObjectsByPosWhenNotLogged,
+			GetEmptyObjectList, GetObjectIds ]
 
 	def setUp( self ):
 		game = self.ctx['game']
@@ -59,5 +102,6 @@ class ObjectTestSuite( TestSuite ):
 		with DatabaseManager().session() as session:
 			for obj in self.ctx['objects']:
 				obj.remove( session )
+#}}}
 
 __tests__ = [ ObjectTestSuite ]
