@@ -1,56 +1,90 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect, TestSessionUtils
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID
 
 from tp.server.model import DatabaseManager
 
-class GetSingleBoard( AuthorizedTestSession ):#{{{
-	def __iter__( self ):
-		GetBoards = self.protocol.use( 'GetBoards' )
+class GetBoardsMixin( TestSessionUtils ):#{{{
+	__request__  = 'GetBoards'
+	__response__ = 'Board'
 
-		packet = yield GetBoards( self.seq, [self.board.id] ), Expect( 'Board' )
+	def assertEqual( self, packet, board ):
+		for attr in [ 'id', 'name', 'description', 'messages', 'modtime' ]:
+			pval = getattr( packet, attr, None )
 
-		assert packet.id == self.board.id, \
-				"Server responded with different BoardId (%s) than expected (%s)!" % ( packet.id, self.board.id )
+			if attr == 'modtime':
+				bval = self.datetimeToInt( board.mtime )
+			elif attr == 'messages':
+				bval = len( board.messages )
+			else:
+				bval = getattr( board, attr, None )
+
+			assert pval == bval, \
+					"Server responded with different %s.%s (%s) than expected (%s)!" % ( self.__response__, attr.title(), pval, bval )
 #}}}
 
-class GetCurrentBoard( AuthorizedTestSession ):#{{{
+class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	""" Does server respond with current board information? """
 
-	def setUp( self ):
-		self.login = self.ctx['players'][1].username
-		self.password = self.ctx['players'][1].password
+	@property
+	def player( self ):
+		return self.ctx['players'][1]
 
-	def __iter__( self ):
-		board = self.ctx['boards'][2]
+	@property
+	def item( self ):
+		return self.ctx['boards'][2]
 
-		GetBoards = self.protocol.use( 'GetBoards' )
-
-		packet = yield GetBoards( self.seq, [0] ), Expect( 'Board' )
-
-		assert packet.id == board.id, \
-				"Server responded with different BoardId (%s) than expected (%s)!" % ( packet.id, board.id )
+	@property
+	def itemId( self ):
+		return 0
 #}}}
 
-class GetExistingBoard( GetSingleBoard ):#{{{
+class GetExistingBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	""" Does server respond properly if asked about existing board? """
 
-	def setUp( self ):
-		self.board = self.ctx['boards'][1]
+	@property
+	def item( self ):
+		return self.ctx['boards'][1]
 #}}}
 
-class GetNonExistentBoard( AuthorizedTestSession ):#{{{
+class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	""" Does server fail to respond if asked about nonexistent board? """
 
-	def __iter__( self ):
-		boardId = self.ctx['boards'][0].id + 666
+	__fail__ = 'NoSuchThing'
 
-		GetBoards = self.protocol.use( 'GetBoards' )
+	@property
+	def item( self ):
+		return self.ctx['boards'][0]
+	
+	@property
+	def itemId( self ):
+		return self.item.id + 666
+#}}}
 
-		packet = yield GetBoards( self.seq, [ boardId ] ), Expect( 'Board', ('Fail', 'NoSuchThing') )
+class GetPublicBoard( GetItemWithID, GetBoardsMixin ):#{{{
+	""" Does server allow to fetch public Board? """
 
-		assert packet.type != 'Board', \
-			"Server does return information for non-existent BoardId (%s)!" % boardId
+	@property
+	def item( self ):
+		return self.ctx['boards'][3]
+#}}}
+
+class GetPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
+	""" Does server allow to fetch private Board owned by the player? """
+
+	@property
+	def item( self ):
+		return self.ctx['boards'][0]
+#}}}
+
+class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
+	""" Does server disallow to fetch private Board of another player? """
+
+	__fail__ = 'PermissionDenied'
+
+	@property
+	def item( self ):
+		return self.ctx['boards'][2]
 #}}}
 
 class GetMultipleBoards( AuthorizedTestSession ):#{{{
@@ -102,34 +136,6 @@ class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):#{{{
 			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
 #}}}
 
-class GetPublicBoard( GetSingleBoard ):#{{{
-	""" Does server allow to fetch public Board? """
-
-	def setUp( self ):
-		self.board = self.ctx['boards'][3]
-#}}}
-
-class GetPrivateBoard( GetSingleBoard ):#{{{
-	""" Does server allow to fetch private Board owned by the player? """
-
-	def setUp( self ):
-		self.board = self.ctx['boards'][0]
-#}}}
-
-class GetOtherPlayerPrivateBoard( AuthorizedTestSession ):#{{{
-	""" Does server disallow to fetch private Board of another player? """
-
-	def __iter__( self ):
-		board = self.ctx['boards'][2]
-
-		GetBoards = self.protocol.use( 'GetBoards' )
-
-		packet = yield GetBoards( self.seq, [ board.id ] ), Expect( 'Board', ('Fail', 'PermissionDenied') )
-
-		assert packet.type != 'Board', \
-			"Server does allow to access a private Board of another player!"
-#}}}
-
 class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got GetBoards request? """
 
@@ -145,9 +151,9 @@ class GetBoardIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
 class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 	""" Check if all fetched BoardIDs represent Boards that are accessible by the player. """
 
-	def setUp( self ):
-		self.login = self.ctx['players'][1].username
-		self.password = self.ctx['players'][1].password
+	@property
+	def player( self ):
+		return self.ctx['players'][1]
 
 	def __iter__( self ):
 		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
@@ -155,7 +161,10 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 		idseq = yield GetBoardIDs( self.seq, -1, 0, 2 ), Expect( 'BoardIDs' )
 
 		assert len( idseq.modtimes ) == 2, \
-				"Expected to get three Boards, got %s instead." % len( idseq.modtimes )
+				"Expected to get two Boards, got %s instead." % len( idseq.modtimes )
+
+		assert idseq.remaining == 0, \
+				"Database should contain exactly two Boards for the player."
 
 		GetBoards = self.protocol.use( 'GetBoards' )
 

@@ -239,17 +239,20 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		super( AuthorizedTestSession, self ).__init__( **kwargs )
 
 		self.scenarioList.append( self.__login() )
+	
+	@property
+	def game( self ):
+		return self.ctx['game']
 
-	def setUp( self ):
-		self.game = self.ctx['game'].name
-		self.login = self.ctx['players'][0].username
-		self.password = self.ctx['players'][0].password
+	@property
+	def player( self ):
+		return self.ctx['players'][0]
 
 	def __login( self ):
 		Connect, Login = self.protocol.use( 'Connect', 'Login' )
 
 		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-		yield Login( self.seq, "%s@%s" % ( self.login, self.game ), self.password ), Expect( 'Okay' )
+		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
 #}}}
 
 __all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession',

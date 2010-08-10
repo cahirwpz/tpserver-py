@@ -5,18 +5,16 @@ from templates import GetWithIDWhenNotLogged
 class GetCurrentPlayer( AuthorizedTestSession ):#{{{
 	""" Does server respond with current player information? """
 
-	def setUp( self ):
-		self.login		= self.ctx['players'][1].username
-		self.password	= self.ctx['players'][1].password
+	@property
+	def player( self ):
+		return self.ctx['players'][1]
 
 	def __iter__( self ):
-		player = self.ctx['players'][1]
-
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 
 		packet = yield GetPlayer( self.seq, [0] ), Expect( 'Player' )
 
-		assert packet.id == player.id, \
+		assert packet.id == self.player.id, \
 			"Server responded with different PlayerId than requested!"
 #}}}
 
