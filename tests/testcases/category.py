@@ -1,5 +1,5 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
 from tp.server.model import DatabaseManager
@@ -26,7 +26,7 @@ class GetNonExistentCategory( AuthorizedTestSession ):#{{{
 
 		GetCategory = self.protocol.use( 'GetCategory' )
 
-		packet = yield GetCategory( self.seq, [ category.id + 666 ] ), Expect( 'Category', ('Fail', 'NoSuchThing') )
+		packet = yield GetCategory( self.seq, [ category.id + 666 ] ), ExpectOneOf( 'Category', ExpectFail('NoSuchThing') )
 
 		assert packet.type != 'Category', \
 			"Server does return information for non-existent CategoryId = %s!" % ( category.id + 666 )
@@ -44,7 +44,7 @@ class GetMultipleCategories( AuthorizedTestSession ):#{{{
 
 		GetCategory = self.protocol.use( 'GetCategory' )
 
-		s, p1, p2, p3 = yield GetCategory( self.seq, [ c1.id, c2.id, c3.id ] ), Expect( ('Sequence', 3, 'Category' ) )
+		s, p1, p2, p3 = yield GetCategory( self.seq, [ c1.id, c2.id, c3.id ] ), ExpectSequence(3, 'Category')
 
 		assert p1.id == c1.id and p2.id == c2.id and p3.id == c3.id, \
 			"Server returned different CategoryIds (%d,%d,%d) than requested (%d,%d,%d)." % (p1.id, p2.id, p3.id, c1.id, c2.id, c3.id)

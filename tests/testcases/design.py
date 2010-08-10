@@ -1,5 +1,5 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
 from tp.server.model import DatabaseManager
@@ -26,7 +26,7 @@ class GetNonExistentDesign( AuthorizedTestSession ):#{{{
 
 		GetDesign = self.protocol.use( 'GetDesign' )
 
-		packet = yield GetDesign( self.seq, [ design.id + 666 ] ), Expect( 'Design', ('Fail', 'NoSuchThing') )
+		packet = yield GetDesign( self.seq, [ design.id + 666 ] ), ExpectOneOf( 'Design', ExpectFail('NoSuchThing') )
 
 		assert packet.type != 'Design', \
 			"Server does return information for non-existent DesignId = %s!" % ( design.id + 666 )
@@ -41,7 +41,7 @@ class GetMultipleDesigns( AuthorizedTestSession ):#{{{
 
 		GetDesign = self.protocol.use( 'GetDesign' )
 
-		s, p1, p2 = yield GetDesign( self.seq, [ d1.id, d2.id ] ), Expect( ('Sequence', 2, 'Design' ) )
+		s, p1, p2 = yield GetDesign( self.seq, [ d1.id, d2.id ] ), ExpectSequence(2, 'Design')
 
 		assert p1.id == d1.id and p2.id == d2.id, \
 			"Server returned different DesignIds (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, d1.id, d2.id)

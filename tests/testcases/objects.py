@@ -1,5 +1,5 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, ExpectFail
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
 from tp.server.model import DatabaseManager, Vector3D
@@ -10,7 +10,7 @@ class GetEmptyObjectList( AuthorizedTestSession ):#{{{
 	def __iter__( self ):
 		GetObjectsByID = self.protocol.use( 'GetObjectsByID' )
 
-		yield GetObjectsByID( self.seq, [] ), Expect( ('Fail', 'Protocol') )
+		yield GetObjectsByID( self.seq, [] ), ExpectFail('Protocol')
 #}}}
 
 class GetObjectIds( AuthorizedTestSession ):#{{{

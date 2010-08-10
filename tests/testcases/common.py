@@ -1,4 +1,4 @@
-import collections, time
+import time
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
@@ -28,53 +28,90 @@ class IncrementingSequenceMixin( object ):#{{{
 		return self.__seq
 #}}}
 
-class Expect( collections.Container ):#{{{
-	def __init__( self, *packets ):
-		self.packets = packets
-	
-	def __contains__( self, request ):
-		for packet in self.packets:
-			# case: packet is packet type
-			if not isinstance( packet, tuple ) and request.type == packet:
+class Expect( object ):#{{{
+	def __init__( self, packet ):
+		assert isinstance( packet, str )
+
+		self.__packet = packet
+
+	def __eq__( self, response ):
+		return response.type == self.__packet
+
+	def __ne__( self, response ):
+		return not (self == response)
+
+	def __str__( self ):
+		return self.__packet
+#}}}
+
+class ExpectFail( Expect ):#{{{
+	def __init__( self, *codes ):
+		Expect.__init__( self, 'Fail' )
+
+		self.__codes = set( codes )
+
+	def __eq__( self, response ):
+		if Expect.__eq__( self, response ):
+			response_code = response._structures[0].as_string( response, response.__class__ )
+
+			if response_code in self.__codes:
 				return True
-
-			if isinstance( packet, tuple ):
-				# case: p is ('Fail', code) 
-				try:
-					packet_type, packet_code = packet
-				except ValueError:
-					pass
-				else:
-					if request.type == packet_type:
-						request_code = request._structures[0].as_string(request, request.__class__)
-
-						if request_code == packet_code:
-							return True
-
-				try:
-					sequence, packet_num, packet_type = packet
-				except ValueError:
-					pass
-				else:
-					if isinstance( request, list ) and len(request) == packet_num + 1 and request[0].type == 'Sequence':
-						if all( r.type == packet_type for r in request[1:] ):
-							return True
 
 		return False
 
 	def __str__( self ):
-		s = []
+		return "Fail with code%s %s" % (
+				"s" if len( self.__codes ) > 1 else "",
+				" or ".join( self.__codes ) )
+#}}}
 
-		for packet in self.packets:
-			if isinstance( packet, tuple ):
-				if len( packet ) == 2:
-					s.append( "%s with code %s" % packet )
-				elif len( packet ) == 3:
-					s.append( "%s of %d %s packets" % packet )
+class ExpectSequence( Expect ):#{{{
+	def __init__( self, *packets ):
+		Expect.__init__( self, 'Sequence' )
+
+		if isinstance( packets[0], int ) and len( packets ) == 2:
+			self.__packets = [ packets[1] for i in range(packets[0]) ]
+		else:
+			for packet in packets:
+				assert isinstance( packet, ( ExpectFail, str ) ), "Wrong choice type."
+			self.__packets = packets
+
+	def __eq__( self, response ):
+		if not isinstance( response, list ):
+			return False
+
+		if not Expect.__eq__( self, response[0] ):
+			return False
+
+		if len( response ) != len( self.__packets ) + 1:
+			return False
+		
+		if any( packet.type != choice for packet, choice in zip( response[1:], self.__packets ) ):
+			return False
+
+		return True
+	
+	def __str__( self ):
+		return "Sequence of (%s) packets" % ( ", ".join( str(packet) for packet in self.__packets ) )
+#}}}
+
+class ExpectOneOf( Expect ):#{{{
+	def __init__( self, *choices ):
+		self.__choices = []
+
+		for choice in choices:
+			if isinstance( choice, Expect ):
+				self.__choices.append( choice )
+			elif isinstance( choice, str ):
+				self.__choices.append( Expect( choice ) )
 			else:
-				s.append( packet )
+				raise TypeError( 'Wrong choice type!' )
 
-		return ", ".join( s )
+	def __eq__( self, response ):
+		return any( response == choice for choice in self.__choices )
+
+	def __str__( self ):
+		return ", ".join( str( choice ) for choice in self.__choices )
 #}}}
 
 class TestSessionUtils( object ):#{{{
@@ -143,12 +180,12 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				bundle = self.bundle
 				self.bundle = []
 
-				if self.expected and bundle not in self.expected:
+				if self.expected and self.expected != bundle:
 					self.response = bundle
 					self.failed( "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
 				else:
 					self.step( bundle )
-		elif self.expected and packet not in self.expected:
+		elif self.expected and self.expected != packet:
 			self.response = packet
 			self.failed( "Received unexpected packet %s!" % packet.type )
 		else:
@@ -170,6 +207,7 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 			else:
 				if isinstance( instruction, tuple ):
 					request, self.expected = instruction
+					assert isinstance( self.expected, Expect ), "Second value given to yield must be Expect class instance!"
 				else:
 					request, self.expected = instruction, None
 					msg( "${yel1}Yielding a single value (without Expect instance) within a scenario is discouraged!${coff}", level="warning" )
@@ -255,5 +293,7 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
 #}}}
 
-__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'TestSession',
-			'ConnectedTestSession', 'AuthorizedTestSession', 'TestSessionUtils' ]
+__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'ExpectFail',
+			'ExpectSequence', 'ExpectOneOf', 'TestSession',
+			'ConnectedTestSession', 'AuthorizedTestSession', 'TestSessionUtils'
+			]

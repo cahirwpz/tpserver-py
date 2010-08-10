@@ -68,7 +68,7 @@ class Login( RequestHandler ):#{{{
 			self.context.game   = game
 			self.context.player = player 
 
-			return Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game ) )
+			return Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game.name ) )
 		else:
 			return Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
 #}}}

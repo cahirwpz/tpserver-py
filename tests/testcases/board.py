@@ -1,6 +1,6 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect, TestSessionUtils
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID
+from common import AuthorizedTestSession, Expect, ExpectSequence, TestSessionUtils
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID
 
 from tp.server.model import DatabaseManager
 
@@ -34,8 +34,7 @@ class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	def item( self ):
 		return self.ctx['boards'][2]
 
-	@property
-	def itemId( self ):
+	def getId( self, item ):
 		return 0
 #}}}
 
@@ -56,8 +55,7 @@ class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	def item( self ):
 		return self.ctx['boards'][0]
 	
-	@property
-	def itemId( self ):
+	def getId( self, item ):
 		return self.item.id + 666
 #}}}
 
@@ -87,19 +85,12 @@ class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
 		return self.ctx['boards'][2]
 #}}}
 
-class GetMultipleBoards( AuthorizedTestSession ):#{{{
+class GetMultipleBoards( GetItemsWithID, GetBoardsMixin ):#{{{
 	""" Does server return sequence of Board packets if asked about two boards? """
 
-	def __iter__( self ):
-		b1 = self.ctx['boards'][1]
-		b2 = self.ctx['boards'][0]
-
-		GetBoards = self.protocol.use( 'GetBoards' )
-
-		s, p1, p2 = yield GetBoards( self.seq, [ b1.id, b2.id ] ), Expect( ('Sequence', 2, 'Board' ) )
-
-		assert p1.id == b1.id and p2.id == b2.id, \
-				"Server returned different BoardIds (%d,%d) than requested (%d,%d)." % ( p1.id, p2.id, b1.id, b2.id )
+	@property
+	def items( self ):
+		return [ self.ctx['boards'][1], self.ctx['boards'][0] ]
 #}}}
 
 class GetNumberOfBoards( AuthorizedTestSession ):#{{{
@@ -170,7 +161,7 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 
 		ids = [ id for id, modtime in idseq.modtimes ]
 
-		s, p1, p2 = yield GetBoards( self.seq, ids ), Expect( ('Sequence', 2, 'Board' ) )
+		s, p1, p2 = yield GetBoards( self.seq, ids ), ExpectSequence(2, 'Board')
 
 		assert p1.id == ids[0] and p2.id == ids[1], \
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )

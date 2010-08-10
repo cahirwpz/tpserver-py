@@ -30,7 +30,7 @@ class MessageFactoryMixin( FactoryMixin ):#{{{
 				)
 #}}}
 
-class PostMessage( RequestHandler ):#{{{
+class PostMessage( RequestHandler, MessageFactoryMixin ):#{{{
 	"""
 	Request:  PostMessage :: Message
 	Response: Okay | Fail
@@ -42,7 +42,7 @@ class PostMessage( RequestHandler ):#{{{
 	def __call__( self, request ):
 		Container = self.game.objects.use( 'Board' )
 
-		container = Container.ByID( request.id )
+		container = Container.ById( request.id )
 
 		if container:
 			if self.authorize( container ):

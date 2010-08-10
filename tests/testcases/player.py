@@ -1,5 +1,5 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged
 
 class GetCurrentPlayer( AuthorizedTestSession ):#{{{
@@ -40,7 +40,7 @@ class GetNonExistentPlayer( AuthorizedTestSession ):#{{{
 
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 
-		packet = yield GetPlayer( self.seq, [ player.id + 666] ), Expect( 'Player', ('Fail', 'NoSuchThing') )
+		packet = yield GetPlayer( self.seq, [ player.id + 666] ), ExpectOneOf( 'Player', ExpectFail('NoSuchThing') )
 
 		assert packet.type != 'Player', \
 			"Server does return information for non-existent PlayerId = %s!" % ( player.id + 666 )
@@ -55,7 +55,7 @@ class GetMultiplePlayers( AuthorizedTestSession ):#{{{
 
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 
-		s, p1, p2 = yield GetPlayer( self.seq, [ player1.id, player2.id ] ), Expect( ('Sequence', 2, 'Player' ) )
+		s, p1, p2 = yield GetPlayer( self.seq, [ player1.id, player2.id ] ), ExpectSequence(2, 'Player')
 
 		assert p1.id == player1.id and p2.id == player2.id, \
 			"Server returned different PlayerIds (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, player1.id, player2.id)

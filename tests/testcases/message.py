@@ -1,5 +1,5 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect
+from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged
 
 from tp.server.model import DatabaseManager
@@ -31,7 +31,7 @@ class GetNonExistentMessage1( AuthorizedTestSession ):#{{{
 
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id + 666, [ message.id ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
+		packet = yield GetMessage( self.seq, board.id + 666, [ message.id ] ), ExpectOneOf( 'Message', ExpectFail('NoSuchThing') )
 
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent BoardId = %d!" % ( board.id + 666 )
@@ -46,7 +46,7 @@ class GetNonExistentMessage2( AuthorizedTestSession ):#{{{
 
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id, [ message.id + 666 ] ), Expect( 'Message', ('Fail', 'NoSuchThing') )
+		packet = yield GetMessage( self.seq, board.id, [ message.id + 666 ] ), ExpectOneOf( 'Message', ExpectFail('NoSuchThing') )
 
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 )
@@ -62,7 +62,7 @@ class GetMultipleMessages( AuthorizedTestSession ):#{{{
 
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		s, p1, p2 = yield GetMessage( self.seq, board.id, [ message3.id, message1.id ] ), Expect( ('Sequence', 2, 'Message' ) )
+		s, p1, p2 = yield GetMessage( self.seq, board.id, [ message3.id, message1.id ] ), ExpectSequence(2, 'Message')
 
 		assert p1.id == board.id and p2.id == board.id, \
 			"Server responded with different BoardId than requested!"
@@ -77,7 +77,13 @@ class PostMessage( AuthorizedTestSession ):#{{{
 	def __iter__( self ):
 		PostMessage = self.protocol.use( 'PostMessage' )
 
-		packet = yield PostMessage( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), Expect( 'Okay', ('Fail', 'NoSuchThing') )
+		packet = yield PostMessage( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), ExpectOneOf( 'Okay', ExpectFail('NoSuchThing') )
+
+	
+	def tearDown( self ):
+		with DatabaseManager().session() as session:
+			# hmmm ?!
+			pass
 #}}}
 
 class GetMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
