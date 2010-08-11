@@ -2,7 +2,7 @@ from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
-from tp.server.model import DatabaseManager, Vector3D
+from tp.server.model import Model, Vector3D
 
 class GetEmptyObjectList( AuthorizedTestSession ):#{{{
 	""" Sends empty list of ObjectIDs. """
@@ -94,14 +94,10 @@ class ObjectTestSuite( TestSuite ):#{{{
 
 		self.ctx['objects'] = [ universe, system, planet ]
 
-		with DatabaseManager().session() as session:
-			for obj in self.ctx['objects']:
-				session.add( obj )
+		Model.add( *self.ctx['objects'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for obj in self.ctx['objects']:
-				obj.remove( session )
+		Model.remove( *self.ctx['objects'] )
 #}}}
 
 __tests__ = [ ObjectTestSuite ]

@@ -2,7 +2,7 @@
 
 from collections import Mapping
 
-from tp.server.model import DatabaseManager, make_mapping
+from tp.server.model import Model, make_mapping
 from tp.server.model import *
 from tp.server.logging import msg, logctx
 from tp.server.singleton import SingletonContainerClass
@@ -29,12 +29,11 @@ class GameManager( Mapping ):
 
 		self.__game = {}
 
-		with DatabaseManager().session() as session:
-			for g in session.query( Game ).all():
-				g.__init__()
-				g.load()
+		for g in Game.query().all():
+			g.__init__()
+			g.load()
 
-				self.__game[ g.name ] = g
+			self.__game[ g.name ] = g
 	
 	def __getitem__( self, name ):
 		return self.__game[ name ]
@@ -51,8 +50,7 @@ class GameManager( Mapping ):
 
 		g = Game( ruleset_name = rulesetname, name = name, longname = longname, admin = admin, comment = comment )
 
-		with DatabaseManager().session() as session:
-			session.add( g )
+		Model.add( g )
 
 		g.load()
 		g.createTables()
@@ -68,8 +66,7 @@ class GameManager( Mapping ):
 		g.createTables()
 		g.dropTables()
 
-		with DatabaseManager().session() as session:
-			session.delete( g )
+		Model.remove( g )
 
 		del self.__game[ name ]
 		

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.model import DatabaseManager, Vector3D
+from tp.server.model import Vector3D, Model
 
 # Generic Actions
 from tp.server.rules.base import Ruleset as RulesetBase
@@ -181,17 +181,8 @@ class Ruleset( RulesetBase ):#{{{
 				speed			= 1 * self.SPEED,
 				build_time		= 4 )
 
-		with DatabaseManager().session() as session:
-			session.add( universe )
-
-			session.add( scout_design )
-			session.add( frigate_design )
-			session.add( battleship_design )
-
-			session.add( scout )
-			session.add( frigate )
-			session.add( battleship )
-
+		Model.add( universe, scout_design, frigate_design, battleship_design,
+				scout, frigate, battleship )
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""
@@ -205,18 +196,21 @@ class Ruleset( RulesetBase ):#{{{
 
 		universe = Object.ByType( 'Universe' )[-1]
 
-		with DatabaseManager().session() as session:
-			# FIXME: Assuming that the Universe and the Galaxy exist.
-			self.random.seed( int(seed) )
+		objs = []
 
-			# Create this many systems
-			for i in range( self.random.randint( system_min, system_max ) ):
-				system = self.createStarSystem( parent = universe, name = "System %s" % i )
-				session.add( system )
-				
-				# In each system create a number of planets
-				for j in range( self.random.randint( planet_min, planet_max ) ):
-					session.add( self.createPlanet( parent = system, name = "Planet %i in %s" % (j, system.name) ) )
+		# FIXME: Assuming that the Universe and the Galaxy exist.
+		self.random.seed( int(seed) )
+
+		# Create this many systems
+		for i in range( self.random.randint( system_min, system_max ) ):
+			system = self.createStarSystem( parent = universe, name = "System %s" % i )
+			objs.append( system )
+			
+			# In each system create a number of planets
+			for j in range( self.random.randint( planet_min, planet_max ) ):
+				objs.append( self.createPlanet( parent = system, name = "Planet %i in %s" % (j, system.name) ) )
+
+		Model.add( *objs )
 
 	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
@@ -234,11 +228,7 @@ class Ruleset( RulesetBase ):#{{{
 		planet		= self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
 		fleet		= self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )
 
-		with DatabaseManager().session() as session:
-			session.add( universe )
-			session.add( system )
-			session.add( planet )
-			session.add( fleet )
+		Model.add( universe, system, planet, fleet )
 
 		return ( user, system, planet, fleet )
 #}}}

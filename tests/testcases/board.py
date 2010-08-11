@@ -2,7 +2,7 @@ from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectSequence, TestSessionUtils
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 class GetBoardsMixin( TestSessionUtils ):#{{{
 	__request__  = 'GetBoards'
@@ -139,7 +139,7 @@ class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):#{{{
 			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
 #}}}
 
-class GetBoardIDsOneByOne( AuthorizedTestSession ):
+class GetBoardIDsOneByOne( AuthorizedTestSession ):#{{{
 	""" Does server support IDSequence.key field properly? """
 
 	def __iter__( self ):
@@ -161,6 +161,7 @@ class GetBoardIDsOneByOne( AuthorizedTestSession ):
 
 		assert idseq.remaining == 0, \
 				"There should be no Board left."
+#}}}
 
 class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got GetBoards request? """
@@ -248,14 +249,10 @@ class BoardTestSuite( TestSuite ):#{{{
 
 		self.ctx['boards'] = [ board1, board2, board3, board4 ]
 
-		with DatabaseManager().session() as session:
-			for board in self.ctx['boards']:
-				session.add( board )
+		Model.add( *self.ctx['boards'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for board in self.ctx['boards']:
-				board.remove( session )
+		Model.remove( *self.ctx['boards'] )
 #}}}
 
 __tests__ = [ BoardTestSuite ]

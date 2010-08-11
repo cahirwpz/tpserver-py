@@ -3,7 +3,6 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.model import DatabaseManager
 from SQL import SQLBase
 
 class Player( SQLBase ):#{{{
@@ -26,15 +25,10 @@ class Player( SQLBase ):#{{{
 		"""
 		Get the id for a user given a game, username and password.
 		"""
-		result = None
-
-		with DatabaseManager().session() as session:
-			if password is None:
-				result = session.query( cls ).filter_by( username = username ).first()
-			else:
-				result = session.query( cls ).filter_by( username = username, password = password ).first()
-
-		return result
+		if password is None:
+			return cls.query().filter_by( username = username ).first()
+		else:
+			return cls.query().filter_by( username = username, password = password ).first()
 
 	@classmethod
 	def ByRealId( cls, user, id ):

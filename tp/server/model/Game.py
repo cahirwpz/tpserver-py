@@ -11,7 +11,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.rules import RulesetManager
-from tp.server.model import DatabaseManager
+from tp.server.model import DatabaseManager, Model
 from SQL import Enum, SQLBase, SelectableByName
 
 def untitle( s ):
@@ -376,9 +376,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
 			Object = self.objects.use( name )
 
-			with DatabaseManager().session() as session:
-				for obj in Object.query().all():
-					obj.remove( session )
+			Model.remove( *Object.query().all() )
 	
 	def initialise( self ):
 		self.ruleset.initialise()

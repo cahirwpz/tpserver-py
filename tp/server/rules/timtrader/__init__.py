@@ -1,7 +1,7 @@
 
 import os.path
 
-from tp.server.model import *
+from tp.server.model import Model
 
 from tp.server.rules.minisec import Ruleset as RulesetBase
 from tp.server.rules.base.orders import WaitOrder
@@ -9,7 +9,7 @@ from tp.server.rules.minisec.actions import TurnAction
 
 import ProducersConsumers
 
-class Ruleset( RulesetBase ):
+class Ruleset( RulesetBase ):#{{{
 	"""
 	TIM Trader Ruleset.
 
@@ -66,9 +66,7 @@ class Ruleset( RulesetBase ):
 
 			resources.append( r )
 
-		with DatabaseManager().session() as session:
-			for r in resources:
-				session.add( r )
+		Model.add( *resources )
 
 	def populate(self, seed, system_min, system_max, planet_min, planet_max):
 		"""
@@ -142,5 +140,7 @@ class Ruleset( RulesetBase ):
 				ResourceQuantity( resource = ResourceType.ByName('Header Quarter'), accessible = 1 ),
 				ResourceQuantity( resource = ResourceType.ByName('Credit'), accessible = 10000 ) ]
 
-		with DatabaseManager().session() as session:
-			session.add( planet )
+		Model.add( planet )
+#}}}
+
+__all__ = [ 'Ruleset' ]

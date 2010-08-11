@@ -4,8 +4,6 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from tp.server.model import DatabaseManager
-
 from SQL import SQLBase
 
 class Vector3D( object ):#{{{
@@ -84,7 +82,7 @@ class Object( SQLBase ):#{{{
 	
 		Returns the objects which have a certain type.
 		"""
-		return DatabaseManager().query( cls ).filter_by( type = type_id ).all()
+		return cls.query().filter_by( type = type_id ).all()
 
 	@classmethod
 	def ByPos( cls, center, size = 0, limit = -1, order_by = None ):

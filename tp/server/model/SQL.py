@@ -21,7 +21,7 @@ class PermissionDenied( Exception ):#{{{
 class SelectableByName( object ):#{{{
 	@classmethod
 	def ByName( cls, name ):
-		return DatabaseManager().query( cls ).filter_by( name = name ).first()
+		return cls.query().filter_by( name = name ).first()
 #}}}
 
 class Enum( sql.types.Unicode ):#{{{
@@ -106,7 +106,7 @@ class SQLBase( object ):#{{{
 	#	
 	#	Gets the last modified time for the type.
 	#	"""
-	#	return DatabaseManager().query( cls ).filter( filter ).order_by( cls.mtime ).first()
+	#	return cls.query().filter( filter ).order_by( cls.mtime ).first()
 
 	#@classmethod
 	#def ByIdRange( cls, filter = None, start = 0, amount = -1 ):
@@ -115,7 +115,7 @@ class SQLBase( object ):#{{{
 	#	
 	#	Get the last ids for this (that the user can see).
 	#	"""
-	#	query = DatabaseManager().query( cls ).filter( filter ).order_by( cls.mtime )
+	#	query = cls.query().filter( filter ).order_by( cls.mtime )
 	#
 	#	if amount >= 0:
 	#		return query[start:(start + amount)]
@@ -129,7 +129,7 @@ class SQLBase( object ):#{{{
 	#
 	#	Get the number of records in this table.
 	#	"""
-	#	query = DatabaseManager().query( cls )
+	#	query = cls.query()
 	#
 	#	if filter:
 	#		query = query.filter( filter )
@@ -147,7 +147,7 @@ class SQLBase( object ):#{{{
 
 	@classmethod
 	def ById( cls, id ):
-		return DatabaseManager().query( cls ).filter_by( id = id ).first()
+		return cls.query().filter_by( id = id ).first()
 	
 	@classmethod
 	def FromCSV( cls, filename ):

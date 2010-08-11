@@ -1,7 +1,7 @@
 from test import TestSuite
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got GetProperty request? """
@@ -27,14 +27,10 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		self.ctx['properties'] = []
 
-		with DatabaseManager().session() as session:
-			for p in self.ctx['properties']:
-				session.add( p )
+		Model.add( *self.ctx['properties'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for p in self.ctx['properties']:
-				p.remove( session )
+		Model.remove( *self.ctx['properties'] )
 #}}}
 
 __tests__ = [ PropertiesTestSuite ]

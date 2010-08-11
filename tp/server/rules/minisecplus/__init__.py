@@ -2,7 +2,7 @@
 
 import os.path 
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 from tp.server.rules.minisec import Ruleset as MinisecRuleset
 
@@ -211,33 +211,16 @@ class Ruleset( MinisecRuleset ):
 				DesignComponent( component = missile, amount = 3 ),
 				DesignComponent( component = laser, amount = 4 ) ])
 
-		with DatabaseManager().session() as session:
-			session.add( universe )
+		# FIXME: Need to populate the database with the MiniSec design stuff,
+		#  - Firepower
+		#  - Armor/HP
+		#  - Speed
+		#  - Sensors (scouts ability to disappear)....
 
-			session.add( speed )
-			session.add( cost )
-			session.add( hp )
-			session.add( backup_damage )
-			session.add( primary_damage )
-			session.add( escape )
-			session.add( colonise )
-
-			session.add( missile )
-			session.add( laser )
-			session.add( armor_plate )
-			session.add( colonisation_pod )
-			session.add( escape_thrusters )
-			session.add( primary_engine )
-
-			session.add( scout )
-			session.add( frigate )
-			session.add( battleship )
-
-			# FIXME: Need to populate the database with the MiniSec design stuff,
-			#  - Firepower
-			#  - Armor/HP
-			#  - Speed
-			#  - Sensors (scouts ability to disappear)....
+		Model.add( universe, speed, cost, hp, backup_damage, primary_damage,
+				escape, colonise, missile, laser, armor_plate,
+				colonisation_pod, escape_thrusters, primary_engine, scout,
+				frigate, battleship)
 
 	def populate( self, seed, system_min, system_max, planet_min, planet_max ):
 		"""
@@ -253,18 +236,17 @@ class Ruleset( MinisecRuleset ):
 
 		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
 
-		with DatabaseManager().session() as session:
-			# Add a random smattering of resources to planets...
-			for planet in Object.ByType('Planet'):
-				for Type in self.random.sample( NaturalResourceTypes, self.random.randint(0, 4) ):
-					planet.resources.append(
-								ResourceQuantity(
-									resource     = Type,
-									accessible   = self.random.randint( 0, 10 ),
-									extractable  = self.random.randint( 0, 100 ),
-									inaccessible = self.random.randint( 0, 1000 )))
+		# Add a random smattering of resources to planets...
+		for planet in Object.ByType('Planet'):
+			for Type in self.random.sample( NaturalResourceTypes, self.random.randint(0, 4) ):
+				planet.resources.append(
+							ResourceQuantity(
+								resource     = Type,
+								accessible   = self.random.randint( 0, 10 ),
+								extractable  = self.random.randint( 0, 100 ),
+								inaccessible = self.random.randint( 0, 1000 )))
 
-				session.add( planet )
+			Model.add( planet )
 
 	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
@@ -280,5 +262,4 @@ class Ruleset( MinisecRuleset ):
 				ResourceQuantity( resource = ResourceType.ByName('House'), accessible = 1 ),
 				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
-		with DatabaseManager().session() as session:
-			session.add( planet )
+		Model.add( planet )

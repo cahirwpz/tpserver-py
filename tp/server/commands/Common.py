@@ -2,7 +2,7 @@
 
 import time
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 from tp.server.logging import msg
 
 def MustBeLogged( func ):#{{{
@@ -110,8 +110,7 @@ class RemoveWithIDHandler( WithIDHandler ):#{{{
 	def process( self, request, obj ):
 		Object = self.game.objects.use( self.__object__ )
 
-		with DatabaseManager().session() as session:
-			session.remove( obj )
+		Model.remove( obj )
 
 		return self.Okay( request, "%s with id = %d removed." % ( Object.__origname__, id ) )
 #}}}
@@ -263,8 +262,7 @@ class GetWithIDSlotHandler( WithIDSlotHandler ):#{{{
 
 class RemoveWithIDSlotHandler( WithIDSlotHandler ):#{{{
 	def process( self, request, item, slot ):
-		with DatabaseManager().session() as session:
-			session.remove( item )
+		Model.remove( item )
 
 		return self.Okay( request, "Removed %s with slot = %d." % ( item.__origname__, slot ) )
 #}}}

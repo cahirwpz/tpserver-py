@@ -3,7 +3,7 @@
 from twisted.internet import reactor
 
 from tp.server.gamemanager import GameManager
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 from test import TestLoader
 
@@ -38,9 +38,7 @@ class MainTestSuite( TestLoader ):#{{{
 
 		self.ctx['players']	= [ player1, player2 ]
 
-		with DatabaseManager().session() as session:
-			session.add( player1 )
-			session.add( player2 )
+		Model.add( player1, player2 )
 
 	def tearDown( self ):
 		self.ctx['game'].reset()

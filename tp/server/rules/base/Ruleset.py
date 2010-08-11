@@ -3,8 +3,9 @@
 import sys
 from types import TupleType
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 from tp.server.rules.base.utils import OrderGet
+from tp.server.logging import msg
 
 class Ruleset( object ):#{{{
 	"""
@@ -137,9 +138,7 @@ class Ruleset( object ):#{{{
 						  "This game is currently playing version %s of %s." % ( username, self.version, self.name ),
 				turn    = self.game.turn ))
 
-		with DatabaseManager().session() as session:
-			session.add( player )
-			session.add( board )
+		Model.add( player, board )
 
 		return player
 
@@ -161,49 +160,53 @@ class Ruleset( object ):#{{{
 			Then all NOp orders would be performed.
 			Then the Clean action would be applied with the argument ('fleetsonly')
 		"""
+		Lock, Object, Event = self.game.objects.use( 'Lock', 'Object', 'Event' )
+
 		# Create a turn processing lock
-		#lock = Lock.new('processing')
+		lock = Lock.new('processing')
 
-		with DatabaseManager().session() as session:
-			# FIXME: This won't work as if a move then colonise order occurs,
-			# and the move order completed the colonise order won't be
-			# performed. It also removes the ability for dummy orders to be
-			# removed.
-			#
-			# Get all the orders
-			d = OrderGet()
-			print d
-			for action in self.orderOfOrders:
-				if type(action) == TupleType:
-					action, args = action[0], action[1:]
+		# FIXME: This won't work as if a move then colonise order occurs,
+		# and the move order completed the colonise order won't be
+		# performed. It also removes the ability for dummy orders to be
+		# removed.
+		#
+		# Get all the orders
+
+		d = OrderGet()
+
+		print d
+
+		for action in self.orderOfOrders:
+			if type(action) == TupleType:
+				action, args = action[0], action[1:]
+			else:
+				args = tuple()
+			
+			name = str(action.__name__)
+			if "orders" in name:
+				msg("%s - Starting with" % name, args)
+			
+				if d.has_key(name):
+					for order in d[name]:
+						order.do(*args)
 				else:
-					args = tuple()
-				
-				name = str(action.__name__)
-				if "orders" in name:
-					green("%s - Starting with" % name, args)
-				
-					if d.has_key(name):
-						for order in d[name]:
-							order.do(*args)
-					else:
-						print "No orders of that type avaliable.."
+					msg( "No orders of that type avaliable.." )
 
-					green("%s - Finished" % name)
+				msg("%s - Finished" % name)
+		
+			elif "actions" in name:
+				msg("%s - Starting with" % name, args)
 			
-				elif "actions" in name:
-					blue("%s - Starting with" % name, args)
-				
-					__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
+				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
 
-					blue("%s - Finished" % name)
-			
-				sys.stdout.write("\n")
+				msg("%s - Finished" % name)
+		
+			sys.stdout.write("\n")
 
-			# Reparent the universe
+		# Reparent the universe
 
-			# Create a EOT event
-			Event.new('endofturn', self.game)
+		# Create a EOT event
+		Event.new('endofturn', self.game)
 #}}}
 
 __all__ = [ 'Ruleset' ]

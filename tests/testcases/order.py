@@ -1,7 +1,7 @@
 from test import TestSuite
 from templates import GetWithIDSlotWhenNotLogged, GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 class GetOrderWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got GetOrder request? """
@@ -59,14 +59,10 @@ class OrdersTestSuite( TestSuite ):#{{{
 
 		self.ctx['orders'] = []
 
-		with DatabaseManager().session() as session:
-			for p in self.ctx['orders']:
-				session.add( p )
+		Model.add( *self.ctx['orders'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for p in self.ctx['orders']:
-				p.remove( session )
+		Model.remove( *self.ctx['orders'] )
 #}}}
 
 __tests__ = [ OrdersTestSuite ]

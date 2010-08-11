@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from tp.server.logging import msg
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 from Common import ( MustBeLogged, FactoryMixin, RequestHandler,
 		GetWithIDSlotHandler, RemoveWithIDSlotHandler )
@@ -55,8 +55,7 @@ class PostMessage( RequestHandler, MessageFactoryMixin ):#{{{
 				else:
 					container.messages.insert( slot, message )
 
-				with DatabaseManager().session() as session:
-					session.add( container )
+				Model.add( container )
 
 				if slot == -1:
 					slot = len( container.messages )

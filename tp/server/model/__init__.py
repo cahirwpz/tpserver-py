@@ -3,6 +3,7 @@ from DatabaseManager import *
 DatabaseManager()
 
 from SQL import *
+from Model import *
 from Reference import *
 from Category import *
 from Property import *
@@ -17,4 +18,3 @@ from Order import *
 from ResourceType import *
 from Player import *
 from Parameter import *
-from Model import *

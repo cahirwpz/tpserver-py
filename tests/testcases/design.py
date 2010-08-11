@@ -2,7 +2,7 @@ from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
 class GetExistingDesign( AuthorizedTestSession ):#{{{
 	""" Does server respond properly if asked about existing board? """
@@ -115,14 +115,10 @@ class DesignTestSuite( TestSuite ):#{{{
 
 		self.ctx['designs'] = [ scout, frigate, battleship ]
 
-		with DatabaseManager().session() as session:
-			for design in self.ctx['designs']:
-				session.add( design )
+		Model.add( *self.ctx['designs'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for design in self.ctx['designs']:
-				design.remove( session )
+		Model.remove( *self.ctx['designs'] )
 #}}}
 
 __tests__ = [ DesignTestSuite ]

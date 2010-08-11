@@ -3,8 +3,6 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.model import DatabaseManager
-
 from SQL import SQLBase, SelectableByName
 
 class ResourceType( SQLBase, SelectableByName ):#{{{
@@ -31,7 +29,7 @@ class ResourceType( SQLBase, SelectableByName ):#{{{
 
 	@classmethod
 	def ByName( cls, name ):
-		return DatabaseManager().query( cls ).filter_by( name_singular = name ).first()
+		return cls.query().filter_by( name_singular = name ).first()
 
 	def __str__(self):
 		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name_singular )
