@@ -54,7 +54,7 @@ class Message( SQLBase ):#{{{
 		session.delete( self )
 
 	def __str__(self):
-		return '<%s@%s id="%d">' % ( self.__origname__, self.__game__.__name__, self.id )
+		return '<%s@%s id="%d">' % ( self.__origname__, self.__game__.name, self.id )
 #}}}
 
 __all__ = [ 'Message', 'MessageReference' ]

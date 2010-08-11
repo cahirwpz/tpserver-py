@@ -35,7 +35,7 @@ class Component( SQLBase, SelectableByName ):#{{{
 		session.delete( self )
 
 	def __str__(self):
-		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.__name__, self.id, self.name )
+		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
 class ComponentCategory( SQLBase ):#{{{
