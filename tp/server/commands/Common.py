@@ -78,12 +78,15 @@ class WithIDHandler( RequestHandler ):#{{{
 		for id in request.ids:
 			obj = self.fetch( Object, id )
 
+			# WARNING: This is only for testing purposes!
+			Model.refresh( obj )
+
 			if obj:
 				if self.authorize( obj ):
 					response.append( self.process( request, obj ) )
 				else:
 					msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
-					response.append( self.Fail( request, "PermissionDenied", "You cannot read %s with id = %d." % ( Object.__origname__, id ) ) )
+					response.append( self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Object.__origname__, id ) ) )
 			else:
 				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
 				response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ) ) )
@@ -108,11 +111,9 @@ class RemoveWithIDHandler( WithIDHandler ):#{{{
 	__object__ = None
 
 	def process( self, request, obj ):
-		Object = self.game.objects.use( self.__object__ )
-
 		Model.remove( obj )
 
-		return self.Okay( request, "%s with id = %d removed." % ( Object.__origname__, id ) )
+		return self.Okay( request, "%s with id = %d removed." % ( obj.__origname__, obj.id ) )
 #}}}
 
 class IDSequence( object ):#{{{
