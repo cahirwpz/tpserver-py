@@ -77,13 +77,27 @@ class GetItemsWithID( AuthorizedTestSession ):#{{{
 	def getId( self, item ):
 		return item.id
 
+	def getFail( self, item ):
+		pass
+
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
-		packets = yield Request( self.seq, [ self.getId( item ) for item in self.items ] ), ExpectSequence( len( self.items ), self.__response__ )
+		sequence = []
+
+		for item in self.items:
+			fail = self.getFail( item )
+
+			if fail:
+				sequence.append( ExpectFail( fail ) )
+			else:
+				sequence.append( Expect(self.__response__) )
+
+		packets = yield Request( self.seq, [ self.getId( item ) for item in self.items ] ), ExpectSequence( *sequence )
 
 		for p, b in zip( packets[1:], self.items ):
-			self.assertEqual( p, b )
+			if not self.getFail( b ):
+				self.assertEqual( p, b )
 #}}}
 
 __all__ = [ 'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
