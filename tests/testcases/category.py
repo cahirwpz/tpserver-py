@@ -235,6 +235,80 @@ class RemoveCategoryWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
 	__request__ = 'RemoveCategory'
 #}}}
 
+class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server properly reject attempt to remove public category? """
+
+	def setUp( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		self.cat = Category(
+				name = "Public",
+				description = "Public category for testing purposes." )
+
+		Model.add( self.cat )
+
+	def __iter__( self ):
+		RemoveCategory = self.protocol.use( 'RemoveCategory' )
+
+		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
+
+	def tearDown( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		if Category.ById( self.cat.id ):
+			Model.remove( self.cat )
+#}}}
+
+class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server properly reject attempt to remove public category? """
+
+	def setUp( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		self.cat = Category(
+				name = "Private1",
+				owner = self.ctx['players'][0],
+				description = "Private category for testing purposes." )
+
+		Model.add( self.cat )
+
+	def __iter__( self ):
+		RemoveCategory = self.protocol.use( 'RemoveCategory' )
+
+		yield RemoveCategory( self.seq, [ self.cat.id ] ), Expect('Okay')
+
+	def tearDown( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		if Category.ById( self.cat.id ):
+			Model.remove( self.cat )
+#}}}
+
+class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server properly reject attempt to remove other player's private category? """
+
+	def setUp( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		self.cat = Category(
+				name = "Private2",
+				owner = self.ctx['players'][1],
+				description = "Private category for testing purposes." )
+
+		Model.add( self.cat )
+
+	def __iter__( self ):
+		RemoveCategory = self.protocol.use( 'RemoveCategory' )
+
+		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
+
+	def tearDown( self ):
+		Category = self.game.objects.use( 'Category' )
+
+		if Category.ById( self.cat.id ):
+			Model.remove( self.cat )
+#}}}
+
 class AddCategoryTestSuite( TestSuite ):#{{{
 	__name__  = 'AddCategory'
 	__tests__ = [ AddCategoryWhenNotLogged, AddNewCategory,
@@ -256,7 +330,8 @@ class GetCategoryIDsTestSuite( TestSuite ):#{{{
 
 class RemoveCategoryTestSuite( TestSuite ):#{{{
 	__name__  = 'RemoveCategory'
-	__tests__ = [ RemoveCategoryWhenNotLogged ]
+	__tests__ = [ RemoveCategoryWhenNotLogged, RemovePublicCategory,
+			RemovePrivateCategory, RemoveOtherPlayerPrivateCategory ]
 #}}}
 
 class CategoryTestSuite( TestSuite ):#{{{
