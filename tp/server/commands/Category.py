@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
-from tp.server.model import DatabaseManager
-
 from Common import ( MustBeLogged, FactoryMixin, RequestHandler, GetWithIDHandler,
 		GetIDSequenceHandler, RemoveWithIDHandler )
+
+from tp.server.model import Model, and_, or_
 
 class CategoryFactoryMixin( FactoryMixin ):#{{{
 	def fromPacket( self, request ):
@@ -34,10 +34,14 @@ class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
 		"""
 		category = self.fromPacket( request )
 
-		# TODO: What if such category already exists?
+		Category = self.game.objects.use( 'Category' )
 
-		with DatabaseManager().session() as session:
-			session.add( category )
+		if Category.query().filter( and_( Category.name == category.name,
+					or_( Category.owner_id == self.player.id, Category.owner_id == None ))).count():
+			return self.Fail( request, "PermissionDenied",
+					"Category named %s already exists!" % category.name )
+
+		Model.add( category )
 
 		return self.toPacket( request, category )
 #}}}
