@@ -93,6 +93,18 @@ class GetMultipleBoards( GetItemsWithID, GetBoardsMixin ):#{{{
 		return [ self.ctx['boards'][1], self.ctx['boards'][0] ]
 #}}}
 
+class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin ):#{{{
+	""" Does server return sequence of Board packets if asked about two boards? """
+
+	@property
+	def items( self ):
+		return [ self.ctx['boards'][1], self.ctx['boards'][2], self.ctx['boards'][0] ]
+
+	def getFail( self, item ):
+		if item.owner not in [ None, self.player ]:
+			return 'PermissionDenied'
+#}}}
+
 class GetNumberOfBoards( AuthorizedTestSession ):#{{{
 	""" Does server return the number of accessible Board IDs? """
 
@@ -126,6 +138,29 @@ class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):#{{{
 			assert item.id == board.id, "Expected id (%s) and Board.id (%s) to be equal" % ( item.id )
 			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
 #}}}
+
+class GetBoardIDsOneByOne( AuthorizedTestSession ):
+	""" Does server support IDSequence.key field properly? """
+
+	def __iter__( self ):
+		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
+
+		idseq = yield GetBoardIDs( self.seq, -1, 0, 1 ), Expect( 'BoardIDs' )
+
+		key = idseq.key
+
+		assert idseq.remaining == 2, \
+				"There should be two Boards left."
+
+		idseq = yield GetBoardIDs( self.seq, key, 1, 1 ), Expect( 'BoardIDs' )
+
+		assert idseq.remaining == 1, \
+				"There should be one Board left."
+
+		idseq = yield GetBoardIDs( self.seq, key, 2, 1 ), Expect( 'BoardIDs' )
+
+		assert idseq.remaining == 0, \
+				"There should be no Board left."
 
 class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got GetBoards request? """
@@ -167,19 +202,24 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
 #}}}
 
-class BoardAccessTestSuite( TestSuite ):#{{{
-	""" Groups tests that check if access control for Board objects works properly. """
-	__name__  = 'Access'
-	__tests__ = [ GetCurrentBoard, AllFetchedBoardsAreAccessible,
-			GetPublicBoard, GetPrivateBoard, GetOtherPlayerPrivateBoard ]
+class GetBoardsTestSuite( TestSuite ):#{{{
+	__name__  = 'GetBoards'
+	__tests__ = [ GetBoardWhenNotLogged, GetCurrentBoard, GetExistingBoard,
+			GetNonExistentBoard, GetPublicBoard, GetPrivateBoard,
+			GetOtherPlayerPrivateBoard, GetMultipleBoards,
+			GetMultipleBoardsWithOneFail ]
+#}}}
+
+class GetBoardIDsTestSuite( TestSuite ):#{{{
+	__name__  = 'GetBoardIDs'
+	__tests__ = [ GetBoardIDsWhenNotLogged, GetNumberOfBoards,
+			AllFetchedBoardsAreAccessible, GetAllAvailableBoards, GetBoardIDsOneByOne ]
 #}}}
 
 class BoardTestSuite( TestSuite ):#{{{
 	""" Performs all tests related to GetBoards and GetBoardIDs requests. """
 	__name__  = 'Boards'
-	__tests__ = [ GetBoardWhenNotLogged, GetBoardIDsWhenNotLogged,
-			GetExistingBoard, GetNonExistentBoard, GetMultipleBoards,
-			GetNumberOfBoards, GetAllAvailableBoards, BoardAccessTestSuite ]
+	__tests__ = [ GetBoardsTestSuite, GetBoardIDsTestSuite ]
 
 	def setUp( self ):
 		game = self.ctx['game']
