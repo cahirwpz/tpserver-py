@@ -70,11 +70,22 @@ class ExpectSequence( Expect ):#{{{
 		Expect.__init__( self, 'Sequence' )
 
 		if isinstance( packets[0], int ) and len( packets ) == 2:
-			self.__packets = [ packets[1] for i in range(packets[0]) ]
+			if isinstance( packets[1], str ):
+				packet = Expect( packets[1] )
+			else:
+				packet = packets[1]
+
+			self.__packets = [ packet for i in range(packets[0]) ]
 		else:
+			self.__packets = []
+
 			for packet in packets:
-				assert isinstance( packet, ( ExpectFail, str ) ), "Wrong choice type."
-			self.__packets = packets
+				if isinstance( packet, Expect ):
+					self.__packets.append( packet )
+				elif isinstance( packet, str ):
+					self.__packets.append( Expect( packet ) )
+				else:
+					raise TypeError( 'Wrong choice type!' )
 
 	def __eq__( self, response ):
 		if not isinstance( response, list ):
@@ -86,7 +97,7 @@ class ExpectSequence( Expect ):#{{{
 		if len( response ) != len( self.__packets ) + 1:
 			return False
 		
-		if any( packet.type != choice for packet, choice in zip( response[1:], self.__packets ) ):
+		if any( packet != choice for packet, choice in zip( response[1:], self.__packets ) ):
 			return False
 
 		return True
