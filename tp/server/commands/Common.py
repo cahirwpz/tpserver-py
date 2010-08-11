@@ -145,17 +145,44 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 
 	@MustBeLogged
 	def __call__( self, request ):
+		"""
+		Requirements:
+		  * Subsequent requests in a sequence should use the key which is
+			returned.
+		  * All requests must be continuous and ascending.
+		  * Only one sequence key can exist at any time, starting a new
+			sequence causes the old one to be discarded.
+		  * Key persist for only as long as the connection remains and there
+			are IDs left in the sequence.
+
+		Other Information:
+		  * If the number of IDs to get is -1, then all (remaining) IDs
+			should be returned.
+		  * If a key becomes invalid because of some change on the server (IE
+			the ID order changes because of modification by another client) a
+			Fail packet will be returned.
+		  * If the client for a key requests any of the following a Fail packet
+			will be returned:
+			* a range has already had any part already given (IE no overlaps)
+			* a range specifies a range which starts below the ending (IE
+			  requesting from 6, 10 then 0 to 5)
+			* a range is bigger then the remaining IDs left (IE requesting 6
+			  when only 4 remain)
+
+		Note: All servers must follow all the requirements above even if the
+		      server could allow otherwise. 
+		"""
+
 		Object = self.game.objects.use( self.__object__ )
 
 		last = Object.query().filter( self.filter ).order_by( Object.mtime ).first()
-
 		key = long( last.mtime.strftime('%s') ) if last else -1
 
-		if request.key != -1 and key != request.key:
-			return self.Fail( request, "NoSuchThing", "Key %s is no longer valid, please get a new key." % request.key )
+		if request.key != -1 and request.key != key:
+			return self.Fail( request, "NoSuchThing", "Key %s has expired, please get a new key." % request.key )
 
 		total = Object.query().filter( self.filter ).count()
-		
+
 		if request.start + request.amount > total:
 			msg( "Requested %d items starting at %d. Actually %s." % ( request.amount, request.amount, total ) )
 			return self.Fail( request, "NoSuchThing", "Requested too many IDs. (Requested %s, actually %s)" % (request.start + request.amount, total))
@@ -164,8 +191,9 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 			# if amount equals to -1 then only give number of available items
 			response = IDSequence( key, total, [] )
 		else:
-			response = IDSequence( key, 
-					total - ( request.start + request.amount ),
+			remaining = total - ( request.start + request.amount )
+
+			response = IDSequence( key, remaining,
 					Object.query().filter( self.filter ).order_by( Object.mtime )[ request.start : request.start + request.amount ] )
 
 		return self.toPacket( request, response )
@@ -241,6 +269,6 @@ class RemoveWithIDSlotHandler( WithIDSlotHandler ):#{{{
 		return self.Okay( request, "Removed %s with slot = %d." % ( item.__origname__, slot ) )
 #}}}
 
-__all__ = [ 'FactoryMixin', 'MustBeLogged', 'RequestHandler', 'GetWithIDHandler',
-			'RemoveWithIDHandler', 'GetIDSequenceHandler',
+__all__ = [ 'FactoryMixin', 'MustBeLogged', 'RequestHandler',
+			'GetWithIDHandler', 'RemoveWithIDHandler', 'GetIDSequenceHandler',
 			'GetWithIDSlotHandler', 'RemoveWithIDSlotHandler' ]
