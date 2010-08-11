@@ -25,6 +25,16 @@ class Model( object ):#{{{
 				obj.remove( session )
 
 	@staticmethod
+	def refresh( *objs ):
+		objs = filter( lambda x: x is not None, objs )
+
+		assert all( isinstance( obj, SQLBase ) for obj in objs )
+		
+		with DatabaseManager().session() as session:
+			for obj in objs:
+				session.refresh( obj )
+
+	@staticmethod
 	def query( cls ):
 		return DatabaseManager().query( cls )
 #}}}
