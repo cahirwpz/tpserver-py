@@ -4,7 +4,7 @@ import csv, datetime
 
 import sqlalchemy as sql
 from sqlalchemy import *
-from tp.server.model import *
+from DatabaseManager import DatabaseManager
 
 class NoSuchThing( Exception ):#{{{
 	pass

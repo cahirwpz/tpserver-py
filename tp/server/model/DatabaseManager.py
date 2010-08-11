@@ -93,7 +93,11 @@ class DatabaseManager( object ):#{{{
 		try:
 			yield session
 		finally:
-			session.commit()
+			try:
+				session.commit()
+			except Exception, ex:
+				msg( str( ex ) )
+				session.rollback()
 
 	@property
 	def metadata( self ):
