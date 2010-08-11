@@ -1,35 +1,71 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
+from common import AuthorizedTestSession, Expect, ExpectSequence, ExpectFail, ExpectOneOf, TestSessionUtils
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemWithID
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
 
-class GetExistingCategory( AuthorizedTestSession ):#{{{
-	""" Does server respond properly if asked about existing category? """
+class GetCategoryMixin( TestSessionUtils ):#{{{
+	__request__  = 'GetCategory'
+	__response__ = 'Category'
 
-	def __iter__( self ):
-		category = self.ctx['categories'][3]
+	def assertEqual( self, packet, category ):
+		for attr in [ 'id', 'name', 'description', 'modtime' ]:
+			pval = getattr( packet, attr, None )
 
-		GetCategory = self.protocol.use( 'GetCategory' )
+			if attr == 'modtime':
+				bval = self.datetimeToInt( category.mtime )
+			else:
+				bval = getattr( category, attr, None )
 
-		packet = yield GetCategory( self.seq, [ category.id ] ), Expect( 'Category' )
-
-		assert packet.id == category.id, \
-			"Server responded with different CategoryId than requested!"
+			assert pval == bval, \
+					"Server responded with different %s.%s (%s) than expected (%s)!" % ( self.__response__, attr.title(), pval, bval )
 #}}}
 
-class GetNonExistentCategory( AuthorizedTestSession ):#{{{
+class GetExistingCategory( GetItemWithID, GetCategoryMixin ):#{{{
+	""" Does server respond properly if asked about existing category? """
+
+	@property
+	def item( self ):
+		return self.ctx['categories'][0]
+#}}}
+
+class GetNonExistentCategory( GetItemWithID, GetCategoryMixin ):#{{{
 	""" Does server fail to respond if asked about nonexistent category? """
 
-	def __iter__( self ):
-		category = self.ctx['categories'][3]
+	__fail__ = 'NoSuchThing'
 
-		GetCategory = self.protocol.use( 'GetCategory' )
+	@property
+	def item( self ):
+		return self.ctx['categories'][0]
+	
+	def getId( self, item ):
+		return self.item.id + 666
+#}}}
 
-		packet = yield GetCategory( self.seq, [ category.id + 666 ] ), ExpectOneOf( 'Category', ExpectFail('NoSuchThing') )
+class GetPublicCategory( GetItemWithID, GetCategoryMixin ):#{{{
+	""" Does server allow to fetch public Category? """
 
-		assert packet.type != 'Category', \
-			"Server does return information for non-existent CategoryId = %s!" % ( category.id + 666 )
+	@property
+	def item( self ):
+		return self.ctx['categories'][3]
+#}}}
+
+class GetPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
+	""" Does server allow to fetch private Category owned by the player? """
+
+	@property
+	def item( self ):
+		return self.ctx['categories'][1]
+#}}}
+
+class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
+	""" Does server disallow to fetch private Category of another player? """
+
+	__fail__ = 'PermissionDenied'
+
+	@property
+	def item( self ):
+		return self.ctx['categories'][2]
 #}}}
 
 class GetMultipleCategories( AuthorizedTestSession ):#{{{
@@ -58,7 +94,7 @@ class GetAllCategoryIDs( AuthorizedTestSession ):#{{{
 
 		packet = yield GetCategoryIDs( self.seq, -1, 0, -1 ), Expect( 'CategoryIDs' )
 
-		assert packet.remaining == 4
+		assert packet.remaining == 3, "Expected to get three Categories."
 #}}}
 
 class GetCategoryWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
@@ -82,18 +118,150 @@ class AddCategoryWhenNotLogged( WhenNotLogged ):#{{{
 		return AddCategory( self.seq, -1, 0, "Category", "Category used for testing purposes" )
 #}}}
 
+class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Is server able to add new category? """
+
+	def __iter__( self ):
+		AddCategory = self.protocol.use( 'AddCategory' )
+		Category = self.game.objects.use( 'Category' )
+
+		packet = yield AddCategory( self.seq, -1, 0, "Test", "Category for testing purposes." ), Expect( 'Category' )
+
+		self.cat = Category.ById( packet.id )
+
+		self.assertEqual( packet, self.cat )
+
+	def tearDown( self ):
+		if hasattr( self, 'cat' ):
+			Model.remove( self.cat )
+#}}}
+
+class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server properly reject creating already existing private category? """
+
+	def setUp( self ):
+		self.cat_name = "Test"
+
+		Category = self.game.objects.use( 'Category' )
+
+		self.cat = Category(
+				name = self.cat_name,
+				owner = self.ctx['players'][0],
+				description = "Private Category for testing purposes." )
+
+		Model.add( self.cat )
+
+	def __iter__( self ):
+		AddCategory = self.protocol.use( 'AddCategory' )
+		Category = self.game.objects.use( 'Category' )
+
+		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
+				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
+
+		if packet.type == 'Category':
+			self.wrong_cat = Category.ById( packet.id )
+
+		assert packet.type == 'Fail', \
+				"%s must not be added if %s exists!" % ( self.wrong_cat, self.cat )
+
+	def tearDown( self ):
+		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
+#}}}
+
+class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server allow to add new category with same name but different player ? """
+
+	def setUp( self ):
+		self.cat_name = "Test"
+
+		Category = self.game.objects.use( 'Category' )
+
+		self.other_cat = Category(
+				name = self.cat_name,
+				owner = self.ctx['players'][1],
+				description = "Private Category for testing purposes." )
+
+		Model.add( self.other_cat )
+
+	def __iter__( self ):
+		AddCategory = self.protocol.use( 'AddCategory' )
+		Category = self.game.objects.use( 'Category' )
+
+		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
+				Expect('Category')
+
+		self.cat = Category.ById( packet.id )
+
+		self.assertEqual( packet, self.cat )
+
+	def tearDown( self ):
+		Model.remove( getattr( self, 'cat', None ), getattr( self, 'other_cat', None ) )
+#}}}
+
+class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin ):#{{{
+	""" Does server properly reject creating already existing private category with same name as a public one? """
+
+	def setUp( self ):
+		self.cat_name = "Test"
+
+		Category = self.game.objects.use( 'Category' )
+
+		self.cat = Category(
+				name = self.cat_name,
+				description = "Public category for testing purposes." )
+
+		Model.add( self.cat )
+
+	def __iter__( self ):
+		AddCategory = self.protocol.use( 'AddCategory' )
+		Category = self.game.objects.use( 'Category' )
+
+		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
+				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
+
+		if packet.type == 'Category':
+			self.wrong_cat = Category.ById( packet.id )
+
+		assert packet.type == 'Fail', \
+				"%s must not be added if %s exists!" % ( self.wrong_cat, self.cat )
+
+	def tearDown( self ):
+		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
+#}}}
+
 class RemoveCategoryWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
 	""" Does a server respond properly when player is not logged but got RemoveCategory request? """
 
 	__request__ = 'RemoveCategory'
 #}}}
 
+class AddCategoryTestSuite( TestSuite ):#{{{
+	__name__  = 'AddCategory'
+	__tests__ = [ AddCategoryWhenNotLogged, AddNewCategory,
+			AddCategoryButSameExists, AddCategoryWithSameNameAsPrivate,
+			AddCategoryWithSameNameAsPublic ]
+#}}}
+
+class GetCategoryTestSuite( TestSuite ):#{{{
+	__name__  = 'GetCategory'
+	__tests__ = [ GetCategoryWhenNotLogged, GetExistingCategory,
+			GetNonExistentCategory, GetPublicCategory, GetPrivateCategory,
+			GetOtherPlayerPrivateCategory, GetMultipleCategories ]
+#}}}
+
+class GetCategoryIDsTestSuite( TestSuite ):#{{{
+	__name__  = 'GetCategoryIDs'
+	__tests__ = [ GetCategoryIDsWhenNotLogged, GetAllCategoryIDs ]
+#}}}
+
+class RemoveCategoryTestSuite( TestSuite ):#{{{
+	__name__  = 'RemoveCategory'
+	__tests__ = [ RemoveCategoryWhenNotLogged ]
+#}}}
+
 class CategoryTestSuite( TestSuite ):#{{{
 	__name__  = 'Categories'
-	__tests__ = [ GetCategoryWhenNotLogged, GetCategoryIDsWhenNotLogged,
-			AddCategoryWhenNotLogged, RemoveCategoryWhenNotLogged,
-			GetExistingCategory, GetNonExistentCategory, GetMultipleCategories,
-			GetAllCategoryIDs ]
+	__tests__ = [ GetCategoryTestSuite, GetCategoryIDsTestSuite, AddCategoryTestSuite, RemoveCategoryTestSuite ]
 
 	def setUp( self ):
 		game = self.ctx['game']
@@ -106,10 +274,12 @@ class CategoryTestSuite( TestSuite ):#{{{
 
 		category2 = Category(
 				name = "Production",
+				owner = self.ctx['players'][0],
 				description = "Things which deal with the production of stuff." )
 
 		category3 = Category(
 				name = "Combat",
+				owner = self.ctx['players'][1],
 				description = "Things which deal with combat between ships." )
 
 		category4 = Category(
@@ -118,14 +288,10 @@ class CategoryTestSuite( TestSuite ):#{{{
 
 		self.ctx['categories'] = [ category1, category2, category3, category4 ]
 
-		with DatabaseManager().session() as session:
-			for category in self.ctx['categories']:
-				session.add( category )
+		Model.add( *self.ctx['categories'] )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			for category in self.ctx['categories']:
-				category.remove( session )
+		Model.remove( *self.ctx['categories'] )
 #}}}
 
 __tests__ = [ CategoryTestSuite ]
