@@ -3,7 +3,9 @@
 from twisted.internet import reactor
 
 from tp.server.gamemanager import GameManager
+from tp.server.configuration import ComponentConfiguration, StringOption
 from tp.server.model import Model
+from tp.server.logging import Logger
 
 from test import TestLoader
 
@@ -39,38 +41,6 @@ class MainTestSuite( TestLoader ):#{{{
 		self.ctx['players']	= [ player1, player2 ]
 
 		Model.add( player1, player2 )
-
-	def tearDown( self ):
-		self.ctx['game'].reset()
-
-	#def configure( self, configuration ):
-	#	tests = configuration.tests
-	#
-	#	if tests == 'LIST':
-	#		raise SystemExit( Logger.colorizeMessage( '\n'.join( self.__manager.getReport() ) ) )
-	#	elif tests == 'DEFAULT':
-	#		self.__tests = [ 'DEFAULT' ]
-	#	elif tests == 'ALL':
-	#		self.__tests = self.__manager.keys()
-	#	else:
-	#		for name in tests.split(','):
-	#			try:
-	#				names = fnmatch.filter( self.__manager.keys(), name )
-	#
-	#				if not names:
-	#					raise KeyError( 'No test matching \'%s\'' % name )
-	#
-	#				self.__tests.extend( names )
-	#			except KeyError, ex:
-	#				raise SystemExit( ex )
-	#
-	#	if not self.__tests:
-	#		raise ConfigurationError( 'test run is empty' )
-#}}}
-
-#class MainTestSuiteConfiguration( ComponentConfiguration ):#{{{
-#	tests = StringOption( short='t', default='ALL',
-#						  help='Specifies which tests will be added to test run. TEST-LIST is a list of test names or glob (see unix manual pages) patterns separated by comma. There are some arguments to this option that have a special meaning. \'LIST\' will force to display all available tests and finish the application. \'ALL\' will add all available test to test run.', arg_name='TEST-LIST' )
 #}}}
 
 class TestRunner( object ):#{{{
@@ -85,10 +55,23 @@ class TestRunner( object ):#{{{
 		reactor.stop()
 
 	def start( self ):
-		reactor.callLater( 0, self.suite.start )
+		reactor.callLater( 0, lambda: self.suite.start( self.test_path ) )
+
+	def configure( self, configuration ):
+		tests = configuration.tests
+	
+		if tests == 'list':
+			raise SystemExit( Logger.colorizeMessage( '\n'.join( self.suite.getListing() ) ) )
+		else:
+			self.test_path = tests
 	
 	def logPrefix( self ):
 		return self.__class__.__name__
 #}}}
 
-__all__ = [ 'TestRunner' ]
+class TestRunnerConfiguration( ComponentConfiguration ):#{{{
+	tests = StringOption( short='t', default='*',
+						  help='Specifies which tests will be run. TEST-PATH is a test path using glob (see unix manual pages) pattern. If you provide \'list\' path then all available tests will be displayed and the application will finish.', arg_name='TEST-PATH' )
+#}}}
+
+__all__ = [ 'TestRunner', 'TestRunnerConfiguration' ]

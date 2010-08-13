@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import textwrap, glob, os.path, copy
+import textwrap, glob, os.path, copy, fnmatch
 from collections import Mapping, MutableMapping
 
 from twisted.internet import reactor
@@ -220,7 +220,12 @@ class TestSuite( Mapping, TestCase ):#{{{
 			self.ctx.restore()
 
 		try:
-			TestType = self.__iter.next()
+			while True:
+				TestType = self.__iter.next()
+				TestName = TestType.__dict__.get( '__name__', TestType.__name__ )
+				
+				if fnmatch.fnmatch( TestName, self.path_head ):
+					break
 		except StopIteration:
 			if len( self.__failedTest ):
 				self.failed( "%s test failed!" % self.__failedTest )
@@ -230,7 +235,11 @@ class TestSuite( Mapping, TestCase ):#{{{
 			self.ctx.save()
 			test = TestType( ctx = self.ctx )
 			test.result.addCallbacks( self.__succeeded, self.__failed )
-			test.start()
+
+			if isinstance( test, TestSuite ):
+				test.start( self.path_tail )
+			else:
+				test.start()
 
 	@logctx
 	def __succeeded( self, test ):
@@ -253,6 +262,15 @@ class TestSuite( Mapping, TestCase ):#{{{
 		self.__failedTest.append( test )
 		self.run()
 
+	@logctx
+	def start( self, path = "*" ):
+		try:
+			self.path_head, self.path_tail = path.split('.', 1 )
+		except ValueError:
+			self.path_head, self.path_tail = path, "*"
+
+		super( TestSuite, self ).start()
+
 	def report( self ):
 		if not self.status:
 			if self.failure:
@@ -262,7 +280,7 @@ class TestSuite( Mapping, TestCase ):#{{{
 				err( _stuff = self.failure )
 				msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
 
-	def getListing( self ):
+	def getListing( self, depth = 0 ):
 		"""
 		Retrieves report of all available tests.
 		"""
@@ -273,19 +291,36 @@ class TestSuite( Mapping, TestCase ):#{{{
 		textwrapper.width = 100
 
 		report = []
+		number = 0
 
-		report.append( '${cyn0}Available test cases list:${coff}' )
+		if depth == 0:
+			report.append( '${cyn0}Available test cases list:${coff}' )
 
 		for name, cls in sorted( self.__names.iteritems() ):
-			report.append( '  ${wht1}%s:${coff}' % name )
+			if len( cls.__testpath__[1:] ):
+				name = ".".join( cls.__testpath__[1:] )
+			else:
+				name = cls.__dict__.get( '__name__' )
 
-			words = str( cls.__doc__ ).split()
+			if issubclass( cls, TestSuite ):
+				subreport, contains = cls().getListing( depth + 1 )
 
-			report += textwrapper.wrap( '${yel0}info:${coff}  %s' % ' '.join( words ) )
+				report += subreport
+				number += contains
+			else:
+				report.append( '  ${wht1}%s:${coff}' % name )
 
-		report.append( '${cyn0}Available test cases count: %d${coff}' % len( self ) )
+				words = str( cls.__doc__ ).split()
 
-		return report
+				report += textwrapper.wrap( '${yel0}info:${coff}  %s' % ' '.join( words ) )
+
+				number += 1
+
+		if depth == 0:
+			report.append( '${cyn0}Available test cases count: %d${coff}' % number )
+			return report
+
+		return report, number
 #}}}
 
 class TestLoader( TestSuite ):#{{{
