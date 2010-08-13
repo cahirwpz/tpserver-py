@@ -3,10 +3,22 @@
 from SQL import SQLBase
 from DatabaseManager import DatabaseManager
 
+def flatten( x ):#{{{
+    result = []
+
+    for el in x:
+        if hasattr( el, "__iter__") and not isinstance( el, basestring ):
+            result.extend( flatten( el ) )
+        else:
+            result.append( el )
+
+    return result
+#}}}
+
 class Model( object ):#{{{
 	@staticmethod
 	def add( *objs ):
-		objs = filter( lambda x: x is not None, objs )
+		objs = filter( lambda x: x is not None, flatten( objs ) )
 
 		assert all( isinstance( obj, SQLBase ) for obj in objs )
 		
@@ -16,7 +28,7 @@ class Model( object ):#{{{
 
 	@staticmethod
 	def remove( *objs ):
-		objs = filter( lambda x: x is not None, objs )
+		objs = filter( lambda x: x is not None, flatten( objs ) )
 
 		assert all( isinstance( obj, SQLBase ) for obj in objs )
 
@@ -26,7 +38,7 @@ class Model( object ):#{{{
 
 	@staticmethod
 	def refresh( *objs ):
-		objs = filter( lambda x: x is not None, objs )
+		objs = filter( lambda x: x is not None, flatten( objs ) )
 
 		assert all( isinstance( obj, SQLBase ) for obj in objs )
 		
