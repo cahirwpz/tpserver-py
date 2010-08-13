@@ -1,26 +1,19 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectSequence, TestSessionUtils
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID, GetWithIDMixin
 
 from tp.server.model import Model
 
-class GetBoardsMixin( TestSessionUtils ):#{{{
+class GetBoardsMixin( GetWithIDMixin ):#{{{
 	__request__  = 'GetBoards'
 	__response__ = 'Board'
 
-	def assertEqual( self, packet, board ):
-		for attr in [ 'id', 'name', 'description', 'messages', 'modtime' ]:
-			pval = getattr( packet, attr, None )
+	__attrs__   = [ 'id', 'name', 'description' ]
+	__attrmap__ = {}
+	__attrfun__ = [ 'modtime', 'messages' ]
 
-			if attr == 'modtime':
-				bval = self.datetimeToInt( board.mtime )
-			elif attr == 'messages':
-				bval = len( board.messages )
-			else:
-				bval = getattr( board, attr, None )
-
-			assert pval == bval, \
-					"Server responded with different %s.%s (%s) than expected (%s)!" % ( self.__response__, attr.title(), pval, bval )
+	def convert_messages( self, packet, obj ):
+		return packet.messages, len( obj.messages )
 #}}}
 
 class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):#{{{
@@ -249,10 +242,10 @@ class BoardTestSuite( TestSuite ):#{{{
 
 		self.ctx['boards'] = [ board1, board2, board3, board4 ]
 
-		Model.add( *self.ctx['boards'] )
+		Model.add( self.ctx['boards'] )
 	
 	def tearDown( self ):
-		Model.remove( *self.ctx['boards'] )
+		Model.remove( self.ctx['boards'] )
 #}}}
 
 __tests__ = [ BoardTestSuite ]
