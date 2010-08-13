@@ -1,24 +1,18 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect, ExpectSequence, ExpectFail, ExpectOneOf, TestSessionUtils
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemWithID
+from common import AuthorizedTestSession, Expect, ExpectFail, ExpectOneOf
+from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
+		WhenNotLogged, GetItemWithID, GetWithIDMixin, GetItemsWithID,
+		GetItemIDs )
 
 from tp.server.model import Model
 
-class GetCategoryMixin( TestSessionUtils ):#{{{
+class GetCategoryMixin( GetWithIDMixin ):#{{{
 	__request__  = 'GetCategory'
 	__response__ = 'Category'
 
-	def assertEqual( self, packet, category ):
-		for attr in [ 'id', 'name', 'description', 'modtime' ]:
-			pval = getattr( packet, attr, None )
-
-			if attr == 'modtime':
-				bval = self.datetimeToInt( category.mtime )
-			else:
-				bval = getattr( category, attr, None )
-
-			assert pval == bval, \
-					"Server responded with different %s.%s (%s) than expected (%s)!" % ( self.__response__, attr.title(), pval, bval )
+	__attrs__   = [ 'id', 'name', 'description' ]
+	__attrmap__ = {}
+	__attrfun__ = [ 'modtime' ]
 #}}}
 
 class GetExistingCategory( GetItemWithID, GetCategoryMixin ):#{{{
@@ -68,33 +62,24 @@ class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
 		return self.ctx['categories'][2]
 #}}}
 
-class GetMultipleCategories( AuthorizedTestSession ):#{{{
+class GetMultipleCategories( GetItemsWithID, GetCategoryMixin ):#{{{
 	""" Does server return sequence of Category packets if asked about two categories? """
 
-	def __iter__( self ):
-		categories = self.ctx['categories']
-
-		c1 = categories[3]
-		c2 = categories[0]
-		c3 = categories[1]
-
-		GetCategory = self.protocol.use( 'GetCategory' )
-
-		s, p1, p2, p3 = yield GetCategory( self.seq, [ c1.id, c2.id, c3.id ] ), ExpectSequence(3, 'Category')
-
-		assert p1.id == c1.id and p2.id == c2.id and p3.id == c3.id, \
-			"Server returned different CategoryIds (%d,%d,%d) than requested (%d,%d,%d)." % (p1.id, p2.id, p3.id, c1.id, c2.id, c3.id)
+	@property
+	def items( self ):
+		return [ self.ctx['categories'][3], self.ctx['categories'][0], self.ctx['categories'][1] ]
 #}}}
 
-class GetAllCategoryIDs( AuthorizedTestSession ):#{{{
-	""" Does server return proper sequence of Category id numbers? """
+class GetAllCategoryIDs( GetItemIDs ):#{{{
+	""" Does server return the IDs of all available Categories? """
 
-	def __iter__( self ):
-		GetCategoryIDs = self.protocol.use( 'GetCategoryIDs' )
+	__request__  = 'GetCategoryIDs'
+	__response__ = 'CategoryIDs'
+	__object__   = 'Category'
 
-		packet = yield GetCategoryIDs( self.seq, -1, 0, -1 ), Expect( 'CategoryIDs' )
-
-		assert packet.remaining == 3, "Expected to get three Categories."
+	@property
+	def items( self ):
+		return [ self.ctx['categories'][3], self.ctx['categories'][0], self.ctx['categories'][1] ]
 #}}}
 
 class GetCategoryWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
@@ -343,30 +328,30 @@ class CategoryTestSuite( TestSuite ):#{{{
 
 		Category = game.objects.use( 'Category' )
 
-		category1 = Category(
+		misc = Category(
 				name = "Misc",
 				description = "Things which dont fit into any other category." )
 
-		category2 = Category(
+		production = Category(
 				name = "Production",
 				owner = self.ctx['players'][0],
 				description = "Things which deal with the production of stuff." )
 
-		category3 = Category(
+		combat = Category(
 				name = "Combat",
 				owner = self.ctx['players'][1],
 				description = "Things which deal with combat between ships." )
 
-		category4 = Category(
+		designs = Category(
 				name = "Designs",
 				description = "A category which has all the designs." )
 
-		self.ctx['categories'] = [ category1, category2, category3, category4 ]
+		self.ctx['categories'] = [ misc, production, combat, designs ]
 
-		Model.add( *self.ctx['categories'] )
+		Model.add( self.ctx['categories'] )
 	
 	def tearDown( self ):
-		Model.remove( *self.ctx['categories'] )
+		Model.remove( self.ctx['categories'] )
 #}}}
 
 __tests__ = [ CategoryTestSuite ]
