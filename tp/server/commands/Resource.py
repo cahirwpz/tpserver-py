@@ -1,22 +1,22 @@
 #!/usr/bin/env python
 
-from Common import GetWithIDHandler, GetIDSequenceHandler
+from Common import GetWithIDHandler, GetIDSequenceHandler, FactoryMixin
 
-class ResourceFactoryMixin( object ):#{{{
+class ResourceFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
 		Resource = self.protocol.use( 'Resource' )
 
 		return Resource(
 				request._sequence,
 				obj.id,
-				obj.namesingular,
-				obj.nameplural,
-				obj.unitsingular,
-				obj.unitplural,
-				obj.desc,
+				obj.name_singular,
+				obj.name_plural,
+				obj.unit_singular,
+				obj.unit_plural,
+				obj.description,
 				obj.weight,
 				obj.size,
-				obj.time )
+				self.datetimeToInt( obj.mtime ) )
 #}}}
 
 class GetResource( GetWithIDHandler, ResourceFactoryMixin ):#{{{
@@ -24,7 +24,7 @@ class GetResource( GetWithIDHandler, ResourceFactoryMixin ):#{{{
 	Request:  GetResource :: GetWithID
 	Response: Resource | Sequence + Resource{2,n}
 	"""
-	__object__ = 'Resource'
+	__object__ = 'ResourceType'
 #}}}
 
 class GetResourceIDs( GetIDSequenceHandler ):#{{{
@@ -33,7 +33,7 @@ class GetResourceIDs( GetIDSequenceHandler ):#{{{
 	Response: IDSequence
 	"""
 	__packet__ = 'ResourceIDs'
-	__object__ = 'Resource'
+	__object__ = 'ResourceType'
 #}}}
 
 __all__ = [ 'GetResource', 'GetResourceIDs' ]
