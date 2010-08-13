@@ -10,11 +10,11 @@ class ComponentFactoryMixin( FactoryMixin ):#{{{
 				request._sequence,
 				component.id,
 				self.datetimeToInt( component.mtime ),
-				component.categories,
+				[ cat.category_id for cat in component.categories ],
 				component.name,
 				component.description,
 				component.requirements,
-				component.properties )
+				[ [ prop.property_id, prop.value ] for prop in component.properties ] )
 #}}}
 
 class GetComponent( GetWithIDHandler, ComponentFactoryMixin ):#{{{
