@@ -1,20 +1,20 @@
 #!/usr/bin/env python
 
-from Common import GetWithIDHandler, GetIDSequenceHandler
+from Common import GetWithIDHandler, GetIDSequenceHandler, FactoryMixin
 
-class PropertyFactoryMixin( object ):#{{{
+class PropertyFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
 		Property = self.protocol.use( 'Property' )
 
 		return Property(
 				request._sequence,
 				obj.id,
-				obj.time,
-				obj.categories,
+				self.datetimeToInt( obj.mtime ),
+				sorted( cat.category_id for cat in obj.categories ),
 				obj.rank,
 				obj.name,
-				obj.displayname,
-				obj.desc,
+				obj.display_name,
+				obj.description,
 				obj.calculate,
 				obj.requirements )
 #}}}
