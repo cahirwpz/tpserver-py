@@ -96,7 +96,7 @@ class DatabaseManager( object ):#{{{
 			try:
 				session.commit()
 			except Exception, ex:
-				msg( str( ex ) )
+				msg( "${yel1}%s${coff}" % ex, level='warning' )
 				session.rollback()
 
 	@property
