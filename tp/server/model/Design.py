@@ -19,6 +19,7 @@ class Design( SQLBase, SelectableByName ):#{{{
 				Column('owner_id',    ForeignKey( Player.id ), index = True, nullable = True),
 				Column('name',	      String(255), index = True, nullable = False),
 				Column('description', Text, nullable = False),
+				Column('comment',     Text, nullable = False, default = ''),
 				Column('mtime',	      DateTime,nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()),
 				UniqueConstraint( 'name' ))
@@ -35,6 +36,9 @@ class Design( SQLBase, SelectableByName ):#{{{
 
 		for component in self.components:
 			component.remove( session )
+
+		for prop in self.properties:
+			prop.remove( session )
 
 		session.commit()
 
@@ -261,7 +265,6 @@ class DesignCategory( SQLBase ):#{{{
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('design_id',   ForeignKey( Design.id ), primary_key = True ),
 				Column('category_id', ForeignKey( Category.id ), primary_key = True ),
-				Column('comment',     Text, nullable = False, default = ''),
 				Column('mtime',	      DateTime, nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
@@ -286,7 +289,6 @@ class DesignComponent( SQLBase ):#{{{
 				Column('design_id',    ForeignKey( Design.id ), primary_key = True ),
 				Column('component_id', ForeignKey( Component.id ), primary_key = True ),
 				Column('amount',       Integer, nullable = False, default = 0),
-				Column('comment',      Text, nullable = False, default = ''),
 				Column('mtime',	       DateTime, nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
@@ -304,4 +306,29 @@ class DesignComponent( SQLBase ):#{{{
 			})
 #}}}
 
-__all__ = [ 'Design', 'DesignCategory', 'DesignComponent' ]
+class DesignProperty( SQLBase ):#{{{
+	@classmethod
+	def InitMapper( cls, metadata, Design, Property ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('design_id',   ForeignKey( Design.id ), primary_key = True ),
+				Column('property_id', ForeignKey( Property.id ), primary_key = True ),
+				Column('value',       Text, nullable = False, default = """(lambda (design) 1)""" ),
+				Column('comment',     Text, nullable = False, default = '' ),
+				Column('mtime',       DateTime, nullable = False,
+					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+
+		cols = cls.__table__.c
+
+		Index('ix_%s_design_property' % cls.__tablename__, cols.design_id, cols.property_id)
+
+		mapper( cls, cls.__table__, properties = {
+			'design': relation( Design,
+				uselist = False,
+				backref = backref( 'properties' )),
+			'property': relation( Property,
+				uselist = False,
+				backref = backref( 'designs' ))
+			})
+#}}}
+
+__all__ = [ 'Design', 'DesignCategory', 'DesignComponent', 'DesignProperty' ]
