@@ -25,6 +25,9 @@ class Vector3D( object ):#{{{
 
 	def __ne__( self, other ):
 		return not self.__eq__( other )
+
+	def __str__( self ):
+		return "Vector[%s, %s, %s]" % ( self.x, self.y, self.z )
 #}}}
 
 class Object( SQLBase ):#{{{
