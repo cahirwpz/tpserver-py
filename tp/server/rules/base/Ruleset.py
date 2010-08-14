@@ -14,12 +14,57 @@ class Ruleset( object ):#{{{
 	name    = "Unknown Ruleset"
 	version = 'Unknown Version'
 
-	def __init__(self, game = None):
+	def __init__( self, game = None ):
 		"""
 		Initialise a ruleset.
 		"""
 		self.game = game
-		#self.setup()
+
+	@property
+	def model( self ):
+		return self.game.objects
+	
+	def loadModelConstants( self ):
+		from tp.server.model import ( ObjectType, OrderType, ObjectOrder )
+
+		self.model.add_class( ObjectType )
+		self.model.add_class( OrderType )
+		self.model.add_class( ObjectOrder, 'ObjectType', 'OrderType' )
+
+	def initModelConstants( self ):
+		pass
+
+	def loadModel( self ):
+		from tp.server.model import ( Parameter, Player, Object, Board,
+				Reference, Lock, Component, Property, ResourceType, Category,
+				Message, Order, Design, MessageReference, ComponentCategory,
+				ComponentProperty, DesignCategory, DesignComponent,
+				DesignProperty, PropertyCategory, ObjectParameter,
+				OrderParameter )
+
+		self.model.add_class( Player )
+		self.model.add_class( Reference )
+		self.model.add_class( Lock )
+		self.model.add_class( Component )
+		self.model.add_class( Property )
+		self.model.add_class( ResourceType )
+		self.model.add_class( Object, 'ObjectType' )
+		self.model.add_class( Category, 'Player' )
+		self.model.add_class( Board, 'Player' )
+		self.model.add_class( Design, 'Player' )
+		self.model.add_class( Message, 'Board' )
+		self.model.add_class( Order, 'OrderType', 'Object' )
+		self.model.add_class( MessageReference, 'Message', 'Reference' )
+		self.model.add_class( ComponentCategory, 'Component', 'Category' )
+		self.model.add_class( ComponentProperty, 'Component', 'Property' )
+		self.model.add_class( DesignCategory, 'Design', 'Category' )
+		self.model.add_class( DesignComponent, 'Design', 'Component' )
+		self.model.add_class( DesignProperty, 'Design', 'Property' )
+		self.model.add_class( PropertyCategory, 'Property', 'Category' )
+
+		self.model.add_class( Parameter )
+		self.model.add_class( ObjectParameter, 'Object', 'Parameter' )
+		self.model.add_class( OrderParameter, 'Order', 'Parameter' )
 
 	@property
 	def information( self ):

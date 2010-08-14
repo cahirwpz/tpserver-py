@@ -319,42 +319,6 @@ class Game( SQLBase, SelectableByName ):#{{{
 		object.__setattr__( self, '_Game__ruleset', None )
 		object.__setattr__( self, 'objects', ObjectManager( self ) )
 
-	def load( self ):
-		from tp.server.model import ( Parameter, Player, Object, Board,
-				Reference, Lock, Component, Property, ResourceType, Category,
-				Message, Order, Design, MessageReference, ComponentCategory,
-				ComponentProperty, DesignCategory, DesignComponent,
-				DesignProperty, PropertyCategory, ObjectParameter,
-				OrderParameter )
-
-		objs = self.objects
-
-		self.objects.add_class( Player )
-		self.objects.add_class( Object )
-		self.objects.add_class( Reference )
-		self.objects.add_class( Lock )
-		self.objects.add_class( Component )
-		self.objects.add_class( Property )
-		self.objects.add_class( ResourceType )
-		self.objects.add_class( Category, 'Player' )
-		self.objects.add_class( Board, 'Player' )
-		self.objects.add_class( Design, 'Player' )
-		self.objects.add_class( Message, 'Board' )
-		self.objects.add_class( Order, 'Object' )
-		self.objects.add_class( MessageReference, 'Message', 'Reference' )
-		self.objects.add_class( ComponentCategory, 'Component', 'Category' )
-		self.objects.add_class( ComponentProperty, 'Component', 'Property' )
-		self.objects.add_class( DesignCategory, 'Design', 'Category' )
-		self.objects.add_class( DesignComponent, 'Design', 'Component' )
-		self.objects.add_class( DesignProperty, 'Design', 'Property' )
-		self.objects.add_class( PropertyCategory, 'Property', 'Category' )
-
-		self.objects.add_class( Parameter )
-		self.objects.add_class( ObjectParameter, 'Object', 'Parameter' )
-		self.objects.add_class( OrderParameter, 'Order', 'Parameter' )
-
-		self.ruleset.load()
-
 	def createTables( self ):
 		metadata = DatabaseManager().metadata
 
