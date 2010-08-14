@@ -27,8 +27,9 @@ class Order( SQLBase ):#{{{
 			'type': relation( OrderType,
 				uselist = False ),
 			'object': relation( Object,
-				uselist = False )}
-			)
+				uselist = False,
+				backref = backref( 'orders' ))
+			})
 
 	@classmethod
 	def ByType( cls, type_name ):

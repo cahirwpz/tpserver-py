@@ -9,14 +9,14 @@ class ObjectFactoryMixin( FactoryMixin ):#{{{
 		return Object(
 				request._sequence,
 				obj.id,
-				0,
+				obj.type.id,
 				str( obj.name ),
 				obj.size,
 				[ obj.position.x, obj.position.y, obj.position.z ],
 				[ obj.velocity.x, obj.velocity.y, obj.velocity.z ],
 				[ child.id for child in obj.children ],
-				[],
-				0,
+				[ order_object.order_type_id for order_object in obj.type.order_types ],
+				len( obj.orders ),
 				self.datetimeToInt( obj.mtime ),
 				"0" * 8,
 				[] )
