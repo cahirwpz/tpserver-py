@@ -38,19 +38,13 @@ class Ruleset( RulesetBase ):#{{{
 			TurnAction, 				# Increase the Universe's "Turn" value
 			]
 
-	ApplicableOrders = {
-			'Fleet'		: [ WaitOrder, MoveOrder, SplitFleetOrder, MergeFleetOrder, ColoniseOrder ],
-			'Planet'	: [ WaitOrder, BuildFleetOrder ]
-			}
+	__ObjectOrder__ = {
+			'Fleet'  : ['WaitOrder','MoveOrder','SplitFleetOrder','MergeFleetOrder','ColoniseOrder'],
+			'Planet' : ['WaitOrder','BuildFleetOrder'] }
 
-	ObjectTypeNumbers = {
-			'Universe'		: 0,
-			'Galaxy'		: 1,
-			'StarSystem'	: 2,
-			'Planet'		: 3,
-			'Fleet'			: 4,
-			'Wormhole'		: 5
-			}
+	__ObjectType__ = ['Universe','Galaxy','StarSystem','Planet','Fleet','Wormhole']
+
+	__OrderType__ = ['WaitOrder','MergeFleetOrder','ColoniseOrder','MoveOrder','BuildFleetOrder','SplitFleetOrder']
 
 	def __init__( self, game ):
 		super( Ruleset, self ).__init__( game )
@@ -59,54 +53,76 @@ class Ruleset( RulesetBase ):#{{{
 		self.SIZE   = 10000000
 		self.SPEED  = 300000000
 
-	def load( self ):
+	def initModelConstants( self ):
+		super( Ruleset, self ).initModelConstants()
+
+		ObjectType = self.model.use( 'ObjectType' )
+
+		Model.add( ObjectType( id = _1, name = _2 )
+				for _1, _2 in enumerate( self.__ObjectType__ ))
+
+		OrderType = self.model.use( 'OrderType' )
+
+		Model.add( OrderType( id = _1, name = _2 )
+				for _1, _2 in enumerate( self.__OrderType__ ))
+
+		ObjectOrder = self.model.use( 'ObjectOrder' )
+
+		ObjectOrderList = []
+
+		for ObjectName, OrderNameList in self.__ObjectOrder__.iteritems():
+			for OrderName in OrderNameList:
+				ObjectOrderList.append( ( ObjectType.ByName( ObjectName ), OrderType.ByName( OrderName ) ) )
+
+		Model.add( ObjectOrder( object_type = _1, order_type = _2 )
+				for _1, _2 in ObjectOrderList )
+
+	def loadModel( self ):
+		super( Ruleset, self ).loadModel()
+
 		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 		from tp.server.rules.minisec.objects import Ship
 
-		objs = self.game.objects
+		self.model.add_object_class( Universe )
+		self.model.add_object_class( Galaxy )
+		self.model.add_object_class( StarSystem )
+		self.model.add_object_class( Planet )
+		self.model.add_object_class( Fleet )
+		self.model.add_object_class( Wormhole )
 
-		Object, Player = objs.use( 'Object', 'Player' )
+		self.model.add_order_class( WaitOrder )
+		self.model.add_order_class( MergeFleetOrder )
+		self.model.add_order_class( ColoniseOrder )
+		self.model.add_order_class( MoveOrder )
+		self.model.add_order_class( BuildFleetOrder )
+		self.model.add_order_class( SplitFleetOrder )
 
-		objs.add_object_class( Universe )
-		objs.add_object_class( Galaxy )
-		objs.add_object_class( StarSystem )
-		objs.add_object_class( Planet )
-		objs.add_object_class( Fleet )
-		objs.add_object_class( Wormhole )
-
-		objs.add_order_class( WaitOrder )
-		objs.add_order_class( MergeFleetOrder )
-		objs.add_order_class( ColoniseOrder )
-		objs.add_order_class( MoveOrder )
-		objs.add_order_class( BuildFleetOrder )
-		objs.add_order_class( SplitFleetOrder )
-
-		objs.add_class( Ship, 'Design' )
+		self.model.add_class( Ship, 'Design' )
 
 		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
 				ObjectParam, PlayerParam, NumberParam, StringParam,
 				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
 				DesignQuantityParam )
 
-		objs.add_class( DesignQuantity, 'Parameter', 'Design' )
-		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
+		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
+		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
 
-		objs.add_parameter_class( AbsCoordParam )
-		objs.add_parameter_class( TimeParam )
-		objs.add_parameter_class( ObjectParam, 'Object' )
-		objs.add_parameter_class( PlayerParam, 'Player' )
-		objs.add_parameter_class( NumberParam )
-		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
-		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
-
+		self.model.add_parameter_class( AbsCoordParam )
+		self.model.add_parameter_class( TimeParam )
+		self.model.add_parameter_class( ObjectParam, 'Object' )
+		self.model.add_parameter_class( PlayerParam, 'Player' )
+		self.model.add_parameter_class( NumberParam )
+		self.model.add_parameter_class( StringParam )
+		self.model.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
+		self.model.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
+	
 	def createUniverse( self, name ):
-		Universe = self.game.objects.use( 'Universe' )
+		Universe = self.model.use( 'Universe' )
 
 		return Universe( name = name, size = self.SIZE, age = 0 )
 
 	def createStarSystem( self, parent, name ):
-		StarSystem = self.game.objects.use( 'StarSystem' )
+		StarSystem = self.model.use( 'StarSystem' )
 
 		return StarSystem(
 				name		= name,
@@ -116,7 +132,7 @@ class Ruleset( RulesetBase ):#{{{
 				size		= self.random.randint(800000, 2000000))
 
 	def createPlanet( self, parent, name, owner = None ):
-		Planet = self.game.objects.use( 'Planet' )
+		Planet = self.model.use( 'Planet' )
 
 		return Planet(
 				name		= name,
@@ -127,7 +143,7 @@ class Ruleset( RulesetBase ):#{{{
 				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, Design, DesignQuantity = self.game.objects.use( 'Fleet', 'Design', 'DesignQuantity' )
+		Fleet, Design, DesignQuantity = self.model.use( 'Fleet', 'Design', 'DesignQuantity' )
 
 		return Fleet(
 				parent   = parent,
@@ -138,12 +154,12 @@ class Ruleset( RulesetBase ):#{{{
 				position = parent.position,
 				owner    = owner)
 
-	def initialise( self ):
-		RulesetBase.initialise( self )
+	def initModel( self ):
+		super( Ruleset, self ).initModel()
 
 		universe = self.createUniverse( name = "The Universe" )
 
-		Design, Ship = self.game.objects.use( 'Design', 'Ship' )
+		Design, Ship = self.model.use( 'Design', 'Ship' )
 
 		scout_design = Design(
 				name		= "Scout",
@@ -184,22 +200,22 @@ class Ruleset( RulesetBase ):#{{{
 		Model.add( universe, scout_design, frigate_design, battleship_design,
 				scout, frigate, battleship )
 
-	def populate(self, seed, system_min, system_max, planet_min, planet_max):
+	def populate( self, seed, system_min, system_max, planet_min, planet_max ):
 		"""
 			Populate a universe with a number of systems and planets.
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		seed, system_min, system_max, planet_min, planet_max = (int(seed), int(system_min), int(system_max), int(planet_min), int(planet_max))
+		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
 
-		Object = self.game.objects.use( 'Object' )
+		Object = self.model.use( 'Object' )
 
-		universe = Object.ByType( 'Universe' )[-1]
-
-		objs = []
+		universe = Object.ByType( 'Universe' )[0]
 
 		# FIXME: Assuming that the Universe and the Galaxy exist.
 		self.random.seed( int(seed) )
+
+		objs = []
 
 		# Create this many systems
 		for i in range( self.random.randint( system_min, system_max ) ):
@@ -221,9 +237,9 @@ class Ruleset( RulesetBase ):#{{{
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )
 
-		Object = self.game.objects.use( 'Object' )
+		Object = self.model.use( 'Object' )
 
-		universe	= Object.ByType( 'Universe' )[-1]
+		universe	= Object.ByType( 'Universe' )[0]
 		system		= self.createStarSystem( parent = universe, name = "%s Solar System" % username )
 		planet		= self.createPlanet( parent = system, name = "%s Planet" % username, owner = user )
 		fleet		= self.createFleet( parent = planet, name = "%s First Fleet" % username, owner = user )

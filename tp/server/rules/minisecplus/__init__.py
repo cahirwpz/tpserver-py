@@ -19,12 +19,10 @@ class Ruleset( MinisecRuleset ):
 
 	files = os.path.join(os.path.dirname( __file__ ), "other")
 
-	def load( self ):
+	def load___( self ):
 		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 
-		objs = self.game.objects
-
-		Object, Player = objs.use( 'Object', 'Player' )
+		objs = self.model
 
 		objs.add_object_class( Universe )
 		objs.add_object_class( Galaxy )
@@ -51,7 +49,7 @@ class Ruleset( MinisecRuleset ):
 		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
 
 	def createFleet( self, parent, name, owner = None):
-		Fleet, DesignQuantity, Design = self.game.objects.use( 'Fleet', 'DesignQuantity', 'Design' )
+		Fleet, DesignQuantity, Design = self.model.use( 'Fleet', 'DesignQuantity', 'Design' )
 
 		return Fleet(
 			parent   = parent,
@@ -61,10 +59,10 @@ class Ruleset( MinisecRuleset ):
 			position = parent.position,
 			owner    = owner)
 
-	def initialise( self ):
-		Component, ComponentCategory, ComponentProperty		= self.game.objects.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
-		Category, Design, DesignCategory, DesignComponent	= self.game.objects.use( 'Category', 'Design', 'DesignCategory', 'DesignComponent' )
-		Property, PropertyCategory, ResourceType		 	= self.game.objects.use( 'Property', 'PropertyCategory', 'ResourceType' )
+	def initModel( self ):
+		Component, ComponentCategory, ComponentProperty		= self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
+		Category, Design, DesignCategory, DesignComponent	= self.model.use( 'Category', 'Design', 'DesignCategory', 'DesignComponent' )
+		Property, PropertyCategory, ResourceType		 	= self.model.use( 'Property', 'PropertyCategory', 'ResourceType' )
 
 		ResourceType.FromCSV( os.path.join( self.files, "resources.csv" ) )
 		Category.FromCSV( os.path.join( self.files, "categories.csv" ) )
@@ -230,9 +228,9 @@ class Ruleset( MinisecRuleset ):
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		super( Ruleset, self ).populate(seed, system_min, system_max, planet_min, planet_max)
+		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
 
-		Object, ResourceQuantity, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceType' )
+		Object, ResourceQuantity, ResourceType = self.model.use( 'Object', 'ResourceQuantity', 'ResourceType' )
 
 		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
 
@@ -246,7 +244,7 @@ class Ruleset( MinisecRuleset ):
 								extractable  = self.random.randint( 0, 100 ),
 								inaccessible = self.random.randint( 0, 1000 )))
 
-			Model.add( planet )
+			Model.update( planet )
 
 	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
@@ -255,11 +253,11 @@ class Ruleset( MinisecRuleset ):
 
 		user, system, planet, fleet = super( Ruleset, self ).player( username, password, email, comment )
 
-		ResourceQuantity, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceType' )
+		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
 
 		# Get the player's planet object and add the empire capital
 		planet.resources = [ 
 				ResourceQuantity( resource = ResourceType.ByName('House'), accessible = 1 ),
 				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
-		Model.add( planet )
+		Model.update( planet )

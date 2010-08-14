@@ -163,7 +163,7 @@ class Ruleset( object ):#{{{
 		The default function creates a new user, a board for the user and adds a
 		welcome message. It returns the newly created user object.
 		"""
-		Player, Board, Message = self.game.objects.use( 'Player', 'Board', 'Message' )
+		Player, Board, Message = self.model.use( 'Player', 'Board', 'Message' )
 
 		player = Player(
 			username	= username,
@@ -205,7 +205,7 @@ class Ruleset( object ):#{{{
 			Then all NOp orders would be performed.
 			Then the Clean action would be applied with the argument ('fleetsonly')
 		"""
-		Lock, Object, Event = self.game.objects.use( 'Lock', 'Object', 'Event' )
+		Lock, Object, Event = self.model.use( 'Lock', 'Object', 'Event' )
 
 		# Create a turn processing lock
 		lock = Lock.new('processing')

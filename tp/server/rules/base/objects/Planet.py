@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from sqlalchemy import *
-from sqlalchemy.orm import mapper
-
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
 
@@ -18,10 +15,6 @@ class Planet( object ):#{{{
 		type		= ResourceQuantityParam,
 		level		= 'protected',
 		description	= "Resources present on the planet.")
-
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		mapper( cls, inherits = Object, polymorphic_identity = 'Planet' )
 
 #{{{
 	#def ghost(self):

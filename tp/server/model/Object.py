@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from SQL import SQLBase
+from SQL import SQLBase, SelectableByName
 
 class Vector3D( object ):#{{{
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -36,11 +36,11 @@ class Object( SQLBase ):#{{{
 	"""
 
 	@classmethod
-	def InitMapper( cls, metadata ):
+	def InitMapper( cls, metadata, ObjectType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',	    Integer,     index = True, primary_key = True),
+				Column('type_id',	ForeignKey( ObjectType.id ), nullable = False),
 				Column('parent_id', ForeignKey( "%s.id" % cls.__tablename__ ), nullable = True),
-				Column('type',	    String(255), nullable = False),
 				Column('name',      Text,        nullable = False),
 				Column('size',      Integer(64), nullable = False),
 				Column('pos_x',     Integer(64), nullable = False, default = 0),
@@ -56,7 +56,10 @@ class Object( SQLBase ):#{{{
 
 		Index('ix_%s_position' % cls.__tablename__, cols.pos_x, cols.pos_y, cols.pos_z)
 
-		mapper( cls, cls.__table__, polymorphic_on = cols.type, polymorphic_identity = 'Object', properties = {
+		mapper( cls, cls.__table__, polymorphic_on = cols.type_id, properties = {
+			'type': relation( ObjectType,
+				uselist = False,
+				backref = backref( 'objects' )),
 			# Tree like hierarchy for objects ie. Universe => Solar systems => Planets => etc.
 			'children': relation( cls,
 				backref = backref( 'parent', remote_side = [ cols.id ] )),
@@ -79,13 +82,10 @@ class Object( SQLBase ):#{{{
 		session.delete( self )
 
 	@classmethod
-	def ByType( cls, type_id ):
-		"""
-		ByType( type_id )
-	
-		Returns the objects which have a certain type.
-		"""
-		return cls.query().filter_by( type = type_id ).all()
+	def ByType( cls, type_name ):
+		ObjectType = cls.__game__.objects.use( 'ObjectType' )
+
+		return ObjectType.ByName( type_name ).objects
 
 	@classmethod
 	def ByPos( cls, center, size = 0, limit = -1, order_by = None ):
@@ -174,8 +174,54 @@ class Object( SQLBase ):#{{{
 	#		return False
 #}}}
 
-	def __str__(self):
-		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type )
+	def __str__( self ):
+		return '<%s@%s id="%s" type="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name, self.name )
+#}}}
+
+class ObjectType( SQLBase, SelectableByName ):#{{{
+	"""
+	Object type description class.
+	"""
+
+	@classmethod
+	def InitMapper( cls, metadata ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',   Integer,     index = True, primary_key = True),
+				Column('name', String(255), index = True, nullable = False),
+				UniqueConstraint('name'))
+
+		mapper( cls, cls.__table__ )
+
+	def __str__( self ):
+		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+#}}}
+
+class ObjectOrder( SQLBase ):#{{{
+	"""
+	Description of which orders are applicable to an object.
+	"""
+
+	@classmethod
+	def InitMapper( cls, metadata, ObjectType, OrderType ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('object_type_id', ForeignKey( ObjectType.id ), primary_key = True ),
+				Column('order_type_id',  ForeignKey( OrderType.id ), primary_key = True ))
+
+		cols = cls.__table__.c
+
+		Index('ix_%s_object_order' % cls.__tablename__, cols.object_type_id, cols.order_type_id)
+
+		mapper( cls, cls.__table__, properties = {
+			'object_type': relation( ObjectType,
+				uselist = False,
+				backref = backref( 'order_types' )),
+			'order_type': relation( OrderType,
+				uselist = False,
+				backref = backref( 'object_types' ))
+			})
+
+	def __str__( self ):
+		return '<%s@%s object="%s" order="%s">' % ( self.__origname__, self.__game__.name, self.object_type.name, self.order_type.name )
 #}}}
 
 class ObjectParameter( SQLBase ):#{{{
@@ -200,6 +246,9 @@ class ObjectParameter( SQLBase ):#{{{
 		self.parameter.remove( session )
 
 		session.delete( self )
-	#}}}
 
-__all__ = [ 'Object', 'ObjectParameter', 'Vector3D' ]
+	def __str__( self ):
+		return '<%s@%s object="%s" name="%s" param="%s">' % ( self.__origname__, self.__game__.name, self.object_id, self.name, self.param_id )
+#}}}
+
+__all__ = [ 'Object', 'ObjectType', 'ObjectOrder', 'ObjectParameter', 'Vector3D' ]

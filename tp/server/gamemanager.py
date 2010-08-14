@@ -31,7 +31,8 @@ class GameManager( Mapping ):
 
 		for g in Game.query().all():
 			g.__init__()
-			g.load()
+			g.ruleset.loadModelConstants()
+			g.ruleset.loadModel()
 
 			self.__game[ g.name ] = g
 	
@@ -52,7 +53,10 @@ class GameManager( Mapping ):
 
 		Model.add( g )
 
-		g.load()
+		g.ruleset.loadModelConstants()
+		g.createTables()
+		g.ruleset.initModelConstants()
+		g.ruleset.loadModel()
 		g.createTables()
 
 		self.__game[ name ] = g

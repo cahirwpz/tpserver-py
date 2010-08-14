@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-from sqlalchemy import *
-from sqlalchemy.orm import mapper
-
 from types import TupleType, ListType
 
 from tp.server.model import ParameterDesc, ParametrizedClass
@@ -27,11 +24,7 @@ class Fleet( object ):#{{{
 			level		= 'protected',
 			description = "How much in HP is the fleet damaged." )
 
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		mapper( cls, inherits = Object, polymorphic_identity = 'Fleet' )
-
-	def fn_ships(self, value=None):
+	def fn_ships(self, value=None):#{{{
 		if value == None:
 			return self.ships.items()
 
@@ -134,6 +127,7 @@ class Fleet( object ):#{{{
 		for type, no in self.ships.items():
 			r.extend([self.ship_damage[type][fail]] * no)
 		return r
+#}}}
 #}}}
 
 __all__ = [ 'Fleet' ]

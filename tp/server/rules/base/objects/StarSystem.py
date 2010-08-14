@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 
-from sqlalchemy import *
-from sqlalchemy.orm import mapper
+from tp.server.model import ParametrizedClass
 
 class StarSystem( object ):#{{{
-	@classmethod
-	def InitMapper( cls, metadata, Object ):
-		mapper( cls, inherits = Object, polymorphic_identity = 'StarSystem' )
+	__metaclass__ = ParametrizedClass
 #}}}
 
 __all__ = [ 'StarSystem' ]

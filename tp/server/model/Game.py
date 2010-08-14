@@ -236,24 +236,27 @@ class ObjectManager( Mapping ):#{{{
 		self.add( cls.__name__, newcls )
 
 	def add_object_class( self, cls, *args ):
-		self.add_parametrized_class( cls, self.Object, *args )
+		self.add_parametrized_class( cls, 'Object', *args )
 
 	def add_order_class( self, cls, *args ):
-		self.add_parametrized_class( cls, self.Order, *args )
+		self.add_parametrized_class( cls, 'Order', *args )
 
-	def add_parametrized_class( self, cls, paramcls, *args ):
-		metadata = DatabaseManager().metadata
+	def add_parametrized_class( self, cls, BaseClassName, *args ):
+		basecls = getattr( self, BaseClassName )
+		typecls  = getattr( self, BaseClassName + "Type" )
 
-		class newcls( cls, paramcls ):
+		class newcls( cls, basecls ):
 			__origname__  = cls.__name__
-			__tablename__ = str( "%s_%s" % ( paramcls.__tablename__, untitle( cls.__name__ ) ) )
+			__tablename__ = str( "%s_%s" % ( basecls.__tablename__, untitle( cls.__name__ ) ) )
 			__game__      = self.game
 
 		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
 
 		args = tuple( self.__objects[ name ] for name in args )
 
-		newcls.InitMapper( metadata, paramcls, *args )
+		newcls_type = typecls.ByName( cls.__name__ )
+
+		mapper( newcls, inherits = basecls, polymorphic_identity = newcls_type.id )
 		
 		self.add( newcls.__origname__, newcls )
 
@@ -343,12 +346,6 @@ class Game( SQLBase, SelectableByName ):#{{{
 			Object = self.objects.use( name )
 
 			Model.remove( *Object.query().all() )
-	
-	def initialise( self ):
-		self.ruleset.initialise()
-	
-	def populate( self ):
-		self.ruleset.initialise(self, 0xdeadc0de, 10, 10, 2, 2)
 	
 	@property
 	def ruleset(self):

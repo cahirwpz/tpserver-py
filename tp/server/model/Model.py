@@ -25,6 +25,8 @@ class Model( object ):#{{{
 		with DatabaseManager().session() as session:
 			for obj in objs:
 				session.add( obj )
+	
+	update = add
 
 	@staticmethod
 	def remove( *objs ):
