@@ -42,13 +42,10 @@ class Object( SQLBase ):#{{{
 				Column('type_id',	ForeignKey( ObjectType.id ), nullable = False),
 				Column('parent_id', ForeignKey( "%s.id" % cls.__tablename__ ), nullable = True),
 				Column('name',      Text,        nullable = False),
-				Column('size',      Integer(64), nullable = False),
+				Column('size',      Integer(64), nullable = False, default = 0),
 				Column('pos_x',     Integer(64), nullable = False, default = 0),
 				Column('pos_y',     Integer(64), nullable = False, default = 0),
 				Column('pos_z',     Integer(64), nullable = False, default = 0),
-				Column('vel_x',     Integer(64), nullable = False, default = 0),
-				Column('vel_y',     Integer(64), nullable = False, default = 0),
-				Column('vel_z',     Integer(64), nullable = False, default = 0),
 				Column('mtime',	    DateTime,    nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
@@ -65,8 +62,6 @@ class Object( SQLBase ):#{{{
 				backref = backref( 'parent', remote_side = [ cols.id ] )),
 			# Object position in 3D space
 			'position': composite( Vector3D, cols.pos_x, cols.pos_y, cols.pos_z ),
-			# Object velocity in 3D space
-			'velocity': composite( Vector3D, cols.vel_x, cols.vel_y, cols.vel_z )
 			})
 
 	def remove( self, session ):
