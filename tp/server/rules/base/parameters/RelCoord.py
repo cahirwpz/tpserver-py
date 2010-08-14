@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation
+from sqlalchemy.orm import mapper, relation, composite
+
+from tp.server.model import Vector3D
 
 class RelCoordParam( object ):#{{{
 	@classmethod
@@ -13,9 +15,13 @@ class RelCoordParam( object ):#{{{
 				Column('z',         Integer, nullable = False ),
 				Column('parent_id', ForeignKey( Object.id ), nullable = True ))
 
+		cols = cls.__table__.c
+
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'RelCoord', properties = {
 			'parent' : relation( Object,
-				uselist = False )
+				uselist = False ),
+			# Object position in 3D space
+			'vector': composite( Vector3D, cols.x, cols.y, cols.z ),
 			})
 #}}}
 

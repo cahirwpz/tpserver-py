@@ -22,31 +22,30 @@ class Ruleset( MinisecRuleset ):
 	def load___( self ):
 		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 
-		objs = self.model
+		self.model.add_object_class( Universe )
+		self.model.add_object_class( Galaxy )
+		self.model.add_object_class( StarSystem )
+		self.model.add_object_class( Planet )
+		self.model.add_object_class( Fleet )
+		self.model.add_object_class( Wormhole )
 
-		objs.add_object_class( Universe )
-		objs.add_object_class( Galaxy )
-		objs.add_object_class( StarSystem )
-		objs.add_object_class( Planet )
-		objs.add_object_class( Fleet )
-		objs.add_object_class( Wormhole )
+		from tp.server.rules.base.parameters import ( AbsCoordParam,
+				RelCoordParam, TimeParam, ObjectParam, PlayerParam,
+				NumberParam, StringParam, ResourceQuantity,
+				ResourceQuantityParam, DesignQuantity, DesignQuantityParam )
 
-		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
-				ObjectParam, PlayerParam, NumberParam, StringParam,
-				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
-				DesignQuantityParam )
+		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
+		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
 
-		objs.add_class( DesignQuantity, 'Parameter', 'Design' )
-		objs.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
-
-		objs.add_parameter_class( AbsCoordParam )
-		objs.add_parameter_class( TimeParam )
-		objs.add_parameter_class( ObjectParam, 'Object' )
-		objs.add_parameter_class( PlayerParam, 'Player' )
-		objs.add_parameter_class( NumberParam )
-		objs.add_parameter_class( StringParam )
-		objs.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
-		objs.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
+		self.model.add_parameter_class( AbsCoordParam )
+		self.model.add_parameter_class( RelCoordParam, 'Object' )
+		self.model.add_parameter_class( TimeParam )
+		self.model.add_parameter_class( ObjectParam, 'Object' )
+		self.model.add_parameter_class( PlayerParam, 'Player' )
+		self.model.add_parameter_class( NumberParam )
+		self.model.add_parameter_class( StringParam )
+		self.model.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
+		self.model.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
 
 	def createFleet( self, parent, name, owner = None):
 		Fleet, DesignQuantity, Design = self.model.use( 'Fleet', 'DesignQuantity', 'Design' )

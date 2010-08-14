@@ -99,15 +99,16 @@ class Ruleset( RulesetBase ):#{{{
 
 		self.model.add_class( Ship, 'Design' )
 
-		from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
-				ObjectParam, PlayerParam, NumberParam, StringParam,
-				ResourceQuantity, ResourceQuantityParam, DesignQuantity,
-				DesignQuantityParam )
+		from tp.server.rules.base.parameters import ( AbsCoordParam,
+				RelCoordParam, TimeParam, ObjectParam, PlayerParam,
+				NumberParam, StringParam, ResourceQuantity,
+				ResourceQuantityParam, DesignQuantity, DesignQuantityParam )
 
 		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
 		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
 
 		self.model.add_parameter_class( AbsCoordParam )
+		self.model.add_parameter_class( RelCoordParam, 'Object' )
 		self.model.add_parameter_class( TimeParam )
 		self.model.add_parameter_class( ObjectParam, 'Object' )
 		self.model.add_parameter_class( PlayerParam, 'Player' )
