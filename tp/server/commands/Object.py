@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 
 from Common import FactoryMixin, RequestHandler, GetIDSequenceHandler, GetWithIDHandler, MustBeLogged
+from tp.server.model import Vector3D
 
 class ObjectFactoryMixin( FactoryMixin ):#{{{
 	def toPacket( self, request, obj ):
 		Object = self.protocol.use( 'Object' )
+
+		try:
+			velocity = obj.velocity.vector
+		except AttributeError:
+			velocity = Vector3D(0,0,0)
 
 		return Object(
 				request._sequence,
@@ -13,7 +19,7 @@ class ObjectFactoryMixin( FactoryMixin ):#{{{
 				str( obj.name ),
 				obj.size,
 				[ obj.position.x, obj.position.y, obj.position.z ],
-				[ obj.velocity.x, obj.velocity.y, obj.velocity.z ],
+				[ velocity.x, velocity.y, velocity.z ],
 				[ child.id for child in obj.children ],
 				[ order_object.order_type_id for order_object in obj.type.order_types ],
 				len( obj.orders ),
