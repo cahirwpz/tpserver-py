@@ -4,18 +4,12 @@
 Classes for dealing with games hosted on the machine.
 """
 
-import re
-from collections import Mapping
-
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.rules import RulesetManager
 from tp.server.model import DatabaseManager, Model
 from SQL import Enum, SQLBase, SelectableByName
-
-def untitle( s ):
-	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
 
 # FIXME: There should be some way to store the ruleset parameters...
 
@@ -208,92 +202,6 @@ class ConnectionEvent( SQLBase ):#{{{
 		mapper( cls, cls.__table__ )
 #}}}
 
-class ObjectManager( Mapping ):#{{{
-	def __init__( self, game ):
-		self.__objects = {}
-		self.game = game
-
-	def add( self, name, cls ):
-		self.__objects[ name ] = cls
-
-		setattr( self, name, cls )
-
-	def add_class( self, cls, *args ):
-		metadata = DatabaseManager().metadata
-
-		class newcls( cls ):
-			__origname__  = cls.__name__
-			__module__    = cls.__module__
-			__tablename__ = "_".join( [ self.game.name, untitle( cls.__name__ ) ] )
-			__game__      = self.game
-		
-		newcls.__name__  = str( '%s_%s' % ( self.game.name, cls.__name__ ) )
-
-		args = tuple( self.__objects[ name ] for name in args )
-
-		newcls.InitMapper( metadata, *args )
-
-		self.add( cls.__name__, newcls )
-
-	def add_object_class( self, cls, *args ):
-		self.add_parametrized_class( cls, 'Object', *args )
-
-	def add_order_class( self, cls, *args ):
-		self.add_parametrized_class( cls, 'Order', *args )
-
-	def add_parametrized_class( self, cls, BaseClassName, *args ):
-		basecls = getattr( self, BaseClassName )
-		typecls  = getattr( self, BaseClassName + "Type" )
-
-		class newcls( cls, basecls ):
-			__origname__  = cls.__name__
-			__tablename__ = str( "%s_%s" % ( basecls.__tablename__, untitle( cls.__name__ ) ) )
-			__game__      = self.game
-
-		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
-
-		args = tuple( self.__objects[ name ] for name in args )
-
-		newcls_type = typecls.ByName( cls.__name__ )
-
-		mapper( newcls, inherits = basecls, polymorphic_identity = newcls_type.id )
-		
-		self.add( newcls.__origname__, newcls )
-
-	def add_parameter_class( self, cls, *args ):
-		metadata = DatabaseManager().metadata
-		
-		name = "_".join( untitle( cls.__name__ ).split('_')[0:-1] )
-		
-		class newcls( cls, self.Parameter ):
-			__origname__  = cls.__name__
-			__tablename__ = str( "%s_%s" % ( self.Parameter.__tablename__, name ) )
-			__game__      = self.game
-
-		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
-
-		args = tuple( self.__objects[ name ] for name in args )
-
-		newcls.InitMapper( metadata, self.Parameter, *args )
-		
-		self.add( newcls.__origname__, newcls )
-
-	def use( self, *names ):
-		if len( names ) == 1:
-			return self.__objects[ names[0] ]
-		else:
-			return tuple( self.__objects[ name ] for name in names )
-
-	def __getitem__( self, name ):
-		return self.__objects[ name ]
-
-	def __len__( self ):
-		return self.__objects.__len__()
-
-	def __iter__( self ):
-		return self.__objects.__iter__()
-#}}}
-
 class Game( SQLBase, SelectableByName ):#{{{
 	"""
 	This class represents games which exist on the server. Only one instance exists for each game.
@@ -320,7 +228,7 @@ class Game( SQLBase, SelectableByName ):#{{{
 
 		# hack to prevent warnings about nonexisiting attributes
 		object.__setattr__( self, '_Game__ruleset', None )
-		object.__setattr__( self, 'objects', ObjectManager( self ) )
+		object.__setattr__( self, 'objects', Model( self ) )
 
 	def createTables( self ):
 		metadata = DatabaseManager().metadata
