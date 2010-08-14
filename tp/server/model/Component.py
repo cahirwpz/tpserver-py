@@ -34,8 +34,8 @@ class Component( SQLBase, SelectableByName ):#{{{
 
 		session.delete( self )
 
-	def __str__(self):
-		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+	def __str__( self ):
+		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
 class ComponentCategory( SQLBase ):#{{{
@@ -60,6 +60,10 @@ class ComponentCategory( SQLBase ):#{{{
 				uselist = False,
 				backref = backref( 'components' ))
 			})
+
+	def __str__( self ):
+		return '<%s@%s id="%s" component="%s", category="%s">' % \
+				( self.__origname__, self.__game__.name, self.component.name, self.category.name )
 #}}}
 
 class ComponentProperty( SQLBase ):#{{{
@@ -85,6 +89,10 @@ class ComponentProperty( SQLBase ):#{{{
 				uselist = False,
 				backref = backref( 'components' ))
 			})
+
+	def __str__( self ):
+		return '<%s@%s id="%s" component="%s", property="%s">' % \
+				( self.__origname__, self.__game__.name, self.component.name, self.property.name )
 #}}}
 
 __all__ = [ 'Component', 'ComponentCategory', 'ComponentProperty' ]

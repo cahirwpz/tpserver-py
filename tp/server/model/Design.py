@@ -256,7 +256,7 @@ class Design( SQLBase, SelectableByName ):#{{{
 #}}}
 
 	def __str__(self):
-		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
 class DesignCategory( SQLBase ):#{{{
@@ -280,6 +280,10 @@ class DesignCategory( SQLBase ):#{{{
 				uselist = False,
 				backref = backref( 'designs' ))
 			})
+
+	def __str__( self ):
+		return '<%s@%s id="%s" design="%s", category="%s">' % \
+				( self.__origname__, self.__game__.name, self.design.name, self.category.name )
 #}}}
 
 class DesignComponent( SQLBase ):#{{{
@@ -304,6 +308,10 @@ class DesignComponent( SQLBase ):#{{{
 				uselist = False,
 				backref = backref( 'designs' ))
 			})
+
+	def __str__( self ):
+		return '<%s@%s id="%s" design="%s", component="%s">' % \
+				( self.__origname__, self.__game__.name, self.design.name, self.component.name )
 #}}}
 
 class DesignProperty( SQLBase ):#{{{
@@ -329,6 +337,10 @@ class DesignProperty( SQLBase ):#{{{
 				uselist = False,
 				backref = backref( 'designs' ))
 			})
+
+	def __str__( self ):
+		return '<%s@%s id="%s" design="%s", property="%s">' % \
+				( self.__origname__, self.__game__.name, self.design.name, self.property.name )
 #}}}
 
 __all__ = [ 'Design', 'DesignCategory', 'DesignComponent', 'DesignProperty' ]

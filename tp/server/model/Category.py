@@ -26,8 +26,8 @@ class Category( SQLBase, SelectableByName ):#{{{
 				uselist = False )
 			})
 
-	def __str__(self):
-		return '<%s@%s id="%d" name="%s" owner="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name, self.owner_id )
+	def __str__( self ):
+		return '<%s@%s id="%s" name="%s" owner="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name, self.owner_id )
 #}}}
 
 __all__ = [ 'Category' ]

@@ -33,8 +33,8 @@ class Board( SQLBase ):#{{{
 
 		session.delete( self )
 
-	def __str__(self):
-		return '<%s@%s id="%d" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+	def __str__( self ):
+		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
 __all__ = [ 'Board' ]

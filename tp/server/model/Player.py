@@ -38,7 +38,7 @@ class Player( SQLBase ):#{{{
 			return cls.ById( id )
 
 	def __str__(self):
-		return '<%s@%s id="%d" username="%s">' % ( self.__origname__, self.__game__.name, self.id, self.username )
+		return '<%s@%s id="%s" username="%s">' % ( self.__origname__, self.__game__.name, self.id, self.username )
 #}}}
 
 __all__ = [ 'Player' ]
