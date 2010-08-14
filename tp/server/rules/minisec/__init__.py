@@ -3,7 +3,7 @@
 from tp.server.model import Vector3D, Model
 
 # Generic Actions
-from tp.server.rules.base import Ruleset as RulesetBase
+from tp.server.rules.base import Ruleset
 from tp.server.rules.base.orders import WaitOrder, MergeFleetOrder, ColoniseOrder
 from tp.server.rules.base.actions import MoveAction, CleanAction, WinAction
 
@@ -13,7 +13,7 @@ from tp.server.rules.minisec.actions import FleetCombatAction, HealAction, TurnA
 
 from random import Random
 
-class Ruleset( RulesetBase ):#{{{
+class MinisecRuleset( Ruleset ):#{{{
 	"""
 	Minisec Ruleset...
 	"""
@@ -47,20 +47,20 @@ class Ruleset( RulesetBase ):#{{{
 	__OrderType__ = ['WaitOrder','MergeFleetOrder','ColoniseOrder','MoveOrder','BuildFleetOrder','SplitFleetOrder']
 
 	def __init__( self, game ):
-		super( Ruleset, self ).__init__( game )
+		Ruleset.__init__( self, game )
 
 		self.random = Random()
 		self.SIZE   = 10000000
 		self.SPEED  = 300000000
 
 	def loadModelConstants( self ):
-		super( Ruleset, self ).loadModelConstants()
+		Ruleset.loadModelConstants( self )
 
 	def initModelConstants( self ):
-		super( Ruleset, self ).initModelConstants()
+		Ruleset.initModelConstants( self )
 
 	def loadModel( self ):
-		super( Ruleset, self ).loadModel()
+		Ruleset.loadModel( self )
 
 		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 		from tp.server.rules.minisec.objects import Ship
@@ -138,7 +138,7 @@ class Ruleset( RulesetBase ):#{{{
 				owner    = owner)
 
 	def initModel( self ):
-		super( Ruleset, self ).initModel()
+		Ruleset.initModel( self )
 
 		universe = self.createUniverse( name = "The Universe" )
 
@@ -189,7 +189,7 @@ class Ruleset( RulesetBase ):#{{{
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
+		Ruleset.populate( self, seed, system_min, system_max, planet_min, planet_max )
 
 		Object = self.model.use( 'Object' )
 
@@ -215,7 +215,7 @@ class Ruleset( RulesetBase ):#{{{
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		user = super( Ruleset, self ).addPlayer( username, password, email, comment )
+		user = Ruleset.addPlayer( self, username, password, email, comment )
 
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )
@@ -232,4 +232,4 @@ class Ruleset( RulesetBase ):#{{{
 		return ( user, system, planet, fleet )
 #}}}
 
-__all__ = [ 'Ruleset' ]
+__all__ = [ 'MinisecRuleset' ]

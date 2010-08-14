@@ -1,7 +1,8 @@
-import os.path, traceback
+import os.path, traceback, inspect
 from collections import Mapping
 
 from tp.server.singleton import SingletonContainerClass
+from tp.server.rules.base import Ruleset
 
 class RulesetManager( Mapping ):
 	__metaclass__ = SingletonContainerClass
@@ -16,7 +17,9 @@ class RulesetManager( Mapping ):
 				try:
 					ruleset = __import__( "%s.%s" % ( __package__, name ), globals(), locals(), [ name ], -1 )
 
-					self.__ruleset[ ruleset.__name__.split('.')[-1] ] = ruleset.Ruleset
+					for name, cls in inspect.getmembers( ruleset, lambda o: inspect.isclass(o) ):
+						if issubclass( cls, Ruleset ) and cls is not Ruleset:
+							self.__ruleset[ ruleset.__name__.split('.')[-1] ] = cls
 				except ImportError, msg:
 					traceback.print_exc()
 					print "\033[31;1mDisabling %s ruleset!\033[0m" % name

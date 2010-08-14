@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 
 import os.path
 
 from tp.server.model import Model
 
-from tp.server.rules.minisec import Ruleset as RulesetBase
+from tp.server.rules.minisec import Ruleset
 from tp.server.rules.base.orders import WaitOrder
 from tp.server.rules.minisec.actions import TurnAction
 
 import ProducersConsumers
 
-class Ruleset( RulesetBase ):#{{{
+class TimTraderRuleset( Ruleset ):#{{{
 	"""
 	TIM Trader Ruleset.
 
@@ -27,8 +28,8 @@ class Ruleset( RulesetBase ):#{{{
 			TurnAction,			# Increase the Universe's "Turn" value
 	]
 
-	def initialise( self, seed = None ):
-		super( Ruleset, self ).initialise()
+	def initModel( self ):
+		Ruleset.initialise( self )
 
 		ResourceType = self.game.objects.use( 'ResourceType' )
 
@@ -68,7 +69,7 @@ class Ruleset( RulesetBase ):#{{{
 
 		Model.add( *resources )
 
-	def populate(self, seed, system_min, system_max, planet_min, planet_max):
+	def populate( self, seed, system_min, system_max, planet_min, planet_max ):
 		"""
 		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
 		
@@ -76,7 +77,7 @@ class Ruleset( RulesetBase ):#{{{
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
+		Ruleset.populate( self, seed, system_min, system_max, planet_min, planet_max )
 
 		Object, ResourceQuantity, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceType' )
 
@@ -127,11 +128,11 @@ class Ruleset( RulesetBase ):#{{{
 
 			# FIXME: Add a bunch of cities
 
-	def player( self, username, password, email = 'Unknown', comment = 'A TimTrader Player' ):
+	def addPlayer( self, username, password, email = 'Unknown', comment = 'A TimTrader Player' ):
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		user, system, planet, fleet = super( Ruleset, self ).player( username, password, email, comment )
+		user, system, planet, fleet = Ruleset.addPlayer( self, username, password, email, comment )
 
 		ResourceQuantity, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceType' )
 
@@ -143,4 +144,4 @@ class Ruleset( RulesetBase ):#{{{
 		Model.add( planet )
 #}}}
 
-__all__ = [ 'Ruleset' ]
+__all__ = [ 'TimTraderRuleset' ]

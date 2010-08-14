@@ -3,10 +3,9 @@
 import os.path 
 
 from tp.server.model import Model
+from tp.server.rules.minisec import MinisecRuleset
 
-from tp.server.rules.minisec import Ruleset as MinisecRuleset
-
-class Ruleset( MinisecRuleset ):
+class MinisecPlusRuleset( MinisecRuleset ):#{{{
 	"""
 	Minisec+ Ruleset.
 
@@ -14,10 +13,10 @@ class Ruleset( MinisecRuleset ):
 	(such as Designs and Resources) while still remaining as close to Minisec
 	as possible.
 	"""
-	name = "Minisec+"
+	name    = "Minisec+"
 	version = "0.0.1"
 
-	files = os.path.join(os.path.dirname( __file__ ), "other")
+	files = os.path.join( os.path.dirname( __file__ ), "other" )
 
 	def load___( self ):
 		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
@@ -227,7 +226,7 @@ class Ruleset( MinisecRuleset ):
 			The number of systems in the universe is dictated by min/max systems.
 			The number of planets per system is dictated by min/max planets.
 		"""
-		super( Ruleset, self ).populate( seed, system_min, system_max, planet_min, planet_max )
+		MinisecRuleset.populate( self, seed, system_min, system_max, planet_min, planet_max )
 
 		Object, ResourceQuantity, ResourceType = self.model.use( 'Object', 'ResourceQuantity', 'ResourceType' )
 
@@ -249,8 +248,7 @@ class Ruleset( MinisecRuleset ):
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-
-		user, system, planet, fleet = super( Ruleset, self ).addPlayer( username, password, email, comment )
+		user, system, planet, fleet = MinisecRuleset.addPlayer( self, username, password, email, comment )
 
 		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
 
@@ -260,3 +258,6 @@ class Ruleset( MinisecRuleset ):
 				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
 		Model.update( planet )
+#}}}
+
+__all__ = [ 'MinisecPlusRuleset' ]
