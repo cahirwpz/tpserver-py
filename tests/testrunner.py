@@ -24,7 +24,7 @@ class MainTestSuite( TestLoader ):#{{{
 
 		self.ctx['game'] = game
 
-		Player = game.objects.use( 'Player' )
+		Player = self.model.use( 'Player' )
 
 		player1 = Player(
 			username	= 'player1',

@@ -2,39 +2,112 @@
 
 from collections import Mapping
 
-from tp.server.model import Model, make_mapping
-from tp.server.model import *
-from tp.server.logging import msg, logctx
+from tp.server.model import DatabaseManager, Model, make_mapping
+from tp.server.model import Game as GameDesc
+from tp.server.logging import msg
 from tp.server.singleton import SingletonContainerClass
+from tp.server.rules import RulesetManager
 
-class GameManager( Mapping ):
+class Game( object ):#{{{
+	def __init__( self, gamedesc ):
+		self.__game  = gamedesc
+		self.__model = Model( self )
+		self.__ruleset = None
+
+	@property
+	def model( self ):
+		return self.__model
+
+	@property
+	def name( self ):
+		return self.__game.name
+
+	@property
+	def ruleset_name( self ):
+		return self.__game.ruleset_name
+
+	@property
+	def turn( self ):
+		return self.__game.turn
+	
+	def initialise( self ):
+		Model.add( self.__game )
+
+		self.ruleset.loadModelConstants()
+		self.createTables()
+		self.ruleset.initModelConstants()
+
+		self.ruleset.loadModel()
+		self.createTables()
+		self.ruleset.initModel()
+
+	def load( self ):
+		self.ruleset.loadModelConstants()
+		self.ruleset.loadModel()
+	
+	def remove( self ):
+		self.createTables()
+		self.dropTables()
+
+		Model.remove( self.__game )
+
+	def createTables( self ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s_" % self.name ):
+				metadata.tables[ table ].create( checkfirst = True )
+	
+	def dropTables( self ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s_" % self.name ):
+				metadata.tables[ table ].drop()
+				del metadata.tables[ table ]
+	
+	def reset( self ):
+		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
+			Object = self.model.use( name )
+
+			Model.remove( Object.query().all() )
+	
+	@property
+	def ruleset( self ):
+		"""
+		Return the Ruleset (object) this game uses.
+		""" 
+		if self.__ruleset is None:
+			self.__ruleset = RulesetManager()[ self.ruleset_name ]( self )
+
+		return self.__ruleset
+
+	@ruleset.setter
+	def ruleset( self, name ):
+		self.__ruleset = RulesetManager()[ name ]( self )
+
+		self.ruleset_name = name
+#}}}
+
+class GameManager( Mapping ):#{{{
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
-		# Remove any order mapping from the network libray...
-		#PacketFactory().objects.OrderDescs().clear()
+		make_mapping( GameDesc )
 
-		#self.events = Event.latest()
-
-		# Register all the games..
-		#self.locks  = []
-
-		#for _id, _time in Game.ids():
-		#	self.onGameAdded( Game( _id ) )
-
-		for cls in [ make_mapping( Game ),
-					 make_mapping( ConnectionEvent ),
-					 make_mapping( GameEvent, Game ) ]:
-			cls.__table__.create( checkfirst = True )
+		GameDesc.__table__.create( checkfirst = True )
 
 		self.__game = {}
 
-		for g in Game.query().all():
-			g.__init__()
-			g.ruleset.loadModelConstants()
-			g.ruleset.loadModel()
+		for gamedesc in GameDesc.query().all():
+			game = Game( gamedesc )
+			game.load()
 
-			self.__game[ g.name ] = g
+			self.__game[ game.name ] = game
 	
 	def __getitem__( self, name ):
 		return self.__game[ name ]
@@ -46,102 +119,30 @@ class GameManager( Mapping ):
 		return self.__game.__len__()
 
 	def addGame( self, name, longname, rulesetname, admin, comment ):
-		if self.__game.has_key( name ):
-			raise AlreadyExists( "Game '%s' already exists!" % name )
+		game = self.__game.get( name, None )
 
-		g = Game( ruleset_name = rulesetname, name = name, longname = longname, admin = admin, comment = comment )
+		if not game:
+			gamedesc = GameDesc( ruleset_name = rulesetname, name = name, longname = longname, admin = admin, comment = comment )
 
-		Model.add( g )
+			game = Game( gamedesc )
+			game.initialise()
 
-		g.ruleset.loadModelConstants()
-		g.createTables()
-		g.ruleset.initModelConstants()
-		g.ruleset.loadModel()
-		g.createTables()
-
-		self.__game[ name ] = g
+			self.__game[ name ] = game
+		else:
+			msg( "${red1}Game '%s' already exists!${coff}" % name, level = 'error' )
 	
 	def removeGame( self, name ):
-		if not self.__game.has_key( name ):
-			raise NoSuchThing( "Game '%s' does not exists!" % name )
+		game = self.__game.get( name, None )
 
-		g = self[ name ]
+		if game:
+			game.remove()
+
+			del self.__game[ name ]
+		else:
+			msg( "${red1}Game '%s' does not exists!${coff}" % name, level = 'error' )
 		
-		g.createTables()
-		g.dropTables()
-
-		Model.remove( g )
-
-		del self.__game[ name ]
-		
-	def startZeroconf( self ):
-		pass
-
-	def stopZeroconf( self ):
-		pass
-
-	@logctx
-	def poll( self ):
-		# Get any new events..
-		for event in Event.since(self.events):
-			msg( 'New Event: %s' % event )
-
-			if hasattr(self, event.eventtype):
-				try:
-					getattr(self, event.eventtype)(Game(event.game))
-				except Exception, ex:
-					msg( str(ex) )
-			
-			self.events = event.id
-
-	def onGameAdded(self, game):
-		already = [lock.game for lock in self.locks]
-
-		if game.id in already:
-			msg( "Got onGameAdded event for a game I already have a lock on!" )
-			return
-
-		# Create a lock for this game
-		db.dbconn.use( game )
-		self.locks.append( Lock.new('serving') )
-		db.dbconn.commit()
-
-		# Setup the game
-		game.ruleset.setup()
-
-		# TODO: Add game to ZeroConf
-
-	def onGameRemoved( self, game ):
-		toremove = None
-
-		for lock in self.locks:
-			if lock.game == game.id:
-				toremove = lock
-				break
-		
-		if toremove is None:
-			msg( "Got onGameRemoved event for a game I didn't have a lock on!" )
-			return
-
-		# TODO: Remove game from ZeroConf
-			
-		self.locks.remove(toremove)
-
-		del toremove
-
-		db.dbconn.commit()
-
-		msg( "Game removed: %s" % game )
-
-	def endOfTurn(self, game):
-		# Send TimeRemaining Packets to all users belonging to game
-		packet = PacketFactory().objects.TimeRemaining(0, -1)
-
-	def shutdown( self ):
-		# Remove the locks
-		del self.locks
-
-		self.stopZeroconf()
-
 	def logPrefix( self ):
 		return self.__class__.__name__
+#}}}
+
+__all__ = [ 'GameManager', 'Game' ]

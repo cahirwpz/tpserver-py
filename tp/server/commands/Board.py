@@ -43,7 +43,7 @@ class GetBoardIDs( GetIDSequenceHandler ):#{{{
 
 	@property
 	def filter( self ):
-		Board = self.game.objects.use( 'Board' )
+		Board = self.model.use( 'Board' )
 
 		from sqlalchemy import or_
 

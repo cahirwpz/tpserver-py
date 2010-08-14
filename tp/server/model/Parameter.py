@@ -18,7 +18,7 @@ class ParameterDesc( object ):#{{{
 		try:
 			parameter = obj.parameters[ self.name ]
 		except KeyError:
-			ObjectParameter, Parameter = obj.__game__.objects.use( 'ObjectParameter', self.type.__name__ )
+			ObjectParameter, Parameter = obj.__game__.model.use( 'ObjectParameter', self.type.__name__ )
 
 			obj.parameters[ self.name ] = ObjectParameter( name = self.name, parameter = Parameter() )
 
@@ -60,13 +60,13 @@ class ParameterDesc( object ):#{{{
 class ParametrizedClass( type ):#{{{
 	def __call__( cls, *args, **kwargs ):
 		if not hasattr( cls, '__parameters__' ):
-			cls.__parameters__ = []
+			cls.__parameters__ = {}
 
 			for name, value in inspect.getmembers( cls ):
 				if isinstance( value, ParameterDesc ):
 					value.name = name
 
-					cls.__parameters__.append( name )
+					cls.__parameters__[ name ] = value
 
 		return type.__call__( cls, *args, **kwargs )
 #}}}

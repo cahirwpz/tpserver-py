@@ -44,7 +44,7 @@ class GameMenu( CommandLineInterface ):
 			depends on the the ruleset.
 		"""
 
-		words = line.split()
+		words = [ int( word ) for word in line.split() ]
 
 		self.game.ruleset.populate( *words )
 
@@ -216,7 +216,6 @@ class MainMenu( CommandLineInterface ):
 	def game_add( name, longname, ruleset, admin, comment ):
 		try:
 			GameManager().addGame( name, longname, ruleset, admin, comment )
-			GameManager()[ name ].initialise()
 
 			print "Game successfully created! You can use the '%s' name as game identifier." % name
 			print ""
@@ -260,7 +259,6 @@ def main():
 
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-	DatabaseManager().engine.echo = False
 	GameManager()
 	RulesetManager()
 

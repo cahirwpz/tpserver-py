@@ -58,7 +58,7 @@ class ResourcesTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		ResourceType = game.objects.use( 'ResourceType' )
+		ResourceType = self.model.use( 'ResourceType' )
 
 		hq = ResourceType(
 				id            = 9,

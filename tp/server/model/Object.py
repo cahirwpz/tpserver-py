@@ -78,7 +78,7 @@ class Object( SQLBase ):#{{{
 
 	@classmethod
 	def ByType( cls, type_name ):
-		ObjectType = cls.__game__.objects.use( 'ObjectType' )
+		ObjectType = cls.__game__.model.use( 'ObjectType' )
 
 		return ObjectType.ByName( type_name ).objects
 

@@ -33,7 +33,7 @@ class Order( SQLBase ):#{{{
 
 	@classmethod
 	def ByType( cls, type_name ):
-		OrderType = cls.__game__.objects.use( 'OrderType' )
+		OrderType = cls.__game__.model.use( 'OrderType' )
 
 		return OrderType.ByName( type_name ).orders
 

@@ -7,9 +7,6 @@ Classes for dealing with games hosted on the machine.
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from tp.server.rules import RulesetManager
-from tp.server.model import DatabaseManager, Model
-
 from SQL import Enum, SQLBase, SelectableByName
 
 class Lock( SQLBase ):#{{{
@@ -129,60 +126,6 @@ class Game( SQLBase, SelectableByName ):#{{{
 
 		mapper( cls, cls.__table__ )
 	
-	def __init__( self, **kwargs ):
-		super( Game, self ).__init__( **kwargs )
-
-		# hack to prevent warnings about nonexisiting attributes
-		object.__setattr__( self, '_Game__ruleset', None )
-		object.__setattr__( self, 'objects', Model( self ) )
-
-	def createTables( self ):
-		metadata = DatabaseManager().metadata
-
-		tables = list( metadata.tables )
-
-		for table in tables:
-			if table.startswith( "%s_" % self.name ):
-				metadata.tables[ table ].create( checkfirst = True )
-	
-	def dropTables( self ):
-		metadata = DatabaseManager().metadata
-
-		tables = list( metadata.tables )
-
-		for table in tables:
-			if table.startswith( "%s_" % self.name ):
-				metadata.tables[ table ].drop()
-				del metadata.tables[ table ]
-	
-	def reset( self ):
-		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
-			Object = self.objects.use( name )
-
-			Model.remove( *Object.query().all() )
-	
-	@property
-	def ruleset(self):
-		"""
-		Return the Ruleset (object) this game uses.
-		""" 
-		if self.__ruleset is None:
-			if not hasattr(self, 'ruleset_name'):
-				raise RuntimeError('No ruleset assigned to this game!')
-
-			self.__ruleset = RulesetManager()[ self.ruleset_name ]( self )
-
-		return self.__ruleset
-
-	@ruleset.setter
-	def ruleset(self, name):
-		if hasattr(self, 'ruleset_name'):
-			raise RuntimeError('A ruleset can only be set once!')
-
-		self.__ruleset = RulesetManager()[ name ]( self )
-
-		self.ruleset_name = name
-
 	def __str__(self):
 		return '<Game id="%s" name="%s" turn="%s">' % ( self.id, self.name, self.turn )
 #}}}

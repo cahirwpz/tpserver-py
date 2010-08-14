@@ -60,7 +60,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Property, PropertyCategory, Category = game.objects.use( 'Property', 'PropertyCategory', 'Category' )
+		Property, PropertyCategory, Category = self.model.use( 'Property', 'PropertyCategory', 'Category' )
 
 		misc = Category(
 				id = 7,

@@ -8,7 +8,7 @@ from Common import ( MustBeLogged, FactoryMixin, RequestHandler,
 
 class MessageFactoryMixin( FactoryMixin ):#{{{
 	def fromPacket( self, request ):
-		Message = self.game.objects.use( 'Message' )
+		Message = self.model.use( 'Message' )
 
 		return Message(
 					subject	= request.subject,
@@ -40,7 +40,7 @@ class PostMessage( RequestHandler, MessageFactoryMixin ):#{{{
 
 	@MustBeLogged
 	def __call__( self, request ):
-		Container = self.game.objects.use( 'Board' )
+		Container = self.model.use( 'Board' )
 
 		container = Container.ById( request.id )
 

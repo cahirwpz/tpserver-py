@@ -60,7 +60,7 @@ class Login( RequestHandler ):#{{{
 
 			return Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 
-		Player = game.objects.use( 'Player' )
+		Player = game.model.use( 'Player' )
 
 		player = Player.ByName( username, request.password )
 

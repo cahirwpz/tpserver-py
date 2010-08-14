@@ -55,14 +55,14 @@ class OrdersTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Order = game.objects.use( 'Order' )
+		Order = self.model.use( 'Order' )
 
 		self.ctx['orders'] = []
 
-		Model.add( *self.ctx['orders'] )
+		Model.add( self.ctx['orders'] )
 	
 	def tearDown( self ):
-		Model.remove( *self.ctx['orders'] )
+		Model.remove( self.ctx['orders'] )
 #}}}
 
 __tests__ = [ OrdersTestSuite ]

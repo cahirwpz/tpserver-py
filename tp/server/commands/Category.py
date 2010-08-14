@@ -7,7 +7,7 @@ from tp.server.model import Model, and_, or_
 
 class CategoryFactoryMixin( FactoryMixin ):#{{{
 	def fromPacket( self, request ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		return Category(
 				owner		= self.player,
@@ -34,7 +34,7 @@ class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
 		"""
 		category = self.fromPacket( request )
 
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		if Category.query().filter( and_( Category.name == category.name,
 					or_( Category.owner_id == self.player.id, Category.owner_id == None ))).count():
@@ -68,7 +68,7 @@ class GetCategoryIDs( GetIDSequenceHandler ):#{{{
 
 	@property
 	def filter( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		from sqlalchemy import or_
 

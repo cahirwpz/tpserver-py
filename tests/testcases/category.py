@@ -108,7 +108,7 @@ class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		packet = yield AddCategory( self.seq, -1, 0, "Test", "Category for testing purposes." ), Expect( 'Category' )
 
@@ -127,7 +127,7 @@ class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):#{{{
 	def setUp( self ):
 		self.cat_name = "Test"
 
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.cat = Category(
 				name = self.cat_name,
@@ -138,7 +138,7 @@ class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):#{{{
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
 				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
@@ -159,7 +159,7 @@ class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin 
 	def setUp( self ):
 		self.cat_name = "Test"
 
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.other_cat = Category(
 				name = self.cat_name,
@@ -170,7 +170,7 @@ class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin 
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
 				Expect('Category')
@@ -189,7 +189,7 @@ class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin )
 	def setUp( self ):
 		self.cat_name = "Test"
 
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.cat = Category(
 				name = self.cat_name,
@@ -199,7 +199,7 @@ class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin )
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
 				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
@@ -224,7 +224,7 @@ class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 	""" Does server properly reject attempt to remove public category? """
 
 	def setUp( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.cat = Category(
 				name = "Public",
@@ -238,7 +238,7 @@ class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
 
 	def tearDown( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
@@ -248,7 +248,7 @@ class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 	""" Does server properly reject attempt to remove public category? """
 
 	def setUp( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.cat = Category(
 				name = "Private1",
@@ -263,7 +263,7 @@ class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 		yield RemoveCategory( self.seq, [ self.cat.id ] ), Expect('Okay')
 
 	def tearDown( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
@@ -273,7 +273,7 @@ class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin 
 	""" Does server properly reject attempt to remove other player's private category? """
 
 	def setUp( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		self.cat = Category(
 				name = "Private2",
@@ -288,7 +288,7 @@ class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin 
 		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
 
 	def tearDown( self ):
-		Category = self.game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
@@ -324,9 +324,7 @@ class CategoryTestSuite( TestSuite ):#{{{
 	__tests__ = [ GetCategoryTestSuite, GetCategoryIDsTestSuite, AddCategoryTestSuite, RemoveCategoryTestSuite ]
 
 	def setUp( self ):
-		game = self.ctx['game']
-
-		Category = game.objects.use( 'Category' )
+		Category = self.model.use( 'Category' )
 
 		misc = Category(
 				name = "Misc",

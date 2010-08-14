@@ -218,7 +218,7 @@ class BoardTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Board = game.objects.use( 'Board' )
+		Board = self.model.use( 'Board' )
 
 		board1 = Board(
 			owner       = self.ctx['players'][0],

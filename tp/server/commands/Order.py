@@ -4,7 +4,7 @@ from Common import MustBeLogged, RequestHandler, GetWithIDHandler, GetWithIDSlot
 
 class OrderFactoryMixin( FactoryMixin ):#{{{
 	def fromPacket( self, request ):
-		Order = self.game.objects.use( 'Order' )
+		Order = self.model.use( 'Order' )
 
 		return None
 

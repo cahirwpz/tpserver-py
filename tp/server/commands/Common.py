@@ -31,6 +31,10 @@ class RequestHandler( object ):#{{{
 		self.context  = context
 
 	@property
+	def model( self ):
+		return self.context.game.model
+
+	@property
 	def player( self ):
 		return self.context.player
 
@@ -71,7 +75,7 @@ class WithIDHandler( RequestHandler ):#{{{
 
 	@MustBeLogged
 	def __call__( self, request ):
-		Object = self.game.objects.use( self.__object__ )
+		Object = self.model.use( self.__object__ )
 
 		response = []
 
@@ -173,7 +177,7 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 		      server could allow otherwise. 
 		"""
 
-		Object = self.game.objects.use( self.__object__ )
+		Object = self.model.use( self.__object__ )
 
 		last = Object.query().filter( self.filter ).order_by( Object.mtime ).first()
 		key = long( last.mtime.strftime('%s') ) if last else -1
@@ -227,7 +231,7 @@ class WithIDSlotHandler( RequestHandler ):#{{{
 			request.id		- The id of the container
 			request.slots	- The slots to be gotten
 		"""
-		Container = self.game.objects.use( self.__container__ )
+		Container = self.model.use( self.__container__ )
 
 		container = self.fetch( Container, request.id )
 

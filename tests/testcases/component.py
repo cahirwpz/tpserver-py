@@ -91,8 +91,8 @@ class ComponentsTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Component, ComponentCategory, ComponentProperty = game.objects.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
-		Category, Property, PropertyCategory = game.objects.use( 'Category', 'Property', 'PropertyCategory' )
+		Component, ComponentCategory, ComponentProperty = self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
+		Category, Property, PropertyCategory = self.model.use( 'Category', 'Property', 'PropertyCategory' )
 
 		misc = Category(
 				name = "Misc",

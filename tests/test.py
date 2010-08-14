@@ -134,6 +134,10 @@ class TestCase( object ):#{{{
 		self.status = False
 		self.reason = reason
 		reactor.callLater( 0, self.__tearDownWrapper )
+
+	@property
+	def model( self ):
+		return self.ctx['game'].model
 	
 	def report( self, part = 'all' ):
 		if not self.status:

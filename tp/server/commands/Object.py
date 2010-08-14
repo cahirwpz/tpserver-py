@@ -44,7 +44,7 @@ class GetObjectIDsByContainer( RequestHandler ):#{{{
 	"""
 	@MustBeLogged
 	def __call__( self, request ):
-		Object = self.game.objects.use( 'Object' )
+		Object = self.model.use( 'Object' )
 
 		parent = Object.ByID( request.id )
 
@@ -82,7 +82,7 @@ class GetObjectsByPos( RequestHandler ):#{{{
 	"""
 	@MustBeLogged
 	def __call__( self, request ):
-		Object = self.game.objects.use( 'Object' )
+		Object = self.model.use( 'Object' )
 
 		objs = Object.ByPos( request.pos, request.size )
 		

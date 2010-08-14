@@ -5,7 +5,8 @@ import inspect
 from collections import Mapping
 
 from tp.server.logging import logctx, msg, err
-from tp.server.model import Game, Player
+from tp.server.model import Player
+from tp.server.gamemanager import Game
 from tp.server.singleton import SingletonContainerClass
 from tp.server.packet import PacketFactory
 

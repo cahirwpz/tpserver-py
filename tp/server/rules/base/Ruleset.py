@@ -22,7 +22,7 @@ class Ruleset( object ):#{{{
 
 	@property
 	def model( self ):
-		return self.game.objects
+		return self.game.model
 	
 	def loadModelConstants( self ):
 		from tp.server.model import ( ObjectType, OrderType, ObjectOrder )
@@ -36,7 +36,7 @@ class Ruleset( object ):#{{{
 
 	def loadModel( self ):
 		from tp.server.model import ( Parameter, Player, Object, Board,
-				Reference, Lock, Component, Property, ResourceType, Category,
+				Reference, Component, Property, ResourceType, Category,
 				Message, Order, Design, MessageReference, ComponentCategory,
 				ComponentProperty, DesignCategory, DesignComponent,
 				DesignProperty, PropertyCategory, ObjectParameter,
@@ -44,7 +44,6 @@ class Ruleset( object ):#{{{
 
 		self.model.add_class( Player )
 		self.model.add_class( Reference )
-		self.model.add_class( Lock )
 		self.model.add_class( Component )
 		self.model.add_class( Property )
 		self.model.add_class( ResourceType )
