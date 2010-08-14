@@ -1,20 +1,19 @@
 #!/usr/bin/env python
 
-import sys
-from types import TupleType
+from abc import ABCMeta, abstractmethod
 
 from tp.server.model import Model
-from tp.server.rules.base.utils import OrderGet
-from tp.server.logging import msg
 
 class Ruleset( object ):#{{{
 	"""
 	Rulesets define how gameplay works.
 	"""
+	__metaclass__ = ABCMeta
+
 	name    = "Unknown Ruleset"
 	version = 'Unknown Version'
 
-	def __init__( self, game = None ):
+	def __init__( self, game ):
 		"""
 		Initialise a ruleset.
 		"""
@@ -24,19 +23,54 @@ class Ruleset( object ):#{{{
 	def model( self ):
 		return self.game.model
 	
+	@abstractmethod
 	def loadModelConstants( self ):
-		from tp.server.model import ( ObjectType, OrderType, ObjectOrder )
+		"""
+		Adds classes to the Model which represents immutable data for a
+		ruleset.
+		"""
+		from tp.server.model import ( ObjectType, OrderType, ObjectOrder,
+				ResourceType )
 
 		self.model.add_class( ObjectType )
 		self.model.add_class( OrderType )
 		self.model.add_class( ObjectOrder, 'ObjectType', 'OrderType' )
+		self.model.add_class( ResourceType )
 
+	@abstractmethod
 	def initModelConstants( self ):
-		pass
+		"""
+		This method initialises all data which is considered to be constant for
+		a ruleset lifetime.
+		"""
+		ObjectType = self.model.use( 'ObjectType' )
 
+		Model.add( ObjectType( id = _1, name = _2 )
+				for _1, _2 in enumerate( self.__ObjectType__ ))
+
+		OrderType = self.model.use( 'OrderType' )
+
+		Model.add( OrderType( id = _1, name = _2 )
+				for _1, _2 in enumerate( self.__OrderType__ ))
+
+		ObjectOrder = self.model.use( 'ObjectOrder' )
+
+		ObjectOrderList = []
+
+		for ObjectName, OrderNameList in self.__ObjectOrder__.iteritems():
+			for OrderName in OrderNameList:
+				ObjectOrderList.append( ( ObjectType.ByName( ObjectName ), OrderType.ByName( OrderName ) ) )
+
+		Model.add( ObjectOrder( object_type = _1, order_type = _2 )
+				for _1, _2 in ObjectOrderList )
+
+	@abstractmethod
 	def loadModel( self ):
+		"""
+		Adds classes to the Model which represents mutable data for a ruleset.
+		"""
 		from tp.server.model import ( Parameter, Player, Object, Board,
-				Reference, Component, Property, ResourceType, Category,
+				Reference, Component, Property, Category,
 				Message, Order, Design, MessageReference, ComponentCategory,
 				ComponentProperty, DesignCategory, DesignComponent,
 				DesignProperty, PropertyCategory, ObjectParameter,
@@ -46,7 +80,6 @@ class Ruleset( object ):#{{{
 		self.model.add_class( Reference )
 		self.model.add_class( Component )
 		self.model.add_class( Property )
-		self.model.add_class( ResourceType )
 		self.model.add_class( Object, 'ObjectType' )
 		self.model.add_class( Category, 'Player' )
 		self.model.add_class( Board, 'Player' )
@@ -65,66 +98,8 @@ class Ruleset( object ):#{{{
 		self.model.add_class( ObjectParameter, 'Object', 'Parameter' )
 		self.model.add_class( OrderParameter, 'Order', 'Parameter' )
 
-	@property
-	def information( self ):
-		return [ ('name',    self.name ),
-				 ('version', self.version),
-				 ('comment', "\n".join( map( str.strip, self.__doc__.strip().splitlines() ))) ]
-	
-	def __str__( self ):
-		return "%s, version %s" % (self.name, self.version)
-
-	def setup(self):
-		"""
-		Sets up the game after a restart.
-
-		All orders needed by the module should be imported and registered with
-		the ruleset.
-
-		All objected needed by the module should be imported and registered with 
-		the ruleset.
-
-		By default it will setup all orders in the orderOfOrders.
-		"""
-		self.ordermap = {}
-		for action in self.orderOfOrders:
-			if type(action) == TupleType:
-				action, args = action[0], action[1:]
-			else:
-				args = tuple()
-			
-			name = str(action.__name__)
-			if "orders" in name:
-				order = getattr(action, name.split('.')[-1])
-
-				if name in [x.__module__ for x in self.ordermap.values()]:
-					continue
-
-				if not hasattr(order, 'typeno'):
-					typeno = len(self.ordermap) + 1
-				else:
-					typeno = order.typeno
-
-				if self.ordermap.has_key(typeno):
-					raise TypeError('Two orders (%s and %s) have conflicting type numbers!' % (self.ordermap[typeno].__module__, order.__module__))
-
-				self.ordermap[typeno] = order 
-
-		self.objectmap = {}
-
-	def typeno(self, cls):
-		"""
-		Returns the typeno for a class.
-		"""
-		# FIXME: There should be a better way to do this
-		for typeno, order in self.ordermap.items():
-			if str(order.__module__) == str(cls.__module__):
-				return typeno
-		for typeno, order in self.objectmap.items():
-			if str(order.__module__) == str(cls.__module__):
-				return typeno
-
-	def initialise(self):
+	@abstractmethod
+	def initModel( self ):
 		""" 
 		Initialise the database with anything needed for this game.
 
@@ -139,23 +114,17 @@ class Ruleset( object ):#{{{
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
-		pass
 
-	def update(self):
-		"""
-		Update an in progress game with the data that is current only disk.
-		"""
-		pass
-
-	def populate(self, *args, **kw):
+	@abstractmethod
+	def populate( self, *args, **kwargs ):
 		"""
 		Populate the "universe". It is given a list of arguments.
 
 		All arguments should be documented in the doc string.
 		"""
-		pass
 
-	def player( self, username, password, email = 'N/A', comment = '' ):
+	@abstractmethod
+	def addPlayer( self, username, password, email = 'N/A', comment = '' ):
 		"""
 		Create a player for this game.
 
@@ -186,71 +155,14 @@ class Ruleset( object ):#{{{
 
 		return player
 
-	def turn( self ):
-		"""
-		generate a turn for this ruleset
-
-		For simple rulesets (and some reasonably complicated ones), this default
-		method works.
-
-		This method performs orders and actions in the order dictated via the 
-		orderOfOrders attribute. The program treats actions and orders almost 
-		identically.
-
-		For example, 
-			If orderOfOrders contained,
-				[MoveAction, Nop, (Clean, 'fleetsonly')]
-			The move action would be applied first.
-			Then all NOp orders would be performed.
-			Then the Clean action would be applied with the argument ('fleetsonly')
-		"""
-		Lock, Object, Event = self.model.use( 'Lock', 'Object', 'Event' )
-
-		# Create a turn processing lock
-		lock = Lock.new('processing')
-
-		# FIXME: This won't work as if a move then colonise order occurs,
-		# and the move order completed the colonise order won't be
-		# performed. It also removes the ability for dummy orders to be
-		# removed.
-		#
-		# Get all the orders
-
-		d = OrderGet()
-
-		print d
-
-		for action in self.orderOfOrders:
-			if type(action) == TupleType:
-				action, args = action[0], action[1:]
-			else:
-				args = tuple()
-			
-			name = str(action.__name__)
-			if "orders" in name:
-				msg("%s - Starting with" % name, args)
-			
-				if d.has_key(name):
-					for order in d[name]:
-						order.do(*args)
-				else:
-					msg( "No orders of that type avaliable.." )
-
-				msg("%s - Finished" % name)
-		
-			elif "actions" in name:
-				msg("%s - Starting with" % name, args)
-			
-				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
-
-				msg("%s - Finished" % name)
-		
-			sys.stdout.write("\n")
-
-		# Reparent the universe
-
-		# Create a EOT event
-		Event.new('endofturn', self.game)
+	@property
+	def information( self ):
+		return [ ( 'name',    self.name ),
+				 ( 'version', self.version ),
+				 ( 'comment', "\n".join( map( str.strip, self.__doc__.strip().splitlines() ))) ]
+	
+	def __str__( self ):
+		return "%s, version %s" % ( self.name, self.version )
 #}}}
 
 __all__ = [ 'Ruleset' ]

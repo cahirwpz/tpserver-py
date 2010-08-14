@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from tp.server.rules.base.utils import OrderGet
+from tp.server.logging import msg
+
 class Action( object ):#{{{
 	def __call__( self, *args, **kwargs ):
 		pass
@@ -34,6 +37,72 @@ class UniverseAction( object ):#{{{
 		A parent will appear before it's child.
 		"""
 		self.__walk( top, order, callback, *args, **kwargs )
+#}}}
+
+class ActionProcessor( object ):#{{{
+	def turn( self ):
+		"""
+		generate a turn for this ruleset
+
+		For simple rulesets (and some reasonably complicated ones), this default
+		method works.
+
+		This method performs orders and actions in the order dictated via the 
+		orderOfOrders attribute. The program treats actions and orders almost 
+		identically.
+
+		For example, 
+			If orderOfOrders contained,
+				[MoveAction, Nop, (Clean, 'fleetsonly')]
+			The move action would be applied first.
+			Then all NOp orders would be performed.
+			Then the Clean action would be applied with the argument ('fleetsonly')
+		"""
+		Lock, Object, Event = self.model.use( 'Lock', 'Object', 'Event' )
+
+		# Create a turn processing lock
+		lock = Lock.new('processing')
+
+		# FIXME: This won't work as if a move then colonise order occurs,
+		# and the move order completed the colonise order won't be
+		# performed. It also removes the ability for dummy orders to be
+		# removed.
+		#
+		# Get all the orders
+
+		d = OrderGet()
+
+		print d
+
+		for action in self.orderOfOrders:
+			if isinstance( action, tuple ):
+				action, args = action[0], action[1:]
+			else:
+				args = tuple()
+			
+			name = str(action.__name__)
+			if "orders" in name:
+				msg("%s - Starting with" % name, args)
+			
+				if d.has_key(name):
+					for order in d[name]:
+						order.do(*args)
+				else:
+					msg( "No orders of that type avaliable.." )
+
+				msg("%s - Finished" % name)
+		
+			elif "actions" in name:
+				msg("%s - Starting with" % name, args)
+			
+				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
+
+				msg("%s - Finished" % name)
+		
+		# Reparent the universe
+
+		# Create a EOT event
+		Event.new('endofturn', self.game)
 #}}}
 
 __all__ = [ 'Action', 'UniverseAction' ]

@@ -245,12 +245,12 @@ class Ruleset( MinisecRuleset ):
 
 			Model.update( planet )
 
-	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
+	def addPlayer( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
 
-		user, system, planet, fleet = super( Ruleset, self ).player( username, password, email, comment )
+		user, system, planet, fleet = super( Ruleset, self ).addPlayer( username, password, email, comment )
 
 		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
 

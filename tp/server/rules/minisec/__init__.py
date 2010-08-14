@@ -53,29 +53,11 @@ class Ruleset( RulesetBase ):#{{{
 		self.SIZE   = 10000000
 		self.SPEED  = 300000000
 
+	def loadModelConstants( self ):
+		super( Ruleset, self ).loadModelConstants()
+
 	def initModelConstants( self ):
 		super( Ruleset, self ).initModelConstants()
-
-		ObjectType = self.model.use( 'ObjectType' )
-
-		Model.add( ObjectType( id = _1, name = _2 )
-				for _1, _2 in enumerate( self.__ObjectType__ ))
-
-		OrderType = self.model.use( 'OrderType' )
-
-		Model.add( OrderType( id = _1, name = _2 )
-				for _1, _2 in enumerate( self.__OrderType__ ))
-
-		ObjectOrder = self.model.use( 'ObjectOrder' )
-
-		ObjectOrderList = []
-
-		for ObjectName, OrderNameList in self.__ObjectOrder__.iteritems():
-			for OrderName in OrderNameList:
-				ObjectOrderList.append( ( ObjectType.ByName( ObjectName ), OrderType.ByName( OrderName ) ) )
-
-		Model.add( ObjectOrder( object_type = _1, order_type = _2 )
-				for _1, _2 in ObjectOrderList )
 
 	def loadModel( self ):
 		super( Ruleset, self ).loadModel()
@@ -227,13 +209,13 @@ class Ruleset( RulesetBase ):#{{{
 			for j in range( self.random.randint( planet_min, planet_max ) ):
 				objs.append( self.createPlanet( parent = system, name = "Planet %i in %s" % (j, system.name) ) )
 
-		Model.add( *objs )
+		Model.add( objs )
 
-	def player( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
+	def addPlayer( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""
 		Create a Solar System, Planet, and initial Fleet for the player, positioned randomly within the Universe.
 		"""
-		user = super( Ruleset, self ).player( username, password, email, comment )
+		user = super( Ruleset, self ).addPlayer( username, password, email, comment )
 
 		# FIXME: Hack! This however means that player x will always end up in the same place..
 		self.random.seed( user.id )

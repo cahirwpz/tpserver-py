@@ -73,11 +73,11 @@ class GameMenu( CommandLineInterface ):
 		r = game.ruleset
 
 		if comment is None:
-			r.player(username, password)
+			r.addPlayer(username, password)
 		elif email is None:
-			r.player(username, password, email)
+			r.addPlayer(username, password, email)
 		else:
-			r.player(username, password, email, comment)
+			r.addPlayer(username, password, email, comment)
 
 	def do_turn( self, line ):
 		number = 1
@@ -220,16 +220,19 @@ class MainMenu( CommandLineInterface ):
 			print "Game successfully created! You can use the '%s' name as game identifier." % name
 			print ""
 			print "You probably want to populate the universe now."
-		except AlreadyExists, ex:
-			print "Error:", ex
-			print ""
+		except KeyError, ex:
+			print ex
 			print "Please try again with a different name or remove that game first."
+		except Exception, ex:
+			print "Error:", ex
 
 	@staticmethod
 	def game_remove( name ):
 		try:
 			GameManager().removeGame( name )
-		except NoSuchThing, ex:
+		except KeyError, ex:
+			print ex
+		except Exception, ex:
 			print "Error:", ex
 	
 	@staticmethod

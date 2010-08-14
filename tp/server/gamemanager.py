@@ -4,7 +4,6 @@ from collections import Mapping
 
 from tp.server.model import DatabaseManager, Model, make_mapping
 from tp.server.model import Game as GameDesc
-from tp.server.logging import msg
 from tp.server.singleton import SingletonContainerClass
 from tp.server.rules import RulesetManager
 
@@ -129,7 +128,7 @@ class GameManager( Mapping ):#{{{
 
 			self.__game[ name ] = game
 		else:
-			msg( "${red1}Game '%s' already exists!${coff}" % name, level = 'error' )
+			raise KeyError( "Game '%s' already exists!" % name )
 	
 	def removeGame( self, name ):
 		game = self.__game.get( name, None )
@@ -139,7 +138,7 @@ class GameManager( Mapping ):#{{{
 
 			del self.__game[ name ]
 		else:
-			msg( "${red1}Game '%s' does not exists!${coff}" % name, level = 'error' )
+			raise KeyError( "Game '%s' does not exists!" % name )
 		
 	def logPrefix( self ):
 		return self.__class__.__name__
