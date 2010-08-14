@@ -5,13 +5,12 @@ Classes for dealing with games hosted on the machine.
 """
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper
+from sqlalchemy.orm import mapper, relation, backref
 
 from tp.server.rules import RulesetManager
 from tp.server.model import DatabaseManager, Model
-from SQL import Enum, SQLBase, SelectableByName
 
-# FIXME: There should be some way to store the ruleset parameters...
+from SQL import Enum, SQLBase, SelectableByName
 
 class Lock( SQLBase ):#{{{
 	"""
@@ -24,69 +23,26 @@ class Lock( SQLBase ):#{{{
 	LockTypes = ['serving', 'processing']
 
 	@classmethod
-	def InitMapper( cls, metadata ):
+	def InitMapper( cls, metadata, Game ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',	    Integer, index = True, primary_key = True),
-				Column('lock_type', Enum(cls.LockTypes), nullable = False ),		# Locktype
-				Column('hostname',  String(255), nullable = False ),				# Hostname of the process is running on
-				Column('pid',       Integer, nullable = False ), 					# PID of the process with the lock
-				Column('mtime',	    DateTime, nullable = False,						# Last time the lock was updated
+				Column('id',	   Integer, index = True, primary_key = True),
+				Column('type',     Enum( cls.LockTypes ), nullable = False ),  # The type of lock
+				Column('game_id',  Game( Game.id ), nullable = True ),         # On which game the lock acquired
+				Column('hostname', String(255), nullable = False,
+					default = socket.gethostname() ),                          # Hostname of the process is running on
+				Column('pid',      Integer, nullable = False,
+					default = os.getpid()),                                    # PID of the process with the lock
+				Column('mtime',	   DateTime, nullable = False,                 # Last time the lock was updated
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
-		mapper( cls, cls.__table__ )
-
-#{{{
-	#@classmethod
-	#def new(cls, type):
-	#	"""
-	#	Create a new lock of the given type.
-	#
-	#	When a lock goes out of scope it will remove itself from the database.
-	#	"""
-	#	self = cls()
-	#	self.local = True
-	#
-	#	if not type in Lock.types:
-	#		raise TypeError('Lock type can only be one of %s' % Lock.types)
-	#
-	#	self.locktype = unicode(type)
-	#	self.pid      = os.getpid()
-	#	self.host     = socket.gethostname()
-	#	self.save()
-	#	msg( "Creating lock %s %s" % ( self, hasattr(self, 'local') and self.local ) )
-	#	return self
-
-	#def __del__(self):
-	#	if hasattr(self, 'id'):
-	#		if hasattr(self, 'local') and self.local:
-	#			dbconn.use(self.game)
-	#			msg( "Removing lock %s %s" %  ( self, hasattr(self, 'local') and self.local ) )
-	#			self.remove()
-
-	#@staticmethod
-	#def locked(type, game=None):
-	#	t = Lock.table
-	#	if game is None:
-	#		return len(dbconn.execute(select([t.c.id], t.c.locktype==type)).fetchall()) > 0
-	#	else:
-	#		return len(dbconn.execute(select([t.c.id], (t.c.locktype==type)&(t.c.game==game.id))).fetchall()) > 0
-
-	#@staticmethod
-	#def cleanup():
-	#	t = Lock.table
-	#	dbconn.execute(delete(t, t.c.host == socket.gethostname()))
-	#	# locallocks = dbconn.execute(select([t.c.game, t.c.id, t.c.pid, t.c.locktype], t.c.host==socket.gethostname())).fetchall()
-	#	# for gid, id, pid, locktype in locallocks:
-	#	#	msg( "%s-%s %s %s" % (gid, id pid, locktype ) )
-#}}}
+		mapper( cls, cls.__table__, properties = {
+			'game': relation( Game,
+				uselist = False,
+				backref = backref( 'locks' ))
+			})
 
 	def __str__( self ):
-		try:
-			id = self.id
-		except AttributeError:
-			id = '(new)'
-
-		return "<Lock-%s,%s %s by %s-%s>" % ( id, self.__game__, self.lock_type, self.hostname, self.pid ) 
+		return '<Lock id="%s" game="%s" host="%s" pid="%s">' % ( self.id, self.game.name, self.type, self.hostname, self.pid ) 
 #}}}
 
 class GameEvent( SQLBase ):#{{{
@@ -105,78 +61,25 @@ class GameEvent( SQLBase ):#{{{
 		Game Removed  - A game is removed.
 		Game Updated  - Information about a game is updated.
 	"""
-	EventTypes = ['shutdown', 'endofturn', 'gameadded', 'gameremoved', 'gameupdated']
+	__types__ = ['shutdown', 'endofturn', 'gameadded', 'gameremoved', 'gameupdated']
 
 	@classmethod
 	def InitMapper( cls, metadata, Game ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',	     Integer, index = True, primary_key = True),
-				Column('game',	     ForeignKey( Game.id ), nullable = True),
-				Column('event_type', Enum( cls.EventTypes ), nullable = False),
-				Column('mtime',	     DateTime, nullable = False,
+				Column('id',      Integer, index = True, primary_key = True),
+				Column('game_id', ForeignKey( Game.id ), nullable = True),
+				Column('type',    Enum( cls.__types__ ), nullable = False),
+				Column('mtime',   DateTime, nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
-		mapper( cls, cls.__table__ )
-
-#{{{
-	# @classmethod
-	# def new(cls, eventtype, game=None):
-	#	if not eventtype in Event.types:
-	#		raise TypeError("Event type must be %r not %s" % (cls.types, eventtype))
-	#
-	#	# Create a new event object
-	#	if game != None and not isinstance(game, (Game, int, long)):
-	#		raise TypeError("Second argument must be an ID or a game object not %r!" % game)
-	#
-	#	e = Event()
-	#	e.eventtype	= eventtype
-	#	e.game		= game
-	#
-	#	if isinstance(game, (Game, NoneType)):
-	#		e.game = game.id
-	#
-	#	old = dbconn.use(None)
-	#	e.insert()
-	#	dbconn.use(old)
-	#	return e
-
-	# @classmethod
-	# def latest(cls):
-	#	"""
-	#	Get the lates Event id.
-	#	"""
-	#	old = dbconn.use(None)
-	#	try:
-	#		c = cls.table.c
-	#		try:
-	#			return select([c.id], order_by=[desc(c.id)], limit=1).execute().fetchall()[0][0]
-	#		except IndexError:
-	#			return -1
-	#	finally:
-	#		dbconn.use(old)
-
-	# @classmethod
-	# def since(cls, id):
-	#	"""
-	#	Get all events since a given id.
-	#	"""
-	#	old = dbconn.use(None)
-	#
-	#	try:
-	#		dbconn.use(None)
-	#		c = cls.table.c
-	#		return [Event(id=x['id']) for x in select([c.id], c.id>id, order_by=[asc(c.id)]).execute()]
-	#	finally:
-	#		dbconn.use(old)
-#}}} 
+		mapper( cls, cls.__table__, properties = {
+			'game': relation( Game,
+				uselist = False,
+				backref = backref( 'events' ))
+			})
 
 	def __str__(self):
-		try:
-			_id = self.id
-		except AttributeError:
-			_id = '(new)'
-
-		return "<Event-%s (Game - %s) %s>" % (_id, self.game, self.eventtype) 
+		return '<Event id="%s" game="%s" type="%s">' % ( self.id, self.game.name, self.type ) 
 #}}}
 
 class ConnectionEvent( SQLBase ):#{{{
@@ -188,18 +91,21 @@ class ConnectionEvent( SQLBase ):#{{{
 		login      - A person logs in on the connection.
 		disconnect - A connection is terminated.
 	"""
-	EventTypes = ['connect', 'login', 'disconnect']
+	__types__ = ['connect', 'login', 'disconnect']
 
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',	     Integer,     index = True, primary_key = True),
-				Column('ip',         String(255), nullable = False),
-				Column('event_type', Enum(cls.EventTypes), nullable = False),
-				Column('mtime',	     DateTime,    nullable = False,
+				Column('id',	Integer, index = True, primary_key = True),
+				Column('ip',    String(255), nullable = False),
+				Column('type',  Enum( cls.__types__ ), nullable = False),
+				Column('mtime',	DateTime, nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
 
 		mapper( cls, cls.__table__ )
+
+	def __str__(self):
+		return '<ConnectionEvent id="%s" type="%s" ip="%s">' % ( self.id, self.type, self.ip ) 
 #}}}
 
 class Game( SQLBase, SelectableByName ):#{{{
@@ -277,45 +183,8 @@ class Game( SQLBase, SelectableByName ):#{{{
 
 		self.ruleset_name = name
 
-#{{{
-	# @staticmethod
-	# def munge(game):
-	#	"""
-	#	Convert a longname into some sort of suitable short name.
-	#	"""
-	#	return game.replace(' ', '').strip().lower()
-
-	# @property
-	# def key(self):
-	#	# FIXME: This probably isn't very secure...
-	#	key = hashlib.md5("%s-%s" % (self.longname, self.time))
-	#	return key.hexdigest()
-
-	# @property
-	# def parameters(self):
-	#	return dict(
-	#			plys	= self.players,
-	#			# cons: Number of clients currently connected
-	#			objs	= self.objects,
-	#			admin	= self.admin,
-	#			cmt		= self.comment,
-	#			# next: Unix timestamp (GMT) when next turn is generated
-	#			ln		= self.longname,
-	#			sn		= self.short,
-	#			turn	= self.turn
-	#			# prd: The time between turns in seconds.
-	#		)
-#}}}
-
-	@property
-	def turn( self ):
-		return 0
-
 	def __str__(self):
-		if hasattr(self, 'id'):
-			return "<Game-%i %s (%s) turn-%i>" % (self.id, self.name, self.longname, self.turn)
-		else:
-			return "<Game-(new) %s (%s) turn-%i>" % (self.name, self.longname, self.turn)
+		return '<Game id="%s" name="%s" turn="%s">' % ( self.id, self.name, self.turn )
 #}}}
 
 __all__ = [ 'Game', 'ConnectionEvent', 'GameEvent', 'Lock' ]
