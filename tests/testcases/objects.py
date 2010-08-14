@@ -1,8 +1,32 @@
 from test import TestSuite
-from common import AuthorizedTestSession, Expect, ExpectFail
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
+from common import AuthorizedTestSession, ExpectFail
+from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
 
 from tp.server.model import Model, Vector3D
+
+class GetObjectMixin( GetWithIDMixin ):#{{{
+	__request__  = 'GetObjectsByID'
+	__response__ = 'Object'
+
+	__attrs__   = [ 'id', 'name', 'size' ]
+	__attrmap__ = {}
+	__attrfun__ = [ 'modtime', 'position', 'velocity', 'contains', 'ordertypes', 'otype' ]
+
+	def convert_position( self, packet, obj ):
+		return ( Vector3D( packet.pos[0], packet.pos[1], packet.pos[2] ), obj.position )
+
+	def convert_velocity( self, packet, obj ):
+		return ( Vector3D( packet.vel[0], packet.vel[1], packet.vel[2] ), Vector3D(0,0,0) )
+
+	def convert_contains( self, packet, obj ):
+		return ( [ child for child in packet.contains ], [ child.id for child in obj.children ] )
+
+	def convert_ordertypes( self, packet, obj ):
+		return ( [ order for order in packet.ordertypes ], [ order_object.order_type_id for order_object in obj.type.order_types ] )
+
+	def convert_otype( self, packet, obj ):
+		return ( packet.otype, obj.type.id )
+#}}}
 
 class GetEmptyObjectList( AuthorizedTestSession ):#{{{
 	""" Sends empty list of ObjectIDs. """
@@ -13,16 +37,24 @@ class GetEmptyObjectList( AuthorizedTestSession ):#{{{
 		yield GetObjectsByID( self.seq, [] ), ExpectFail('Protocol')
 #}}}
 
-class GetObjectIds( AuthorizedTestSession ):#{{{
-	""" Sends some random Object related requests. """
+class GetAllObjects( GetItemsWithID, GetObjectMixin ):#{{{
+	""" Does server return sequence of Resource packets if asked about all objects? """
 
-	def __iter__( self ):
-		GetObjectIDs, GetObjectsByID = self.protocol.use( 'GetObjectIDs', 'GetObjectsByID' )
+	@property
+	def items( self ):
+		return self.ctx['objects']
+#}}}
 
-		response = yield GetObjectIDs( self.seq, -1, 0, 0, -1 ), Expect( 'ObjectIDs' )
-		response = yield GetObjectIDs( self.seq, -1, 0, response.remaining, -1 ), Expect( 'ObjectIDs' )
+class GetObjectIDs( GetItemIDs ):#{{{
+	""" Does server return the IDs of all available Objects? """
 
-		yield GetObjectsByID( self.seq, [ id for id, modtime in response.modtimes ] )
+	__request__  = 'GetObjectIDs'
+	__response__ = 'ObjectIDs'
+	__object__   = 'Object'
+
+	@property
+	def items( self ):
+		return self.ctx['objects']
 #}}}
 
 class GetObjectsByIDWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
@@ -69,14 +101,17 @@ class ObjectTestSuite( TestSuite ):#{{{
 	__tests__ = [ GetObjectsByIDWhenNotLogged, GetObjectIDsWhenNotLogged,
 			GetObjectIDsByContainerWhenNotLogged,
 			GetObjectIDsByPosWhenNotLogged, GetObjectsByPosWhenNotLogged,
-			GetEmptyObjectList, GetObjectIds ]
+			GetEmptyObjectList, GetAllObjects, GetObjectIDs ]
 
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Universe, StarSystem, Planet = game.objects.use( 'Universe', 'StarSystem',	'Planet' )
+		Universe, StarSystem, Planet, Fleet = self.model.use( 'Universe', 'StarSystem', 'Planet', 'Fleet' )
 
-		universe = Universe( name = "The Universe", size = 10**8, age = 0 )
+		universe = Universe(
+				name = "The Universe",
+				size = 10**8,
+				age  = 0 )
 
 		system = StarSystem(
 				name		= "The Star System",
@@ -92,12 +127,21 @@ class ObjectTestSuite( TestSuite ):#{{{
 				size		= 10**2,
 				owner		= self.ctx['players'][0] )
 
-		self.ctx['objects'] = [ universe, system, planet ]
+		fleet = Fleet(
+				parent   = planet,
+				size     = 3,
+				name     = "The Fleet",
+				ships    = [],
+				damage   = 0,
+				position = planet.position,
+				owner    = self.ctx['players'][0])
 
-		Model.add( *self.ctx['objects'] )
+		self.ctx['objects'] = [ universe, system, planet, fleet ]
+
+		Model.add( self.ctx['objects'] )
 	
 	def tearDown( self ):
-		Model.remove( *self.ctx['objects'] )
+		Model.remove( self.ctx['objects'] )
 #}}}
 
 __tests__ = [ ObjectTestSuite ]
