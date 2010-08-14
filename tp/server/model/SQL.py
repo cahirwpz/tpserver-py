@@ -137,15 +137,6 @@ class SQLBase( object ):#{{{
 	#	return query.count()
 
 	@classmethod
-	def ByRealId( cls, user, id ):
-		"""
-		ByRealId( user, id ) -> cls()
-		
-		Get the real id for an object (from id the user sees).
-		"""
-		return cls.ById( id )
-
-	@classmethod
 	def ById( cls, id ):
 		return cls.query().filter_by( id = id ).first()
 	

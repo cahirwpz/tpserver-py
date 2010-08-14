@@ -30,13 +30,6 @@ class Player( SQLBase ):#{{{
 		else:
 			return cls.query().filter_by( username = username, password = password ).first()
 
-	@classmethod
-	def ByRealId( cls, user, id ):
-		if id == 0:
-			return user
-		else:
-			return cls.ById( id )
-
 	def __str__(self):
 		return '<%s@%s id="%s" username="%s">' % ( self.__origname__, self.__game__.name, self.id, self.username )
 #}}}
