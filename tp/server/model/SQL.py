@@ -6,18 +6,6 @@ import sqlalchemy as sql
 from sqlalchemy import *
 from DatabaseManager import DatabaseManager
 
-class NoSuchThing( Exception ):#{{{
-	pass
-#}}}
-
-class AlreadyExists( Exception ):#{{{
-	pass
-#}}}
-
-class PermissionDenied( Exception ):#{{{
-	pass
-#}}}
-
 class SelectableByName( object ):#{{{
 	@classmethod
 	def ByName( cls, name ):
@@ -160,4 +148,4 @@ class SQLBase( object ):#{{{
 				session.add( obj )
 #}}}
 
-__all__ = [ 'NoSuchThing', 'AlreadyExists', 'PermissionDenied', 'Enum', 'SQLBase', 'SelectableByName' ]
+__all__ = [ 'Enum', 'SQLBase', 'SelectableByName' ]
