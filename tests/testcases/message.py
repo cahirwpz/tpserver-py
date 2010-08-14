@@ -1,8 +1,17 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged
+from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
 
-from tp.server.model import DatabaseManager
+from tp.server.model import Model
+
+class GetMessageMixin( GetWithIDMixin ):#{{{
+	__request__  = 'GetMessage'
+	__response__ = 'Message'
+
+	__attrs__   = [ 'id', 'slot', 'subject' ]
+	__attrmap__ = {}
+	__attrfun__ = [ 'modtime' ]
+#}}}
 
 class GetExistingMessage( AuthorizedTestSession ):#{{{
 	""" Does server respond properly if asked about existing message? """
@@ -74,16 +83,23 @@ class GetMultipleMessages( AuthorizedTestSession ):#{{{
 class PostMessage( AuthorizedTestSession ):#{{{
 	""" Tries to send message to default board. """
 
+	def setUp( self ):
+		self.msg_subject = "Blah"
+
 	def __iter__( self ):
-		PostMessage = self.protocol.use( 'PostMessage' )
+		PostMessage = self.protocol.use('PostMessage')
+		Message = self.model.use('Message')
 
-		packet = yield PostMessage( self.seq, 1, -1, [], "Bla", "Foobar", 0, [] ), ExpectOneOf( 'Okay', ExpectFail('NoSuchThing') )
+		yield PostMessage( self.seq, 1, -1, [], self.msg_subject, "Foobar", 0, [] ), Expect( 'Okay' )
 
+		messages = Message.query().filter_by( subject = self.msg_subject ).all()
+
+		assert len( messages ) == 1, "Expected to get only one message with subject '%s'." % self.msg_subject
+
+		self.msg = messages[0]
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			# hmmm ?!
-			pass
+		Model.remove( getattr( self, 'msg', None ) )
 #}}}
 
 class GetMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
@@ -117,7 +133,7 @@ class MessageTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Board, Message = game.objects.use( 'Board', 'Message' )
+		Board, Message = self.model.use( 'Board', 'Message' )
 
 		board = Board(
 			owner		= self.ctx['players'][0],
@@ -142,14 +158,12 @@ class MessageTestSuite( TestSuite ):#{{{
 				body	= "Test message generated in third turn",
 				turn    = 3 ))
 
-		with DatabaseManager().session() as session:
-			session.add( board )
-
 		self.ctx['board'] = board
+
+		Model.add( board )
 	
 	def tearDown( self ):
-		with DatabaseManager().session() as session:
-			self.ctx['board'].remove( session )
+		Model.remove( self.ctx['board'] )
 #}}}
 
 __tests__ = [ MessageTestSuite ]
