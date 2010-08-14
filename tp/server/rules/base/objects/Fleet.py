@@ -4,25 +4,30 @@ from types import TupleType, ListType
 
 from tp.server.model import ParameterDesc, ParametrizedClass
 
-from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam
+from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam, RelCoordParam
 
 class Fleet( object ):#{{{
 	__metaclass__ = ParametrizedClass
 
 	owner = ParameterDesc(
-			type		= PlayerParam,
-			level		= 'public',
-			description	= "Owner of the fleet." )
+			type        = PlayerParam,
+			level       = 'public',
+			description = "Owner of the fleet." )
 
 	ships = ParameterDesc(
-			type		= DesignQuantityParam,
-			level		= 'protected',
-			description	= "Listing of ships in the fleet." )
+			type        = DesignQuantityParam,
+			level       = 'protected',
+			description = "Listing of ships in the fleet." )
 
 	damage = ParameterDesc(
-			type		= NumberParam,
-			level		= 'protected',
+			type        = NumberParam,
+			level       = 'protected',
 			description = "How much in HP is the fleet damaged." )
+
+	velocity = ParameterDesc(
+			type        = RelCoordParam,
+			level       = 'protected',
+			description = "The velocity of a fleet." )
 
 	def fn_ships(self, value=None):#{{{
 		if value == None:
