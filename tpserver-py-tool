@@ -1,6 +1,7 @@
 #!/usr/bin/env python 
 
 import requirements
+import traceback
 
 from cmd import Cmd as CommandLineInterface
 
@@ -224,6 +225,7 @@ class MainMenu( CommandLineInterface ):
 			print ex
 			print "Please try again with a different name or remove that game first."
 		except Exception, ex:
+			traceback.print_exc()
 			print "Error:", ex
 
 	@staticmethod
@@ -233,6 +235,7 @@ class MainMenu( CommandLineInterface ):
 		except KeyError, ex:
 			print ex
 		except Exception, ex:
+			traceback.print_exc()
 			print "Error:", ex
 	
 	@staticmethod
@@ -240,6 +243,7 @@ class MainMenu( CommandLineInterface ):
 		try:
 			game = GameManager()[ name ]
 		except KeyError, ex:
+			traceback.print_exc()
 			print "Error:", ex
 		else:
 			menu = GameMenu( game )
