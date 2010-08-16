@@ -17,7 +17,7 @@ class TimTraderRuleset( Ruleset ):#{{{
 	TIM Trader is a simple game where the idea is to accumulate as much wealth as
 	possible. You do this by moving goods around the universe.
 	"""
-	name = "TIM Trader"
+	name = "timtrader"
 	version = "0.0.1"
 
 	files = os.path.join(os.path.dirname(__file__), "other")

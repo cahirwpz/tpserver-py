@@ -3,49 +3,10 @@
 import os.path 
 
 from tp.server.model import Model
-from tp.server.rules.minisec import MinisecRuleset
+from tp.server.rules.base import Ruleset
+from tp.server.rules.minisec import MinisecRuleset, MinisecUniverseGenerator
 
-class MinisecPlusRuleset( MinisecRuleset ):#{{{
-	"""
-	Minisec+ Ruleset.
-
-	This ruleset exploits extra features introduced after Minisec was designed
-	(such as Designs and Resources) while still remaining as close to Minisec
-	as possible.
-	"""
-	name    = "Minisec+"
-	version = "0.0.1"
-
-	files = os.path.join( os.path.dirname( __file__ ), "other" )
-
-	def load___( self ):
-		from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
-
-		self.model.add_object_class( Universe )
-		self.model.add_object_class( Galaxy )
-		self.model.add_object_class( StarSystem )
-		self.model.add_object_class( Planet )
-		self.model.add_object_class( Fleet )
-		self.model.add_object_class( Wormhole )
-
-		from tp.server.rules.base.parameters import ( AbsCoordParam,
-				RelCoordParam, TimeParam, ObjectParam, PlayerParam,
-				NumberParam, StringParam, ResourceQuantity,
-				ResourceQuantityParam, DesignQuantity, DesignQuantityParam )
-
-		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
-		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
-
-		self.model.add_parameter_class( AbsCoordParam )
-		self.model.add_parameter_class( RelCoordParam, 'Object' )
-		self.model.add_parameter_class( TimeParam )
-		self.model.add_parameter_class( ObjectParam, 'Object' )
-		self.model.add_parameter_class( PlayerParam, 'Player' )
-		self.model.add_parameter_class( NumberParam )
-		self.model.add_parameter_class( StringParam )
-		self.model.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
-		self.model.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
-
+class MinisecPlusUniverseGenerator( MinisecUniverseGenerator ):#{{{
 	def createFleet( self, parent, name, owner = None):
 		Fleet, DesignQuantity, Design = self.model.use( 'Fleet', 'DesignQuantity', 'Design' )
 
@@ -56,6 +17,41 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 			ships    = [ DesignQuantity( design = Design.ByName('Frigate'), quantity = 3 ) ],
 			position = parent.position,
 			owner    = owner)
+	
+	def addResourcesToPlanet( self, planet ):
+		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
+
+		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
+
+		# Add a random smattering of resources to planets...
+		for Type in self.random.sample( NaturalResourceTypes, self.randint(0, 4) ):
+			planet.resources.append(
+						ResourceQuantity(
+							resource     = Type,
+							accessible   = self.randint( 0, 10 ),
+							extractable  = self.randint( 0, 100 ),
+							inaccessible = self.randint( 0, 1000 )))
+
+		Model.update( planet )
+#}}}
+
+class MinisecPlusRuleset( MinisecRuleset ):#{{{
+	"""
+	Minisec+ Ruleset.
+
+	This ruleset exploits extra features introduced after Minisec was designed
+	(such as Designs and Resources) while still remaining as close to Minisec
+	as possible.
+	"""
+	name    = "minisecplus"
+	version = "0.0.1"
+
+	RulesetUniverseGeneratorClass = MinisecPlusUniverseGenerator
+
+	files = os.path.join( os.path.dirname( __file__ ), "other" )
+
+	def loadModel( self ):
+		Ruleset.loadModel( self )
 
 	def initModel( self ):
 		Component, ComponentCategory, ComponentProperty		= self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
@@ -69,7 +65,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		production = Category.ByName('Production')
 		combat     = Category.ByName('Combat')
 
-		universe = self.createUniverse( name = "The Universe" )
+		universe = self.generator.createUniverse( name = "The Universe" )
 
 		speed = Property(
 			categories   = [ PropertyCategory( category = misc ) ],
@@ -218,31 +214,16 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 				colonisation_pod, escape_thrusters, primary_engine, scout,
 				frigate, battleship)
 
-	def populate( self, seed, system_min, system_max, planet_min, planet_max ):
+	def populate( self, *args ):
 		"""
-		--populate <game> <random seed> <min systems> <max systems> <min planets> <max planets>
-		
-			Populate a universe with a number of systems and planets.
-			The number of systems in the universe is dictated by min/max systems.
-			The number of planets per system is dictated by min/max planets.
+		Populate a universe with a number of systems and planets.
 		"""
-		MinisecRuleset.populate( self, seed, system_min, system_max, planet_min, planet_max )
+		MinisecRuleset.populate( self, *args )
 
-		Object, ResourceQuantity, ResourceType = self.model.use( 'Object', 'ResourceQuantity', 'ResourceType' )
+		Object = self.model.use( 'Object' )
 
-		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
-
-		# Add a random smattering of resources to planets...
 		for planet in Object.ByType('Planet'):
-			for Type in self.random.sample( NaturalResourceTypes, self.random.randint(0, 4) ):
-				planet.resources.append(
-							ResourceQuantity(
-								resource     = Type,
-								accessible   = self.random.randint( 0, 10 ),
-								extractable  = self.random.randint( 0, 100 ),
-								inaccessible = self.random.randint( 0, 1000 )))
-
-			Model.update( planet )
+			self.generator.addResourcesToPlanet( planet )
 
 	def addPlayer( self, username, password, email = 'Unknown', comment = 'A Minisec Player' ):
 		"""

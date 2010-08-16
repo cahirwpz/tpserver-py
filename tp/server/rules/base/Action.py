@@ -40,6 +40,9 @@ class UniverseAction( object ):#{{{
 #}}}
 
 class ActionProcessor( object ):#{{{
+	def __init__( self, ruleset ):
+		self.ruleset = ruleset
+
 	def turn( self ):
 		"""
 		generate a turn for this ruleset
@@ -105,4 +108,4 @@ class ActionProcessor( object ):#{{{
 		Event.new('endofturn', self.game)
 #}}}
 
-__all__ = [ 'Action', 'UniverseAction' ]
+__all__ = [ 'Action', 'UniverseAction', 'ActionProcessor' ]
