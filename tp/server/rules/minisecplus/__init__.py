@@ -54,6 +54,8 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		Ruleset.loadModel( self )
 
 	def initModel( self ):
+		Ruleset.initModel( self )
+
 		Component, ComponentCategory, ComponentProperty		= self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
 		Category, Design, DesignCategory, DesignComponent	= self.model.use( 'Category', 'Design', 'DesignCategory', 'DesignComponent' )
 		Property, PropertyCategory, ResourceType		 	= self.model.use( 'Property', 'PropertyCategory', 'ResourceType' )

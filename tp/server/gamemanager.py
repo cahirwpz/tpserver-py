@@ -2,8 +2,7 @@
 
 from collections import Mapping
 
-from tp.server.model import DatabaseManager, Model, make_mapping
-from tp.server.model import Game as GameDesc
+from tp.server.model import Model, Game as GameDesc
 from tp.server.singleton import SingletonContainerClass
 from tp.server.rules import RulesetManager
 
@@ -33,11 +32,8 @@ class Game( object ):#{{{
 		Model.add( self.__game )
 
 		self.ruleset.loadModelConstants()
-		self.createTables()
 		self.ruleset.initModelConstants()
-
 		self.ruleset.loadModel()
-		self.createTables()
 		self.ruleset.initModel()
 
 	def load( self ):
@@ -45,35 +41,11 @@ class Game( object ):#{{{
 		self.ruleset.loadModel()
 	
 	def remove( self ):
-		self.createTables()
-		self.dropTables()
-
+		Model.drop( self.__game.model )
 		Model.remove( self.__game )
 
-	def createTables( self ):
-		metadata = DatabaseManager().metadata
-
-		tables = list( metadata.tables )
-
-		for table in tables:
-			if table.startswith( "%s_" % self.name ):
-				metadata.tables[ table ].create( checkfirst = True )
-	
-	def dropTables( self ):
-		metadata = DatabaseManager().metadata
-
-		tables = list( metadata.tables )
-
-		for table in tables:
-			if table.startswith( "%s_" % self.name ):
-				metadata.tables[ table ].drop()
-				del metadata.tables[ table ]
-	
 	def reset( self ):
-		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
-			Object = self.model.use( name )
-
-			Model.remove( Object.query().all() )
+		self.ruleset.resetModel()
 	
 	@property
 	def ruleset( self ):
@@ -96,9 +68,7 @@ class GameManager( Mapping ):#{{{
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
-		make_mapping( GameDesc )
-
-		GameDesc.__table__.create( checkfirst = True )
+		Model.init()
 
 		self.__game = {}
 

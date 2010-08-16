@@ -140,6 +140,8 @@ class Ruleset( object ):#{{{
 		This method initialises all data which is considered to be constant for
 		a ruleset lifetime.
 		"""
+		Model.create( self.model )
+
 		self.objects.initModelConstants()
 		self.orders.initModelConstants()
 
@@ -215,6 +217,15 @@ class Ruleset( object ):#{{{
 		This command takes no arguments, so it should not do anything which 
 		needs information from the user.
 		"""
+		Model.create( self.model )
+	
+	def resetModel( self ):
+		for name in [ 'Board', 'Object', 'Design', 'Component', 'Property', 'ResourceType', 'Category', 'Player' ]:
+			Object = self.model.use( name )
+
+			Model.remove( Object.query().all() )
+
+		self.initModel()
 
 	@abstractmethod
 	def populate( self, *args, **kwargs ):

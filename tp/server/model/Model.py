@@ -3,7 +3,7 @@
 import re, csv, datetime
 from collections import Mapping
 
-from DatabaseManager import DatabaseManager
+from DatabaseManager import DatabaseManager, make_mapping
 
 from sqlalchemy.orm import mapper
 
@@ -109,6 +109,14 @@ class Model( Mapping ):#{{{
 		return self.__objects.__iter__()
 
 	@staticmethod
+	def init():
+		from Game import Game
+
+		make_mapping( Game )
+
+		Game.__table__.create( checkfirst = True )
+
+	@staticmethod
 	def add( *objs ):
 		objs = filter( lambda x: x is not None, flatten( objs ) )
 
@@ -143,6 +151,27 @@ class Model( Mapping ):#{{{
 	@staticmethod
 	def query( cls ):
 		return DatabaseManager().query( cls )
+
+	@staticmethod
+	def create( model ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s_" % model.game.name ):
+				metadata.tables[ table ].create( checkfirst = True )
+	
+	@staticmethod
+	def drop( model ):
+		metadata = DatabaseManager().metadata
+
+		tables = list( metadata.tables )
+
+		for table in tables:
+			if table.startswith( "%s_" % model.game.name ):
+				metadata.tables[ table ].drop()
+				del metadata.tables[ table ]
 #}}}
 
 class ByNameMixin( object ):#{{{
