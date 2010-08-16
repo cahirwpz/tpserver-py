@@ -127,7 +127,7 @@ class ExpectOneOf( Expect ):#{{{
 
 class TestSessionUtils( object ):#{{{
 	def datetimeToInt( self, t ):
-		return int( time.mktime( time.strptime( t.ctime() ) ) )
+		return long( time.mktime( time.strptime( t.ctime() ) ) )
 #}}}
 
 class TestSession( TestCase, ClientSessionHandler ):#{{{
@@ -260,6 +260,7 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				if isinstance( self.response, list ):
 					msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in self.response ), level='error' )
 					for r in self.response:
+						msg( "${wht1}Packet:${coff}", level='error' )
 						msg( PacketFormatter( r ), level='error' )
 				else:
 					msg( "${red1}Wrong response %s:${coff}" % self.response.type, level='error' )
