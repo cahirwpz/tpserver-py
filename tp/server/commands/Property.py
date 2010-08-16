@@ -10,7 +10,7 @@ class PropertyFactoryMixin( FactoryMixin ):#{{{
 				request._sequence,
 				obj.id,
 				self.datetimeToInt( obj.mtime ),
-				sorted( cat.category_id for cat in obj.categories ),
+				sorted( cat.id for cat in obj.categories ),
 				obj.rank,
 				obj.name,
 				obj.display_name,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
@@ -43,10 +43,7 @@ class ComponentCategory( ModelObject ):#{{{
 	def InitMapper( cls, metadata, Component, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata, 
 				Column('component_id', ForeignKey( Component.id ), primary_key = True),
-				Column('category_id',  ForeignKey( Category.id ), primary_key = True),
-				Column('comment',      Text, nullable = False, default = ''),
-				Column('mtime',	       DateTime, nullable = False,
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('category_id',  ForeignKey( Category.id ), primary_key = True))
 
 		cols = cls.__table__.c
 
@@ -54,12 +51,15 @@ class ComponentCategory( ModelObject ):#{{{
 
 		mapper( cls, cls.__table__, properties = {
 			'component': relation( Component,
-				uselist = False,
-				backref = backref( 'categories' )),
+				uselist = False ),
 			'category': relation( Category,
-				uselist = False,
-				backref = backref( 'components' ))
+				uselist = False )
 			})
+
+		class_mapper( Component ).add_property( 'categories',
+			relation( Category,
+				secondary = cls.__table__,
+				backref = backref( 'components' )))
 
 	def __str__( self ):
 		return '<%s@%s id="%s" component="%s", category="%s">' % \
@@ -72,10 +72,7 @@ class ComponentProperty( ModelObject ):#{{{
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('component_id', ForeignKey( Component.id ), primary_key = True ),
 				Column('property_id',  ForeignKey( Property.id ), primary_key = True ),
-				Column('value',        Text, nullable = False, default = """(lambda (design) 1)""" ),
-				Column('comment',      Text, nullable = False, default = '' ),
-				Column('mtime',        DateTime, nullable = False,
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('value',        Text, nullable = False, default = """(lambda (design) 1)""" ))
 
 		cols = cls.__table__.c
 

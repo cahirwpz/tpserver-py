@@ -56,9 +56,9 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 	def initModel( self ):
 		Ruleset.initModel( self )
 
-		Component, ComponentCategory, ComponentProperty		= self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
-		Category, Design, DesignCategory, DesignComponent	= self.model.use( 'Category', 'Design', 'DesignCategory', 'DesignComponent' )
-		Property, PropertyCategory, ResourceType		 	= self.model.use( 'Property', 'PropertyCategory', 'ResourceType' )
+		Category, Property, ResourceType = self.model.use( 'Category', 'Property', 'ResourceType' )
+		Component, ComponentProperty     = self.model.use( 'Component', 'ComponentProperty' )
+		Design, DesignComponent          = self.model.use( 'Design', 'DesignComponent' )
 
 		ResourceType.FromCSV( os.path.join( self.files, "resources.csv" ) )
 		Category.FromCSV( os.path.join( self.files, "categories.csv" ) )
@@ -70,7 +70,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		universe = self.generator.createUniverse( name = "The Universe" )
 
 		speed = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "speed",
 			display_name = "Speed",
 			description  = "The maximum number of parsecs the ship can move each turn.",
@@ -80,7 +80,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string (/ n 1000000)) " kpcs"))))""" )
 
 		cost = Property(
-			categories   = [ PropertyCategory( category = production ) ],
+			categories   = [ production ],
 			name         = "cost",
 			display_name = "Cost",
 			description  = "The number of components needed to build the ship",
@@ -90,7 +90,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string n) " turns"))))""" )
 
 		hp = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "hp",
 			display_name = "Hit Points",
 			description  = "The amount of damage the ship can take.",
@@ -100,7 +100,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string n) " HP"))))""" )
 
 		backup_damage = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "backup-damage",
 			display_name = "Backup Damage",
 			description  = "The amount of damage that the ship will do when using it's backup weapon. (IE When it draws a battle round.)",
@@ -110,7 +110,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string n) " HP"))))""" )
 
 		primary_damage = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "primary-damage",
 			display_name = "Primary Damage",
 			description  = "The amount of damage that the ship will do when using it's primary weapon. (IE When it wins a battle round.)",
@@ -120,7 +120,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string n) " HP"))))""" )
 
 		escape = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "escape",
 			display_name = "Escape Chance",
 			description  = "The chance the ship has of escaping from battle.",
@@ -130,7 +130,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		(cons n (string-append (number->string (* n 100)) " %"))))""" )
 
 		colonise = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "colonise",
 			display_name = "Can Colonise Planets",
 			description  = "Can the ship colonise planets?",
@@ -143,43 +143,43 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		missile = Component(
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = primary_damage ) ])
 
 		laser = Component(
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = backup_damage, value = """(lambda (design) 0.25)""" ) ])
 
 		armor_plate = Component(
 			name        = "Armor Plate",
 			description = "Armor Plate which absorbes 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = hp ) ])
 
 		colonisation_pod = Component(
 			name        = "Colonisation Pod",
 			description = "A part which allows a ship to colonise a planet.",
-			categories  = [ ComponentCategory( category = misc ) ],
+			categories  = [ misc ],
 			properties  = [ ComponentProperty( property = colonise ) ])
 
 		escape_thrusters = Component(
 			name        = "Escape Thrusters",
 			description = "A part which allows a ship to escape combat.",
-			categories  = [ ComponentCategory( category = misc ) ],
+			categories  = [ misc ],
 			properties  = [ ComponentProperty( property = escape, value = """(lambda (design) 0.25)""" ) ])
 
 		primary_engine = Component(
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
-			categories  = [ ComponentCategory( category = misc ) ],
+			categories  = [ misc ],
 			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1000000)""" ) ])
 
 		scout = Design(
 			name        = "Scout",
 			description = "A fast light ship with advanced sensors.",
-			categories  = [ DesignCategory( category = misc ) ],
+			categories  = [ misc ],
 			components  = [
 				DesignComponent( component = escape_thrusters, amount = 4 ),
 				DesignComponent( component = armor_plate, amount = 2 ),
@@ -188,7 +188,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		frigate = Design(
 			name         = "Frigate",
 			description  = "A general purpose ship with weapons and ability to colonise new planets.",
-			categories   = [ DesignCategory( category = misc ) ],
+			categories   = [ misc ],
 			components   = [
 				DesignComponent( component = armor_plate, amount = 4 ),
 				DesignComponent( component = primary_engine, amount = 2 ),
@@ -198,7 +198,7 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 		battleship = Design(
 			name        = "Battleship",
 			description = "A heavy ship who's main purpose is to blow up other ships.",
-			categories  = [ DesignCategory( category = misc ) ],
+			categories  = [ misc ],
 			components  = [
 				DesignComponent( component = armor_plate, amount = 6 ),
 				DesignComponent( component = primary_engine, amount = 3 ),

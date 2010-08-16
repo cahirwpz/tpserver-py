@@ -10,7 +10,7 @@ class ComponentFactoryMixin( FactoryMixin ):#{{{
 				request._sequence,
 				component.id,
 				self.datetimeToInt( component.mtime ),
-				[ cat.category_id for cat in component.categories ],
+				[ cat.id for cat in component.categories ],
 				component.name,
 				component.description,
 				component.requirements,

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
@@ -39,11 +39,8 @@ class PropertyCategory( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Property, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('property_id', ForeignKey( Property.id ), primary_key = True),
-				Column('category_id', ForeignKey( Category.id ), primary_key = True),
-				Column('comment',     Text, nullable = False, default = ''),
-				Column('mtime',	      DateTime, nullable = False, 
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('property_id', ForeignKey( Property.id ), index = True, primary_key = True),
+				Column('category_id', ForeignKey( Category.id ), index = True, primary_key = True))
 
 		cols = cls.__table__.c
 
@@ -51,12 +48,15 @@ class PropertyCategory( ModelObject ):#{{{
 
 		mapper( cls, cls.__table__, properties = {
 			'property': relation( Property,
-				uselist = False,
-				backref = backref( 'categories' )),
+				uselist = False),
 			'category': relation( Category,
-				uselist = False,
-				backref = backref( 'properties' ))
+				uselist = False)
 			})
+
+		class_mapper( Property ).add_property( 'categories',
+			relation( Category,
+				secondary = cls.__table__,
+				backref = backref( 'properties' )))
 #}}}
 
 __all__ = [ 'Property', 'PropertyCategory' ]

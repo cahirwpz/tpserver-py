@@ -3,7 +3,7 @@
 # import pyscheme as scheme
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
@@ -263,10 +263,8 @@ class DesignCategory( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Design, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('design_id',   ForeignKey( Design.id ), primary_key = True ),
-				Column('category_id', ForeignKey( Category.id ), primary_key = True ),
-				Column('mtime',	      DateTime, nullable = False,
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('design_id',   ForeignKey( Design.id ), index = True, primary_key = True),
+				Column('category_id', ForeignKey( Category.id ), index = True, primary_key = True))
 
 		cols = cls.__table__.c
 
@@ -274,12 +272,15 @@ class DesignCategory( ModelObject ):#{{{
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
-				uselist = False,
-				backref = backref( 'categories' )),
+				uselist = False),
 			'category': relation( Category,
-				uselist = False,
-				backref = backref( 'designs' ))
+				uselist = False)
 			})
+
+		class_mapper( Design ).add_property( 'categories',
+			relation( Category,
+				secondary = cls.__table__,
+				backref = backref( 'designs' )))
 
 	def __str__( self ):
 		return '<%s@%s id="%s" design="%s", category="%s">' % \
@@ -292,9 +293,7 @@ class DesignComponent( ModelObject ):#{{{
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('design_id',    ForeignKey( Design.id ), primary_key = True ),
 				Column('component_id', ForeignKey( Component.id ), primary_key = True ),
-				Column('amount',       Integer, nullable = False, default = 0),
-				Column('mtime',	       DateTime, nullable = False,
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('amount',       Integer, nullable = False, default = 1 ))
 
 		cols = cls.__table__.c
 
@@ -320,10 +319,7 @@ class DesignProperty( ModelObject ):#{{{
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('design_id',   ForeignKey( Design.id ), primary_key = True ),
 				Column('property_id', ForeignKey( Property.id ), primary_key = True ),
-				Column('value',       Text, nullable = False, default = """(lambda (design) 1)""" ),
-				Column('comment',     Text, nullable = False, default = '' ),
-				Column('mtime',       DateTime, nullable = False,
-					onupdate = func.current_timestamp(), default = func.current_timestamp()))
+				Column('value',       Text, nullable = False, default = """(lambda (design) 1)""" ))
 
 		cols = cls.__table__.c
 

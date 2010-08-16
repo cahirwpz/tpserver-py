@@ -10,7 +10,7 @@ class DesignFactoryMixin( FactoryMixin ):#{{{
 		return Design( request._sequence,
 				obj.id,
 				self.datetimeToInt( obj.mtime ),
-				[ category.category_id for category in obj.categories ],
+				[ category.id for category in obj.categories ],
 				obj.name,
 				obj.description,
 				0, # TODO: usage 

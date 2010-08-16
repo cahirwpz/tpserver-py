@@ -20,7 +20,7 @@ class GetDesignMixin( GetWithIDMixin ):#{{{
 		return pval, oval
 
 	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.category_id for cat in obj.categories )
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
 
 	def convert_properties( self, packet, obj ):
 		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
@@ -143,9 +143,9 @@ class DesignTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Component, ComponentCategory, ComponentProperty = self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
-		Design, DesignCategory, DesignComponent, DesignProperty = self.model.use( 'Design', 'DesignCategory', 'DesignComponent', 'DesignProperty' )
-		Category, Property, PropertyCategory = self.model.use( 'Category', 'Property', 'PropertyCategory' )
+		Component, ComponentProperty = self.model.use( 'Component', 'ComponentProperty' )
+		Design, DesignComponent, DesignProperty = self.model.use( 'Design', 'DesignComponent', 'DesignProperty' )
+		Category, Property = self.model.use( 'Category', 'Property' )
 
 		misc = Category(
 				name = "Misc",
@@ -162,56 +162,56 @@ class DesignTestSuite( TestSuite ):#{{{
 		self.ctx['categories'] = [ misc, ship, combat ]
 
 		experience = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "experience",
 			display_name = "XP",
 			description  = "Experience points of a unit (gained in battles).",
 			calculate    = "(lambda (design) (0))" )
 
 		age = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "age",
 			display_name = "Turn",
 			description  = "The age of a unit (in turns).",
 			calculate    = "(lambda (design) (0))" )
 
 		speed = Property(
-			categories   = [ PropertyCategory( category = misc ) ],
+			categories   = [ misc ],
 			name         = "speed",
 			display_name = "Speed",
 			description  = "The maximum number of parsecs the ship can move each turn.",
 			calculate    = "(lambda (design) (1.0))" )
 
 		hp = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "hp",
 			display_name = "Hit Points",
 			description  = "The amount of damage the ship can take.",
 			calculate    = "(lambda (design) (1.0))" )
 
 		backup_damage = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "backup-damage",
 			display_name = "Backup Damage",
 			description  = "The amount of damage that the ship will do when using it's backup weapon. (IE When it draws a battle round.)",
 			calculate    = "(lambda (design) (1.0))" )
 
 		primary_damage = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "primary-damage",
 			display_name = "Primary Damage",
 			description  = "The amount of damage that the ship will do when using it's primary weapon. (IE When it wins a battle round.)",
 			calculate    = "(lambda (design) (1.0))" )
 
 		escape = Property(
-			categories   = [ PropertyCategory( category = ship ) ],
+			categories   = [ ship ],
 			name         = "escape",
 			display_name = "Escape Chance",
 			description  = "The chance the ship has of escaping from battle.",
 			calculate    = "(lambda (design) (1.0))" )
 
 		colonise = Property(
-			categories   = [ PropertyCategory( category = ship ) ],
+			categories   = [ ship ],
 			name         = "colonise",
 			display_name = "Can Colonise Planets",
 			description  = "Can the ship colonise planets?",
@@ -222,37 +222,37 @@ class DesignTestSuite( TestSuite ):#{{{
 		missile = Component(
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = primary_damage ) ])
 
 		laser = Component(
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = backup_damage, value = """(lambda (design) 0.25)""" ) ])
 
 		armor_plate = Component(
 			name        = "Armor Plate",
 			description = "Armor Plate which absorbes 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = hp ) ])
 
 		colonisation_pod = Component(
 			name        = "Colonisation Pod",
 			description = "A part which allows a ship to colonise a planet.",
-			categories  = [ ComponentCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = colonise ) ])
 
 		escape_thrusters = Component(
 			name        = "Escape Thrusters",
 			description = "A part which allows a ship to escape combat.",
-			categories  = [ ComponentCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = escape, value = """(lambda (design) 0.25)""" ) ])
 
 		primary_engine = Component(
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
-			categories  = [ ComponentCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1000000)""" ) ])
 
 		self.ctx['components'] = [ missile, laser, armor_plate, colonisation_pod, escape_thrusters, primary_engine ]
@@ -261,7 +261,7 @@ class DesignTestSuite( TestSuite ):#{{{
 			name        = "Scout",
 			description = "A fast light ship with advanced sensors.",
 			comment     = "Send this ship to explore unknown solar systems.",
-			categories  = [ DesignCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [ DesignProperty( property = age, value = "(lambda (design) 0)" ) ],
 			components  = [
 				DesignComponent( component = escape_thrusters, amount = 4 ),
@@ -272,7 +272,7 @@ class DesignTestSuite( TestSuite ):#{{{
 			name        = "Frigate",
 			description = "A general purpose ship with weapons and ability to colonise new planets.",
 			comment     = "Built it often and colonise every habitable planet you can!",
-			categories  = [ DesignCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [
 				DesignProperty( property = age, value = "(lambda (design) 0)" ),
 				DesignProperty( property = experience, value = "(lambda (design) 0)" ) ],
@@ -286,7 +286,7 @@ class DesignTestSuite( TestSuite ):#{{{
 			name        = "Battleship",
 			description = "A heavy ship which main purpose is to crush the other ships.",
 			comment     = "This is really a powerful ship!",
-			categories  = [ DesignCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [
 				DesignProperty( property = age, value = "(lambda (design) 0)" ),
 				DesignProperty( property = experience, value = "(lambda (design) 0)" ) ],

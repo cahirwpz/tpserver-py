@@ -12,7 +12,7 @@ class GetComponentMixin( GetWithIDMixin ):#{{{
 	__attrfun__ = [ 'modtime', 'categories', 'properties' ]
 
 	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.category_id for cat in obj.categories )
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
 
 	def convert_properties( self, packet, obj ):
 		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
@@ -91,8 +91,8 @@ class ComponentsTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Component, ComponentCategory, ComponentProperty = self.model.use( 'Component', 'ComponentCategory', 'ComponentProperty' )
-		Category, Property, PropertyCategory = self.model.use( 'Category', 'Property', 'PropertyCategory' )
+		Component, ComponentProperty = self.model.use( 'Component', 'ComponentProperty' )
+		Category, Property = self.model.use( 'Category', 'Property' )
 
 		misc = Category(
 				name = "Misc",
@@ -113,28 +113,28 @@ class ComponentsTestSuite( TestSuite ):#{{{
 		self.ctx['categories'] = [ misc, ship, combat, protection ]
 
 		speed = Property(
-			categories   = [ PropertyCategory( category = ship ) ],
+			categories   = [ ship ],
 			name         = "speed",
 			display_name = "Speed",
 			description  = "The maximum number of parsecs the ship can move each turn.",
 			calculate    = """(lambda (design) 1.0)""" )
 
 		hp = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "hp",
 			display_name = "Hit Points",
 			description  = "The amount of damage the ship can take.",
 			calculate    = """(lambda (design) 1.0)""" )
 
 		damage = Property(
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "damage",
 			display_name = "Damage",
 			description  = "The amount of damage that the ship will do when using its weapon.",
 			calculate    = """(lambda (design) 1.0)""" )
 
 		escape = Property(
-			categories   = [ PropertyCategory( category = ship ) ],
+			categories   = [ ship ],
 			name         = "escape",
 			display_name = "Escape Chance",
 			description  = "The chance the ship has of escaping from battle.",
@@ -146,7 +146,7 @@ class ComponentsTestSuite( TestSuite ):#{{{
 			id          = 9,
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ 
 					ComponentProperty( property = damage, value = """(lambda (design) 1.0)""" ),
 					ComponentProperty( property = speed, value = """(lambda (design) 1.0)""" ) ])
@@ -155,20 +155,20 @@ class ComponentsTestSuite( TestSuite ):#{{{
 			id          = 1,
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
-			categories  = [ ComponentCategory( category = combat ) ],
+			categories  = [ combat ],
 			properties  = [ ComponentProperty( property = damage, value = """(lambda (design) 1.0)""" ) ])
 
 		armor_plate = Component(
 			id          = 4,
 			name        = "Armor Plate",
 			description = "Armor Plate which absorbes 1HP of damage.",
-			categories  = [ ComponentCategory( category = ship ), ComponentCategory( category = protection ) ] )
+			categories  = [ ship, protection ] )
 
 		primary_engine = Component(
 			id          = 7,
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
-			categories  = [ ComponentCategory( category = ship ) ],
+			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1.0)""" ) ])
 
 		self.ctx['components'] = [ missile, laser, armor_plate, primary_engine ]

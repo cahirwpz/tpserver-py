@@ -17,7 +17,7 @@ class GetPropertyMixin( GetWithIDMixin ):#{{{
 	__attrfun__ = [ 'modtime', 'categories' ]
 
 	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.category_id for cat in obj.categories )
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
 #}}}
 
 class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
@@ -60,7 +60,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 	def setUp( self ):
 		game = self.ctx['game']
 
-		Property, PropertyCategory, Category = self.model.use( 'Property', 'PropertyCategory', 'Category' )
+		Property, Category = self.model.use( 'Property', 'Category' )
 
 		misc = Category(
 				id = 7,
@@ -84,7 +84,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		speed = Property(
 			id           = 10,
-			categories   = [ PropertyCategory( category = misc ), PropertyCategory( category = designs ) ],
+			categories   = [ misc, designs ],
 			name         = "speed",
 			display_name = "Speed",
 			description  = "The maximum number of parsecs the ship can move each turn.",
@@ -92,7 +92,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		cost = Property(
 			id           = 13,
-			categories   = [ PropertyCategory( category = production ) ],
+			categories   = [ production ],
 			name         = "cost",
 			display_name = "Cost",
 			description  = "The number of components needed to build the ship",
@@ -100,7 +100,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		hp = Property(
 			id           = 4,
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "hp",
 			display_name = "Hit Points",
 			description  = "The amount of damage the ship can take.",
@@ -108,7 +108,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		backup_damage = Property(
 			id           = 7,
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "backup-damage",
 			display_name = "Backup Damage",
 			description  = "The amount of damage that the ship will do when using it's backup weapon. (IE When it draws a battle round.)",
@@ -116,7 +116,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		primary_damage = Property(
 			id           = 2,
-			categories   = [ PropertyCategory( category = combat ) ],
+			categories   = [ combat ],
 			name         = "primary-damage",
 			display_name = "Primary Damage",
 			description  = "The amount of damage that the ship will do when using it's primary weapon. (IE When it wins a battle round.)",
@@ -124,7 +124,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		escape = Property(
 			id           = 9,
-			categories   = [ PropertyCategory( category = misc ), PropertyCategory( category = designs ) ],
+			categories   = [ misc, designs ],
 			name         = "escape",
 			display_name = "Escape Chance",
 			description  = "The chance the ship has of escaping from battle.",
@@ -132,7 +132,7 @@ class PropertiesTestSuite( TestSuite ):#{{{
 
 		colonise = Property(
 			id           = 99,
-			categories   = [ PropertyCategory( category = misc ), PropertyCategory( category = designs ) ],
+			categories   = [ misc, designs ],
 			name         = "colonise",
 			display_name = "Can Colonise Planets",
 			description  = "Can the ship colonise planets?",
