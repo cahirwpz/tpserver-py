@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class Component( SQLBase, SelectableByName ):#{{{
+class Component( ModelObject, ByNameMixin ):#{{{
 	"""
 	Components which can be put together to form designs.
 	"""
@@ -38,7 +38,7 @@ class Component( SQLBase, SelectableByName ):#{{{
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
-class ComponentCategory( SQLBase ):#{{{
+class ComponentCategory( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Component, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata, 
@@ -66,7 +66,7 @@ class ComponentCategory( SQLBase ):#{{{
 				( self.__origname__, self.__game__.name, self.component.name, self.category.name )
 #}}}
 
-class ComponentProperty( SQLBase ):#{{{
+class ComponentProperty( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Component, Property ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

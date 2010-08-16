@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class ResourceType( SQLBase, SelectableByName ):#{{{
+class ResourceType( ModelObject, ByNameMixin ):#{{{
 	"""
 	ResourceTypes required to build stuff.
 	"""

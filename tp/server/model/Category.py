@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class Category( SQLBase, SelectableByName ):#{{{
+class Category( ModelObject, ByNameMixin ):#{{{
 	"""
 	Categories which help group things together.
 	"""

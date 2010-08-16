@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
 class Vector3D( object ):#{{{
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -30,7 +30,7 @@ class Vector3D( object ):#{{{
 		return "Vector[%s, %s, %s]" % ( self.x, self.y, self.z )
 #}}}
 
-class Object( SQLBase ):#{{{
+class Object( ModelObject ):#{{{
 	"""
 	The basis for all objects that exist.
 	"""
@@ -127,7 +127,7 @@ class Object( SQLBase ):#{{{
 	# bypos_size = [asc(table.c.size)]
 
 	# def protect(self, user):
-	#	o = SQLBase.protect(self, user)
+	#	o = ModelObject.protect(self, user)
 	#	if hasattr(self, "owner") and self.owner != user.id:
 	#		msg( self.owner )
 	#		o.orders = lambda: 0
@@ -173,7 +173,7 @@ class Object( SQLBase ):#{{{
 		return '<%s@%s id="%s" type="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name, self.name )
 #}}}
 
-class ObjectType( SQLBase, SelectableByName ):#{{{
+class ObjectType( ModelObject, ByNameMixin ):#{{{
 	"""
 	Object type description class.
 	"""
@@ -191,7 +191,7 @@ class ObjectType( SQLBase, SelectableByName ):#{{{
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
-class ObjectOrder( SQLBase ):#{{{
+class ObjectOrder( ModelObject ):#{{{
 	"""
 	Description of which orders are applicable to an object.
 	"""
@@ -219,7 +219,7 @@ class ObjectOrder( SQLBase ):#{{{
 		return '<%s@%s object="%s" order="%s">' % ( self.__origname__, self.__game__.name, self.object_type.name, self.order_type.name )
 #}}}
 
-class ObjectParameter( SQLBase ):#{{{
+class ObjectParameter( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Object, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

@@ -7,9 +7,10 @@ Classes for dealing with games hosted on the machine.
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import Enum, SQLBase, SelectableByName
+from SQL import Enum
+from Model import ModelObject, ByNameMixin
 
-class Lock( SQLBase ):#{{{
+class Lock( ModelObject ):#{{{
 	"""
 	Each server can add different types of locks to each game.
 
@@ -42,7 +43,7 @@ class Lock( SQLBase ):#{{{
 		return '<Lock id="%s" game="%s" host="%s" pid="%s">' % ( self.id, self.game.name, self.type, self.hostname, self.pid ) 
 #}}}
 
-class GameEvent( SQLBase ):#{{{
+class GameEvent( ModelObject ):#{{{
 	"""
 	Sometimes 'Events' occur. This table stores them.
 
@@ -79,7 +80,7 @@ class GameEvent( SQLBase ):#{{{
 		return '<Event id="%s" game="%s" type="%s">' % ( self.id, self.game.name, self.type ) 
 #}}}
 
-class ConnectionEvent( SQLBase ):#{{{
+class ConnectionEvent( ModelObject ):#{{{
 	"""
 	Events regarding connections get recorded in this table.
 
@@ -105,7 +106,7 @@ class ConnectionEvent( SQLBase ):#{{{
 		return '<ConnectionEvent id="%s" type="%s" ip="%s">' % ( self.id, self.type, self.ip ) 
 #}}}
 
-class Game( SQLBase, SelectableByName ):#{{{
+class Game( ModelObject, ByNameMixin ):#{{{
 	"""
 	This class represents games which exist on the server. Only one instance exists for each game.
 	"""

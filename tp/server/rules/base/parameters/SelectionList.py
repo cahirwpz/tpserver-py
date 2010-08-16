@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-from tp.server.model import SQLBase
+from tp.server.model import ModelObject
 
-class Selection( SQLBase ):#{{{
+class Selection( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -17,7 +17,7 @@ class Selection( SQLBase ):#{{{
 		mapper( cls, cls.__table__ )
 #}}}
 
-class SelectionList( SQLBase ):#{{{
+class SelectionList( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Selection ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

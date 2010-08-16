@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref 
 
-from SQL import SQLBase
+from Model import ModelObject
 
-class Board( SQLBase ):#{{{
+class Board( ModelObject ):#{{{
 	"""
 	Board which contains posts about stuff.
 

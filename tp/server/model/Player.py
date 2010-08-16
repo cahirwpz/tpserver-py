@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from SQL import SQLBase
+from Model import ModelObject
 
-class Player( SQLBase ):#{{{
+class Player( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

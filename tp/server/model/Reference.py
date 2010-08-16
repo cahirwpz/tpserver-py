@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.model.SQL import SQLBase
+from Model import ModelObject
 
-class Reference( SQLBase ):#{{{
+class Reference( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-from tp.server.model import SQLBase, SelectableByName
+from tp.server.model import ModelObject, ByNameMixin
 
-class Ship( SQLBase, SelectableByName ):	
+class Ship( ModelObject, ByNameMixin ):	
 	@classmethod
 	def InitMapper( cls, metadata, Design ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

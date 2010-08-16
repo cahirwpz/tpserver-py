@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import SQLBase
+from Model import ModelObject
 
-class MessageReference( SQLBase ):#{{{
+class MessageReference( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Message, Reference ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -24,7 +24,7 @@ class MessageReference( SQLBase ):#{{{
 			})
 #}}}
 
-class Message( SQLBase ):#{{{
+class Message( ModelObject ):#{{{
 	"""
 	Message with information about stuff.
 	"""

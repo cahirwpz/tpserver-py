@@ -5,9 +5,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class Design( SQLBase, SelectableByName ):#{{{
+class Design( ModelObject, ByNameMixin ):#{{{
 	"""
 	Design of things.
 	"""
@@ -259,7 +259,7 @@ class Design( SQLBase, SelectableByName ):#{{{
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
-class DesignCategory( SQLBase ):#{{{
+class DesignCategory( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Design, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -286,7 +286,7 @@ class DesignCategory( SQLBase ):#{{{
 				( self.__origname__, self.__game__.name, self.design.name, self.category.name )
 #}}}
 
-class DesignComponent( SQLBase ):#{{{
+class DesignComponent( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Design, Component ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -314,7 +314,7 @@ class DesignComponent( SQLBase ):#{{{
 				( self.__origname__, self.__game__.name, self.design.name, self.component.name )
 #}}}
 
-class DesignProperty( SQLBase ):#{{{
+class DesignProperty( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Design, Property ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

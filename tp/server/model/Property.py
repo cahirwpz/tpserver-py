@@ -3,9 +3,9 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class Property( SQLBase, SelectableByName ):#{{{
+class Property( ModelObject, ByNameMixin ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -35,7 +35,7 @@ class Property( SQLBase, SelectableByName ):#{{{
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
-class PropertyCategory( SQLBase ):#{{{
+class PropertyCategory( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Property, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

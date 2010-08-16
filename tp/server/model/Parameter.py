@@ -5,7 +5,7 @@ import inspect
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-from tp.server.model import SQLBase
+from tp.server.model import ModelObject
 
 class ParameterDesc( object ):#{{{
 	def __init__( self, type, level, default = None, description = None ):
@@ -71,7 +71,7 @@ class ParametrizedClass( type ):#{{{
 		return type.__call__( cls, *args, **kwargs )
 #}}}
 
-class Parameter( SQLBase ):#{{{
+class Parameter( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,

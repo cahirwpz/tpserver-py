@@ -4,9 +4,9 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from SQL import SQLBase, SelectableByName
+from Model import ModelObject, ByNameMixin
 
-class Order( SQLBase ):#{{{
+class Order( ModelObject ):#{{{
 	"""
 	How to tell objects what to do.
 	"""
@@ -41,7 +41,7 @@ class Order( SQLBase ):#{{{
 		return '<%s@%s id="%s" type="%s" object="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name, self.object_id )
 #}}}
 
-class OrderType( SQLBase, SelectableByName ):#{{{
+class OrderType( ModelObject, ByNameMixin ):#{{{
 	"""
 	Order type description class.
 	"""
@@ -59,7 +59,7 @@ class OrderType( SQLBase, SelectableByName ):#{{{
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
 
-class OrderParameter( SQLBase ):#{{{
+class OrderParameter( ModelObject ):#{{{
 	@classmethod
 	def InitMapper( cls, metadata, Order, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
