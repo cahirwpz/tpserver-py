@@ -31,9 +31,6 @@ class Design( ModelObject, ByNameMixin ):#{{{
 			})
 	
 	def remove( self, session ):
-		for category in self.categories:
-			category.remove( session )
-
 		for component in self.components:
 			component.remove( session )
 

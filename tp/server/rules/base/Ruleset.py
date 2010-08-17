@@ -225,8 +225,6 @@ class Ruleset( object ):#{{{
 
 			Model.remove( Object.query().all() )
 
-		self.initModel()
-
 	@abstractmethod
 	def populate( self, *args, **kwargs ):
 		"""

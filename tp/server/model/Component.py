@@ -24,11 +24,8 @@ class Component( ModelObject, ByNameMixin ):#{{{
 		mapper( cls, cls.__table__ )
 
 	def remove( self, session ):
-		for category in self.categories:
-			category.remove( session )
-
-		for property in self.properties:
-			property.remove( session )
+		for prop in self.properties:
+			prop.remove( session )
 
 		session.commit()
 

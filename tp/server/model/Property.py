@@ -23,14 +23,6 @@ class Property( ModelObject, ByNameMixin ):#{{{
 
 		mapper( cls, cls.__table__ )
 
-	def remove( self, session ):
-		for category in self.categories:
-			category.remove( session )
-
-		session.commit()
-
-		session.delete( self )
-
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 #}}}
