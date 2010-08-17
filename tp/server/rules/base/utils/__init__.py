@@ -3,7 +3,7 @@
 from tp.server.model.Object import Object
 from tp.server.model.Order import Order
 
-def OrderGet():#{{{
+def OrderGet():
 	d = {}
 
 	for id in Order.active():
@@ -13,9 +13,8 @@ def OrderGet():#{{{
 
 		d[order.type].append(order)
 	return d
-#}}}
 
-def ReparentOne(obj):#{{{
+def ReparentOne(obj):
 	# Reparent the object
 	parents = Object.bypos([obj.posx, obj.posy, obj.posz], size=0, orderby=Object.bypos_size)
 	print "Possible parents", parents
@@ -26,6 +25,5 @@ def ReparentOne(obj):#{{{
 		obj.parent = parents[0]
 	else:
 		print "No parents left! Using Universe."
-#}}}
 
 __all__ = [ 'OrderGet', 'ReparentOne' ]

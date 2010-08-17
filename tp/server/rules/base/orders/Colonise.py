@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ObjectParam
 
-class ColoniseOrder( object ):#{{{
+class ColoniseOrder( object ):
 	"""
 	Colonise the planet this fleet is orbiting. Will use one frigate class ship.
 	"""
@@ -97,6 +97,5 @@ Colonisation of %s <b>succeded</b>.""" % (planet.name,)
 
 	def resources(self):
 		return []
-#}}}
 
 __all__ = [ 'ColoniseOrder' ]

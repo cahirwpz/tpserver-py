@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, composite
 
 from tp.server.model import Vector3D
 
-class AbsCoordParam( object ):#{{{
+class AbsCoordParam( object ):
 	__maps_to__ = 'position'
 
 	@classmethod
@@ -23,6 +23,5 @@ class AbsCoordParam( object ):#{{{
 				properties = {
 						'position': composite( Vector3D, cols.x, cols.y, cols.z ),
 					})
-#}}}
 
 __all__ = [ 'AbsCoordParam' ]

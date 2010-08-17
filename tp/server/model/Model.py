@@ -7,11 +7,10 @@ from DatabaseManager import DatabaseManager, make_mapping
 
 from sqlalchemy.orm import mapper
 
-def untitle( s ):#{{{
+def untitle( s ):
 	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
-#}}}
 
-def flatten( x ):#{{{
+def flatten( x ):
     result = []
 
     for el in x:
@@ -21,9 +20,8 @@ def flatten( x ):#{{{
             result.append( el )
 
     return result
-#}}}
 
-class Model( Mapping ):#{{{
+class Model( Mapping ):
 	def __init__( self, game ):
 		self.__objects = {}
 		self.game = game
@@ -172,15 +170,13 @@ class Model( Mapping ):#{{{
 			if table.startswith( "%s_" % model.game.name ):
 				metadata.tables[ table ].drop()
 				del metadata.tables[ table ]
-#}}}
 
-class ByNameMixin( object ):#{{{
+class ByNameMixin( object ):
 	@classmethod
 	def ByName( cls, name ):
 		return cls.query().filter_by( name = name ).first()
-#}}}
 
-class ModelObject( object ):#{{{
+class ModelObject( object ):
 	def __init__( self, **kwargs ):
 		for key, value in kwargs.items():
 			if key in self._sa_instance_state.manager.local_attrs:
@@ -277,7 +273,6 @@ class ModelObject( object ):#{{{
 					setattr( obj, name, value )
 
 				session.add( obj )
-#}}}
 
 import sqlalchemy
 

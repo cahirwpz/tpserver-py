@@ -5,7 +5,7 @@ from random import Random
 
 from tp.server.model import Model
 
-class RulesetUniverseGenerator( object ):#{{{
+class RulesetUniverseGenerator( object ):
 	def __init__( self, ruleset ):
 		self.ruleset = ruleset
 		self.random  = Random()
@@ -33,9 +33,8 @@ class RulesetUniverseGenerator( object ):#{{{
 	@property
 	def randint( self ):
 		return self.random.randint
-#}}}
 
-class RulesetObjects( object ):#{{{
+class RulesetObjects( object ):
 	ObjectTypes = []
 
 	def __init__( self, ruleset ):
@@ -59,9 +58,8 @@ class RulesetObjects( object ):#{{{
 	def loadModel( self ):
 		for ObjectType in self.ObjectTypes:
 			self.model.add_object_class( ObjectType )
-#}}}
 
-class RulesetOrders( object ):#{{{
+class RulesetOrders( object ):
 	OrderTypes   = []
 	ObjectOrders = {}
 
@@ -96,9 +94,8 @@ class RulesetOrders( object ):#{{{
 	def loadModel( self ):
 		for OrderType in self.OrderTypes:
 			self.model.add_order_class( OrderType )
-#}}}
 
-class Ruleset( object ):#{{{
+class Ruleset( object ):
 	"""
 	Rulesets define how gameplay works.
 	"""
@@ -273,6 +270,5 @@ class Ruleset( object ):#{{{
 	
 	def __str__( self ):
 		return '<%s version="%s">' % ( self.__class__.__name__, self.version )
-#}}}
 
 __all__ = [ 'Ruleset', 'RulesetObjects', 'RulesetOrders', 'RulesetUniverseGenerator' ]

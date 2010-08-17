@@ -2,7 +2,7 @@
 
 import sqlalchemy
 
-class Enum( sqlalchemy.types.Unicode ):#{{{
+class Enum( sqlalchemy.types.Unicode ):
 	def __init__( self, values, empty_to_none = False ):      
 		"""
 		contruct an Enum type
@@ -36,6 +36,5 @@ class Enum( sqlalchemy.types.Unicode ):#{{{
 			raise AssertionError( '"%s" not in Enum.values' % value )
 
 		return super( Enum, self ).convert_result_value( value, engine )
-#}}}
 
 __all__ = [ 'Enum' ]

@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-class TimeParam( object ):#{{{
+class TimeParam( object ):
 	@classmethod
 	def InitMapper( cls, metadata, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -13,6 +13,5 @@ class TimeParam( object ):#{{{
 				CheckConstraint( 'turns >= 0 and turns <= max', name = 'turns in [0, max]' ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Time' )
-#}}}
 
 __all__ = [ 'TimeParam' ]

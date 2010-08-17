@@ -2,7 +2,7 @@
 
 from tp.server.rules.base import Action
 
-class TurnAction( Action ):#{{{
+class TurnAction( Action ):
 	"""
 	Increases age of the universe.
 	"""
@@ -12,6 +12,5 @@ class TurnAction( Action ):#{{{
 		universe.turn += 1
 		print "Turn number is now", universe.turn
 		universe.save()
-#}}}
 
 __all__ = [ 'TurnAction' ]

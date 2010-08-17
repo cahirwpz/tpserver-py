@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation
 
 from tp.server.model import ModelObject
 
-class ResourceQuantity( ModelObject ):	#{{{
+class ResourceQuantity( ModelObject ):	
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, ResourceType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -23,9 +23,8 @@ class ResourceQuantity( ModelObject ):	#{{{
 			'resource': relation( ResourceType,
 				uselist = False )
 			})
-#}}}
 
-class ResourceQuantityParam( object ):#{{{
+class ResourceQuantityParam( object ):
 	__maps_to__ = 'list'
 
 	@classmethod
@@ -39,6 +38,5 @@ class ResourceQuantityParam( object ):#{{{
 			item.remove( session )
 
 		session.delete( self )
-#}}}
 
 __all__ = [ 'ResourceQuantity', 'ResourceQuantityParam' ]

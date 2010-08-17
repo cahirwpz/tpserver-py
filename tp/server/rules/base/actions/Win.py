@@ -2,7 +2,7 @@
 
 from tp.server.rules.base import UniverseAction
 
-class WinAction( UniverseAction ):#{{{
+class WinAction( UniverseAction ):
 	"""
 	This action sends the player a message to the winning player.
 	"""
@@ -31,6 +31,5 @@ class WinAction( UniverseAction ):#{{{
 			m.insert()
 		else:
 			print "The following players still have objects in the universe", owners.keys()
-#}}}
 
 __all__ = [ 'WinAction' ]

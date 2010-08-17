@@ -3,7 +3,7 @@
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import NumberParam
 
-class Universe( object ):#{{{
+class Universe( object ):
 	__metaclass__  = ParametrizedClass
 
 	age = ParameterDesc(
@@ -11,6 +11,5 @@ class Universe( object ):#{{{
 			default		= 0,
 			level		= 'public',
 			description	= "How many turns has passed in the universe." )
-#}}}
 
 __all__ = [ 'Universe' ]

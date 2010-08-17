@@ -11,7 +11,7 @@ from OpenSSL import SSL
 class ClientTLSContext( ssl.ClientContextFactory ):
 	method = SSL.TLSv1_METHOD
 
-class ThousandParsecServerFactory( ServerFactory, object ):#{{{
+class ThousandParsecServerFactory( ServerFactory, object ):
 	protocol = ThousandParsecProtocol
 	noisy = False
 
@@ -73,9 +73,8 @@ class ThousandParsecServerFactory( ServerFactory, object ):#{{{
 
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
-class ThousandParsecServerConfiguration( ComponentConfiguration ):#{{{
+class ThousandParsecServerConfiguration( ComponentConfiguration ):
 	component	= ThousandParsecServerFactory
 
 	tcp_port	= IntegerOption( short='p', default=6923, min=1, max=65535,
@@ -84,4 +83,3 @@ class ThousandParsecServerConfiguration( ComponentConfiguration ):#{{{
 						help='Specifies number of TLS listening port.', arg_name='PORT' )
 	listen_tls	= BooleanOption( short='t', default=False,
 						help='Turns on TLS listener.' )
-#}}}

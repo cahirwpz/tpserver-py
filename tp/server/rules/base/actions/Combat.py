@@ -2,7 +2,7 @@
 
 import random
 
-class Ship( object ):#{{{
+class Ship( object ):
     draw_damage = 0
     win_damage = 0
 
@@ -14,9 +14,8 @@ class Ship( object ):#{{{
 
     def alive(self):    
         return self.hp > 0
-#}}}
 
-class Frigate( Ship ):#{{{
+class Frigate( Ship ):
     """
     I cause 2 hp of damage on win. I always fire first.
     I move 2 units per turn.
@@ -32,9 +31,8 @@ class Frigate( Ship ):#{{{
 
     def own(self, fleet):
         fleet.frigates.append(self)
-#}}}
 
-class Battleship( Ship ):#{{{
+class Battleship( Ship ):
     """
     I cause 3 hp of damage on win. 1 HP on draw
     I move 1 units per turn.
@@ -51,9 +49,8 @@ class Battleship( Ship ):#{{{
 
     def own(self, fleet):
         fleet.battleships.append(self)
-#}}}
 
-class Scout( Ship ):#{{{
+class Scout( Ship ):
     """
     If I win a match I may escape.
     I move 3 units per turn.
@@ -67,9 +64,8 @@ class Scout( Ship ):#{{{
 
     def own(self, fleet):
         fleet.scouts.append(self)
-#}}}
 
-class Planet( Ship ):#{{{
+class Planet( Ship ):
     win_damage = 6
     draw_damage = 2
 
@@ -80,9 +76,8 @@ class Planet( Ship ):#{{{
 
     def own(self, fleet):
         fleet.planets.append(self)
-#}}}
 
-class Fleet( object ):#{{{
+class Fleet( object ):
     def __init__(self, ships):
         # For scouts, so they can run away.
         self.running = 0
@@ -143,6 +138,5 @@ class Fleet( object ):#{{{
             return False
 
         return sum([1 for s in self.ships if s.alive()])
-#}}}
 
 __all__ = [ 'Ship', 'Frigate', 'Battleship', 'Scout', 'Planet', 'Fleet' ]

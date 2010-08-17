@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import TimeParam
 
-class WaitOrder( object ):#{{{
+class WaitOrder( object ):
 	"""
 	Wait around and do nothing...
 	"""
@@ -45,6 +45,5 @@ class WaitOrder( object ):#{{{
 			return self.wait, -1
 		else:
 			self.wait = value[0]
-#}}}
 
 __all__ = [ 'WaitOrder' ]

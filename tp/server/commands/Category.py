@@ -5,7 +5,7 @@ from Common import ( MustBeLogged, FactoryMixin, RequestHandler, GetWithIDHandle
 
 from tp.server.model import Model, and_, or_
 
-class CategoryFactoryMixin( FactoryMixin ):#{{{
+class CategoryFactoryMixin( FactoryMixin ):
 	def fromPacket( self, request ):
 		Category = self.model.use( 'Category' )
 
@@ -23,9 +23,8 @@ class CategoryFactoryMixin( FactoryMixin ):#{{{
 				self.datetimeToInt( category.mtime ),
 				category.name,
 				category.description )
-#}}}
 
-class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
+class AddCategory( RequestHandler, CategoryFactoryMixin ):
 	@MustBeLogged
 	def __call__( self, request ):
 		"""
@@ -44,9 +43,8 @@ class AddCategory( RequestHandler, CategoryFactoryMixin ):#{{{
 		Model.add( category )
 
 		return self.toPacket( request, category )
-#}}}
 
-class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):#{{{
+class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):
 	"""
 	Request:  GetCategory :: GetWithID
 	Response: Category | Sequence + Category{2,n}
@@ -55,9 +53,8 @@ class GetCategory( GetWithIDHandler, CategoryFactoryMixin ):#{{{
 
 	def authorize( self, category ):
 		return bool( category.owner in [ None, self.player ] )
-#}}}
 
-class GetCategoryIDs( GetIDSequenceHandler ):#{{{
+class GetCategoryIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetCategoryIDs :: GetIDSequence
 	Response: IDSequence
@@ -73,9 +70,8 @@ class GetCategoryIDs( GetIDSequenceHandler ):#{{{
 		from sqlalchemy import or_
 
 		return or_( Category.owner == self.player, Category.owner == None )
-#}}}
 
-class RemoveCategory( RemoveWithIDHandler ):#{{{
+class RemoveCategory( RemoveWithIDHandler ):
 	"""
 	Request:  RemoveCategory :: GetCategory :: GetWithID
 	Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
@@ -85,6 +81,5 @@ class RemoveCategory( RemoveWithIDHandler ):#{{{
 
 	def authorize( self, category ):
 		return bool( category.owner == self.player )
-#}}}
 
 __all__ = [ 'AddCategory', 'GetCategory', 'GetCategoryIDs', 'RemoveCategory' ]

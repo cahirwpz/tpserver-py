@@ -7,7 +7,7 @@ from test import TestCase
 from tp.server.packet import PacketFactory, PacketFormatter
 from tp.server.logging import logctx, msg, err
 
-def ichain( *args ):#{{{
+def ichain( *args ):
 	for a in args:
 		try:
 			r = None
@@ -15,9 +15,8 @@ def ichain( *args ):#{{{
 				r = yield a.send(r)
 		except StopIteration:
 			pass
-#}}}
 
-class IncrementingSequenceMixin( object ):#{{{
+class IncrementingSequenceMixin( object ):
 	@property
 	def seq( self ):
 		try:
@@ -26,9 +25,8 @@ class IncrementingSequenceMixin( object ):#{{{
 			self.__seq = 1
 		
 		return self.__seq
-#}}}
 
-class Expect( object ):#{{{
+class Expect( object ):
 	def __init__( self, packet ):
 		assert isinstance( packet, str )
 
@@ -42,9 +40,8 @@ class Expect( object ):#{{{
 
 	def __str__( self ):
 		return self.__packet
-#}}}
 
-class ExpectFail( Expect ):#{{{
+class ExpectFail( Expect ):
 	def __init__( self, *codes ):
 		Expect.__init__( self, 'Fail' )
 
@@ -63,9 +60,8 @@ class ExpectFail( Expect ):#{{{
 		return "Fail with code%s %s" % (
 				"s" if len( self.__codes ) > 1 else "",
 				" or ".join( self.__codes ) )
-#}}}
 
-class ExpectSequence( Expect ):#{{{
+class ExpectSequence( Expect ):
 	def __init__( self, *packets ):
 		Expect.__init__( self, 'Sequence' )
 
@@ -104,9 +100,8 @@ class ExpectSequence( Expect ):#{{{
 	
 	def __str__( self ):
 		return "Sequence of (%s) packets" % ( ", ".join( str(packet) for packet in self.__packets ) )
-#}}}
 
-class ExpectOneOf( Expect ):#{{{
+class ExpectOneOf( Expect ):
 	def __init__( self, *choices ):
 		self.__choices = []
 
@@ -123,14 +118,12 @@ class ExpectOneOf( Expect ):#{{{
 
 	def __str__( self ):
 		return ", ".join( str( choice ) for choice in self.__choices )
-#}}}
 
-class TestSessionUtils( object ):#{{{
+class TestSessionUtils( object ):
 	def datetimeToInt( self, t ):
 		return long( time.mktime( time.strptime( t.ctime() ) ) )
-#}}}
 
-class TestSession( TestCase, ClientSessionHandler ):#{{{
+class TestSession( TestCase, ClientSessionHandler ):
 	def __init__( self, **kwargs ):
 		super( TestSession, self ).__init__( **kwargs )
 
@@ -270,9 +263,8 @@ class TestSession( TestCase, ClientSessionHandler ):#{{{
 				msg( "${red1}Expected:${coff}\n %s" % self.expected, level='error' ) 
 
 			TestCase.report( self, 'epilogue' )
-#}}}
 
-class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
+class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
 	def __init__( self, **kwargs ):
 		super( ConnectedTestSession, self ).__init__( **kwargs )
 
@@ -282,9 +274,8 @@ class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 		Connect = self.protocol.use( 'Connect' )
 
 		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-#}}}
 
-class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
+class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
 	def __init__( self, **kwargs ):
 		super( AuthorizedTestSession, self ).__init__( **kwargs )
 
@@ -303,7 +294,6 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):#{{{
 
 		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
 		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
-#}}}
 
 __all__ = [ 'IncrementingSequenceMixin', 'Expect', 'ExpectFail',
 			'ExpectSequence', 'ExpectOneOf', 'TestSession',

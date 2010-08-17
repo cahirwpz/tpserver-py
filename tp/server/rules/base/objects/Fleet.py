@@ -6,7 +6,7 @@ from tp.server.model import ParameterDesc, ParametrizedClass
 
 from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam, RelCoordParam
 
-class Fleet( object ):#{{{
+class Fleet( object ):
 	__metaclass__ = ParametrizedClass
 
 	owner = ParameterDesc(
@@ -29,7 +29,7 @@ class Fleet( object ):#{{{
 			level       = 'protected',
 			description = "The velocity of a fleet." )
 
-	def fn_ships(self, value=None):#{{{
+	def fn_ships(self, value=None):
 		if value == None:
 			return self.ships.items()
 
@@ -132,7 +132,5 @@ class Fleet( object ):#{{{
 		for type, no in self.ships.items():
 			r.extend([self.ship_damage[type][fail]] * no)
 		return r
-#}}}
-#}}}
 
 __all__ = [ 'Fleet' ]

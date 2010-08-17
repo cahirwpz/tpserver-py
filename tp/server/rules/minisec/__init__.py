@@ -11,7 +11,7 @@ from tp.server.rules.base.actions import MoveAction, CleanAction, WinAction
 from tp.server.rules.minisec.orders import MoveOrder, BuildFleetOrder, SplitFleetOrder
 from tp.server.rules.minisec.actions import FleetCombatAction, HealAction, TurnAction
 
-class MinisecUniverseGenerator( RulesetUniverseGenerator ):#{{{
+class MinisecUniverseGenerator( RulesetUniverseGenerator ):
 	def createUniverse( self, name ):
 		Universe = self.model.use( 'Universe' )
 
@@ -101,9 +101,8 @@ class MinisecUniverseGenerator( RulesetUniverseGenerator ):#{{{
 				build_time		= 4 )
 
 		return [ scout, frigate, battleship ]
-#}}}
 
-class MinisecActionProcessor( ActionProcessor ):#{{{
+class MinisecActionProcessor( ActionProcessor ):
 	# The order orders and actions occur
 	OrderOfOrders = [
 			BuildFleetOrder, 			# Build all ships
@@ -121,23 +120,20 @@ class MinisecActionProcessor( ActionProcessor ):#{{{
 			WaitOrder, 					# Wait needs to occur last
 			TurnAction, 				# Increase the Universe's "Turn" value
 			]
-#}}}
 
-class MinisecObjects( RulesetObjects ):#{{{
+class MinisecObjects( RulesetObjects ):
 	from tp.server.rules.base.objects import Universe, Galaxy, StarSystem, Planet, Wormhole, Fleet
 		
 	ObjectTypes = [ Universe, Galaxy, StarSystem, Planet, Fleet, Wormhole ]
-#}}}
 
-class MinisecOrders( RulesetOrders ):#{{{
+class MinisecOrders( RulesetOrders ):
 	OrderTypes = [ WaitOrder, MergeFleetOrder, ColoniseOrder, MoveOrder, BuildFleetOrder, SplitFleetOrder ]
 
 	ObjectOrders = {
 			'Fleet'  : [ WaitOrder, MoveOrder, SplitFleetOrder, MergeFleetOrder, ColoniseOrder ],
 			'Planet' : [ WaitOrder, BuildFleetOrder ] }
-#}}}
 
-class MinisecRuleset( Ruleset ):#{{{
+class MinisecRuleset( Ruleset ):
 	"""
 	Minisec Ruleset...
 	"""
@@ -199,6 +195,5 @@ class MinisecRuleset( Ruleset ):#{{{
 		Model.add( universe, system, planet, fleet )
 
 		return ( user, system, planet, fleet )
-#}}}
 
 __all__ = [ 'MinisecRuleset', 'MinisecUniverseGenerator' ]

@@ -2,7 +2,7 @@
 
 from Common import FactoryMixin, GetWithIDHandler, GetIDSequenceHandler
 
-class ComponentFactoryMixin( FactoryMixin ):#{{{
+class ComponentFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, component ):
 		Component = self.protocol.use( 'Component' )
 
@@ -15,23 +15,20 @@ class ComponentFactoryMixin( FactoryMixin ):#{{{
 				component.description,
 				component.requirements,
 				[ [ prop.property_id, prop.value ] for prop in component.properties ] )
-#}}}
 
-class GetComponent( GetWithIDHandler, ComponentFactoryMixin ):#{{{
+class GetComponent( GetWithIDHandler, ComponentFactoryMixin ):
 	"""
 	Request:  GetComponent :: GetWithID
 	Response: Component | Sequence + Component{2,n}
 	"""
 	__object__ = 'Component'
-#}}}
 
-class GetComponentIDs( GetIDSequenceHandler ):#{{{
+class GetComponentIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetComponentIDs :: GetIDSequence
 	Response: IDSequence
 	"""
 	__packet__ = 'ComponentIDs'
 	__object__ = 'Component'
-#}}}
 
 __all__ = [ 'GetComponent', 'GetComponentIDs' ]

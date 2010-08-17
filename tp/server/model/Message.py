@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref
 
 from Model import ModelObject
 
-class MessageReference( ModelObject ):#{{{
+class MessageReference( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Message, Reference ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -22,9 +22,8 @@ class MessageReference( ModelObject ):#{{{
 		mapper( cls, cls.__table__, properties = {
 			'reference': relation( Reference, backref = 'message' )
 			})
-#}}}
 
-class Message( ModelObject ):#{{{
+class Message( ModelObject ):
 	"""
 	Message with information about stuff.
 	"""
@@ -55,6 +54,5 @@ class Message( ModelObject ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" board="%s">' % ( self.__origname__, self.__game__.name, self.id, self.board.id )
-#}}}
 
 __all__ = [ 'Message', 'MessageReference' ]

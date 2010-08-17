@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
-class Component( ModelObject, ByNameMixin ):#{{{
+class Component( ModelObject, ByNameMixin ):
 	"""
 	Components which can be put together to form designs.
 	"""
@@ -33,9 +33,8 @@ class Component( ModelObject, ByNameMixin ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
-class ComponentCategory( ModelObject ):#{{{
+class ComponentCategory( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Component, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata, 
@@ -61,9 +60,8 @@ class ComponentCategory( ModelObject ):#{{{
 	def __str__( self ):
 		return '<%s@%s id="%s" component="%s", category="%s">' % \
 				( self.__origname__, self.__game__.name, self.component.name, self.category.name )
-#}}}
 
-class ComponentProperty( ModelObject ):#{{{
+class ComponentProperty( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Component, Property ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -87,6 +85,5 @@ class ComponentProperty( ModelObject ):#{{{
 	def __str__( self ):
 		return '<%s@%s id="%s" component="%s", property="%s">' % \
 				( self.__origname__, self.__game__.name, self.component.name, self.property.name )
-#}}}
 
 __all__ = [ 'Component', 'ComponentCategory', 'ComponentProperty' ]

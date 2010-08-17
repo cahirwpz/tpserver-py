@@ -9,7 +9,7 @@ from twisted.python.failure import Failure
 
 from tp.server.logging import msg, err, logctx
 
-class TestContext( MutableMapping ):#{{{
+class TestContext( MutableMapping ):
 	def __init__( self ):
 		super( TestContext, self ).__init__()
 
@@ -40,9 +40,8 @@ class TestContext( MutableMapping ):#{{{
 
 	def __contains__( self, key ):
 		return self.__data.__contains__( key )
-#}}}
 
-class TestCase( object ):#{{{
+class TestCase( object ):
 	__testpath__ = []
 
 	def __init__( self, ctx = None ):
@@ -160,9 +159,8 @@ class TestCase( object ):#{{{
 				return self.__name__
 		except AttributeError:
 			return self.__class__.__name__
-#}}}
 
-class TestSuite( Mapping, TestCase ):#{{{
+class TestSuite( Mapping, TestCase ):
 	def __init__( self, ctx = None ):
 		super( TestSuite, self ).__init__( ctx = ctx )
 
@@ -325,9 +323,8 @@ class TestSuite( Mapping, TestCase ):#{{{
 			return report
 
 		return report, number
-#}}}
 
-class TestLoader( TestSuite ):#{{{
+class TestLoader( TestSuite ):
 	"""
 	Stores and manages all tests.
 	"""
@@ -354,6 +351,5 @@ class TestLoader( TestSuite ):#{{{
 			except ImportError, ex:
 				msg( "${yel1}Could not import %s!${coff}" % moduleName, level = 'warning' )
 				err()
-#}}}
 
 __all__ = [ 'TestCase', 'TestSuite', 'TestLoader', 'TestContext' ]

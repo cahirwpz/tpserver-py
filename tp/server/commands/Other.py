@@ -4,14 +4,13 @@ from tp.server.version import version as __version__
 
 from Common import RequestHandler, MustBeLogged
 
-class FinishedTurn( RequestHandler ):#{{{
+class FinishedTurn( RequestHandler ):
 	"""
 	Request:  FinishedTurn
 	Response: ?
 	"""
-#}}}
 
-class GetTimeRemaining( RequestHandler ):#{{{
+class GetTimeRemaining( RequestHandler ):
 	"""
 	Request:  GetTimeRemaining
 	Response: TimeRemaining
@@ -21,9 +20,8 @@ class GetTimeRemaining( RequestHandler ):#{{{
 		TimeRemaining = self.protocol.use( 'TimeRemaining' )
 
 		return TimeRemaining( request._sequence, 0, 'Requested', 0, 'Bogus turn!' )
-#}}}
 
-class Connect( RequestHandler ):#{{{
+class Connect( RequestHandler ):
 	"""
 	Request:  Connect
 	Response: Okay | Fail | Redirect
@@ -34,9 +32,8 @@ class Connect( RequestHandler ):#{{{
 		version = ".".join(map(lambda i: str(i), __version__))
 
 		return Okay( 0, "Welcome to tpserver-py %s!" % version )
-#}}}
 
-class Ping( RequestHandler ):#{{{
+class Ping( RequestHandler ):
 	"""
 	Request:  Ping
 	Response: Okay
@@ -45,9 +42,8 @@ class Ping( RequestHandler ):#{{{
 		Okay = self.protocol.use( 'Okay' )
 
 		return Okay( request._sequence, "PONG!")
-#}}}
 
-class GetFeatures( RequestHandler ):#{{{
+class GetFeatures( RequestHandler ):
 	"""
 	Request:  GetFeatures
 	Response: Features
@@ -73,7 +69,6 @@ class GetFeatures( RequestHandler ):#{{{
 				# "SecureHere"
 				# "SecureThere"
 			])
-#}}}
 
 __all__ = [ 'FinishedTurn', 'GetTimeRemaining', 'Connect', 'Ping',
 			'GetFeatures' ]

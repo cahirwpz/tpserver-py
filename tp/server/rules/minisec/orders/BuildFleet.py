@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ReferenceListParam, StringParam
 
-class BuildFleetOrder( object ):#{{{
+class BuildFleetOrder( object ):
 	"""
 	Build a new star ship fleet.
 	"""
@@ -116,6 +116,5 @@ It consists of:
 			return (255, self.name)
 		else:
 			self.name = value[1]
-#}}}
 
 __all__ = [ 'BuildFleetOrder' ]

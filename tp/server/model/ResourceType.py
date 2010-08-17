@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 from Model import ModelObject, ByNameMixin
 
-class ResourceType( ModelObject, ByNameMixin ):#{{{
+class ResourceType( ModelObject, ByNameMixin ):
 	"""
 	ResourceTypes required to build stuff.
 	"""
@@ -33,6 +33,5 @@ class ResourceType( ModelObject, ByNameMixin ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name_singular )
-#}}}
 
 __all__ = [ 'ResourceType' ]

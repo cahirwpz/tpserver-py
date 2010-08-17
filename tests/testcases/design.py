@@ -5,7 +5,7 @@ from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
 
 from tp.server.model import Model
 
-class GetDesignMixin( GetWithIDMixin ):#{{{
+class GetDesignMixin( GetWithIDMixin ):
 	__request__  = 'GetDesign'
 	__response__ = 'Design'
 
@@ -29,23 +29,20 @@ class GetDesignMixin( GetWithIDMixin ):#{{{
 	def convert_components( self, packet, obj ):
 		return sorted( (comp[0], comp[1]) for comp in packet.components ), \
 				sorted( (comp.component_id, comp.amount) for comp in obj.components )
-#}}}
 
-class GetDesignWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetDesignWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetDesign request? """
 
 	__request__ = 'GetDesign'
-#}}}
 
-class GetExistingDesign( GetItemWithID, GetDesignMixin ):#{{{
+class GetExistingDesign( GetItemWithID, GetDesignMixin ):
 	""" Does server respond properly if asked about existing board? """
 	
 	@property
 	def item( self ):
 		return self.ctx['designs'][1]
-#}}}
 
-class GetNonExistentDesign( GetItemWithID, GetDesignMixin ):#{{{
+class GetNonExistentDesign( GetItemWithID, GetDesignMixin ):
 	""" Does server fail to respond if asked about nonexistent design? """
 
 	__fail__ = 'NoSuchThing'
@@ -56,23 +53,20 @@ class GetNonExistentDesign( GetItemWithID, GetDesignMixin ):#{{{
 	
 	def getId( self, item ):
 		return self.item.id + 666
-#}}}
 
-class GetMultipleDesigns( GetItemsWithID, GetDesignMixin ):#{{{
+class GetMultipleDesigns( GetItemsWithID, GetDesignMixin ):
 	""" Does server return the IDs of all available Designs? """
 
 	@property
 	def items( self ):
 		return self.ctx['designs']
-#}}}
 
-class GetDesignIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetDesignIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetDesignIds request? """
 
 	__request__ = 'GetDesignIDs'
-#}}}
 
-class GetAllDesignIDs( GetItemIDs ):#{{{
+class GetAllDesignIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Designs? """
 
 	__request__  = 'GetDesignIDs'
@@ -82,59 +76,50 @@ class GetAllDesignIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return self.ctx['designs']
-#}}}
 
-class AddDesignWhenNotLogged( WhenNotLogged ):#{{{
+class AddDesignWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got AddDesign request? """
 
 	__request__ = 'AddDesign'
 
 	def makeRequest( self, AddDesign ):
 		return AddDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
-#}}}
 
-class ModifyDesignWhenNotLogged( WhenNotLogged ):#{{{
+class ModifyDesignWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got ModifyDesign request? """
 
 	__request__ = 'ModifyDesign'
 
 	def makeRequest( self, ModifyDesign ):
 		return ModifyDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
-#}}}
 
-class RemoveDesignWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class RemoveDesignWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got RemoveDesign request? """
 
 	__request__ = 'RemoveDesign'
-#}}}
 
-class AddDesignTestSuite( TestSuite ):#{{{
+class AddDesignTestSuite( TestSuite ):
 	__name__  = 'AddDesign'
 	__tests__ = [ AddDesignWhenNotLogged ]
-#}}}
 
-class GetDesignTestSuite( TestSuite ):#{{{
+class GetDesignTestSuite( TestSuite ):
 	__name__  = 'GetDesign'
 	__tests__ = [ GetDesignWhenNotLogged, GetExistingDesign,
 			GetNonExistentDesign, GetMultipleDesigns ]
-#}}}
 
-class GetDesignIDsTestSuite( TestSuite ):#{{{
+class GetDesignIDsTestSuite( TestSuite ):
 	__name__  = 'GetDesignIDs'
 	__tests__ = [ GetDesignIDsWhenNotLogged, GetAllDesignIDs ]
-#}}}
 
-class RemoveDesignTestSuite( TestSuite ):#{{{
+class RemoveDesignTestSuite( TestSuite ):
 	__name__  = 'RemoveDesign'
 	__tests__ = [ RemoveDesignWhenNotLogged ]
-#}}}
 
-class ModifyDesignTestSuite( TestSuite ):#{{{
+class ModifyDesignTestSuite( TestSuite ):
 	__name__  = 'ModifyDesign'
 	__tests__ = [ ModifyDesignWhenNotLogged ]
-#}}}
 
-class DesignTestSuite( TestSuite ):#{{{
+class DesignTestSuite( TestSuite ):
 	__name__  = 'Designs'
 	__tests__ = [ AddDesignTestSuite, GetDesignTestSuite,
 			GetDesignIDsTestSuite, RemoveDesignTestSuite,
@@ -304,6 +289,5 @@ class DesignTestSuite( TestSuite ):#{{{
 	def tearDown( self ):
 		Model.remove( self.ctx['designs'], self.ctx['components'],
 				self.ctx['properties'], self.ctx['categories'] )
-#}}}
 
 __tests__ = [ DesignTestSuite ]

@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-class StringParam( object ):#{{{
+class StringParam( object ):
 	__maps_to__ = 'value'
 
 	# TODO: constraint checking!
@@ -16,6 +16,5 @@ class StringParam( object ):#{{{
 				Column('max',      Integer, nullable = False ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'String' )
-#}}}
 
 __all__ = [ 'StringParam' ]

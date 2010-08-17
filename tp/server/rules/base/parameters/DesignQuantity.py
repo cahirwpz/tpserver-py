@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation
 
 from tp.server.model import ModelObject
 
-class DesignQuantity( ModelObject ):#{{{
+class DesignQuantity( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, Design ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -21,9 +21,8 @@ class DesignQuantity( ModelObject ):#{{{
 			'design': relation( Design,
 				uselist = False )
 			})
-#}}}
 
-class DesignQuantityParam( object ):#{{{
+class DesignQuantityParam( object ):
 	__maps_to__ = 'list'
 
 	@classmethod
@@ -37,6 +36,5 @@ class DesignQuantityParam( object ):#{{{
 			item.remove( session )
 
 		session.delete( self )
-#}}}
 
 __all__ = [ 'DesignQuantity', 'DesignQuantityParam' ]

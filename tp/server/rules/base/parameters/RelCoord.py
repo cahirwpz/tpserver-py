@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, composite
 
 from tp.server.model import Vector3D
 
-class RelCoordParam( object ):#{{{
+class RelCoordParam( object ):
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -23,6 +23,5 @@ class RelCoordParam( object ):#{{{
 			# Object position in 3D space
 			'vector': composite( Vector3D, cols.x, cols.y, cols.z ),
 			})
-#}}}
 
 __all__ = [ 'RelCoordParam' ]

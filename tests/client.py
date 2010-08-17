@@ -13,7 +13,7 @@ from OpenSSL import SSL
 class ClientTLSContext( ssl.ClientContextFactory ):
 	method = SSL.TLSv1_METHOD
 
-class ThousandParsecClientFactory( ClientFactory, object ):#{{{
+class ThousandParsecClientFactory( ClientFactory, object ):
 	__metaclass__ = SingletonClass
 
 	protocol = ThousandParsecProtocol
@@ -63,9 +63,8 @@ class ThousandParsecClientFactory( ClientFactory, object ):#{{{
 
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
-class ThousandParsecClientFactoryConfiguration( ComponentConfiguration ):#{{{
+class ThousandParsecClientFactoryConfiguration( ComponentConfiguration ):
 	component = ThousandParsecClientFactory
 
 	hostname	= StringOption( short='H', default='localhost',
@@ -76,6 +75,5 @@ class ThousandParsecClientFactoryConfiguration( ComponentConfiguration ):#{{{
 								help='Specifies TLS server port.', arg_name='PORT' )
 	use_tls		= BooleanOption( short='T', default=False,
 								help='Use TLS instead of TCP connection.' )
-#}}}
 
 __all__ = [ 'ThousandParsecClientFactory', 'ThousandParsecClientFactoryConfiguration' ]

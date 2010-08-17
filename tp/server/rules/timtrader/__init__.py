@@ -10,7 +10,7 @@ from tp.server.rules.minisec.actions import TurnAction
 
 import ProducersConsumers
 
-class TimTraderRuleset( Ruleset ):#{{{
+class TimTraderRuleset( Ruleset ):
 	"""
 	TIM Trader Ruleset.
 
@@ -142,6 +142,5 @@ class TimTraderRuleset( Ruleset ):#{{{
 				ResourceQuantity( resource = ResourceType.ByName('Credit'), accessible = 10000 ) ]
 
 		Model.add( planet )
-#}}}
 
 __all__ = [ 'TimTraderRuleset' ]

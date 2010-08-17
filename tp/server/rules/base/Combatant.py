@@ -1,4 +1,4 @@
-class Combatant( object ):#{{{
+class Combatant( object ):
 	def dead( self ):
 		"""
 		Returns if the object can no-longer participate in combat.
@@ -26,4 +26,3 @@ class Combatant( object ):#{{{
 		Takes a simple argument to determine a "half fire".
 		"""
 		raise NotImplemented("Combatant.damage_get method not implimented.")
-#}}}

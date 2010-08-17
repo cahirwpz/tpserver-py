@@ -3,7 +3,7 @@
 from Common import FactoryMixin, RequestHandler, GetIDSequenceHandler, GetWithIDHandler, MustBeLogged
 from tp.server.model import Vector3D
 
-class ObjectFactoryMixin( FactoryMixin ):#{{{
+class ObjectFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, obj ):
 		Object = self.protocol.use( 'Object' )
 
@@ -26,18 +26,16 @@ class ObjectFactoryMixin( FactoryMixin ):#{{{
 				self.datetimeToInt( obj.mtime ),
 				"0" * 8,
 				[] )
-#}}}
 
-class GetObjectIDs( GetIDSequenceHandler ):#{{{
+class GetObjectIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetObjectIDs :: GetIDSequence
 	Response: IDSequence
 	"""
 	__packet__ = 'ObjectIDs'
 	__object__ = 'Object'
-#}}}
 
-class GetObjectIDsByContainer( RequestHandler ):#{{{
+class GetObjectIDsByContainer( RequestHandler ):
 	"""
 	Request:  GetObjectIDsByContainer
 	Response: IDSequence
@@ -54,9 +52,8 @@ class GetObjectIDsByContainer( RequestHandler ):#{{{
 			response.insert( 0, self.Sequence( request, len( response ) ) )
 		
 		return response
-#}}}
 
-class GetObjectIDsByPos( RequestHandler ):#{{{
+class GetObjectIDsByPos( RequestHandler ):
 	"""
 	Request:  GetObjectIDsByPos
 	Response: IDSequence
@@ -64,18 +61,16 @@ class GetObjectIDsByPos( RequestHandler ):#{{{
 	@MustBeLogged
 	def __call__( self, request ):
 		pass
-#}}}
 
-class GetObjectsByID( GetWithIDHandler, ObjectFactoryMixin ):#{{{
+class GetObjectsByID( GetWithIDHandler, ObjectFactoryMixin ):
 	"""
 	Request:  GetObjectByID :: GetWithID
 	Response: IDSequence
 	"""
 	# FIXME: This should show the correct number of orders for a certain person
 	__object__ = 'Object'
-#}}}
 
-class GetObjectsByPos( RequestHandler ):#{{{
+class GetObjectsByPos( RequestHandler ):
 	"""
 	Request:  GetObjectsByPos
 	Response: Object | Sequence + Object{2,n}
@@ -90,7 +85,6 @@ class GetObjectsByPos( RequestHandler ):#{{{
 		response.extend( [ obj.to_packet( self.player, request._sequence ) for obj in objs ] )
 
 		return response
-#}}}
 
 __all__ = [ 'GetObjectIDs', 'GetObjectIDsByContainer', 'GetObjectIDsByPos',
 			'GetObjectsByID', 'GetObjectsByPos' ]

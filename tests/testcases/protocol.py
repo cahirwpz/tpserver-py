@@ -1,7 +1,7 @@
 from test import TestSuite
 from common import TestSession, Expect
 
-class SameSequenceInHeader( TestSession ):#{{{
+class SameSequenceInHeader( TestSession ):
 	""" Checks if a server drops second packet with same sequence. """
 
 	def __iter__( self ):
@@ -17,11 +17,9 @@ class SameSequenceInHeader( TestSession ):#{{{
 			self.reason = "Server does accept multiple packets with same sequence number!"
 		else:
 			self.status = True
-#}}}
 
-class ProtocolTestSuite( TestSuite ):#{{{
+class ProtocolTestSuite( TestSuite ):
 	__name__  = 'Protocol'
 	__tests__ = [ SameSequenceInHeader ]
-#}}}
 
 __tests__ = [ ProtocolTestSuite ]

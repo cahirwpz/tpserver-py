@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
-class Property( ModelObject, ByNameMixin ):#{{{
+class Property( ModelObject, ByNameMixin ):
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -25,9 +25,8 @@ class Property( ModelObject, ByNameMixin ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
-class PropertyCategory( ModelObject ):#{{{
+class PropertyCategory( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Property, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -49,6 +48,5 @@ class PropertyCategory( ModelObject ):#{{{
 			relation( Category,
 				secondary = cls.__table__,
 				backref = backref( 'properties' )))
-#}}}
 
 __all__ = [ 'Property', 'PropertyCategory' ]

@@ -6,7 +6,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from Model import ModelObject, ByNameMixin
 
-class Vector3D( object ):#{{{
+class Vector3D( object ):
 	def __init__( self, x = 0, y = 0, z = 0 ):
 		self.x = x
 		self.y = y
@@ -28,9 +28,8 @@ class Vector3D( object ):#{{{
 
 	def __str__( self ):
 		return "Vector[%s, %s, %s]" % ( self.x, self.y, self.z )
-#}}}
 
-class Object( ModelObject ):#{{{
+class Object( ModelObject ):
 	"""
 	The basis for all objects that exist.
 	"""
@@ -121,7 +120,7 @@ class Object( ModelObject ):#{{{
 
 		return [(x['id'], x['time']) for x in results]
 	
-#{{{
+
 	# orderclasses = {}
 
 	# bypos_size = [asc(table.c.size)]
@@ -167,13 +166,11 @@ class Object( ModelObject ):#{{{
 	#		return self.owner == 0
 	#	except AttributeError:
 	#		return False
-#}}}
 
 	def __str__( self ):
 		return '<%s@%s id="%s" type="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name, self.name )
-#}}}
 
-class ObjectType( ModelObject, ByNameMixin ):#{{{
+class ObjectType( ModelObject, ByNameMixin ):
 	"""
 	Object type description class.
 	"""
@@ -189,9 +186,8 @@ class ObjectType( ModelObject, ByNameMixin ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
-class ObjectOrder( ModelObject ):#{{{
+class ObjectOrder( ModelObject ):
 	"""
 	Description of which orders are applicable to an object.
 	"""
@@ -217,9 +213,8 @@ class ObjectOrder( ModelObject ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s object="%s" order="%s">' % ( self.__origname__, self.__game__.name, self.object_type.name, self.order_type.name )
-#}}}
 
-class ObjectParameter( ModelObject ):#{{{
+class ObjectParameter( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Object, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -244,6 +239,5 @@ class ObjectParameter( ModelObject ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s object="%s" name="%s" param="%s">' % ( self.__origname__, self.__game__.name, self.object_id, self.name, self.param_id )
-#}}}
 
 __all__ = [ 'Object', 'ObjectType', 'ObjectOrder', 'ObjectParameter', 'Vector3D' ]

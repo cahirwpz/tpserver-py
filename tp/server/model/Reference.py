@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 from Model import ModelObject
 
-class Reference( ModelObject ):#{{{
+class Reference( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -18,6 +18,5 @@ class Reference( ModelObject ):#{{{
 	
 	def __str__( self ):
 		return '<%s@%s id="%d">' % ( self.__origname__, self.__game__.__name__, self.id )
-#}}}
 
 __all__ = [ 'Reference' ]

@@ -12,7 +12,7 @@ from tp.server.packet import PacketFactory
 
 import tp.server.commands
 
-class CommandDispatcher( Mapping ):#{{{
+class CommandDispatcher( Mapping ):
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
@@ -31,9 +31,8 @@ class CommandDispatcher( Mapping ):#{{{
 
 	def __len__( self ):
 		return self.__commands.__len__()
-#}}}
 
-class ClientSessionContext( object ):#{{{
+class ClientSessionContext( object ):
 	def __init__( self ):
 		self.__game   = None
 		self.__player = None
@@ -59,9 +58,8 @@ class ClientSessionContext( object ):#{{{
 			self.__game = value
 		else:
 			raise TypeError( "Player value must either be a Game object!" )
-#}}}
 
-class ClientSessionHandler( object ):#{{{
+class ClientSessionHandler( object ):
 	def __init__( self ):
 		self.__packets = None
 		self.__context = ClientSessionContext()
@@ -119,6 +117,5 @@ class ClientSessionHandler( object ):#{{{
 
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
 __all__ = [ 'ClientSessionContext', 'ClientSessionHandler' ]

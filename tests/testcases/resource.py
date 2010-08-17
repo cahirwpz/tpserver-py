@@ -3,7 +3,7 @@ from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetIte
 
 from tp.server.model import Model
 
-class GetResourceMixin( GetWithIDMixin ):#{{{
+class GetResourceMixin( GetWithIDMixin ):
 	__request__  = 'GetResource'
 	__response__ = 'Resource'
 
@@ -16,29 +16,25 @@ class GetResourceMixin( GetWithIDMixin ):#{{{
 			pluralunitname   = 'unit_plural' )
 
 	__attrfun__ = [ 'modtime' ]
-#}}}
 
-class GetResourceWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetResourceWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetResource request? """
 
 	__request__ = 'GetResource'
-#}}}
 
-class GetAllResources( GetItemsWithID, GetResourceMixin ):#{{{
+class GetAllResources( GetItemsWithID, GetResourceMixin ):
 	""" Does server return sequence of Resource packets if asked about all resources? """
 
 	@property
 	def items( self ):
 		return reversed( self.ctx['resources'] )
-#}}}
 
-class GetResourceIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetResourceIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetResourceIDs request? """
 
 	__request__ = 'GetResourceIDs'
-#}}}
 
-class GetAllResourceIDs( GetItemIDs ):#{{{
+class GetAllResourceIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Resources? """
 
 	__request__  = 'GetResourceIDs'
@@ -48,9 +44,8 @@ class GetAllResourceIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return self.ctx['resources']
-#}}}
 
-class ResourcesTestSuite( TestSuite ):#{{{
+class ResourcesTestSuite( TestSuite ):
 	""" Performs all tests related to GetResource and GetResourceIDs requests. """
 	__name__  = 'Resources'
 	__tests__ = [ GetResourceWhenNotLogged, GetAllResources, GetResourceIDsWhenNotLogged, GetAllResourceIDs ]
@@ -97,6 +92,5 @@ class ResourcesTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['resources'] )
-#}}}
 
 __tests__ = [ ResourcesTestSuite ]

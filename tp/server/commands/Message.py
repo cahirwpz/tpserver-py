@@ -6,7 +6,7 @@ from tp.server.model import Model
 from Common import ( MustBeLogged, FactoryMixin, RequestHandler,
 		GetWithIDSlotHandler, RemoveWithIDSlotHandler )
 
-class MessageFactoryMixin( FactoryMixin ):#{{{
+class MessageFactoryMixin( FactoryMixin ):
 	def fromPacket( self, request ):
 		Message = self.model.use( 'Message' )
 
@@ -28,9 +28,8 @@ class MessageFactoryMixin( FactoryMixin ):#{{{
 				obj.turn,
 				[] # TODO: references
 				)
-#}}}
 
-class PostMessage( RequestHandler, MessageFactoryMixin ):#{{{
+class PostMessage( RequestHandler, MessageFactoryMixin ):
 	"""
 	Request:  PostMessage :: Message
 	Response: Okay | Fail
@@ -69,9 +68,8 @@ class PostMessage( RequestHandler, MessageFactoryMixin ):#{{{
 			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response 
-#}}}
 
-class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):#{{{
+class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):
 	"""
 	Request:  GetMessage :: GetWithIDSlot
 	Response: Message | Sequence + (Message | Fail){2,n}
@@ -93,14 +91,12 @@ class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):#{{{
 		else:
 			msg.number = slot
 			return msg
-#}}}
 
-class RemoveMessage( RemoveWithIDSlotHandler ):#{{{
+class RemoveMessage( RemoveWithIDSlotHandler ):
 	"""
 	Request:  RemoveMessage :: GetMessage :: GetWithIDSlot
 	Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
 	"""
 	__container__ = 'Board'
-#}}}
 
 __all__ = [ 'PostMessage', 'GetMessage', 'RemoveMessage' ]

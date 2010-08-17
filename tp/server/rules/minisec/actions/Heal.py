@@ -2,7 +2,7 @@
 
 from tp.server.rules.base import UniverseAction
 
-class HealAction( UniverseAction ):#{{{
+class HealAction( UniverseAction ):
 	"""
 	Heals a fleet to full health if they are orbiting a friendly planet.
 	"""
@@ -18,6 +18,5 @@ class HealAction( UniverseAction ):#{{{
 			
 	def __call__( self, top ):
 		super( HealAction, self)( top, "before", self.heal )
-#}}}
 
 __all__ = [ 'HealAction' ]

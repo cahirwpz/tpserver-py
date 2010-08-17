@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import RangeParam
 
-class MineOrder( object ):#{{{
+class MineOrder( object ):
 	"""
 	Turn a mineable resource into a surface resource.
 	"""
@@ -40,6 +40,5 @@ class MineOrder( object ):#{{{
 
 	def resources( self ):
 		return []
-#}}}
 
 __all__ = [ 'MineOrder' ]

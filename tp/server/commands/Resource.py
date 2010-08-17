@@ -2,7 +2,7 @@
 
 from Common import GetWithIDHandler, GetIDSequenceHandler, FactoryMixin
 
-class ResourceFactoryMixin( FactoryMixin ):#{{{
+class ResourceFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, obj ):
 		Resource = self.protocol.use( 'Resource' )
 
@@ -17,23 +17,20 @@ class ResourceFactoryMixin( FactoryMixin ):#{{{
 				obj.weight,
 				obj.size,
 				self.datetimeToInt( obj.mtime ) )
-#}}}
 
-class GetResource( GetWithIDHandler, ResourceFactoryMixin ):#{{{
+class GetResource( GetWithIDHandler, ResourceFactoryMixin ):
 	"""
 	Request:  GetResource :: GetWithID
 	Response: Resource | Sequence + Resource{2,n}
 	"""
 	__object__ = 'ResourceType'
-#}}}
 
-class GetResourceIDs( GetIDSequenceHandler ):#{{{
+class GetResourceIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetResourceIDs :: GetIDSequence
 	Response: IDSequence
 	"""
 	__packet__ = 'ResourceIDs'
 	__object__ = 'ResourceType'
-#}}}
 
 __all__ = [ 'GetResource', 'GetResourceIDs' ]

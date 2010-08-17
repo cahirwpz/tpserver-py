@@ -6,7 +6,7 @@ from tp.server.model import Model, Game as GameDesc
 from tp.server.singleton import SingletonContainerClass
 from tp.server.rules import RulesetManager
 
-class Game( object ):#{{{
+class Game( object ):
 	def __init__( self, gamedesc ):
 		self.__game  = gamedesc
 		self.__model = Model( self )
@@ -62,9 +62,8 @@ class Game( object ):#{{{
 		self.__ruleset = RulesetManager()[ name ]( self )
 
 		self.ruleset_name = name
-#}}}
 
-class GameManager( Mapping ):#{{{
+class GameManager( Mapping ):
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
@@ -112,6 +111,5 @@ class GameManager( Mapping ):#{{{
 		
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
 __all__ = [ 'GameManager', 'Game' ]

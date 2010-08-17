@@ -8,7 +8,7 @@ from configuration import ComponentConfiguration, BooleanOption, StringSetOption
 msg = log.msg
 err = log.err
 
-def cut_filename_prefix( prefixes, filename ):#{{{
+def cut_filename_prefix( prefixes, filename ):
 	"""
 	Cuts prefix from filename
 	@param prefixes: list of possible prefixes to cut
@@ -18,9 +18,8 @@ def cut_filename_prefix( prefixes, filename ):#{{{
 	matchingPrefixes = [ prefix for prefix in prefixes if filename.startswith( prefix ) ]
 
 	return filename.split('%s/' % max( matchingPrefixes ), 1)[1] if matchingPrefixes else filename
-#}}}
 
-def format_frames(frames, write, detail="default"):#{{{
+def format_frames(frames, write, detail="default"):
 	"""
 	Formating function uses L{cut_filename_prefix} to get filename
 	@param frames: frames to format
@@ -48,18 +47,16 @@ def format_frames(frames, write, detail="default"):#{{{
 			for name, val in localVars:
 				w( '  %s : %s\n' %  (name, repr(val)))
 			w( '  \n' )
-#}}}
 
 failure.format_frames = format_frames
 failure.EXCEPTION_CAUGHT_HERE = "*** exception caught here ***"
 
-def logctx( fun ):#{{{
+def logctx( fun ):
 	def wrapper( self, *args, **kwargs ):
 		return log.callWithLogger( self, fun, self, *args, **kwargs )
 	return wrapper
-#}}}
 
-class Logger( log.FileLogObserver ):#{{{
+class Logger( log.FileLogObserver ):
 	"""
 	Logger class
 
@@ -176,9 +173,8 @@ class Logger( log.FileLogObserver ):#{{{
 		when = datetime.datetime.fromtimestamp( when )
 
 		return '%02d:%02d:%02d.%03d' % ( when.hour, when.minute, when.second, when.microsecond / 1000 )
-#}}}
 
-class LoggerConfiguration( ComponentConfiguration ):#{{{
+class LoggerConfiguration( ComponentConfiguration ):
 	component		= Logger
 
 	log_level		= StringSetOption( short='l', default='info', values=set( Logger.levels ),
@@ -188,6 +184,5 @@ class LoggerConfiguration( ComponentConfiguration ):#{{{
 							help='Force logger to drop time prefix for each printed log message.' )
 	log_drop_system	= BooleanOption( default=False,
 							help='Force logger to drop component name (where the message was generated) prefix from each printed log message.' )
-#}}}
 
 __all__ = [ 'Logger', 'LoggerConfiguration', 'logctx', 'log', 'err' ]

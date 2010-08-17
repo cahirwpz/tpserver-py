@@ -6,24 +6,22 @@ from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
 
 from tp.server.model import Model
 
-class GetCategoryMixin( GetWithIDMixin ):#{{{
+class GetCategoryMixin( GetWithIDMixin ):
 	__request__  = 'GetCategory'
 	__response__ = 'Category'
 
 	__attrs__   = [ 'id', 'name', 'description' ]
 	__attrmap__ = {}
 	__attrfun__ = [ 'modtime' ]
-#}}}
 
-class GetExistingCategory( GetItemWithID, GetCategoryMixin ):#{{{
+class GetExistingCategory( GetItemWithID, GetCategoryMixin ):
 	""" Does server respond properly if asked about existing category? """
 
 	@property
 	def item( self ):
 		return self.ctx['categories'][0]
-#}}}
 
-class GetNonExistentCategory( GetItemWithID, GetCategoryMixin ):#{{{
+class GetNonExistentCategory( GetItemWithID, GetCategoryMixin ):
 	""" Does server fail to respond if asked about nonexistent category? """
 
 	__fail__ = 'NoSuchThing'
@@ -34,25 +32,22 @@ class GetNonExistentCategory( GetItemWithID, GetCategoryMixin ):#{{{
 	
 	def getId( self, item ):
 		return self.item.id + 666
-#}}}
 
-class GetPublicCategory( GetItemWithID, GetCategoryMixin ):#{{{
+class GetPublicCategory( GetItemWithID, GetCategoryMixin ):
 	""" Does server allow to fetch public Category? """
 
 	@property
 	def item( self ):
 		return self.ctx['categories'][3]
-#}}}
 
-class GetPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
+class GetPrivateCategory( GetItemWithID, GetCategoryMixin ):
 	""" Does server allow to fetch private Category owned by the player? """
 
 	@property
 	def item( self ):
 		return self.ctx['categories'][1]
-#}}}
 
-class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
+class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin ):
 	""" Does server disallow to fetch private Category of another player? """
 
 	__fail__ = 'PermissionDenied'
@@ -60,17 +55,15 @@ class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin ):#{{{
 	@property
 	def item( self ):
 		return self.ctx['categories'][2]
-#}}}
 
-class GetMultipleCategories( GetItemsWithID, GetCategoryMixin ):#{{{
+class GetMultipleCategories( GetItemsWithID, GetCategoryMixin ):
 	""" Does server return sequence of Category packets if asked about two categories? """
 
 	@property
 	def items( self ):
 		return [ self.ctx['categories'][3], self.ctx['categories'][0], self.ctx['categories'][1] ]
-#}}}
 
-class GetAllCategoryIDs( GetItemIDs ):#{{{
+class GetAllCategoryIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Categories? """
 
 	__request__  = 'GetCategoryIDs'
@@ -80,30 +73,26 @@ class GetAllCategoryIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return [ self.ctx['categories'][3], self.ctx['categories'][0], self.ctx['categories'][1] ]
-#}}}
 
-class GetCategoryWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetCategoryWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetCategory request? """
 
 	__request__ = 'GetCategory'
-#}}}
 
-class GetCategoryIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetCategoryIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetCategoryIDs request? """
 
 	__request__ = 'GetCategoryIDs'
-#}}}
 
-class AddCategoryWhenNotLogged( WhenNotLogged ):#{{{
+class AddCategoryWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got AddCategory request? """
 
 	__request__ = 'AddCategory'
 
 	def makeRequest( self, AddCategory ):
 		return AddCategory( self.seq, -1, 0, "Category", "Category used for testing purposes" )
-#}}}
 
-class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):
 	""" Is server able to add new category? """
 
 	def __iter__( self ):
@@ -119,9 +108,8 @@ class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 	def tearDown( self ):
 		if hasattr( self, 'cat' ):
 			Model.remove( self.cat )
-#}}}
 
-class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject creating already existing private category? """
 
 	def setUp( self ):
@@ -151,9 +139,8 @@ class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin ):#{{{
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
-#}}}
 
-class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server allow to add new category with same name but different player ? """
 
 	def setUp( self ):
@@ -181,9 +168,8 @@ class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin 
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'other_cat', None ) )
-#}}}
 
-class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject creating already existing private category with same name as a public one? """
 
 	def setUp( self ):
@@ -212,15 +198,13 @@ class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin )
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
-#}}}
 
-class RemoveCategoryWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class RemoveCategoryWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got RemoveCategory request? """
 
 	__request__ = 'RemoveCategory'
-#}}}
 
-class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject attempt to remove public category? """
 
 	def setUp( self ):
@@ -242,9 +226,8 @@ class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
-#}}}
 
-class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject attempt to remove public category? """
 
 	def setUp( self ):
@@ -267,9 +250,8 @@ class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
-#}}}
 
-class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin ):#{{{
+class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject attempt to remove other player's private category? """
 
 	def setUp( self ):
@@ -292,34 +274,29 @@ class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin 
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
-#}}}
 
-class AddCategoryTestSuite( TestSuite ):#{{{
+class AddCategoryTestSuite( TestSuite ):
 	__name__  = 'AddCategory'
 	__tests__ = [ AddCategoryWhenNotLogged, AddNewCategory,
 			AddCategoryButSameExists, AddCategoryWithSameNameAsPrivate,
 			AddCategoryWithSameNameAsPublic ]
-#}}}
 
-class GetCategoryTestSuite( TestSuite ):#{{{
+class GetCategoryTestSuite( TestSuite ):
 	__name__  = 'GetCategory'
 	__tests__ = [ GetCategoryWhenNotLogged, GetExistingCategory,
 			GetNonExistentCategory, GetPublicCategory, GetPrivateCategory,
 			GetOtherPlayerPrivateCategory, GetMultipleCategories ]
-#}}}
 
-class GetCategoryIDsTestSuite( TestSuite ):#{{{
+class GetCategoryIDsTestSuite( TestSuite ):
 	__name__  = 'GetCategoryIDs'
 	__tests__ = [ GetCategoryIDsWhenNotLogged, GetAllCategoryIDs ]
-#}}}
 
-class RemoveCategoryTestSuite( TestSuite ):#{{{
+class RemoveCategoryTestSuite( TestSuite ):
 	__name__  = 'RemoveCategory'
 	__tests__ = [ RemoveCategoryWhenNotLogged, RemovePublicCategory,
 			RemovePrivateCategory, RemoveOtherPlayerPrivateCategory ]
-#}}}
 
-class CategoryTestSuite( TestSuite ):#{{{
+class CategoryTestSuite( TestSuite ):
 	__name__  = 'Categories'
 	__tests__ = [ GetCategoryTestSuite, GetCategoryIDsTestSuite, AddCategoryTestSuite, RemoveCategoryTestSuite ]
 
@@ -350,6 +327,5 @@ class CategoryTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['categories'] )
-#}}}
 
 __tests__ = [ CategoryTestSuite ]

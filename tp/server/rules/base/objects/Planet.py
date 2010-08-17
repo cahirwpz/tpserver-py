@@ -3,7 +3,7 @@
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
 
-class Planet( object ):#{{{
+class Planet( object ):
 	__metaclass__ = ParametrizedClass
 
 	owner = ParameterDesc(
@@ -16,7 +16,7 @@ class Planet( object ):#{{{
 		level		= 'protected',
 		description	= "Resources present on the planet.")
 
-#{{{
+
 	#def ghost(self):
 	#	"""
 	#	Planets never die - even when owned by the universe.
@@ -55,7 +55,5 @@ class Planet( object ):#{{{
 	#
 	#	if self.resources[resource][type] < 0:
 	#		raise TypeError("Resources some how became negative!")
-#}}}
-#}}}
 
 __all__ = [ 'Planet' ]

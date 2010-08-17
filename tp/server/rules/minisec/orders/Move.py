@@ -9,22 +9,20 @@ from tp.server.rules.base.parameters import AbsCoordParam
 
 import math
 
-def away( x ):#{{{
+def away( x ):
 	if x < 0:
 		return int(-math.ceil(-x))
 	else: 
 		return int(math.ceil(x))
-#}}}
 
-def closest( *args ):#{{{
+def closest( *args ):
 	x = args[0]
 	for y in args[1:]:
 		if min(abs(y), abs(x)) == abs(y):
 			x = y
 	return x
-#}}}
 
-class MoveOrder( object ):#{{{
+class MoveOrder( object ):
 	"""
 	Move to a point in space.
 	"""
@@ -113,6 +111,5 @@ class MoveOrder( object ):#{{{
 
 	def resources(self):
 		return []
-#}}}
 
 __all__ = [ 'MoveOrder' ]

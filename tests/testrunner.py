@@ -9,7 +9,7 @@ from tp.server.logging import Logger
 
 from test import TestLoader
 
-class MainTestSuite( TestLoader ):#{{{
+class MainTestSuite( TestLoader ):
 	__testpath__ = [ 'Tests' ]
 	__name__ = 'Tests'
 	__path__ = 'testcases'
@@ -41,9 +41,8 @@ class MainTestSuite( TestLoader ):#{{{
 		self.ctx['players']	= [ player1, player2 ]
 
 		Model.add( player1, player2 )
-#}}}
 
-class TestRunner( object ):#{{{
+class TestRunner( object ):
 	def __init__( self ):
 		self.suite = MainTestSuite()
 		self.suite.result.addCallbacks( self.__succeeded, self.__failed )
@@ -67,11 +66,9 @@ class TestRunner( object ):#{{{
 	
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
-class TestRunnerConfiguration( ComponentConfiguration ):#{{{
+class TestRunnerConfiguration( ComponentConfiguration ):
 	tests = StringOption( short='t', default='*',
 						  help='Specifies which tests will be run. TEST-PATH is a test path using glob (see unix manual pages) pattern. If you provide \'list\' path then all available tests will be displayed and the application will finish.', arg_name='TEST-PATH' )
-#}}}
 
 __all__ = [ 'TestRunner', 'TestRunnerConfiguration' ]

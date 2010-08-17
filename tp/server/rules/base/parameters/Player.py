@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-class PlayerParam( object ):#{{{
+class PlayerParam( object ):
 	__maps_to__ = 'player'
 
 	@classmethod
@@ -17,6 +17,5 @@ class PlayerParam( object ):#{{{
 					'player' : relation( Player,
 						uselist = False )
 					})
-#}}}
 
 __all__ = [ 'PlayerParam' ]

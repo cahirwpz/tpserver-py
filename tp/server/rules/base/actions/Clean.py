@@ -6,7 +6,7 @@ This action removes objects which are ghosts.
 
 from tp.server.rules.base import UniverseAction
 
-class CleanAction( UniverseAction ):#{{{
+class CleanAction( UniverseAction ):
 	def clean( self, obj ):
 		if obj.ghost():
 			# FIXME: If this object has children they will be no longer reachable...
@@ -18,6 +18,5 @@ class CleanAction( UniverseAction ):#{{{
 		Walks around the universe cleaning up ghost objects.
 		"""
 		super( CleanAction, self )( top, "after", self.clean )
-#}}}
 
 __all__ = [ 'CleanAction' ]

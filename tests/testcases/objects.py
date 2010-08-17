@@ -4,7 +4,7 @@ from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNo
 
 from tp.server.model import Model, Vector3D
 
-class GetObjectMixin( GetWithIDMixin ):#{{{
+class GetObjectMixin( GetWithIDMixin ):
 	__request__  = 'GetObjectsByID'
 	__response__ = 'Object'
 
@@ -26,26 +26,23 @@ class GetObjectMixin( GetWithIDMixin ):#{{{
 
 	def convert_otype( self, packet, obj ):
 		return ( packet.otype, obj.type.id )
-#}}}
 
-class GetEmptyObjectList( AuthorizedTestSession ):#{{{
+class GetEmptyObjectList( AuthorizedTestSession ):
 	""" Sends empty list of ObjectIDs. """
 
 	def __iter__( self ):
 		GetObjectsByID = self.protocol.use( 'GetObjectsByID' )
 
 		yield GetObjectsByID( self.seq, [] ), ExpectFail('Protocol')
-#}}}
 
-class GetAllObjects( GetItemsWithID, GetObjectMixin ):#{{{
+class GetAllObjects( GetItemsWithID, GetObjectMixin ):
 	""" Does server return sequence of Resource packets if asked about all objects? """
 
 	@property
 	def items( self ):
 		return self.ctx['objects']
-#}}}
 
-class GetObjectIDs( GetItemIDs ):#{{{
+class GetObjectIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Objects? """
 
 	__request__  = 'GetObjectIDs'
@@ -55,48 +52,42 @@ class GetObjectIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return self.ctx['objects']
-#}}}
 
-class GetObjectsByIDWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetObjectsByIDWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetObjectsByID request? """
 
 	__request__ = 'GetObjectsByID'
-#}}}
 
-class GetObjectIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetObjectIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetObjectIDs request? """
 
 	__request__ = 'GetObjectIDs'
-#}}}
 
-class GetObjectIDsByContainerWhenNotLogged( WhenNotLogged ):#{{{
+class GetObjectIDsByContainerWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetObjectIDsByContainer request? """
 
 	__request__ = 'GetObjectIDsByContainer'
 
 	def makeRequest( self, GetObjectIDsByContainer ):
 		return GetObjectIDsByContainer( self.seq, 0 )
-#}}}
 
-class GetObjectIDsByPosWhenNotLogged( WhenNotLogged ):#{{{
+class GetObjectIDsByPosWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetObjectIDsByPos request? """
 
 	__request__ = 'GetObjectIDsByPos'
 
 	def makeRequest( self, GetObjectIDsByPos ):
 		return GetObjectIDsByPos( self.seq, ( 0, 0, 0 ), 1000 )
-#}}}
 
-class GetObjectsByPosWhenNotLogged( WhenNotLogged ):#{{{
+class GetObjectsByPosWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetObjectsByPos request? """
 
 	__request__ = 'GetObjectsByPos'
 
 	def makeRequest( self, GetObjectsByPos ):
 		return GetObjectsByPos( self.seq, ( 0, 0, 0 ), 1000 )
-#}}}
 
-class ObjectTestSuite( TestSuite ):#{{{
+class ObjectTestSuite( TestSuite ):
 	__name__  = 'Objects'
 	__tests__ = [ GetObjectsByIDWhenNotLogged, GetObjectIDsWhenNotLogged,
 			GetObjectIDsByContainerWhenNotLogged,
@@ -142,6 +133,5 @@ class ObjectTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['objects'] )
-#}}}
 
 __tests__ = [ ObjectTestSuite ]

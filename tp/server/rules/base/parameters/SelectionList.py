@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation
 
 from tp.server.model import ModelObject
 
-class Selection( ModelObject ):#{{{
+class Selection( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -15,9 +15,8 @@ class Selection( ModelObject ):#{{{
 				Column('max',      Integer, nullable = False ))
 
 		mapper( cls, cls.__table__ )
-#}}}
 
-class SelectionList( ModelObject ):#{{{
+class SelectionList( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Selection ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -28,9 +27,8 @@ class SelectionList( ModelObject ):#{{{
 			'values' : relation( Selection,
 				backref = 'list')
 			})
-#}}}
 
-class SelectionListParam( object ):#{{{
+class SelectionListParam( object ):
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, SelectionList ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -41,6 +39,5 @@ class SelectionListParam( object ):#{{{
 			'selections' : relation( SelectionList,
 				collection_class = list )
 			})
-#}}}
 
 __all__ = [ 'Selection', 'SelectionList', 'SelectionListParam' ]

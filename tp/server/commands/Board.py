@@ -2,7 +2,7 @@
 
 from Common import FactoryMixin, GetWithIDHandler, GetIDSequenceHandler
 
-class BoardFactoryMixin( FactoryMixin ):#{{{
+class BoardFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, board ):
 		Board = self.protocol.use( 'Board' )
 
@@ -14,9 +14,8 @@ class BoardFactoryMixin( FactoryMixin ):#{{{
 				# TODO: number of messages on the board
 				0,
 				self.datetimeToInt( board.mtime ) )
-#}}}
 
-class GetBoards( GetWithIDHandler, BoardFactoryMixin ):#{{{
+class GetBoards( GetWithIDHandler, BoardFactoryMixin ):
 	"""
 	Request:  GetBoards :: GetWithID
 	Response: Board | Sequence + Board{2,n}
@@ -31,9 +30,8 @@ class GetBoards( GetWithIDHandler, BoardFactoryMixin ):#{{{
 			return self.player.boards[0]
 
 		return GetWithIDHandler.fetch( self, obj, id )
-#}}}
 
-class GetBoardIDs( GetIDSequenceHandler ):#{{{
+class GetBoardIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetBoardIDs :: GetIDSequence
 	Response: IDSequence
@@ -48,6 +46,5 @@ class GetBoardIDs( GetIDSequenceHandler ):#{{{
 		from sqlalchemy import or_
 
 		return or_( Board.owner == self.player, Board.owner == None )
-#}}}
 
 __all__ = [ 'GetBoards', 'GetBoardIDs' ]

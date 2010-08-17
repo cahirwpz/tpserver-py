@@ -4,7 +4,7 @@ from twisted.internet import reactor
 
 from tp.server.logging import logctx, msg
 
-class ClientSessionHandler( object ):#{{{
+class ClientSessionHandler( object ):
 	status   = False
 	finished = None
 
@@ -25,6 +25,5 @@ class ClientSessionHandler( object ):#{{{
 	
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
 __all__ = [ 'ClientSessionHandler' ]

@@ -3,7 +3,7 @@ from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetIte
 
 from tp.server.model import Model
 
-class GetPropertyMixin( GetWithIDMixin ):#{{{
+class GetPropertyMixin( GetWithIDMixin ):
 	__request__  = 'GetProperty'
 	__response__ = 'Property'
 
@@ -18,29 +18,25 @@ class GetPropertyMixin( GetWithIDMixin ):#{{{
 
 	def convert_categories( self, packet, obj ):
 		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
-#}}}
 
-class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetProperty request? """
 
 	__request__ = 'GetProperty'
-#}}}
 
-class GetAllProperties( GetItemsWithID, GetPropertyMixin ):#{{{
+class GetAllProperties( GetItemsWithID, GetPropertyMixin ):
 	""" Does server return sequence of Property packets if asked about all properties? """
 
 	@property
 	def items( self ):
 		return reversed( self.ctx['properties'] )
-#}}}
 
-class GetPropertyIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetPropertyIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetPropertyIDs request? """
 
 	__request__ = 'GetPropertyIDs'
-#}}}
 
-class GetAllPropertyIDs( GetItemIDs ):#{{{
+class GetAllPropertyIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Properties? """
 
 	__request__  = 'GetPropertyIDs'
@@ -50,9 +46,8 @@ class GetAllPropertyIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return self.ctx['properties']
-#}}}
 
-class PropertiesTestSuite( TestSuite ):#{{{
+class PropertiesTestSuite( TestSuite ):
 	""" Performs all tests related to GetProperty and GetPropertyIDs requests. """
 	__name__  = 'Properties'
 	__tests__ = [ GetPropertyWhenNotLogged, GetAllProperties, GetPropertyIDsWhenNotLogged, GetAllPropertyIDs ]
@@ -145,6 +140,5 @@ class PropertiesTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['properties'], self.ctx['categories'] )
-#}}}
 
 __tests__ = [ PropertiesTestSuite ]

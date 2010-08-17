@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-class RangeParam( object ):#{{{
+class RangeParam( object ):
 	@classmethod
 	def InitMapper( cls, metadata, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -17,6 +17,5 @@ class RangeParam( object ):#{{{
 				CheckConstraint( 'step < max - min' ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Range' )
-#}}}
 
 __all__ = [ 'RangeParam' ]

@@ -5,7 +5,7 @@ from twisted.internet.protocol import Protocol
 from logging import logctx, msg, err
 from packet import PacketFactory, PacketFormatter
 
-class ThousandParsecProtocol( Protocol, object ):#{{{
+class ThousandParsecProtocol( Protocol, object ):
 	SessionHandlerType = None
 
 	@logctx
@@ -87,6 +87,5 @@ class ThousandParsecProtocol( Protocol, object ):#{{{
 
 	def logPrefix( self ):
 		return self.__class__.__name__
-#}}}
 
 __all__ = [ 'ThousandParsecProtocol' ]

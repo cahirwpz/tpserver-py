@@ -3,7 +3,7 @@ from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetIte
 
 from tp.server.model import Model
 
-class GetComponentMixin( GetWithIDMixin ):#{{{
+class GetComponentMixin( GetWithIDMixin ):
 	__request__  = 'GetComponent'
 	__response__ = 'Component'
 
@@ -17,23 +17,20 @@ class GetComponentMixin( GetWithIDMixin ):#{{{
 	def convert_properties( self, packet, obj ):
 		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
 				sorted( (prop.property_id, prop.value) for prop in obj.properties )
-#}}}
 
-class GetComponentWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetComponentWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetComponent request? """
 
 	__request__ = 'GetComponent'
-#}}}
 
-class GetExistingComponent( GetItemWithID, GetComponentMixin ):#{{{
+class GetExistingComponent( GetItemWithID, GetComponentMixin ):
 	""" Does server respond properly if asked about existing category? """
 
 	@property
 	def item( self ):
 		return self.ctx['components'][0]
-#}}}
 
-class GetNonExistentComponent( GetItemWithID, GetComponentMixin ):#{{{
+class GetNonExistentComponent( GetItemWithID, GetComponentMixin ):
 	""" Does server fail to respond if asked about nonexistent category? """
 
 	__fail__ = 'NoSuchThing'
@@ -44,23 +41,20 @@ class GetNonExistentComponent( GetItemWithID, GetComponentMixin ):#{{{
 	
 	def getId( self, item ):
 		return self.item.id + 666
-#}}}
 
-class GetAllComponents( GetItemsWithID, GetComponentMixin ):#{{{
+class GetAllComponents( GetItemsWithID, GetComponentMixin ):
 	""" Does server return sequence of Component packets if asked about all components? """
 
 	@property
 	def items( self ):
 		return self.ctx['components']
-#}}}
 
-class GetComponentIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetComponentIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetComponentIDs request? """
 
 	__request__ = 'GetComponentIDs'
-#}}}
 
-class GetAllComponentIDs( GetItemIDs ):#{{{
+class GetAllComponentIDs( GetItemIDs ):
 	""" Does server return the IDs of all available Components? """
 
 	__request__  = 'GetComponentIDs'
@@ -70,20 +64,17 @@ class GetAllComponentIDs( GetItemIDs ):#{{{
 	@property
 	def items( self ):
 		return self.ctx['components']
-#}}}
 
-class GetComponentTestSuite( TestSuite ):#{{{
+class GetComponentTestSuite( TestSuite ):
 	__name__  = 'GetComponent'
 	__tests__ = [ GetComponentWhenNotLogged, GetExistingComponent,
 			GetNonExistentComponent, GetAllComponents ]
-#}}}
 
-class GetComponentIDsTestSuite( TestSuite ):#{{{
+class GetComponentIDsTestSuite( TestSuite ):
 	__name__  = 'GetComponentIDs'
 	__tests__ = [ GetComponentIDsWhenNotLogged, GetAllComponentIDs ]
-#}}}
 
-class ComponentsTestSuite( TestSuite ):#{{{
+class ComponentsTestSuite( TestSuite ):
 	""" Performs all tests related to GetComponent and GetComponentIDs requests. """
 	__name__  = 'Components'
 	__tests__ = [ GetComponentTestSuite, GetComponentIDsTestSuite ]
@@ -177,6 +168,5 @@ class ComponentsTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['components'], self.ctx['properties'], self.ctx['categories'] )
-#}}}
 
 __tests__ = [ ComponentsTestSuite ]

@@ -4,16 +4,15 @@ from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
 
 from tp.server.model import Model
 
-class GetMessageMixin( GetWithIDMixin ):#{{{
+class GetMessageMixin( GetWithIDMixin ):
 	__request__  = 'GetMessage'
 	__response__ = 'Message'
 
 	__attrs__   = [ 'id', 'slot', 'subject' ]
 	__attrmap__ = {}
 	__attrfun__ = [ 'modtime' ]
-#}}}
 
-class GetExistingMessage( AuthorizedTestSession ):#{{{
+class GetExistingMessage( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing message? """
 
 	def __iter__( self ):
@@ -29,9 +28,8 @@ class GetExistingMessage( AuthorizedTestSession ):#{{{
 
 		assert packet.slot == message.id, \
 				"Server responded with different SlotId than requested!"
-#}}}
 
-class GetNonExistentMessage1( AuthorizedTestSession ):#{{{
+class GetNonExistentMessage1( AuthorizedTestSession ):
 	""" Does server fail to respond if asked about non-existent message (wrong MessageId)? """
 
 	def __iter__( self ):
@@ -44,9 +42,8 @@ class GetNonExistentMessage1( AuthorizedTestSession ):#{{{
 
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent BoardId = %d!" % ( board.id + 666 )
-#}}}
 
-class GetNonExistentMessage2( AuthorizedTestSession ):#{{{
+class GetNonExistentMessage2( AuthorizedTestSession ):
 	""" Does server fail to respond if asked about non-existent message (wrong SlotId)? """
 
 	def __iter__( self ):
@@ -59,9 +56,8 @@ class GetNonExistentMessage2( AuthorizedTestSession ):#{{{
 
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 )
-#}}}
 
-class GetMultipleMessages( AuthorizedTestSession ):#{{{
+class GetMultipleMessages( AuthorizedTestSession ):
 	""" Does server return sequence of Message packets if asked about two messages? """
 
 	def __iter__( self ):
@@ -78,9 +74,8 @@ class GetMultipleMessages( AuthorizedTestSession ):#{{{
 
 		assert p1.slot == message3.id and p2.slot == message1.id, \
 			"Server returned different MessageSlots (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, message3.id, message1.id)
-#}}}
 
-class PostMessage( AuthorizedTestSession ):#{{{
+class PostMessage( AuthorizedTestSession ):
 	""" Tries to send message to default board. """
 
 	def setUp( self ):
@@ -100,30 +95,26 @@ class PostMessage( AuthorizedTestSession ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( getattr( self, 'msg', None ) )
-#}}}
 
-class GetMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
+class GetMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetMessage request? """
 
 	__request__ = 'GetMessage'
-#}}}
 
-class RemoveMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):#{{{
+class RemoveMessageWhenNotLogged( GetWithIDSlotWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got RemoveMessage request? """
 
 	__request__ = 'RemoveMessage'
-#}}}
 
-class PostMessageWhenNotLogged( WhenNotLogged ):#{{{
+class PostMessageWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got PostMessage request? """
 
 	__request__ = 'PostMessage'
 
 	def makeRequest( self, PostMessage ):
 		return PostMessage( self.seq, 1, 1, [], "Subject", "Body", 0, [] )
-#}}}
 
-class MessageTestSuite( TestSuite ):#{{{
+class MessageTestSuite( TestSuite ):
 	__name__  = 'Messages'
 	__tests__ = [ GetMessageWhenNotLogged, PostMessageWhenNotLogged,
 			RemoveMessageWhenNotLogged, GetExistingMessage,
@@ -164,6 +155,5 @@ class MessageTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['board'] )
-#}}}
 
 __tests__ = [ MessageTestSuite ]

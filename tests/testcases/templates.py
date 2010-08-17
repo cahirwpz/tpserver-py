@@ -2,35 +2,31 @@ import time
 
 from common import AuthorizedTestSession, ConnectedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf, TestSessionUtils
 
-class GetWithIDWhenNotLogged( ConnectedTestSession ):#{{{
+class GetWithIDWhenNotLogged( ConnectedTestSession ):
 	__request__ = None
 
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
 		yield Request( self.seq, [1] ), ExpectFail('UnavailableTemporarily')
-#}}}
 
-class WhenNotLogged( ConnectedTestSession ):#{{{
+class WhenNotLogged( ConnectedTestSession ):
 	__request__ = None
 
 	def __iter__( self ):
 		RequestType = self.protocol.use( self.__request__ )
 
 		yield self.makeRequest( RequestType ), ExpectFail('UnavailableTemporarily')
-#}}}
 
-class GetWithIDSlotWhenNotLogged( WhenNotLogged ):#{{{
+class GetWithIDSlotWhenNotLogged( WhenNotLogged ):
 	def makeRequest( self, GetWithID ):
 		return GetWithID( self.seq, 1, [1] )
-#}}}
 
-class GetIDSequenceWhenNotLogged( ConnectedTestSession ):#{{{
+class GetIDSequenceWhenNotLogged( ConnectedTestSession ):
 	def makeRequest( self, IDSequence):
 		return IDSequence( self.seq, -1, 0, -1 )
-#}}}
 
-class GetItemWithID( AuthorizedTestSession ):#{{{
+class GetItemWithID( AuthorizedTestSession ):
 	"""
 	Must provide two class attributes:
 	__request__  name of a request
@@ -69,9 +65,8 @@ class GetItemWithID( AuthorizedTestSession ):#{{{
 			assert packet.type == 'Fail' and packet.code == code, msg
 		else:
 			self.assertEqual( packet, self.item )
-#}}}
 
-class GetItemsWithID( AuthorizedTestSession ):#{{{
+class GetItemsWithID( AuthorizedTestSession ):
 	@property
 	def items( self ):
 		raise NotImplementedError
@@ -100,9 +95,8 @@ class GetItemsWithID( AuthorizedTestSession ):#{{{
 		for p, b in zip( packets[1:], self.items ):
 			if not self.getFail( b ):
 				self.assertEqual( p, b )
-#}}}
 
-class GetWithIDMixin( object ):#{{{
+class GetWithIDMixin( object ):
 	def convert_modtime( self, packet, obj ):
 		pval = packet.modtime
 		oval = long( time.mktime( time.strptime( obj.mtime.ctime() ) ) )
@@ -123,9 +117,8 @@ class GetWithIDMixin( object ):#{{{
 
 			assert pval == oval, \
 					"Server responded with different %s(%d).%s (%s) than expected (%s)!" % ( self.__response__, packet.id, attr, pval, oval )
-#}}}
 
-class GetItemIDs( AuthorizedTestSession, TestSessionUtils ):#{{{
+class GetItemIDs( AuthorizedTestSession, TestSessionUtils ):
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
@@ -145,7 +138,6 @@ class GetItemIDs( AuthorizedTestSession, TestSessionUtils ):#{{{
 					"Expected id (%s) and %s.id (%s) to be equal" % ( item.id, obj.__origname__, obj.id )
 			assert item.modtime == self.datetimeToInt( obj.mtime ), \
 					"Expected modtime (%s) and %s.mtime (%s) to be equal." % ( item.modtime, obj.__origname__, self.datetimeToInt( obj.mtime ) )
-#}}}
 
 __all__ = [ 'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
 			'GetWithIDSlotWhenNotLogged', 'WhenNotLogged', 'GetItemWithID'

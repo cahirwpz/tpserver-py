@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 from Model import ModelObject
 
-class Player( ModelObject ):#{{{
+class Player( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -32,6 +32,5 @@ class Player( ModelObject ):#{{{
 
 	def __str__(self):
 		return '<%s@%s id="%s" username="%s">' % ( self.__origname__, self.__game__.name, self.id, self.username )
-#}}}
 
 __all__ = [ 'Player' ]

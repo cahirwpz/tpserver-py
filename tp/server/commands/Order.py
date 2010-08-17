@@ -2,7 +2,7 @@
 
 from Common import MustBeLogged, RequestHandler, GetWithIDHandler, GetWithIDSlotHandler, GetIDSequenceHandler, FactoryMixin
 
-class OrderFactoryMixin( FactoryMixin ):#{{{
+class OrderFactoryMixin( FactoryMixin ):
 	def fromPacket( self, request ):
 		Order = self.model.use( 'Order' )
 
@@ -12,40 +12,35 @@ class OrderFactoryMixin( FactoryMixin ):#{{{
 		Order = self.protocol.use( 'Order' )
 
 		return None
-#}}}
 
-class OrderDescFactoryMixin( FactoryMixin ):#{{{
+class OrderDescFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, obj ):
 		OrderDesc = self.protocol.use( 'OrderDesc' )
 
 		return None
-#}}}
 
-class GetOrder( GetWithIDSlotHandler, OrderFactoryMixin ):#{{{
+class GetOrder( GetWithIDSlotHandler, OrderFactoryMixin ):
 	"""
 	Request:  GetOrder :: GetWithIDSlot
 	Response: Order | Sequence + Order{2,n}
 	"""
 	__object__ = 'Order'
-#}}}
 
-class GetOrderDesc( GetWithIDHandler, OrderDescFactoryMixin ):#{{{
+class GetOrderDesc( GetWithIDHandler, OrderDescFactoryMixin ):
 	"""
 	Request:  GetOrderDesc :: GetWithID
 	Response: OrderDesc | Sequence + OrderDesc{2,n}
 	"""
-#}}}
 
-class GetOrderDescIDs( GetIDSequenceHandler ):#{{{
+class GetOrderDescIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetOrderDescIDs :: GetIDSequence
 	Response: IDSequence
 	"""
 	__packet__ = 'OrderDescIDs'
 	__object__ = 'Order'
-#}}}
 
-class OrderInsert( RequestHandler ):#{{{
+class OrderInsert( RequestHandler ):
 	"""
 	Request:  OrderInsert :: Order
 	Response: Okay | Fail
@@ -53,9 +48,8 @@ class OrderInsert( RequestHandler ):#{{{
 	@MustBeLogged
 	def __call__( self, request ):
 		return request
-#}}}
 
-class OrderProbe( RequestHandler ):#{{{
+class OrderProbe( RequestHandler ):
 	"""
 	Request:  OrderProbe :: Order
 	Response: Order | Fail
@@ -63,14 +57,12 @@ class OrderProbe( RequestHandler ):#{{{
 	@MustBeLogged
 	def __call__( self, request ):
 		pass
-#}}}
 
-class RemoveOrder( GetWithIDSlotHandler ):#{{{
+class RemoveOrder( GetWithIDSlotHandler ):
 	"""
 	Request:  RemoveOrder :: GetWithIDSlot
 	Response: ( Okay | Fail ) | Sequence + ( Okay | Fail ){2,n}
 	"""
-#}}}
 
 __all__ = [ 'GetOrder', 'GetOrderDesc', 'GetOrderDescIDs', 'OrderInsert',
 			'OrderProbe', 'RemoveOrder' ]

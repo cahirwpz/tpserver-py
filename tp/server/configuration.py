@@ -6,15 +6,14 @@ Classes related to configuration reading, writing and applying it to components.
 
 import inspect, optparse, textwrap
 
-class ConfigurationError( BaseException ):#{{{
+class ConfigurationError( BaseException ):
 	"""
 	Configuration error exception.
 	
 	Raised if configuring a component has failed.
 	"""
-#}}}
 
-class Option( object ):#{{{
+class Option( object ):
 	__name__ = None
 
 	def __init__( self, help, short = None, default = None, arg_name = None ):
@@ -37,9 +36,8 @@ class Option( object ):#{{{
 			return "<%s object at 0x%x>" % ( self.__class__.__name__, id(self) )
 		else:
 			return "<%s \'%s\' object at 0x%x>" % ( self.__class__.__name__, self.__name__, id(self) )
-#}}}
 
-class BooleanOption( Option ):#{{{
+class BooleanOption( Option ):
 	def __init__( self, **kwargs ):
 		Option.__init__( self, **kwargs )
 	
@@ -48,9 +46,8 @@ class BooleanOption( Option ):#{{{
 			raise ConfigurationError( '%s flag must be a boolean' % self.name )
 
 		Option.__set__( self, obj, value )
-#}}}
 
-class IntegerOption( Option ):#{{{
+class IntegerOption( Option ):
 	def __init__( self, min = None, max = None, **kwargs ):
 		self.__min = min
 		self.__max = max
@@ -71,9 +68,8 @@ class IntegerOption( Option ):#{{{
 	@property
 	def type( self ):
 		return int
-#}}}
 
-class StringOption( Option ):#{{{
+class StringOption( Option ):
 	def __init__( self, allow_empty = False, **kwargs ):
 		self.__allow_empty = allow_empty
 
@@ -88,9 +84,8 @@ class StringOption( Option ):#{{{
 	@property
 	def type( self ):
 		return str
-#}}}
 
-class StringSetOption( Option ):#{{{
+class StringSetOption( Option ):
 	def __init__( self, values, **kwargs ):
 		self.__values = values
 
@@ -108,9 +103,8 @@ class StringSetOption( Option ):#{{{
 	@property
 	def type( self ):
 		return str
-#}}}
 
-class ComponentConfigurationCreator( type ):#{{{
+class ComponentConfigurationCreator( type ):
 	def __call__( cls ):
 		options = {}
 
@@ -122,12 +116,11 @@ class ComponentConfigurationCreator( type ):#{{{
 		instance = type.__call__( cls )
 		instance.options = options
 		return instance
-#}}}
 
 class ComponentConfiguration( object ):
 	__metaclass__ = ComponentConfigurationCreator
 
-class Configurator( object ):#{{{
+class Configurator( object ):
 	"""
 	Class handling components and their configuration.
 	"""
@@ -153,9 +146,8 @@ class Configurator( object ):#{{{
 			if name in self.options:
 				raise ConfigurationError( "Option %s in component %s cannot be registered: conflict with %s component!" % (component, name, self.options[ name ]) )
 			self.options[ name ] = ( option, configuration )
-#}}}
 
-class CLIHelpFormatter( optparse.IndentedHelpFormatter ):#{{{
+class CLIHelpFormatter( optparse.IndentedHelpFormatter ):
 	"""
 	Help formatter.
 
@@ -224,9 +216,8 @@ class CLIHelpFormatter( optparse.IndentedHelpFormatter ):#{{{
 			default = ''
 
 		return '%s%s\n%s\n\n' % ( options, default, help )
-#}}}
 
-class CLIConfigurator( Configurator ):#{{{
+class CLIConfigurator( Configurator ):
 	"""
 	Configurator that reads configuration from command line interface.
 	"""
@@ -326,7 +317,6 @@ class CLIConfigurator( Configurator ):#{{{
 		"""
 
 		self.__parser.print_help()
-#}}}
 
 __all__ = [ 'ConfigurationError', 'ConfigurationOption', 'ComponentConfiguration', 'CLIConfigurator', 'Configurator',
 			'BooleanOption', 'IntegerOption', 'StringOption', 'StringSetOption' ]

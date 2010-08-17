@@ -3,12 +3,11 @@
 from tp.server.rules.base.utils import OrderGet
 from tp.server.logging import msg
 
-class Action( object ):#{{{
+class Action( object ):
 	def __call__( self, *args, **kwargs ):
 		pass
-#}}}
 
-class UniverseAction( object ):#{{{
+class UniverseAction( object ):
 	"""
 	Anything that happens without requiring the user to initiate.
 	Some examples would be Combat or growing the Population.
@@ -37,9 +36,8 @@ class UniverseAction( object ):#{{{
 		A parent will appear before it's child.
 		"""
 		self.__walk( top, order, callback, *args, **kwargs )
-#}}}
 
-class ActionProcessor( object ):#{{{
+class ActionProcessor( object ):
 	def __init__( self, ruleset ):
 		self.ruleset = ruleset
 
@@ -106,6 +104,5 @@ class ActionProcessor( object ):#{{{
 
 		# Create a EOT event
 		Event.new('endofturn', self.game)
-#}}}
 
 __all__ = [ 'Action', 'UniverseAction', 'ActionProcessor' ]

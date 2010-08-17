@@ -9,7 +9,7 @@ import inspect, time
 
 from collections import Mapping
 
-class ProtocolPackets( Mapping ):#{{{
+class ProtocolPackets( Mapping ):
 	def __init__( self, filename ):
 		packets = parser.parseFile( filename )
 
@@ -46,13 +46,12 @@ class ProtocolPackets( Mapping ):#{{{
 
 	def __len__( self ):
 		return self.__byName.__len__()
-#}}}
 
 ProtocolDefinitionFiles = [
 	( "TP03", "libtpproto2-py/tp/netlib/protocol3.xml" ),
 	( "TP\x04\x00", "libtpproto2-py/tp/netlib/protocol.xml" ) ]
 
-class PacketFactory( Mapping ):#{{{
+class PacketFactory( Mapping ):
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
@@ -86,9 +85,8 @@ class PacketFactory( Mapping ):#{{{
 			packet = None
 
 		return packet
-#}}}
 
-def PacketFormatter( packet ):#{{{
+def PacketFormatter( packet ):
 	attrs = []
 
 	for structure in packet.structures:
@@ -124,6 +122,5 @@ def PacketFormatter( packet ):#{{{
 	column_size = max( map( lambda x: len(x[0]), attrs ) ) + 1
 
 	return "\n".join( [ " %s%s" % (name.ljust(column_size), val) for name, val in attrs ] )
-#}}}
 
 __all__ = [ 'PacketFactory', 'PacketFormatter' ]

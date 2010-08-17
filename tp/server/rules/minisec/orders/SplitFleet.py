@@ -8,7 +8,7 @@ import copy
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ReferenceListParam, StringParam
 
-class SplitFleetOrder( object ):#{{{
+class SplitFleetOrder( object ):
 	"""
 	Split some ships into a new fleet.
 	"""
@@ -93,6 +93,5 @@ class SplitFleetOrder( object ):#{{{
 				pass
 
 			self.ships = ships
-#}}}
 
 __all__ = [ 'SplitFleetOrder' ]

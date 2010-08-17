@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation, backref
 
 from Model import ModelObject
 
-class Board( ModelObject ):#{{{
+class Board( ModelObject ):
 	"""
 	Board which contains posts about stuff.
 
@@ -35,6 +35,5 @@ class Board( ModelObject ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
 __all__ = [ 'Board' ]

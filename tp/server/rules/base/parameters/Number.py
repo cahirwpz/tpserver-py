@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
-class NumberParam( object ):#{{{
+class NumberParam( object ):
 	__maps_to__ = 'value'
 
 	@classmethod
@@ -13,6 +13,5 @@ class NumberParam( object ):#{{{
 				Column('value',    Integer, nullable = False ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Number' )
-#}}}
 
 __all__ = [ 'NumberParam' ]

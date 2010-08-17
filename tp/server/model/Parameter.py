@@ -7,7 +7,7 @@ from sqlalchemy.orm import mapper
 
 from tp.server.model import ModelObject
 
-class ParameterDesc( object ):#{{{
+class ParameterDesc( object ):
 	def __init__( self, type, level, default = None, description = None ):
 		self.type			= type
 		self.level			= level
@@ -55,9 +55,8 @@ class ParameterDesc( object ):#{{{
 			return "<%s object at 0x%x>" % ( self.__class__.__name__, id(self) )
 		else:
 			return "<%s \'%s\' object at 0x%x>" % ( self.__class__.__name__, self.__name__, id(self) )
-#}}}
 
-class ParametrizedClass( type ):#{{{
+class ParametrizedClass( type ):
 	def __call__( cls, *args, **kwargs ):
 		if not hasattr( cls, '__parameters__' ):
 			cls.__parameters__ = {}
@@ -69,9 +68,8 @@ class ParametrizedClass( type ):#{{{
 					cls.__parameters__[ name ] = value
 
 		return type.__call__( cls, *args, **kwargs )
-#}}}
 
-class Parameter( ModelObject ):#{{{
+class Parameter( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -81,6 +79,5 @@ class Parameter( ModelObject ):#{{{
 		cols = cls.__table__.c
 
 		mapper( cls, cls.__table__, polymorphic_on = cols.type, polymorphic_identity = 'None' )
-#}}}
 
 __all__ = [ 'ParametrizedClass', 'ParameterDesc', 'Parameter' ]

@@ -7,7 +7,7 @@ from sqlalchemy.orm import mapper, relation, backref, class_mapper
 
 from Model import ModelObject, ByNameMixin
 
-class Design( ModelObject, ByNameMixin ):#{{{
+class Design( ModelObject, ByNameMixin ):
 	"""
 	Design of things.
 	"""
@@ -41,7 +41,7 @@ class Design( ModelObject, ByNameMixin ):#{{{
 
 		session.delete( self )
 
-#{{{
+
 	# @property
 	# def used(self):
 	#	"""
@@ -250,13 +250,11 @@ class Design( ModelObject, ByNameMixin ):#{{{
 	#	
 	#	self._check = (total_okay, "\n".join(total_feedback))
 	#	return total_okay, "\n".join(total_feedback)
-#}}}
 
 	def __str__(self):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
-class DesignCategory( ModelObject ):#{{{
+class DesignCategory( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Design, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -282,9 +280,8 @@ class DesignCategory( ModelObject ):#{{{
 	def __str__( self ):
 		return '<%s@%s id="%s" design="%s", category="%s">' % \
 				( self.__origname__, self.__game__.name, self.design.name, self.category.name )
-#}}}
 
-class DesignComponent( ModelObject ):#{{{
+class DesignComponent( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Design, Component ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -308,9 +305,8 @@ class DesignComponent( ModelObject ):#{{{
 	def __str__( self ):
 		return '<%s@%s id="%s" design="%s", component="%s">' % \
 				( self.__origname__, self.__game__.name, self.design.name, self.component.name )
-#}}}
 
-class DesignProperty( ModelObject ):#{{{
+class DesignProperty( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Design, Property ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -334,6 +330,5 @@ class DesignProperty( ModelObject ):#{{{
 	def __str__( self ):
 		return '<%s@%s id="%s" design="%s", property="%s">' % \
 				( self.__origname__, self.__game__.name, self.design.name, self.property.name )
-#}}}
 
 __all__ = [ 'Design', 'DesignCategory', 'DesignComponent', 'DesignProperty' ]

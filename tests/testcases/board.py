@@ -4,7 +4,7 @@ from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetIte
 
 from tp.server.model import Model
 
-class GetBoardsMixin( GetWithIDMixin ):#{{{
+class GetBoardsMixin( GetWithIDMixin ):
 	__request__  = 'GetBoards'
 	__response__ = 'Board'
 
@@ -14,9 +14,8 @@ class GetBoardsMixin( GetWithIDMixin ):#{{{
 
 	def convert_messages( self, packet, obj ):
 		return packet.messages, len( obj.messages )
-#}}}
 
-class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server respond with current board information? """
 
 	@property
@@ -29,17 +28,15 @@ class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 
 	def getId( self, item ):
 		return 0
-#}}}
 
-class GetExistingBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetExistingBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server respond properly if asked about existing board? """
 
 	@property
 	def item( self ):
 		return self.ctx['boards'][1]
-#}}}
 
-class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server fail to respond if asked about nonexistent board? """
 
 	__fail__ = 'NoSuchThing'
@@ -50,25 +47,22 @@ class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	
 	def getId( self, item ):
 		return self.item.id + 666
-#}}}
 
-class GetPublicBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetPublicBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server allow to fetch public Board? """
 
 	@property
 	def item( self ):
 		return self.ctx['boards'][3]
-#}}}
 
-class GetPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetPrivateBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server allow to fetch private Board owned by the player? """
 
 	@property
 	def item( self ):
 		return self.ctx['boards'][0]
-#}}}
 
-class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
+class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):
 	""" Does server disallow to fetch private Board of another player? """
 
 	__fail__ = 'PermissionDenied'
@@ -76,17 +70,15 @@ class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):#{{{
 	@property
 	def item( self ):
 		return self.ctx['boards'][2]
-#}}}
 
-class GetMultipleBoards( GetItemsWithID, GetBoardsMixin ):#{{{
+class GetMultipleBoards( GetItemsWithID, GetBoardsMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
 	def items( self ):
 		return [ self.ctx['boards'][1], self.ctx['boards'][0] ]
-#}}}
 
-class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin ):#{{{
+class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
@@ -96,9 +88,8 @@ class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin ):#{{{
 	def getFail( self, item ):
 		if item.owner not in [ None, self.player ]:
 			return 'PermissionDenied'
-#}}}
 
-class GetNumberOfBoards( AuthorizedTestSession ):#{{{
+class GetNumberOfBoards( AuthorizedTestSession ):
 	""" Does server return the number of accessible Board IDs? """
 
 	def __iter__( self ):
@@ -110,9 +101,8 @@ class GetNumberOfBoards( AuthorizedTestSession ):#{{{
 				"If requested the number of available IDs, then value of IDSequence.remaining should be 3 instead of %d" % idseq.remaining
 		assert len( idseq.modtimes ) == 0, \
 				"Expected to get no Boards"
-#}}}
 
-class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):#{{{
+class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):
 	""" Does server return the IDs of Boards that are accessible by the player? """
 
 	def __iter__( self ):
@@ -130,9 +120,8 @@ class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):#{{{
 		for item, board in zip( sorted( idseq.modtimes, cmpId ), boards ):
 			assert item.id == board.id, "Expected id (%s) and Board.id (%s) to be equal" % ( item.id )
 			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
-#}}}
 
-class GetBoardIDsOneByOne( AuthorizedTestSession ):#{{{
+class GetBoardIDsOneByOne( AuthorizedTestSession ):
 	""" Does server support IDSequence.key field properly? """
 
 	def __iter__( self ):
@@ -154,21 +143,18 @@ class GetBoardIDsOneByOne( AuthorizedTestSession ):#{{{
 
 		assert idseq.remaining == 0, \
 				"There should be no Board left."
-#}}}
 
-class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetBoards request? """
 
 	__request__ = 'GetBoards'
-#}}}
 
-class GetBoardIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):#{{{
+class GetBoardIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetBoardIds request? """
 
 	__request__ = 'GetBoardIDs'
-#}}}
 
-class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
+class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):
 	""" Check if all fetched BoardIDs represent Boards that are accessible by the player. """
 
 	@property
@@ -194,23 +180,20 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):#{{{
 
 		assert p1.id == ids[0] and p2.id == ids[1], \
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
-#}}}
 
-class GetBoardsTestSuite( TestSuite ):#{{{
+class GetBoardsTestSuite( TestSuite ):
 	__name__  = 'GetBoards'
 	__tests__ = [ GetBoardWhenNotLogged, GetCurrentBoard, GetExistingBoard,
 			GetNonExistentBoard, GetPublicBoard, GetPrivateBoard,
 			GetOtherPlayerPrivateBoard, GetMultipleBoards,
 			GetMultipleBoardsWithOneFail ]
-#}}}
 
-class GetBoardIDsTestSuite( TestSuite ):#{{{
+class GetBoardIDsTestSuite( TestSuite ):
 	__name__  = 'GetBoardIDs'
 	__tests__ = [ GetBoardIDsWhenNotLogged, GetNumberOfBoards,
 			AllFetchedBoardsAreAccessible, GetAllAvailableBoards, GetBoardIDsOneByOne ]
-#}}}
 
-class BoardTestSuite( TestSuite ):#{{{
+class BoardTestSuite( TestSuite ):
 	""" Performs all tests related to GetBoards and GetBoardIDs requests. """
 	__name__  = 'Boards'
 	__tests__ = [ GetBoardsTestSuite, GetBoardIDsTestSuite ]
@@ -246,6 +229,5 @@ class BoardTestSuite( TestSuite ):#{{{
 	
 	def tearDown( self ):
 		Model.remove( self.ctx['boards'] )
-#}}}
 
 __tests__ = [ BoardTestSuite ]

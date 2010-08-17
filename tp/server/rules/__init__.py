@@ -4,7 +4,7 @@ from collections import Mapping
 from tp.server.singleton import SingletonContainerClass
 from tp.server.rules.base import Ruleset
 
-class RulesetManager( Mapping ):#{{{
+class RulesetManager( Mapping ):
 	__metaclass__ = SingletonContainerClass
 
 	def __init__( self ):
@@ -32,6 +32,5 @@ class RulesetManager( Mapping ):#{{{
 
 	def __len__( self ):
 		return self.__ruleset.__len__()
-#}}}
 
 __all__ = [ 'RulesetManager' ]

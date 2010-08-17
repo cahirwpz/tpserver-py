@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper, relation
 
 from Model import ModelObject, ByNameMixin
 
-class Category( ModelObject, ByNameMixin ):#{{{
+class Category( ModelObject, ByNameMixin ):
 	"""
 	Categories which help group things together.
 	"""
@@ -28,6 +28,5 @@ class Category( ModelObject, ByNameMixin ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s" owner="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name, self.owner_id )
-#}}}
 
 __all__ = [ 'Category' ]

@@ -5,7 +5,7 @@ from tp.server.gamemanager import GameManager
 
 from Common import FactoryMixin, RequestHandler, GetWithIDHandler
 
-class PlayerFactoryMixin( FactoryMixin ):#{{{
+class PlayerFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, obj ):
 		Player = self.protocol.use( 'Player' )
 
@@ -14,16 +14,14 @@ class PlayerFactoryMixin( FactoryMixin ):#{{{
 				obj.id,
 				obj.username,
 				"" )
-#}}}
 
-class CreateAccount( RequestHandler ):#{{{
+class CreateAccount( RequestHandler ):
 	"""
 	Request:  CreateAccount
 	Response: Okay | Fail
 	"""
-#}}}
 
-class GetPlayer( GetWithIDHandler, PlayerFactoryMixin ):#{{{
+class GetPlayer( GetWithIDHandler, PlayerFactoryMixin ):
 	"""
 	Request:  GetPlayer :: GetWithID
 	Response: Player | Sequence + Player{2,n}
@@ -35,9 +33,8 @@ class GetPlayer( GetWithIDHandler, PlayerFactoryMixin ):#{{{
 			return self.player
 
 		return GetWithIDHandler.fetch( self, obj, id )
-#}}}
 
-class Login( RequestHandler ):#{{{
+class Login( RequestHandler ):
 	"""
 	Request:  Login
 	Response: Okay | Fail
@@ -71,6 +68,5 @@ class Login( RequestHandler ):#{{{
 			return Okay( request._sequence, "Welcome user '%s' in game '%s'!" % ( username, game.name ) )
 		else:
 			return Fail( request._sequence, "NoSuchThing", "Login incorrect or unknown username!" )
-#}}}
 
 __all__ = [ 'CreateAccount', 'GetPlayer', 'Login' ]

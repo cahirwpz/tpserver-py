@@ -6,7 +6,7 @@ from tp.server.model import Model
 from tp.server.rules.base import Ruleset
 from tp.server.rules.minisec import MinisecRuleset, MinisecUniverseGenerator
 
-class MinisecPlusUniverseGenerator( MinisecUniverseGenerator ):#{{{
+class MinisecPlusUniverseGenerator( MinisecUniverseGenerator ):
 	def createFleet( self, parent, name, owner = None):
 		Fleet, DesignQuantity, Design = self.model.use( 'Fleet', 'DesignQuantity', 'Design' )
 
@@ -33,9 +33,8 @@ class MinisecPlusUniverseGenerator( MinisecUniverseGenerator ):#{{{
 							inaccessible = self.randint( 0, 1000 )))
 
 		Model.update( planet )
-#}}}
 
-class MinisecPlusRuleset( MinisecRuleset ):#{{{
+class MinisecPlusRuleset( MinisecRuleset ):
 	"""
 	Minisec+ Ruleset.
 
@@ -241,6 +240,5 @@ class MinisecPlusRuleset( MinisecRuleset ):#{{{
 				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
 
 		Model.update( planet )
-#}}}
 
 __all__ = [ 'MinisecPlusRuleset' ]

@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-class ReferenceListParam( object ):#{{{
+class ReferenceListParam( object ):
 	# TODO: constraint checking!
 	#  - 'references' list items must be present in 'allowed' list
 	#  - 'allowed' list items must be unique
@@ -22,6 +22,5 @@ class ReferenceListParam( object ):#{{{
 				primaryjoin = cls.__table__.c.allowed_list_id == NumberList.__table__.c.id,
 				collection_class = set )
 			})
-#}}}
 
 __all__ = [ 'ReferenceListParam' ]

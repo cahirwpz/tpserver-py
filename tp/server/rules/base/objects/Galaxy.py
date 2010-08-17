@@ -2,8 +2,7 @@
 
 from tp.server.model import ParametrizedClass
 
-class Galaxy( object ):#{{{
+class Galaxy( object ):
 	__metaclass__ = ParametrizedClass
-#}}}
 
 __all__ = [ 'Galaxy' ]

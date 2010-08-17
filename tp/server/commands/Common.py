@@ -5,7 +5,7 @@ import time
 from tp.server.model import Model
 from tp.server.logging import msg
 
-def MustBeLogged( func ):#{{{
+def MustBeLogged( func ):
 	def check( self, request ):
 		"""
 		Checks if the user is logged in (TODO: and the turn is not being currently processed)
@@ -18,14 +18,12 @@ def MustBeLogged( func ):#{{{
 		return func( self, request )
 	
 	return check
-#}}}
 
-class FactoryMixin( object ):#{{{
+class FactoryMixin( object ):
 	def datetimeToInt( self, t ):
 		return int( time.mktime( time.strptime( t.ctime() ) ) )
-#}}}
 
-class RequestHandler( object ):#{{{
+class RequestHandler( object ):
 	def __init__( self, protocol, context ):
 		self.protocol = protocol
 		self.context  = context
@@ -53,9 +51,8 @@ class RequestHandler( object ):#{{{
 
 	def Sequence( self, request, length ):
 		return self.protocol['Sequence']( request._sequence, length )
-#}}}
 
-class WithIDHandler( RequestHandler ):#{{{
+class WithIDHandler( RequestHandler ):
 	__object__ = None
 
 	def authorize( self, obj ):
@@ -102,32 +99,28 @@ class WithIDHandler( RequestHandler ):#{{{
 			response.append( self.Fail( request, "Protocol", "List of IDs must be nonempty!" ) )
 
 		return response
-#}}}
 
-class GetWithIDHandler( WithIDHandler ):#{{{
+class GetWithIDHandler( WithIDHandler ):
 	__object__ = None
 
 	def process( self, request, obj ):
 		return self.toPacket( request, obj )
-#}}}
 
-class RemoveWithIDHandler( WithIDHandler ):#{{{
+class RemoveWithIDHandler( WithIDHandler ):
 	__object__ = None
 
 	def process( self, request, obj ):
 		Model.remove( obj )
 
 		return self.Okay( request, "%s with id = %d removed." % ( obj.__origname__, obj.id ) )
-#}}}
 
-class IDSequence( object ):#{{{
+class IDSequence( object ):
 	def __init__( self, key, remaining, objects ):
 		self.key       = key
 		self.remaining = remaining
 		self.objects   = objects
-	#}}}
 
-class IDSequenceFactoryMixin( FactoryMixin ):#{{{
+class IDSequenceFactoryMixin( FactoryMixin ):
 	__packet__ = None
 
 	def toPacket( self, request, obj ):
@@ -138,9 +131,8 @@ class IDSequenceFactoryMixin( FactoryMixin ):#{{{
 				obj.key,
 				obj.remaining,
 				[ ( obj.id, self.datetimeToInt( obj.mtime ) ) for obj in obj.objects ] )
-#}}}
 
-class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
+class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):
 	__object__ = None
 
 	@property
@@ -201,9 +193,8 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):#{{{
 					Object.query().filter( self.filter ).order_by( Object.mtime )[ request.start : request.start + request.amount ] )
 
 		return self.toPacket( request, response )
-	#}}}
 
-class WithIDSlotHandler( RequestHandler ):#{{{
+class WithIDSlotHandler( RequestHandler ):
 	__container__ = None
 
 	def authorize( self, obj ):
@@ -258,19 +249,16 @@ class WithIDSlotHandler( RequestHandler ):#{{{
 			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response
-#}}}
 
-class GetWithIDSlotHandler( WithIDSlotHandler ):#{{{
+class GetWithIDSlotHandler( WithIDSlotHandler ):
 	def process( self, request, item, slot ):
 		return self.toPacket( request, item )
-#}}}
 
-class RemoveWithIDSlotHandler( WithIDSlotHandler ):#{{{
+class RemoveWithIDSlotHandler( WithIDSlotHandler ):
 	def process( self, request, item, slot ):
 		Model.remove( item )
 
 		return self.Okay( request, "Removed %s with slot = %d." % ( item.__origname__, slot ) )
-#}}}
 
 __all__ = [ 'FactoryMixin', 'MustBeLogged', 'RequestHandler',
 			'GetWithIDHandler', 'RemoveWithIDHandler', 'GetIDSequenceHandler',

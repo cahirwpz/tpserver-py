@@ -6,7 +6,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from Model import ModelObject, ByNameMixin
 
-class Order( ModelObject ):#{{{
+class Order( ModelObject ):
 	"""
 	How to tell objects what to do.
 	"""
@@ -39,9 +39,8 @@ class Order( ModelObject ):#{{{
 
 	def __str__( self ):
 		return '<%s@%s id="%s" type="%s" object="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name, self.object_id )
-#}}}
 
-class OrderType( ModelObject, ByNameMixin ):#{{{
+class OrderType( ModelObject, ByNameMixin ):
 	"""
 	Order type description class.
 	"""
@@ -57,9 +56,8 @@ class OrderType( ModelObject, ByNameMixin ):#{{{
 
 	def __str__(self):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
-#}}}
 
-class OrderParameter( ModelObject ):#{{{
+class OrderParameter( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Order, Parameter ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
@@ -81,6 +79,5 @@ class OrderParameter( ModelObject ):#{{{
 		self.parameter.remove( session )
 
 		session.delete( self )
-	#}}}
 
 __all__ = [ 'Order', 'OrderType', 'OrderParameter' ]

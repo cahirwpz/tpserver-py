@@ -2,7 +2,7 @@
 
 from Common import GetWithIDHandler, GetIDSequenceHandler, FactoryMixin
 
-class PropertyFactoryMixin( FactoryMixin ):#{{{
+class PropertyFactoryMixin( FactoryMixin ):
 	def toPacket( self, request, obj ):
 		Property = self.protocol.use( 'Property' )
 
@@ -17,23 +17,20 @@ class PropertyFactoryMixin( FactoryMixin ):#{{{
 				obj.description,
 				obj.calculate,
 				obj.requirements )
-#}}}
 
-class GetProperty( GetWithIDHandler, PropertyFactoryMixin ):#{{{
+class GetProperty( GetWithIDHandler, PropertyFactoryMixin ):
 	"""
 	Request:  GetProperty :: GetWithID
 	Response: Property | Sequence + Property{2,n}
 	"""
 	__object__ = 'Property'
-#}}}
 
-class GetPropertyIDs( GetIDSequenceHandler ):#{{{
+class GetPropertyIDs( GetIDSequenceHandler ):
 	"""
 	Request:  GetPropertyIDs :: GetIDSequence
 	Response: IDSequence
 	"""
 	__packet__ = 'PropertyIDs'
 	__object__ = 'Property'
-#}}}
 
 __all__ = [ 'GetProperty', 'GetPropertyIDs' ]

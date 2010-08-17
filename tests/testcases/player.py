@@ -2,7 +2,7 @@ from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged
 
-class GetCurrentPlayer( AuthorizedTestSession ):#{{{
+class GetCurrentPlayer( AuthorizedTestSession ):
 	""" Does server respond with current player information? """
 
 	@property
@@ -16,9 +16,8 @@ class GetCurrentPlayer( AuthorizedTestSession ):#{{{
 
 		assert packet.id == self.player.id, \
 			"Server responded with different PlayerId than requested!"
-#}}}
 
-class GetExistingPlayer( AuthorizedTestSession ):#{{{
+class GetExistingPlayer( AuthorizedTestSession ):
 	""" Does server respond properly if asked about existing player? """
 
 	def __iter__( self ):
@@ -30,9 +29,8 @@ class GetExistingPlayer( AuthorizedTestSession ):#{{{
 
 		assert packet.id == player.id, \
 			"Server responded with different PlayerId than requested!"
-#}}}
 
-class GetNonExistentPlayer( AuthorizedTestSession ):#{{{
+class GetNonExistentPlayer( AuthorizedTestSession ):
 	""" Does server fail to respond if asked about nonexistent player? """
 
 	def __iter__( self ):
@@ -44,9 +42,8 @@ class GetNonExistentPlayer( AuthorizedTestSession ):#{{{
 
 		assert packet.type != 'Player', \
 			"Server does return information for non-existent PlayerId = %s!" % ( player.id + 666 )
-#}}}
 
-class GetMultiplePlayers( AuthorizedTestSession ):#{{{
+class GetMultiplePlayers( AuthorizedTestSession ):
 	""" Does server return sequence of Player packets if asked about two players? """
 
 	def __iter__( self ):
@@ -59,17 +56,14 @@ class GetMultiplePlayers( AuthorizedTestSession ):#{{{
 
 		assert p1.id == player1.id and p2.id == player2.id, \
 			"Server returned different PlayerIds (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, player1.id, player2.id)
-#}}}
 
-class GetPlayerWhenNotLogged( GetWithIDWhenNotLogged ):#{{{
+class GetPlayerWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetPlayers request? """
 
 	__request__ = 'GetPlayer'
-#}}}
 
-class PlayerTestSuite( TestSuite ):#{{{
+class PlayerTestSuite( TestSuite ):
 	__name__  = 'Players'
 	__tests__ = [ GetPlayerWhenNotLogged, GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
-#}}}
 
 __tests__ = [ PlayerTestSuite ]

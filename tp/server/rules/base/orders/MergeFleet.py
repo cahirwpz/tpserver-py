@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 from tp.server.model import ParameterDesc, ParametrizedClass
 from tp.server.rules.base.parameters import ObjectParam
 
-class MergeFleetOrder( object ):#{{{
+class MergeFleetOrder( object ):
 	"""
 	Merge two fleets together.
 	"""
@@ -102,6 +102,5 @@ The merge order has been removed.
 				self.fleet = -1
 
 			return
-#}}}
 
 __all__ = [ 'MergeFleetOrder' ]

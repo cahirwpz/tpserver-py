@@ -14,7 +14,7 @@ sqlalchemy.func.current_timestamp = datetime.datetime.now
 def untitle( s ):
 	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
 
-def make_mapping( cls, *args, **kwargs ):#{{{
+def make_mapping( cls, *args, **kwargs ):
 	metadata = DatabaseManager().metadata
 
 	cls.__tablename__ = untitle( cls.__name__ )
@@ -22,18 +22,16 @@ def make_mapping( cls, *args, **kwargs ):#{{{
 	cls.InitMapper( metadata, *args, **kwargs )
 
 	return cls
-#}}}
 
 from sqlalchemy.interfaces import PoolListener
 
-class ForeignKeysListener( PoolListener ):#{{{
+class ForeignKeysListener( PoolListener ):
     def connect(self, dbapi_con, con_record):
         db_cursor = dbapi_con.execute('pragma foreign_keys=ON')
-#}}}
 
 from tp.server.logging import err, msg
 
-class TwistedLogHandler( logging.Handler ):#{{{
+class TwistedLogHandler( logging.Handler ):
 	def createLock( self ):
 		pass
 
@@ -67,9 +65,8 @@ class TwistedLogHandler( logging.Handler ):#{{{
 				msg( record.msg, system = name, level = level, time = record.created )
 		except:
 			err()
-#}}}
 
-class DatabaseManager( object ):#{{{
+class DatabaseManager( object ):
 	__metaclass__ = SingletonClass
 
 	def __init__( self ):
@@ -106,13 +103,11 @@ class DatabaseManager( object ):#{{{
 	@property
 	def query( self ):
 		return self.__sessionmaker().query
-#}}}
 
-class DatabaseConfiguration( ComponentConfiguration ):#{{{
+class DatabaseConfiguration( ComponentConfiguration ):
 	component = DatabaseManager
 
 	database = StringOption( short='D', default='sqlite:///tp.db', 
 							help='Database engine supported by SQLAlchemy.', arg_name='DATABASE' )
-#}}}
 
 __all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping' ]

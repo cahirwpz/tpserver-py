@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-class ObjectParam( object ):#{{{
+class ObjectParam( object ):
 	__maps_to__ = 'object'
 
 	@classmethod
@@ -16,6 +16,5 @@ class ObjectParam( object ):#{{{
 			'object': relation( Object,
 				uselist = False )
 			})
-#}}}
 
 __all__ = [ 'ObjectParam' ]
