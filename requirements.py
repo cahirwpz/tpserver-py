@@ -4,9 +4,9 @@
 # It can be run as standalone but is also run by the client at startup
 
 # Preference the local directory first...
-import sys
+import sys, os.path
+
 sys.path.insert(0, '.')
-import os, os.path
 
 modules = ["libtpproto2-py", "schemepy"]
 for module in modules:
@@ -86,31 +86,12 @@ try:
 
 	if not cmp(netlib_version, tp.netlib.__version__):
 		raise ImportError("Thousand Parsec Network Library 2 (libtpproto2-py) is too old")
-
 except Exception, e:
 	print e
 	notfound.append("tp.netlib > " + tostr(netlib_version))
 
 print
 
-sqlalchemy_version = (0, 4, 0)
-try:
-	print " * Looking for SQLAlchemy,"
-
-	import sqlalchemy
-	print "    SQLAlchemy installed version", sqlalchemy.__version__ 
-
-	if not cmp(sqlalchemy_version, sqlalchemy.__version__):
-		raise ImportError("SQLAlchemy version is too old")
-except Exception, e:
-	print e
-
-	if system == "debian-based":
-		notfound.append("python-sqlalchemy")
-	else:
-		notfound.append('SQLAlchemy')
-
-print
 try:
 	print " * Looking for ElementTree implementation,"
 
@@ -168,28 +149,70 @@ except Exception, e:
 		recommended.append(("Python with gettext enabled.", reason))
 
 print
+
+twisted_version = (10, 0, 0)
 try:
-	print " * Looking for SQLite,"
+	print " * Looking for Twisted >= %s," % tostr(twisted_version)
+
+	from twisted._version import version as twisted
+	print "    Twisted installed, version %s" % twisted.base()
+
+	twisted = ( twisted.major, twisted.minor, twisted.micro )
+
+	if not cmp(twisted_version, twisted):
+		raise ImportError("Twisted version %s is too old - %s needed." % (tostr(twisted_version), tostr(twisted)))
+except Exception, e:
+	print e
+
+	if system == "debian-based":
+		notfound.append("python-twisted-core")
+	else:
+		notfound.append("twisted")
+
+print
+sqlalchemy_version = (0, 5, 8)
+try:
+	print " * Looking for SQLAlchemy >= %s," % tostr(sqlalchemy_version)
+
+	import sqlalchemy
+	print "    SQLAlchemy installed version", sqlalchemy.__version__ 
+
+	if not cmp(sqlalchemy_version, sqlalchemy.__version__):
+		raise ImportError("SQLAlchemy version is too old")
+except Exception, e:
+	print e
+
+	if system == "debian-based":
+		notfound.append("python-sqlalchemy")
+	else:
+		notfound.append('SQLAlchemy')
+
+print
+sqlite_version = (3, 6, 19)
+try:
+	print " * Looking for SQLite >= %s," % tostr(sqlite_version)
 
 	import pysqlite2
 	from pysqlite2 import dbapi2 as sqlite
 	versions = list(sqlite.sqlite_version_info)+list(sqlite.version_info)
-	print "      SQLite support installed, version %s.%s.%s (DPI version %s.%s.%s)" % tuple(versions)
+	print "    SQLite support installed, version %s.%s.%s (DPI version %s.%s.%s)" % tuple(versions)
+
+	if not cmp(sqlite_version, sqlite.sqlite_version_info):
+		raise ImportError("SQLite version %s is too old - %s needed." % (tostr(sqlite.sqlite_version_info), tostr(sqlite_version)) )
 except Exception, e:
 	print e
 
-	reason = "Installing sqlite is the smallest database supported."
 	if system == "debian-based":
-		recommended.append(("python-pysqlite2", reason))
+		notfound.append("python-pysqlite2")
 	else:
-		recommended.append(("pysqlite2", reason))
+		notfound.append("pysqlite2")
 
 print
 try:
 	print " * Looking for MySQL support,"
 
 	import MySQLdb
-	print "      MySQL support installed, version", MySQLdb.__version__
+	print "    MySQL support installed, version", MySQLdb.__version__
 except Exception, e:
 	print e
 
@@ -214,7 +237,7 @@ try:
 
 	pyOpenSSL.__version__
 
-	print "      SSL support found, version", pyOpenSSL.__version__
+	print "    SSL support found, version", pyOpenSSL.__version__
 except Exception, e:
 	print e
 
