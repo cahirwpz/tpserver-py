@@ -4,29 +4,33 @@ import requirements
 
 from twisted.internet import reactor
 
-from tp.server.configuration import CLIConfigurator, ConfigurationError
-from tp.server.model import DatabaseManager, DatabaseConfiguration
+from tp.server.model import DatabaseManager
 
 DatabaseManager()
 
-from tp.server.logging import Logger, LoggerConfiguration
-from tp.server.server import ThousandParsecServerFactory, ThousandParsecServerConfiguration
+from tp.server.logging import Logger
+from tp.server.server import ThousandParsecServerFactory
+
+class Configuration( object ):
+	log_level		= 'info'
+	log_drop_time	= False
+	log_drop_system	= False
+	tcp_port		= 6923
+	tls_port		= 6924
+	listen_tls		= False
+	database		= 'sqlite:///tp.db'
 
 def main():
+	configuration = Configuration()
+
 	logger	= Logger()
 	factory	= ThousandParsecServerFactory()
 
-	configurator = CLIConfigurator( "Thousand Parsec Server" )
-	configurator.registerComponent( logger, LoggerConfiguration() )
-	configurator.registerComponent( factory, ThousandParsecServerConfiguration() )
-	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
-
 	try:
-		configurator.configParse()
-		configurator.configCommit()
-	except ConfigurationError, ex:
-		configurator.help()
-
+		logger.configure( configuration )
+		factory.configure( configuration )
+		DatabaseManager().configure( configuration )
+	except Exception, ex:
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
 	logger.start()

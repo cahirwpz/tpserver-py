@@ -318,5 +318,42 @@ class CLIConfigurator( Configurator ):
 
 		self.__parser.print_help()
 
-__all__ = [ 'ConfigurationError', 'ConfigurationOption', 'ComponentConfiguration', 'CLIConfigurator', 'Configurator',
-			'BooleanOption', 'IntegerOption', 'StringOption', 'StringSetOption' ]
+from tp.server.logging import Logger
+
+class LoggerConfiguration( ComponentConfiguration ):
+	component		= Logger
+
+	log_level		= StringSetOption( short='l', default='info', values=set( Logger.levels ),
+							help='All log message with level lower than provided will be dropped. Allowed log levels are: %s.' %
+							', '.join( sorted(Logger.levels, lambda x,y: cmp(Logger.levels[x], Logger.levels[y])) ), arg_name='LEVEL' )
+	log_drop_time	= BooleanOption( default=False,
+							help='Force logger to drop time prefix for each printed log message.' )
+	log_drop_system	= BooleanOption( default=False,
+							help='Force logger to drop component name (where the message was generated) prefix from each printed log message.' )
+
+from tp.server.server import ThousandParsecServerFactory
+
+class ThousandParsecServerConfiguration( ComponentConfiguration ):
+	component	= ThousandParsecServerFactory
+
+	tcp_port	= IntegerOption( short='p', default=6923, min=1, max=65535,
+						help='Specifies number of listening port.', arg_name='PORT' )
+	tls_port	= IntegerOption( default=6924, min=1, max=65535,
+						help='Specifies number of TLS listening port.', arg_name='PORT' )
+	listen_tls	= BooleanOption( short='t', default=False,
+						help='Turns on TLS listener.' )
+
+from tp.server.model import DatabaseManager
+
+class DatabaseConfiguration( ComponentConfiguration ):
+	component = DatabaseManager
+
+	database = StringOption( short='D', default='sqlite:///tp.db', 
+							help='Database engine supported by SQLAlchemy.', arg_name='DATABASE' )
+
+
+__all__ = [ 'ConfigurationError', 'ConfigurationOption',
+			'ComponentConfiguration', 'CLIConfigurator', 'Configurator',
+			'BooleanOption', 'IntegerOption', 'StringOption',
+			'StringSetOption', 'LoggerConfiguration',
+			'ThousandParsecServerConfiguration', 'DatabaseConfiguration' ]

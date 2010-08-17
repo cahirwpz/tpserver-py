@@ -1,6 +1,5 @@
 from protocol import ThousandParsecProtocol
 from logging import logctx, msg
-from configuration import ComponentConfiguration, IntegerOption, BooleanOption
 from clientsession import ClientSessionHandler
 
 from twisted.internet import reactor, ssl, error
@@ -74,12 +73,4 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 	def logPrefix( self ):
 		return self.__class__.__name__
 
-class ThousandParsecServerConfiguration( ComponentConfiguration ):
-	component	= ThousandParsecServerFactory
-
-	tcp_port	= IntegerOption( short='p', default=6923, min=1, max=65535,
-						help='Specifies number of listening port.', arg_name='PORT' )
-	tls_port	= IntegerOption( default=6924, min=1, max=65535,
-						help='Specifies number of TLS listening port.', arg_name='PORT' )
-	listen_tls	= BooleanOption( short='t', default=False,
-						help='Turns on TLS listener.' )
+__all__ = [ 'ThousandParsecServerFactory' ]

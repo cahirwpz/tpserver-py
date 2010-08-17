@@ -5,7 +5,6 @@ import traceback
 
 from cmd import Cmd as CommandLineInterface
 
-from tp.server.configuration import CLIConfigurator, ConfigurationError
 from tp.server.model import *
 from tp.server.rules import RulesetManager
 from tp.server.gamemanager import GameManager
@@ -254,16 +253,21 @@ class MainMenu( CommandLineInterface ):
 
 	do_quit = do_q
 
+class Configuration( object ):
+	log_level		= 'info'
+	log_drop_time	= False
+	log_drop_system	= False
+	tcp_port		= 6923
+	tls_port		= 6924
+	listen_tls		= False
+	database		= 'sqlite:///tp.db'
+
 def main():
-	configurator = CLIConfigurator( "Thousand Parsec Administration Tool" )
-	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
+	configuration = Configuration()
 
 	try:
-		configurator.configParse()
-		configurator.configCommit()
-	except ConfigurationError, ex:
-		configurator.help()
-
+		DatabaseManager().configure( configuration )
+	except Exception, ex:
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
 	GameManager()

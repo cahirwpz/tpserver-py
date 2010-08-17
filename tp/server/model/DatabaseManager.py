@@ -6,7 +6,6 @@ from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker, scoped_session
 
 from tp.server.singleton import SingletonClass
-from tp.server.configuration import ComponentConfiguration, StringOption
 
 # FIXME: Horrible, horrible hack!
 sqlalchemy.func.current_timestamp = datetime.datetime.now
@@ -104,10 +103,4 @@ class DatabaseManager( object ):
 	def query( self ):
 		return self.__sessionmaker().query
 
-class DatabaseConfiguration( ComponentConfiguration ):
-	component = DatabaseManager
-
-	database = StringOption( short='D', default='sqlite:///tp.db', 
-							help='Database engine supported by SQLAlchemy.', arg_name='DATABASE' )
-
-__all__ = [ 'DatabaseManager', 'DatabaseConfiguration', 'make_mapping' ]
+__all__ = [ 'DatabaseManager', 'make_mapping' ]

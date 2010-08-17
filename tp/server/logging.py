@@ -3,7 +3,6 @@
 import string, sys, linecache, datetime
 
 from twisted.python import log, util, context, failure
-from configuration import ComponentConfiguration, BooleanOption, StringSetOption
 
 msg = log.msg
 err = log.err
@@ -174,15 +173,4 @@ class Logger( log.FileLogObserver ):
 
 		return '%02d:%02d:%02d.%03d' % ( when.hour, when.minute, when.second, when.microsecond / 1000 )
 
-class LoggerConfiguration( ComponentConfiguration ):
-	component		= Logger
-
-	log_level		= StringSetOption( short='l', default='info', values=set( Logger.levels ),
-							help='All log message with level lower than provided will be dropped. Allowed log levels are: %s.' %
-							', '.join( sorted(Logger.levels, lambda x,y: cmp(Logger.levels[x], Logger.levels[y])) ), arg_name='LEVEL' )
-	log_drop_time	= BooleanOption( default=False,
-							help='Force logger to drop time prefix for each printed log message.' )
-	log_drop_system	= BooleanOption( default=False,
-							help='Force logger to drop component name (where the message was generated) prefix from each printed log message.' )
-
-__all__ = [ 'Logger', 'LoggerConfiguration', 'logctx', 'log', 'err' ]
+__all__ = [ 'Logger', 'logctx', 'log', 'err' ]

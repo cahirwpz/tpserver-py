@@ -8,9 +8,11 @@ sys.path.insert(0, 'libtpproto2-py')
 
 from twisted.internet import reactor
 
-from tp.server.logging import Logger, LoggerConfiguration
-from tp.server.configuration import CLIConfigurator, ConfigurationError
-from tp.server.model import DatabaseManager, DatabaseConfiguration
+from tp.server.logging import Logger
+from tp.server.model import DatabaseManager
+
+from configuration import CLIConfigurator, ConfigurationError
+from configuration import LoggerConfiguration, DatabaseConfiguration
 
 from testrunner import TestRunner, TestRunnerConfiguration
 from client import ThousandParsecClientFactory, ThousandParsecClientFactoryConfiguration

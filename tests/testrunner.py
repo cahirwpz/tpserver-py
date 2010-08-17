@@ -2,8 +2,9 @@
 
 from twisted.internet import reactor
 
+from configuration import ComponentConfiguration, StringOption
+
 from tp.server.gamemanager import GameManager
-from tp.server.configuration import ComponentConfiguration, StringOption
 from tp.server.model import Model
 from tp.server.logging import Logger
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
+from configuration import ComponentConfiguration, StringOption, IntegerOption, BooleanOption
+
 from tp.server.protocol import ThousandParsecProtocol
 from tp.server.logging import logctx, msg
 from tp.server.singleton import SingletonClass
-from tp.server.configuration import ComponentConfiguration, StringOption, IntegerOption, BooleanOption
 
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor, ssl
