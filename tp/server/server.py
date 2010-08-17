@@ -1,6 +1,10 @@
-from protocol import ThousandParsecProtocol
-from logging import logctx, msg
-from clientsession import ClientSessionHandler
+#!/usr/bin/env python
+
+from logging import *
+
+from tp.server.logger import logctx
+from tp.server.protocol import ThousandParsecProtocol
+from tp.server.clientsession import ClientSessionHandler
 
 from twisted.internet import reactor, ssl, error
 from twisted.internet.protocol import ServerFactory
@@ -23,21 +27,21 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 
 	@logctx
 	def doStart(self):
-		msg( "Starting factory." )
+		debug( "Starting factory." )
 		ServerFactory.doStart(self)
 
 	@logctx
 	def doStop(self):
-		msg( "Stopping factory." )
+		debug( "Stopping factory." )
 		ServerFactory.doStop(self)
 
 	@logctx
 	def clientConnectionFailed(self, connector, reason):
-		msg( "Connection failed: %s" % reason.getErrorMessage() )
+		debug( "Connection failed: %s" % reason.getErrorMessage() )
 
 	@logctx
 	def clientConnectionLost(self, connector, reason):
-		msg( "Connection lost: %s" % reason.getErrorMessage() )
+		debug( "Connection lost: %s" % reason.getErrorMessage() )
 
 	def configure( self, configuration ):
 		self.__tcp_port_num	= configuration.tcp_port
@@ -54,7 +58,7 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 		try:
 			port = reactor.listenTCP( self.__tcp_port_num, self )
 		except error.CannotListenError, ex:
-			msg( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]), level='error' )
+			error( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]) )
 		else:
 			self.listeners['tcp'] = port
 
@@ -62,12 +66,12 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 			try:
 				port = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
 			except error.CannotListenError, ex:
-				msg( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]), level='error' )
+				error( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]) )
 			else:
 				self.listeners['tls'] = port
 
 		if all( port == None for proto, port in self.listeners.items() ):
-			msg( "${red1}No listening ports. Quitting...${coff}", level='error' )
+			error( "${red1}No listening ports. Quitting...${coff}" )
 			reactor.stop()
 
 	def logPrefix( self ):

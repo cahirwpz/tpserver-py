@@ -1,11 +1,15 @@
+#!/usr/bin/env python
+
 import time
+
+from logging import *
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
 from test import TestCase
 
+from tp.server.logger import logctx
 from tp.server.packet import PacketFactory, PacketFormatter
-from tp.server.logging import logctx, msg, err
 
 def ichain( *args ):
 	for a in args:
@@ -139,23 +143,23 @@ class TestSession( TestCase, ClientSessionHandler ):
 		self.__finished = False
 	
 	def setUp( self ):
-		msg( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__, level='info' ) 
+		debug( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__ )
 
 		ThousandParsecClientFactory().makeTestSession( self )
 	
 	def tearDown( self ):
-		msg( "${wht1}Tearing down %s test...${coff}" % self.__class__.__name__, level='info' ) 
+		debug( "${wht1}Tearing down %s test...${coff}" % self.__class__.__name__ )
 
 		self.transport.loseConnection()
 
 	def run( self ):
-		msg( "${wht1}Starting %s test...${coff}" % self.__class__.__name__, level='info' ) 
+		debug( "${wht1}Starting %s test...${coff}" % self.__class__.__name__ )
 	
 	@logctx
 	def sessionStarted( self, transport ):
 		super( TestSession, self ).sessionStarted( transport )
 
-		msg( "Connection established.", level="info" )
+		debug( "Connection established." )
 
 		if hasattr( self, '__iter__' ):
 			self.scenarioList.append( self.__iter__() )
@@ -168,7 +172,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 	def packetReceived( self, packet ):
 		packet.type = packet.__class__.__name__
 
-		msg( "Received ${cyn1}%s${coff} packet." % packet.type, level="info" )
+		debug( "Received ${cyn1}%s${coff} packet." % packet.type )
 
 		if self.expected is None and packet.type == "Fail":
 			self.response = packet
@@ -206,7 +210,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 			except AssertionError, ex:
 				self.failed( str(ex) )
 			except Exception, ex:
-				err()
+				exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
 				self.failed( "Scenario failed with unexpected error: %s: %s" % (ex.__class__.__name__, str(ex)) )
 			else:
 				if isinstance( instruction, tuple ):
@@ -214,7 +218,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 					assert isinstance( self.expected, Expect ), "Second value given to yield must be Expect class instance!"
 				else:
 					request, self.expected = instruction, None
-					msg( "${yel1}Yielding a single value (without Expect instance) within a scenario is discouraged!${coff}", level="warning" )
+					warning( "${yel1}Yielding a single value (without Expect instance) within a scenario is discouraged!${coff}" )
 
 				self.transport.sendPacket( request )
 
@@ -222,10 +226,10 @@ class TestSession( TestCase, ClientSessionHandler ):
 				self.request.type = request.__class__.__name__
 
 				if request is not None:
-					msg( "Sending ${cyn1}%s${coff} packet." % request._name, level="info" )
+					debug( "Sending ${cyn1}%s${coff} packet." % request._name )
 				
 				if isinstance( self.expected, Expect ):
-					msg( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected, level="info" )
+					debug( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected )
 
 	def failed( self, reason ):
 		if not self.__finished:
@@ -246,21 +250,21 @@ class TestSession( TestCase, ClientSessionHandler ):
 			TestCase.report( self, 'prologue' )
 
 			if self.request:
-				msg( "${red1}Failing request %s:${coff}" % self.request.type, level='error' )
-				msg( PacketFormatter( self.request ), level='error' )
+				error( "${red1}Failing request %s:${coff}" % self.request.type )
+				error( PacketFormatter( self.request ) )
 
 			if self.response:
 				if isinstance( self.response, list ):
-					msg( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in self.response ), level='error' )
+					error( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in self.response ) )
 					for r in self.response:
-						msg( "${wht1}Packet:${coff}", level='error' )
-						msg( PacketFormatter( r ), level='error' )
+						error( "${wht1}Packet:${coff}" )
+						error( PacketFormatter( r ) )
 				else:
-					msg( "${red1}Wrong response %s:${coff}" % self.response.type, level='error' )
-					msg( PacketFormatter( self.response ), level='error' )
+					error( "${red1}Wrong response %s:${coff}" % self.response.type )
+					error( PacketFormatter( self.response ) )
 
 			if self.expected:
-				msg( "${red1}Expected:${coff}\n %s" % self.expected, level='error' ) 
+				error( "${red1}Expected:${coff}\n %s" % self.expected )
 
 			TestCase.report( self, 'epilogue' )
 

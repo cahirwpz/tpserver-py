@@ -1,16 +1,18 @@
 import struct
 
+from logging import *
+
 from twisted.internet.protocol import Protocol
 
-from logging import logctx, msg, err
-from packet import PacketFactory, PacketFormatter
+from tp.server.logger import logctx
+from tp.server.packet import PacketFactory, PacketFormatter
 
 class ThousandParsecProtocol( Protocol, object ):
 	SessionHandlerType = None
 
 	@logctx
 	def connectionMade( self ):
-		msg( "${grn1}Connection established with %s:%d${coff}" % (self.transport.getPeer().host, self.transport.getPeer().port) )
+		debug( "${grn1}Connection established with %s:%d${coff}" % (self.transport.getPeer().host, self.transport.getPeer().port) )
 
 		self.loseConnection = self.transport.loseConnection
 
@@ -18,7 +20,7 @@ class ThousandParsecProtocol( Protocol, object ):
 			if self.SessionHandlerType:
 				self.handler = self.SessionHandlerType()
 		except Exception, ex:
-			err()
+			exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
 			self.handler = None
 			self.transport.loseConnection()
 		
@@ -55,12 +57,12 @@ class ThousandParsecProtocol( Protocol, object ):
 				if len( self.__buffer ) >= packetSize:
 					binary = self.__buffer[:packetSize]
 
-					msg( "Received binary: %s" % binary.encode("hex"), level='debug2' )
+					debug( "Received binary: %s" % binary.encode("hex") )
 
 					packet = PacketFactory().fromBinary( version, command, binary )
 
 					if packet:
-						msg( "${cyn1}Received %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
+						debug( "${cyn1}Received %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
 
 						self.handler.packetReceived( packet )
 					else:
@@ -71,7 +73,7 @@ class ThousandParsecProtocol( Protocol, object ):
 
 	@logctx
 	def connectionLost( self, reason ):
-		msg( "${red1}Connection was lost: %s${coff}" % reason.value )
+		debug( "${red1}Connection was lost: %s${coff}" % reason.value )
 
 		if self.handler is not None:
 			self.handler.connectionLost( reason )
@@ -80,8 +82,8 @@ class ThousandParsecProtocol( Protocol, object ):
 	def sendPacket( self, packet ):
 		binary = packet.pack()
 
-		msg( "${cyn1}Sending %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
-		msg( "Sending binary: %s" % binary.encode("hex"), level='debug2' )
+		debug( "${cyn1}Sending %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
+		debug( "Sending binary: %s" % binary.encode("hex") )
 
 		self.transport.write( binary )
 

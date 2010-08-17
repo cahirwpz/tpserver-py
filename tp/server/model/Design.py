@@ -134,7 +134,7 @@ class Design( ModelObject, ByNameMixin ):
 	#	# Step 1 -------------------------------------
 	#
 	#	ranks = self.rank()
-	#	msg( "The order I need to calculate stuff in is, %s" % ranks )
+	#	debug( "The order I need to calculate stuff in is, %s" % ranks )
 	#
 	#	# Step 2 -------------------------------------
 	#
@@ -161,26 +161,26 @@ class Design( ModelObject, ByNameMixin ):
 	#				# Calculate the actual value for this design
 	#				value = component.property(property_id)
 	#				if value:
-	#					msg( "Now evaluating %s" % value )
+	#					debug( "Now evaluating %s" % value )
 	#					value = i.eval(scheme.parse("""( %s design)""" % value))
 	#
-	#					msg( "The value calculated for component %i was %r" % (component_id, value) )
+	#					debug( "The value calculated for component %i was %r" % (component_id, value) )
 	#				
 	#					for x in range(0, amount):
 	#						bits.append(value)
 	#
-	#			msg( "All the values calculated where %s", bits )
+	#			debug( "All the values calculated where %s", bits )
 	#			bits_scheme = "(list"
 	#			for bit in bits:
 	#				bits_scheme += " " + str(bit).replace('L', '')
 	#			bits_scheme += ")"
-	#			msg( "In scheme that is %s", bits_scheme )
+	#			debug( "In scheme that is %s", bits_scheme )
 	#		
-	#			msg( "(let ((bits %s)) (%s design bits))" % (bits_scheme, property.calculate) )
+	#			debug( "(let ((bits %s)) (%s design bits))" % (bits_scheme, property.calculate) )
 	#			total = i.eval(scheme.parse("""(let ((bits %s)) (%s design bits))""" % (bits_scheme, property.calculate)))
 	#			value, display = scheme.pair.car(total), scheme.pair.cdr(total)
 	#
-	#			msg( "In total I got '%i' which will be displayed as '%s'" % (value, display) )
+	#			debug( "In total I got '%i' which will be displayed as '%s'" % (value, display) )
 	#			design[property.name] = (property_id, value, display)
 	#
 	#			def t(design, name=property.name):
@@ -188,7 +188,7 @@ class Design( ModelObject, ByNameMixin ):
 	#			
 	#			i.install_function('designtype.'+property.name, t)
 	#			
-	#	msg( "The final properties we have are %s" % design.items() )
+	#	debug( "The final properties we have are %s" % design.items() )
 	#	self._calculate = (i, design)
 	#	return i, design
 
@@ -214,13 +214,13 @@ class Design( ModelObject, ByNameMixin ):
 	#
 	#			property = Property(property_id)
 	#			if property.requirements == '':
-	#				msg( "Property with id (%i) doesn't have any requirements" % property_id )
+	#				debug( "Property with id (%i) doesn't have any requirements" % property_id )
 	#				continue
 	#		
-	#			msg( "Now checking the following requirement" )
-	#			msg( str( property.requirements ) )
+	#			debug( "Now checking the following requirement" )
+	#			debug( str( property.requirements ) )
 	#			result = i.eval(scheme.parse("""(%s design)""" % property.requirements))
-	#			msg( "Result was: %s", result )
+	#			debug( "Result was: %s", result )
 	#			okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
 	#
 	#			if okay != scheme.symbol.Symbol('#t'):
@@ -233,13 +233,13 @@ class Design( ModelObject, ByNameMixin ):
 	#	for component_id, amount in self.components:
 	#		component = Component(component_id)
 	#		if component.requirements == '':
-	#			msg( "Component with id (%i) doesn't have any requirements" % component_id )
+	#			debug( "Component with id (%i) doesn't have any requirements" % component_id )
 	#			continue
 	#		
-	#		msg( "Now checking the following requirement" )
-	#		msg( str( component.requirements ) )
+	#		debug( "Now checking the following requirement" )
+	#		debug( str( component.requirements ) )
 	#		result = i.eval(scheme.parse("""(%s design)""" % component.requirements))
-	#		msg( "Result was: %s" % result )
+	#		debug( "Result was: %s" % result )
 	#		okay, feedback = scheme.pair.car(result), scheme.pair.cdr(result)
 	#
 	#		if okay != scheme.symbol.Symbol('#t'):

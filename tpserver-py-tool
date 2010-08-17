@@ -1,10 +1,13 @@
 #!/usr/bin/env python 
 
 import requirements
-import traceback
+import traceback, logging
+
+from twisted.python.log import PythonLoggingObserver
 
 from cmd import Cmd as CommandLineInterface
 
+from tp.server.logger import Formatter
 from tp.server.model import *
 from tp.server.rules import RulesetManager
 from tp.server.gamemanager import GameManager
@@ -264,6 +267,22 @@ class Configuration( object ):
 
 def main():
 	configuration = Configuration()
+
+	formatter = Formatter( '%(asctime)s %(color)s[%(name)s]%(nocolor)s %(message)s', '%Y-%m-%d %H:%M:%S' )
+
+	handler = logging.StreamHandler()
+	handler.setFormatter( formatter )
+
+	logging.root.name = 'tool'
+	logging.root.addHandler( handler )
+	logging.root.setLevel( logging.DEBUG )
+
+	logger = logging.getLogger('sqlalchemy.engine')
+	logger.setLevel( logging.DEBUG )
+
+	observer = PythonLoggingObserver()
+	observer.start()
+
 
 	try:
 		DatabaseManager().configure( configuration )

@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import inspect
+from logging import *
 
 from collections import Mapping
 
-from tp.server.logging import logctx, msg, err
 from tp.server.model import Player
+from tp.server.logger import logctx
 from tp.server.gamemanager import Game
 from tp.server.singleton import SingletonContainerClass
 from tp.server.packet import PacketFactory
@@ -19,7 +20,7 @@ class CommandDispatcher( Mapping ):
 		self.__commands = {}
 
 		for name, cls in inspect.getmembers( tp.server.commands, lambda o: inspect.isclass(o) ):
-			msg( "${grn1}Loaded %s command handler.${coff}" % cls.__name__ )
+			debug( "${grn1}Loaded %s command handler.${coff}" % cls.__name__ )
 
 			self.__commands[ name ] = cls
 		
@@ -72,7 +73,7 @@ class ClientSessionHandler( object ):
 
 	@logctx
 	def packetReceived( self, packet ):
-		msg( "${wht1}Going to deal with ${mgt1}%s${wht1} packet.${coff}" % packet.__class__.__name__ )
+		debug( "${wht1}Going to deal with ${mgt1}%s${wht1} packet.${coff}" % packet.__class__.__name__ )
 
 		if not self.__packets:
 			self.__packets = PacketFactory()[ packet._version ]
@@ -87,16 +88,16 @@ class ClientSessionHandler( object ):
 			try:
 				handler = CommandDispatcher()[ packet.__class__.__name__ ]( self.__packets, self.__context )
 			except KeyError:
-				msg( "${red1}No handler for %s command!${coff}" % packet._name, level="error" )
+				error( "${red1}No handler for %s command!${coff}" % packet._name )
 
 				response = Fail( packet._sequence, "UnavailablePermanently", "Command '%s' not supported!" % packet._name )
 			else:
-				msg( "${wht1}Calling ${mgt1}%s${wht1} handler method.${coff}" % handler.__class__.__name__ )
+				debug( "${wht1}Calling ${mgt1}%s${wht1} handler method.${coff}" % handler.__class__.__name__ )
 
 				try:
 					response = handler( packet )
 				except Exception, ex:
-					err()
+					exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
 					response = None
 				
 				if not response:

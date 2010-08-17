@@ -318,19 +318,6 @@ class CLIConfigurator( Configurator ):
 
 		self.__parser.print_help()
 
-from tp.server.logging import Logger
-
-class LoggerConfiguration( ComponentConfiguration ):
-	component		= Logger
-
-	log_level		= StringSetOption( short='l', default='info', values=set( Logger.levels ),
-							help='All log message with level lower than provided will be dropped. Allowed log levels are: %s.' %
-							', '.join( sorted(Logger.levels, lambda x,y: cmp(Logger.levels[x], Logger.levels[y])) ), arg_name='LEVEL' )
-	log_drop_time	= BooleanOption( default=False,
-							help='Force logger to drop time prefix for each printed log message.' )
-	log_drop_system	= BooleanOption( default=False,
-							help='Force logger to drop component name (where the message was generated) prefix from each printed log message.' )
-
 from tp.server.server import ThousandParsecServerFactory
 
 class ThousandParsecServerConfiguration( ComponentConfiguration ):

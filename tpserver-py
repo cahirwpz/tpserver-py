@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
-import requirements
+import requirements, logging, sys
 
 from twisted.internet import reactor
 
+from twisted.python.log import PythonLoggingObserver
 from tp.server.model import DatabaseManager
+from tp.server.logger import Formatter
 
 DatabaseManager()
 
-from tp.server.logging import Logger
 from tp.server.server import ThousandParsecServerFactory
 
 class Configuration( object ):
@@ -23,17 +24,29 @@ class Configuration( object ):
 def main():
 	configuration = Configuration()
 
-	logger	= Logger()
+	formatter = Formatter( '%(asctime)s %(color)s[%(name)s]%(nocolor)s %(message)s', '%Y-%m-%d %H:%M:%S' )
+
+	handler = logging.StreamHandler()
+	handler.setFormatter( formatter )
+
+	logging.root.name = 'server'
+	logging.root.addHandler( handler )
+	logging.root.setLevel( logging.DEBUG )
+
+	logger = logging.getLogger('sqlalchemy.engine')
+	logger.setLevel( logging.DEBUG )
+
+	observer = PythonLoggingObserver()
+	observer.start()
+
 	factory	= ThousandParsecServerFactory()
 
 	try:
-		logger.configure( configuration )
 		factory.configure( configuration )
 		DatabaseManager().configure( configuration )
 	except Exception, ex:
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-	logger.start()
 	factory.start()
 	reactor.run()
 

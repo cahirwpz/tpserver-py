@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from tp.server.logging import msg
+from logging import *
 from tp.server.gamemanager import GameManager
 
 from Common import FactoryMixin, RequestHandler, GetWithIDHandler
@@ -46,14 +46,14 @@ class Login( RequestHandler ):
 		try:
 			username, game_name = request.username.split('@', 1)
 		except ValueError, ex:
-			msg( "${yel1}Player name %s malformed!${coff}" % request.username, level="warning" )
+			warning( "${yel1}Player name %s malformed!${coff}" % request.username )
 
 			return Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
 			game = GameManager()[ game_name ]
 		except KeyError, ex:
-			msg( "${yel1}Game %s not found!${coff}" % game_name, level="warning" )
+			warning( "${yel1}Game %s not found!${coff}" % game_name )
 
 			return Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 

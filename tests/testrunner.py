@@ -6,7 +6,7 @@ from configuration import ComponentConfiguration, StringOption
 
 from tp.server.gamemanager import GameManager
 from tp.server.model import Model
-from tp.server.logging import Logger
+from tp.server.logger import Formatter
 
 from test import TestLoader
 
@@ -61,7 +61,7 @@ class TestRunner( object ):
 		tests = configuration.tests
 	
 		if tests == 'list':
-			raise SystemExit( Logger.colorizeMessage( '\n'.join( self.suite.getListing() ) ) )
+			raise SystemExit( Formatter.colorizeMessage( '\n'.join( self.suite.getListing() ) ) )
 		else:
 			self.test_path = tests
 	

@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 import textwrap, glob, os.path, copy, fnmatch
+from logging import *
 from collections import Mapping, MutableMapping
 
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
 from twisted.python.failure import Failure
 
-from tp.server.logging import msg, err, logctx
+from tp.server.logger import logctx
 
 class TestContext( MutableMapping ):
 	def __init__( self ):
@@ -141,15 +142,15 @@ class TestCase( object ):
 	def report( self, part = 'all' ):
 		if not self.status:
 			if part in [ 'prologue', 'all' ]:
-				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
-				msg( "${red1}Test name:${coff}\n %s" % self.__class__.__name__, level='error' ) 
-				msg( "${red1}Description:${coff}\n %s" % self.__doc__.strip(), level='error' ) 
-				msg( "${red1}Reason:${coff}\n %s" % self.reason, level='error' ) 
+				error( "${red1}----=[ ERROR REPORT START ]=-----${coff}" )
+				error( "${red1}Test name:${coff}\n %s" % self.__class__.__name__ )
+				error( "${red1}Description:${coff}\n %s" % self.__doc__.strip() )
+				error( "${red1}Reason:${coff}\n %s" % self.reason )
 
 			if part in [ 'epilogue', 'all' ]:
 				if self.failure:
-					err( _stuff = self.failure )
-				msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
+					exception( "" )
+				error( "${red1}-----=[ ERROR REPORT END ]=------${coff}" )
 
 	def logPrefix( self ):
 		try:
@@ -178,15 +179,15 @@ class TestSuite( Mapping, TestCase ):
 			self.addTest( *tests )
 	
 	def setUp( self ):
-		msg( "${cyn1}Setting up %s test suite...${coff}" % self.__class__.__name__, level='info' ) 
+		debug( "${cyn1}Setting up %s test suite...${coff}" % self.__class__.__name__ )
 	
 	def tearDown( self ):
-		msg( "${cyn1}Tearing down %s test suite...${coff}" % self.__class__.__name__, level='info' ) 
+		debug( "${cyn1}Tearing down %s test suite...${coff}" % self.__class__.__name__ )
 
 	def addTest( self, *args ):
 		for cls in args:
 			if cls in self.__tests:
-				msg( '${yel1}Test of type %s already registered!${coff}' % cls.__name__ )
+				debug( '${yel1}Test of type %s already registered!${coff}' % cls.__name__ )
 			else:
 				self.__tests.append( cls )
 				self.__names[ cls.__name__ ] = cls
@@ -246,9 +247,9 @@ class TestSuite( Mapping, TestCase ):
 	@logctx
 	def __succeeded( self, test ):
 		if isinstance( test, TestSuite ):
-			msg( "${grn1}Test suite %s succeeded!${coff}" % test.logPrefix(), level = 'notice' )
+			info( "${grn1}Test suite %s succeeded!${coff}" % test.logPrefix() )
 		else:
-			msg( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__, level = 'notice' )
+			info( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__ )
 
 		self.run()
 
@@ -257,9 +258,9 @@ class TestSuite( Mapping, TestCase ):
 		test = failure.value
 
 		if isinstance( test, TestSuite ):
-			msg( "${red1}Test suite %s failed!${coff}" % test.logPrefix(), level = 'error' )
+			error( "${red1}Test suite %s failed!${coff}" % test.logPrefix() )
 		else:
-			msg( "${red1}Test %s failed!${coff}" % test.__class__.__name__, level = 'error' ) 
+			error( "${red1}Test %s failed!${coff}" % test.__class__.__name__ )
 
 		self.__failedTest.append( test )
 		self.run()
@@ -276,11 +277,11 @@ class TestSuite( Mapping, TestCase ):
 	def report( self ):
 		if not self.status:
 			if self.failure:
-				msg( "${red1}----=[ ERROR REPORT START ]=-----${coff}", level='error' )
-				msg( "${red1}Reason:${coff}\n %s" % self.reason, level='error' ) 
-				msg( "${red1}Traceback:${coff}", level='error' )
-				err( _stuff = self.failure )
-				msg( "${red1}-----=[ ERROR REPORT END ]=------${coff}", level='error' )
+				error( "${red1}----=[ ERROR REPORT START ]=-----${coff}" )
+				error( "${red1}Reason:${coff}\n %s" % self.reason )
+				error( "${red1}Traceback:${coff}" )
+				exception( "" )
+				error( "${red1}-----=[ ERROR REPORT END ]=------${coff}" )
 
 	def getListing( self, depth = 0 ):
 		"""
@@ -349,7 +350,6 @@ class TestLoader( TestSuite ):
 
 				self.addTest( *classes )
 			except ImportError, ex:
-				msg( "${yel1}Could not import %s!${coff}" % moduleName, level = 'warning' )
-				err()
+				exception( "${yel1}Could not import %s!${coff}" % moduleName )
 
 __all__ = [ 'TestCase', 'TestSuite', 'TestLoader', 'TestContext' ]

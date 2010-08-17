@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import sqlalchemy, datetime, re, logging
+import sqlalchemy, datetime, re
+from logging import *
 
 from contextlib import contextmanager
 from sqlalchemy.orm import sessionmaker, scoped_session
@@ -28,43 +29,6 @@ class ForeignKeysListener( PoolListener ):
     def connect(self, dbapi_con, con_record):
         db_cursor = dbapi_con.execute('pragma foreign_keys=ON')
 
-from tp.server.logging import err, msg
-
-class TwistedLogHandler( logging.Handler ):
-	def createLock( self ):
-		pass
-
-	def acquire( self ):
-		pass
-
-	def release( self ):
-		pass
-
-	def close( self ):
-		pass
-
-	def emit( self, record ):
-		try:
-			level = record.levelname.lower()
-
-			if level == 'info':
-				level = 'debug1'
-			elif level == 'debug':
-				level = 'debug2'
-
-			if record.name.startswith( 'sqlalchemy' ):
-				name = ".".join( record.name.split('.')[:2] )
-			else:
-				name = record.name
-
-			#for _name in dir(record):
-			#	print _name, getattr( record, _name )
-
-			if record.msg:
-				msg( record.msg, system = name, level = level, time = record.created )
-		except:
-			err()
-
 class DatabaseManager( object ):
 	__metaclass__ = SingletonClass
 
@@ -73,10 +37,6 @@ class DatabaseManager( object ):
 
 	def configure( self, configuration ):
 		self.engine = sqlalchemy.create_engine( configuration.database, listeners=[ ForeignKeysListener() ] )
-
-		logger = logging.getLogger('sqlalchemy.engine')
-		logger.root.addHandler( TwistedLogHandler() )
-		logger.setLevel( logging.DEBUG )
 
 		self.__sessionmaker.configure( bind = self.engine )
 		self.__metadata = sqlalchemy.MetaData()
@@ -92,7 +52,7 @@ class DatabaseManager( object ):
 			try:
 				session.commit()
 			except Exception, ex:
-				msg( "${yel1}%s${coff}" % ex, level='warning' )
+				warning( "${yel1}%s${coff}" % ex )
 				session.rollback()
 
 	@property

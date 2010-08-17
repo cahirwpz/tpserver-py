@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from singleton import SingletonContainerClass
-from logging import msg
+from logging import *
 
 from tp.netlib import parser, structures
 
@@ -62,7 +62,7 @@ class PacketFactory( Mapping ):
 
 			self.__protocol[ version ] = protocol
 
-			msg("${yel1}Loaded definition for Thousand Parsec Protocol version %s.${coff}" % protocol.version )
+			debug("${yel1}Loaded definition for Thousand Parsec Protocol version %s.${coff}" % protocol.version )
 
 	def __getitem__( self, version ):
 		if version == 'default':
@@ -81,7 +81,7 @@ class PacketFactory( Mapping ):
 			packet = self.__protocol[ version ][ command ]()
 			packet.unpack( binary )
 		except AttributeError, ex:
-			msg(ex)
+			debug(ex)
 			packet = None
 
 		return packet

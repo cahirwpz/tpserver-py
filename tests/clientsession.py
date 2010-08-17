@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+from logging import *
+
 from twisted.internet import reactor
 
-from tp.server.logging import logctx, msg
+from tp.server.logger import logctx
 
 class ClientSessionHandler( object ):
 	status   = False
@@ -18,7 +20,7 @@ class ClientSessionHandler( object ):
 
 	@logctx
 	def connectionLost( self, reason ):
-		msg( "Disconnected.", level="info" )
+		debug( "Disconnected." )
 
 		if self.finished != None:
 			reactor.callLater( 0, self.finished, self )

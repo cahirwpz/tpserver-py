@@ -128,7 +128,7 @@ class Object( ModelObject ):
 	# def protect(self, user):
 	#	o = ModelObject.protect(self, user)
 	#	if hasattr(self, "owner") and self.owner != user.id:
-	#		msg( self.owner )
+	#		debug( self.owner )
 	#		o.orders = lambda: 0
 	#		o.ordertypes = lambda: []
 	#	return o

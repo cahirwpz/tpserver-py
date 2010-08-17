@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from tp.server.rules.base.utils import OrderGet
-from tp.server.logging import msg
+from logging import *
 
 class Action( object ):
 	def __call__( self, *args, **kwargs ):
@@ -83,22 +83,22 @@ class ActionProcessor( object ):
 			
 			name = str(action.__name__)
 			if "orders" in name:
-				msg("%s - Starting with" % name, args)
+				debug("%s - Starting with" % name, args)
 			
 				if d.has_key(name):
 					for order in d[name]:
 						order.do(*args)
 				else:
-					msg( "No orders of that type avaliable.." )
+					debug( "No orders of that type avaliable.." )
 
-				msg("%s - Finished" % name)
+				debug("%s - Finished" % name)
 		
 			elif "actions" in name:
-				msg("%s - Starting with" % name, args)
+				debug("%s - Starting with" % name, args)
 			
 				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
 
-				msg("%s - Finished" % name)
+				debug("%s - Finished" % name)
 		
 		# Reparent the universe
 

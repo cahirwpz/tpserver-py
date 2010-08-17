@@ -3,7 +3,7 @@
 import time
 
 from tp.server.model import Model
-from tp.server.logging import msg
+from logging import *
 
 def MustBeLogged( func ):
 	def check( self, request ):
@@ -86,10 +86,10 @@ class WithIDHandler( RequestHandler ):
 				if self.authorize( obj ):
 					response.append( self.process( request, obj ) )
 				else:
-					msg( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
+					debug( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
 					response.append( self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Object.__origname__, id ) ) )
 			else:
-				msg( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
+				debug( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
 				response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ) ) )
 
 		if len( response ) > 1:
@@ -180,7 +180,7 @@ class GetIDSequenceHandler( RequestHandler, IDSequenceFactoryMixin ):
 		total = Object.query().filter( self.filter ).count()
 
 		if request.start + request.amount > total:
-			msg( "Requested %d items starting at %d. Actually %s." % ( request.amount, request.amount, total ) )
+			debug( "Requested %d items starting at %d. Actually %s." % ( request.amount, request.amount, total ) )
 			return self.Fail( request, "NoSuchThing", "Requested too many IDs. (Requested %s, actually %s)" % (request.start + request.amount, total))
 
 		if request.amount == -1:
@@ -236,16 +236,16 @@ class WithIDSlotHandler( RequestHandler ):
 					if item:
 						response.append( self.process( request, item, slot ) )
 					else:
-						msg( "${yel1}No such %s with id %s.${coff}" % ( container.__origname__, request.id ) )
+						debug( "${yel1}No such %s with id %s.${coff}" % ( container.__origname__, request.id ) )
 						response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( container.__origname__, request.id ) ) )
 
 				if len( response ) > 1:
 					response.insert( 0, self.Sequence( request, len( response ) ) )
 			else:
-				msg( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+				debug( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
 				response = self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Container.__origname__, request.id ) )
 		else:
-			msg( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+			debug( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
 			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response
