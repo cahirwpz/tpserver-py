@@ -49,11 +49,8 @@ class ProtocolPackets( Mapping ):#{{{
 #}}}
 
 ProtocolDefinitionFiles = [
-	( "TP03", "libtpproto2-py/tp/netlib/protocol3.xml" ) ]
-
-# Second protocol cannot be loaded because libtpproto2-py has a few global
-# variables which are used by both protocols causing errors
-# ( "TP\x04\x00", "libtpproto2-py/tp/netlib/protocol.xml" )
+	( "TP03", "libtpproto2-py/tp/netlib/protocol3.xml" ),
+	( "TP\x04\x00", "libtpproto2-py/tp/netlib/protocol.xml" ) ]
 
 class PacketFactory( Mapping ):#{{{
 	__metaclass__ = SingletonContainerClass
