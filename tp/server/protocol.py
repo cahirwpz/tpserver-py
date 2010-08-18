@@ -12,7 +12,7 @@ class ThousandParsecProtocol( Protocol, object ):
 
 	@logctx
 	def connectionMade( self ):
-		debug( "${grn1}Connection established with %s:%d${coff}" % (self.transport.getPeer().host, self.transport.getPeer().port) )
+		debug( "Connection established with %s:%d" % (self.transport.getPeer().host, self.transport.getPeer().port) )
 
 		self.loseConnection = self.transport.loseConnection
 
@@ -62,7 +62,7 @@ class ThousandParsecProtocol( Protocol, object ):
 					packet = PacketFactory().fromBinary( version, command, binary )
 
 					if packet:
-						debug( "${cyn1}Received %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
+						debug( "Received %s:\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
 
 						self.handler.packetReceived( packet )
 					else:
@@ -73,7 +73,7 @@ class ThousandParsecProtocol( Protocol, object ):
 
 	@logctx
 	def connectionLost( self, reason ):
-		debug( "${red1}Connection was lost: %s${coff}" % reason.value )
+		debug( "Connection was lost: %s" % reason.value )
 
 		if self.handler is not None:
 			self.handler.connectionLost( reason )
@@ -82,7 +82,7 @@ class ThousandParsecProtocol( Protocol, object ):
 	def sendPacket( self, packet ):
 		binary = packet.pack()
 
-		debug( "${cyn1}Sending %s:${coff}\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
+		debug( "Sending %s:\n%s" % ( packet._base.lower(), PacketFormatter(packet) ) )
 		debug( "Sending binary: %s" % binary.encode("hex") )
 
 		self.transport.write( binary )

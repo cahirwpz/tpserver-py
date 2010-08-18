@@ -40,7 +40,7 @@ class Formatter( logging.Formatter ):
 			'CRITICAL' : '${red1}',
 			'ERROR'    : '${red1}',
 			'WARNING'  : '${yel1}',
-			'INFO'     : '${wht1}',
+			'INFO'     : '${coff}',
 			'DEBUG'    : '${wht0}' }
 
 
@@ -97,16 +97,13 @@ class Formatter( logging.Formatter ):
 		if record.name.startswith('sqlalchemy'):
 			record.name = 'SQLAlchemy'
 
-		if string.find(self._fmt,"%(asctime)") >= 0:
+		if string.find(self._fmt,'%(asctime)') >= 0:
 			record.asctime = self.formatTime( record, self.datefmt )
-
-		record.color   = self.levelcolors[ record.levelname ]
-		record.nocolor = '${coff}'
 
 		s = []
 
 		for line in record.getMessage().splitlines():
-			record.message = line
+			record.message = ''.join( [ self.levelcolors[ record.levelname ], line, '${coff}' ] )
 			s.append( self._fmt % record.__dict__ )
 
 		if record.exc_info:
@@ -118,6 +115,6 @@ class Formatter( logging.Formatter ):
 				record.message = line
 				s.append( self._fmt % record.__dict__ )
 
-		return Formatter.colorizeMessage( "\n".join(s) )
+		return Formatter.colorizeMessage( '\n'.join(s) )
 
 __all__ = [ 'logger', 'Formatter' ]

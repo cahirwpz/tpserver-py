@@ -52,7 +52,7 @@ class DatabaseManager( object ):
 			try:
 				session.commit()
 			except Exception, ex:
-				warning( "${yel1}%s${coff}" % ex )
+				warning( "%s" % ex )
 				session.rollback()
 
 	@property

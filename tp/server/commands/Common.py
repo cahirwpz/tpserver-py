@@ -86,10 +86,10 @@ class WithIDHandler( RequestHandler ):
 				if self.authorize( obj ):
 					response.append( self.process( request, obj ) )
 				else:
-					debug( "${yel1}No permission for %s with id %s.${coff}" % ( Object.__origname__, id ) )
+					debug( "No permission for %s with id %s." % ( Object.__origname__, id ) )
 					response.append( self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Object.__origname__, id ) ) )
 			else:
-				debug( "${yel1}No such %s with id %s.${coff}" % ( Object.__origname__, id ) )
+				debug( "No such %s with id %s." % ( Object.__origname__, id ) )
 				response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Object.__origname__, id ) ) )
 
 		if len( response ) > 1:
@@ -236,16 +236,16 @@ class WithIDSlotHandler( RequestHandler ):
 					if item:
 						response.append( self.process( request, item, slot ) )
 					else:
-						debug( "${yel1}No such %s with id %s.${coff}" % ( container.__origname__, request.id ) )
+						debug( "No such %s with id %s." % ( container.__origname__, request.id ) )
 						response.append( self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( container.__origname__, request.id ) ) )
 
 				if len( response ) > 1:
 					response.insert( 0, self.Sequence( request, len( response ) ) )
 			else:
-				debug( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+				debug( "No permission for %s with id %s." % ( Container.__origname__, request.id ) )
 				response = self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Container.__origname__, request.id ) )
 		else:
-			debug( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+			debug( "No such %s with id %s." % ( Container.__origname__, request.id ) )
 			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response

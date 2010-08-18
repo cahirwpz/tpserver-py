@@ -62,7 +62,7 @@ class PacketFactory( Mapping ):
 
 			self.__protocol[ version ] = protocol
 
-			debug("${yel1}Loaded definition for Thousand Parsec Protocol version %s.${coff}" % protocol.version )
+			debug("Loaded definition for Thousand Parsec Protocol version %s." % protocol.version )
 
 	def __getitem__( self, version ):
 		if version == 'default':

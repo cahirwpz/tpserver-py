@@ -58,7 +58,7 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 		try:
 			port = reactor.listenTCP( self.__tcp_port_num, self )
 		except error.CannotListenError, ex:
-			error( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]) )
+			error( "Cannot open listening port on %d: %s." % (ex.port, ex.socketError[1]) )
 		else:
 			self.listeners['tcp'] = port
 
@@ -66,12 +66,12 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 			try:
 				port = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
 			except error.CannotListenError, ex:
-				error( "${red1}Cannot open listening port on %d: %s.${coff}" % (ex.port, ex.socketError[1]) )
+				error( "Cannot open listening port on %d: %s." % (ex.port, ex.socketError[1]) )
 			else:
 				self.listeners['tls'] = port
 
 		if all( port == None for proto, port in self.listeners.items() ):
-			error( "${red1}No listening ports. Quitting...${coff}" )
+			error( "No listening ports. Quitting..." )
 			reactor.stop()
 
 	def logPrefix( self ):

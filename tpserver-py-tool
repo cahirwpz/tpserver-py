@@ -268,7 +268,7 @@ class Configuration( object ):
 def main():
 	configuration = Configuration()
 
-	formatter = Formatter( '%(asctime)s %(color)s[%(name)s]%(nocolor)s %(message)s', '%Y-%m-%d %H:%M:%S' )
+	formatter = Formatter( '%(asctime)s [%(name)s] %(message)s', '%Y-%m-%d %H:%M:%S' )
 
 	handler = logging.StreamHandler()
 	handler.setFormatter( formatter )

@@ -143,17 +143,17 @@ class TestSession( TestCase, ClientSessionHandler ):
 		self.__finished = False
 	
 	def setUp( self ):
-		debug( "${wht1}Setting up %s test...${coff}" % self.__class__.__name__ )
+		debug( "Setting up %s test..." % self.__class__.__name__ )
 
 		ThousandParsecClientFactory().makeTestSession( self )
 	
 	def tearDown( self ):
-		debug( "${wht1}Tearing down %s test...${coff}" % self.__class__.__name__ )
+		debug( "Tearing down %s test..." % self.__class__.__name__ )
 
 		self.transport.loseConnection()
 
 	def run( self ):
-		debug( "${wht1}Starting %s test...${coff}" % self.__class__.__name__ )
+		debug( "Starting %s test..." % self.__class__.__name__ )
 	
 	@logctx
 	def sessionStarted( self, transport ):
@@ -172,7 +172,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 	def packetReceived( self, packet ):
 		packet.type = packet.__class__.__name__
 
-		debug( "Received ${cyn1}%s${coff} packet." % packet.type )
+		debug( "Received %s packet." % packet.type )
 
 		if self.expected is None and packet.type == "Fail":
 			self.response = packet
@@ -218,7 +218,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 					assert isinstance( self.expected, Expect ), "Second value given to yield must be Expect class instance!"
 				else:
 					request, self.expected = instruction, None
-					warning( "${yel1}Yielding a single value (without Expect instance) within a scenario is discouraged!${coff}" )
+					warning( "Yielding a single value (without Expect instance) within a scenario is discouraged!" )
 
 				self.transport.sendPacket( request )
 
@@ -226,10 +226,10 @@ class TestSession( TestCase, ClientSessionHandler ):
 				self.request.type = request.__class__.__name__
 
 				if request is not None:
-					debug( "Sending ${cyn1}%s${coff} packet." % request._name )
+					debug( "Sending %s packet." % request._name )
 				
 				if isinstance( self.expected, Expect ):
-					debug( "${mgt1}Expecting response of type ${wht1}%s${mgt1}.${coff}" % self.expected )
+					debug( "Expecting response of type %s." % self.expected )
 
 	def failed( self, reason ):
 		if not self.__finished:
@@ -250,21 +250,21 @@ class TestSession( TestCase, ClientSessionHandler ):
 			TestCase.report( self, 'prologue' )
 
 			if self.request:
-				error( "${red1}Failing request %s:${coff}" % self.request.type )
+				error( "Failing request %s:" % self.request.type )
 				error( PacketFormatter( self.request ) )
 
 			if self.response:
 				if isinstance( self.response, list ):
-					error( "${red1}Wrong response %s:${coff}" % ", ".join( r.type for r in self.response ) )
+					error( "Wrong response %s:" % ", ".join( r.type for r in self.response ) )
 					for r in self.response:
-						error( "${wht1}Packet:${coff}" )
+						error( "Packet:" )
 						error( PacketFormatter( r ) )
 				else:
-					error( "${red1}Wrong response %s:${coff}" % self.response.type )
+					error( "Wrong response %s:" % self.response.type )
 					error( PacketFormatter( self.response ) )
 
 			if self.expected:
-				error( "${red1}Expected:${coff}\n %s" % self.expected )
+				error( "Expected:\n %s" % self.expected )
 
 			TestCase.report( self, 'epilogue' )
 

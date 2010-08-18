@@ -142,15 +142,15 @@ class TestCase( object ):
 	def report( self, part = 'all' ):
 		if not self.status:
 			if part in [ 'prologue', 'all' ]:
-				error( "${red1}----=[ ERROR REPORT START ]=-----${coff}" )
-				error( "${red1}Test name:${coff}\n %s" % self.__class__.__name__ )
-				error( "${red1}Description:${coff}\n %s" % self.__doc__.strip() )
-				error( "${red1}Reason:${coff}\n %s" % self.reason )
+				error( "----=[ ERROR REPORT START ]=-----" )
+				error( "Test name:\n %s" % self.__class__.__name__ )
+				error( "Description:\n %s" % self.__doc__.strip() )
+				error( "Reason:\n %s" % self.reason )
 
 			if part in [ 'epilogue', 'all' ]:
 				if self.failure:
 					exception( "" )
-				error( "${red1}-----=[ ERROR REPORT END ]=------${coff}" )
+				error( "-----=[ ERROR REPORT END ]=------" )
 
 	def logPrefix( self ):
 		try:
@@ -179,15 +179,15 @@ class TestSuite( Mapping, TestCase ):
 			self.addTest( *tests )
 	
 	def setUp( self ):
-		debug( "${cyn1}Setting up %s test suite...${coff}" % self.__class__.__name__ )
+		debug( "Setting up %s test suite..." % self.__class__.__name__ )
 	
 	def tearDown( self ):
-		debug( "${cyn1}Tearing down %s test suite...${coff}" % self.__class__.__name__ )
+		debug( "Tearing down %s test suite..." % self.__class__.__name__ )
 
 	def addTest( self, *args ):
 		for cls in args:
 			if cls in self.__tests:
-				debug( '${yel1}Test of type %s already registered!${coff}' % cls.__name__ )
+				debug( 'Test of type %s already registered!' % cls.__name__ )
 			else:
 				self.__tests.append( cls )
 				self.__names[ cls.__name__ ] = cls
@@ -247,9 +247,9 @@ class TestSuite( Mapping, TestCase ):
 	@logctx
 	def __succeeded( self, test ):
 		if isinstance( test, TestSuite ):
-			info( "${grn1}Test suite %s succeeded!${coff}" % test.logPrefix() )
+			info( "Test suite %s succeeded!" % test.logPrefix() )
 		else:
-			info( "${grn1}Test %s succeeded!${coff}" % test.__class__.__name__ )
+			info( "Test %s succeeded!" % test.__class__.__name__ )
 
 		self.run()
 
@@ -258,9 +258,9 @@ class TestSuite( Mapping, TestCase ):
 		test = failure.value
 
 		if isinstance( test, TestSuite ):
-			error( "${red1}Test suite %s failed!${coff}" % test.logPrefix() )
+			error( "Test suite %s failed!" % test.logPrefix() )
 		else:
-			error( "${red1}Test %s failed!${coff}" % test.__class__.__name__ )
+			error( "Test %s failed!" % test.__class__.__name__ )
 
 		self.__failedTest.append( test )
 		self.run()
@@ -277,11 +277,11 @@ class TestSuite( Mapping, TestCase ):
 	def report( self ):
 		if not self.status:
 			if self.failure:
-				error( "${red1}----=[ ERROR REPORT START ]=-----${coff}" )
-				error( "${red1}Reason:${coff}\n %s" % self.reason )
-				error( "${red1}Traceback:${coff}" )
+				error( "----=[ ERROR REPORT START ]=-----" )
+				error( "Reason:\n %s" % self.reason )
+				error( "Traceback:" )
 				exception( "" )
-				error( "${red1}-----=[ ERROR REPORT END ]=------${coff}" )
+				error( "-----=[ ERROR REPORT END ]=------" )
 
 	def getListing( self, depth = 0 ):
 		"""

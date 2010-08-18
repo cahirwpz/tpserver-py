@@ -61,10 +61,10 @@ class PostMessage( RequestHandler, MessageFactoryMixin ):
 
 				response = self.Okay( request, "Message posted on %s with id = %d in slot %d." % ( Container.__origname__, request.id, slot ) )
 			else:
-				debug( "${yel1}No permission for %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+				debug( "No permission for %s with id %s." % ( Container.__origname__, request.id ) )
 				response = self.Fail( request, "PermissionDenied", "You cannot access %s with id = %d." % ( Container.__origname__, request.id ) )
 		else:
-			debug( "${yel1}No such %s with id %s.${coff}" % ( Container.__origname__, request.id ) )
+			debug( "No such %s with id %s." % ( Container.__origname__, request.id ) )
 			response = self.Fail( request, "NoSuchThing", "No %s with id = %d." % ( Container.__origname__, request.id ) )
 
 		return response 

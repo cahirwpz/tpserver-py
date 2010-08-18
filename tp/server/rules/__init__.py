@@ -1,5 +1,6 @@
 import os.path, traceback, inspect
 from collections import Mapping
+from logging import *
 
 from tp.server.singleton import SingletonContainerClass
 from tp.server.rules.base import Ruleset
@@ -21,8 +22,7 @@ class RulesetManager( Mapping ):
 						if issubclass( cls, Ruleset ) and cls is not Ruleset:
 							self.__ruleset[ cls.name ] = cls
 				except ImportError, msg:
-					traceback.print_exc()
-					print "\033[31;1mDisabling %s ruleset!\033[0m" % name
+					exception( 'Disabling %s ruleset!', name )
 	
 	def __getitem__( self, name ):
 		return self.__ruleset[ name ]
