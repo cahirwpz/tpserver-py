@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-import textwrap, glob, os.path, copy, fnmatch
-from logging import *
-from collections import Mapping, MutableMapping
-
-from twisted.internet import reactor
-from twisted.internet.defer import Deferred
-from twisted.python.failure import Failure
+import glob, os.path, copy, unittest, sys
+from logging import debug, exception
+from collections import MutableMapping
 
 from tp.server.logger import logctx
 
@@ -42,288 +38,113 @@ class TestContext( MutableMapping ):
 	def __contains__( self, key ):
 		return self.__data.__contains__( key )
 
-class TestCase( object ):
-	__testpath__ = []
-
-	def __init__( self, ctx = None ):
-		self.ctx	= ctx or TestContext()
-		self.status = True
-		self.reason = None
-		self.result = Deferred()
-		self.failure = None
-
-		self.__finishing = False
-
-	@logctx
-	def __setUpWrapper( self ):
-		try:
-			methods = []
-
-			for cls in reversed( self.__class__.__mro__ ):
-				method = getattr( cls, 'setUp', None )
-
-				if method:
-					if not len( methods ) or method != methods[-1]:
-						methods.append( method )
-
-			for method in methods:
-				method( self )
-		except:
-			self.failure = Failure()
-			self.status  = False
-			self.reason  = "SetUp method failed!"
-
-			self.__tearDownWrapper()
-		else:
-			reactor.callLater( 0, self.run )
-
-	@logctx
-	def __tearDownWrapper( self ):
-		try:
-			methods = []
-
-			for cls in reversed( self.__class__.__mro__ ):
-				method = getattr( cls, 'tearDown', None )
-
-				if method:
-					if not len( methods ) or method != methods[0]:
-						methods.insert( 0, method )
-
-			for method in methods:
-				method( self )
-		except Exception:
-			if self.status:
-				self.failure = Failure()
-				self.status  = False
-				self.reason  = "TearDown method failed!"
-
-		self.report()
-
-		if self.status:
-			self.result.callback( self )
-		else:
-			self.result.errback( self )
-
-	def setUp( self ):
-		pass
-
-	@logctx
-	def run( self ):
-		self.succeeded()
-
-	def tearDown( self ):
-		pass
-
-	@logctx
-	def start( self ):
-		self.__setUpWrapper()
-
-	def succeeded( self ):
-		assert self.__finishing is False, "Methods 'succeeded' and 'failed' can be called only once!"
-
-		self.__finishing = True
-
-		self.status = True
-		reactor.callLater( 0, self.__tearDownWrapper )
-
-	def failed( self, reason ):
-		assert self.__finishing is False
-
-		self.__finishing = True
-
-		self.status = False
-		self.reason = reason
-		reactor.callLater( 0, self.__tearDownWrapper )
+class TestCase( unittest.TestCase ):
+	def __init__( self, ctx ):
+		unittest.TestCase.__init__( self )
+		
+		self.ctx = ctx
 
 	@property
 	def model( self ):
 		return self.ctx['game'].model
-	
-	def report( self, part = 'all' ):
-		if not self.status:
-			if part in [ 'prologue', 'all' ]:
-				error( "----=[ ERROR REPORT START ]=-----" )
-				error( "Test name:\n %s", self.__class__.__name__ )
-				error( "Description:\n %s", self.__doc__.strip() )
-				error( "Reason:\n %s", self.reason )
-
-			if part in [ 'epilogue', 'all' ]:
-				if self.failure:
-					exception( "" )
-				error( "-----=[ ERROR REPORT END ]=------" )
 
 	def logPrefix( self ):
-		try:
-			if len( self.__testpath__ ):
-				return ".".join( self.__testpath__ )
-			else:
-				return self.__name__
-		except AttributeError:
-			return self.__class__.__name__
+		return self.__class__.__name__
 
-class TestSuite( Mapping, TestCase ):
-	def __init__( self, ctx = None ):
-		super( TestSuite, self ).__init__( ctx = ctx )
+class TestSuite( unittest.TestSuite ):
+	failureException = AssertionError
 
-		self.__tests = []
-		self.__names = {}
-		self.__iter  = None
+	def __init__( self, ctx, tests = [] ):
+		unittest.TestSuite.__init__( self, tests )
 
-		self.__failedTest = []
+		self.ctx = ctx
 
 		try:
 			tests = self.__tests__
 		except AttributeError:
 			pass
 		else:
-			self.addTest( *tests )
-	
+			for cls in tests:
+				self.addTest( cls( self.ctx ) )
+
+	@property
+	def model( self ):
+		return self.ctx['game'].model
+
 	def setUp( self ):
-		debug( "Setting up %s test suite...", self.__class__.__name__ )
-	
+		pass
+
 	def tearDown( self ):
-		debug( "Tearing down %s test suite...", self.__class__.__name__ )
+		pass
 
-	def addTest( self, *args ):
-		for cls in args:
-			if cls in self.__tests:
-				debug( 'Test of type %s already registered!', cls.__name__ )
-			else:
-				self.__tests.append( cls )
-				self.__names[ cls.__name__ ] = cls
+	def defaultTestResult(self):
+		return unittest.TestResult()
 
-				if issubclass( cls, TestSuite ):
-					name = cls.__dict__[ '__name__' ]
-				else:
-					name = cls.__name__
+	@logctx
+	def run( self, result = None ):
+		if result is None:
+			result = self.defaultTestResult()
 
-				cls.__parent__ = self
-				cls.__testpath__ = copy.copy( self.__testpath__ )
-				cls.__testpath__.append( name )
-
-	def __getitem__( self, name ):
-		return self.__names[ name ]
-
-	def __len__( self ):
-		return self.__names.__len__()
-
-	def __iter__( self ):
-		return self.__names.iterkeys()
-
-	def __contains__( self, test ):
-		if issubclass( test, TestCase ):
-			return test in self.__tests
-
-		return test in self.__names
-
-	def run( self ):
-		if not self.__iter:
-			self.__iter = iter( self.__tests )
-		else:
-			self.ctx.restore()
+		result.startTest( self )
 
 		try:
-			while True:
-				TestType = self.__iter.next()
-				TestName = TestType.__dict__.get( '__name__', TestType.__name__ )
-				
-				if fnmatch.fnmatch( TestName, self.path_head ):
-					break
-		except StopIteration:
-			if len( self.__failedTest ):
-				self.failed( "%s test failed!" % self.__failedTest )
-			else:
-				self.succeeded()
-		else:
-			self.ctx.save()
-			test = TestType( ctx = self.ctx )
-			test.result.addCallbacks( self.__succeeded, self.__failed )
+			try:
+				self.setUp()
+			except KeyboardInterrupt:
+				raise
+			except:
+				result.addError(self, self._exc_info())
+				return
 
-			if isinstance( test, TestSuite ):
-				test.start( self.path_tail )
-			else:
-				test.start()
+			ok = False
+			try:
+				self.runTest( result )
+				ok = True
+			except self.failureException:
+				result.addFailure(self, self._exc_info())
+			except KeyboardInterrupt:
+				raise
+			except:
+				result.addError(self, self._exc_info())
 
-	@logctx
-	def __succeeded( self, test ):
-		if isinstance( test, TestSuite ):
-			info( "Test suite %s succeeded!", test.logPrefix() )
-		else:
-			info( "Test %s succeeded!", test.__class__.__name__ )
+			try:
+				self.tearDown()
+			except KeyboardInterrupt:
+				raise
+			except:
+				result.addError(self, self._exc_info())
+				ok = False
+			if ok:
+				result.addSuccess(self)
+		finally:
+			result.stopTest(self)
 
-		self.run()
+	def shortDescription( self ):
+		return "Test Suite %s" % self.__name__
+	
+	def runTest( self, _result ):
+		self.ctx.save()
+		result = unittest.TestSuite.run( self, _result )
+		self.ctx.restore()
+		return result
 
-	@logctx
-	def __failed( self, failure ):
-		test = failure.value
+	def addTest( self, test ):
+		unittest.TestSuite.addTest( self, test )
+		debug( "Added %s to %s.", test.__class__.__name__, self.__class__.__name__ )
 
-		if isinstance( test, TestSuite ):
-			error( "Test suite %s failed!", test.logPrefix() )
-		else:
-			error( "Test %s failed!", test.__class__.__name__ )
+	def _exc_info(self):
+		return sys.exc_info()
 
-		self.__failedTest.append( test )
-		self.run()
+	def debug( self ):
+		self.setUp()
 
-	@logctx
-	def start( self, path = "*" ):
-		try:
-			self.path_head, self.path_tail = path.split('.', 1 )
-		except ValueError:
-			self.path_head, self.path_tail = path, "*"
+		for test in self._tests:
+			test.debug()
 
-		super( TestSuite, self ).start()
+		self.tearDown()
 
-	def report( self ):
-		if not self.status:
-			if self.failure:
-				error( "----=[ ERROR REPORT START ]=-----" )
-				error( "Reason:\n %s", self.reason )
-				error( "Traceback:" )
-				exception( "" )
-				error( "-----=[ ERROR REPORT END ]=------" )
-
-	def getListing( self, depth = 0 ):
-		"""
-		Retrieves report of all available tests.
-		"""
-
-		textwrapper = textwrap.TextWrapper()
-		textwrapper.initial_indent = ' ' * 4
-		textwrapper.subsequent_indent = ' ' * 11
-		textwrapper.width = 100
-
-		report = []
-		number = 0
-
-		if depth == 0:
-			report.append( '${cyn0}Available test cases list:${coff}' )
-
-		for name, cls in sorted( self.__names.iteritems() ):
-			if len( cls.__testpath__[1:] ):
-				name = ".".join( cls.__testpath__[1:] )
-			else:
-				name = cls.__dict__.get( '__name__' )
-
-			if issubclass( cls, TestSuite ):
-				subreport, contains = cls().getListing( depth + 1 )
-
-				report += subreport
-				number += contains
-			else:
-				report.append( '  ${wht1}%s:${coff}' % name )
-
-				words = str( cls.__doc__ ).split()
-
-				report += textwrapper.wrap( '${yel0}info:${coff}  %s' % ' '.join( words ) )
-
-				number += 1
-
-		if depth == 0:
-			report.append( '${cyn0}Available test cases count: %d${coff}' % number )
-			return report
-
-		return report, number
+	def logPrefix( self ):
+		return self.__class__.__name__
 
 class TestLoader( TestSuite ):
 	"""
@@ -333,7 +154,7 @@ class TestLoader( TestSuite ):
 	__path__ = None
 
 	def __init__( self ):
-		super( TestLoader, self ).__init__()
+		super( TestLoader, self ).__init__( TestContext() )
 
 		path = os.path.dirname( os.path.abspath( __file__ ) )
 
@@ -348,7 +169,8 @@ class TestLoader( TestSuite ):
 				except AttributeError:
 					classes = []
 
-				self.addTest( *classes )
+				for cls in classes:
+					self.addTest( cls( self.ctx ) )
 			except ImportError, ex:
 				exception( "${yel1}Could not import %s!${coff}" % moduleName )
 

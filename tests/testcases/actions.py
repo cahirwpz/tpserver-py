@@ -6,12 +6,10 @@ from tp.server.rules.base.actions.Combat import Fleet, Frigate, Battleship, Scou
 class BaseBattleAction( TestCase ):
 	""" """
 
-	def run( self ):
+	def runTest( self ):
 		self.battle(
 				Fleet( [ Frigate(), Battleship(), Scout(), Battleship(), Battleship(), Battleship() ]),
 				Fleet( [ Battleship(), Battleship(), Planet() ] ))
-
-		self.succeeded()
 
 	def display_hits( self, hits ):
 		for ( hp, ship ) in hits:

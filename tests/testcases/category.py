@@ -103,7 +103,7 @@ class AddNewCategory( AuthorizedTestSession, GetCategoryMixin ):
 
 		self.cat = Category.ById( packet.id )
 
-		self.assertEqual( packet, self.cat )
+		self.mustBeEqual( packet, self.cat )
 
 	def tearDown( self ):
 		if hasattr( self, 'cat' ):
@@ -164,7 +164,7 @@ class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin 
 
 		self.cat = Category.ById( packet.id )
 
-		self.assertEqual( packet, self.cat )
+		self.mustBeEqual( packet, self.cat )
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'other_cat', None ) )
@@ -226,6 +226,8 @@ class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin ):
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
+
+		super( RemovePublicCategory, self ).tearDown()
 
 class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin ):
 	""" Does server properly reject attempt to remove public category? """

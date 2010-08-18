@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-import sys, logging
+import sys, logging, unittest
 
 sys.path.insert(0, '.')
 sys.path.insert(0, 'tests')
 sys.path.insert(0, 'libtpproto2-py')
 
-from twisted.internet import reactor
 from twisted.python.log import PythonLoggingObserver
 from tp.server.logger import Formatter
 from tp.server.model import DatabaseManager
@@ -14,12 +13,10 @@ from tp.server.model import DatabaseManager
 from configuration import CLIConfigurator, ConfigurationError
 from configuration import DatabaseConfiguration
 
-from testrunner import TestRunner, TestRunnerConfiguration
+from testrunner import MainTestSuite
 from client import ThousandParsecClientFactory, ThousandParsecClientFactoryConfiguration
 
 def main():
-	runner = TestRunner()
-
 	formatter = Formatter( '%(asctime)s [%(name)s] %(message)s', '%Y-%m-%d %H:%M:%S' )
 
 	handler = logging.StreamHandler()
@@ -27,13 +24,12 @@ def main():
 
 	logging.root.name = 'tests'
 	logging.root.addHandler( handler )
-	logging.root.setLevel( logging.DEBUG )
+	logging.root.setLevel( logging.WARNING )
 
 	observer = PythonLoggingObserver()
 	observer.start()
 
 	configurator = CLIConfigurator( "Thousand Parsec Test Client" )
-	configurator.registerComponent( runner, TestRunnerConfiguration() )
 	configurator.registerComponent( ThousandParsecClientFactory(), ThousandParsecClientFactoryConfiguration() )
 	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
 
@@ -45,8 +41,7 @@ def main():
 
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-	runner.start()
-	reactor.run()
+	unittest.TextTestRunner( verbosity = 2 ).run( MainTestSuite() )
 
 if __name__ == '__main__':
 	main()

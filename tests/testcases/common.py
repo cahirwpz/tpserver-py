@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-import time
+import time, new
 
-from logging import *
+from logging import debug, info, warning, error, exception
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
 from test import TestCase
+
+from twisted.internet import reactor
 
 from tp.server.logger import logctx
 from tp.server.packet import PacketFactory, PacketFormatter
@@ -127,15 +129,49 @@ class TestSessionUtils( object ):
 	def datetimeToInt( self, t ):
 		return long( time.mktime( time.strptime( t.ctime() ) ) )
 
+class TestSessionMetaClass( type ):
+	def __call__( cls, *args, **kwargs ):
+		instance = cls.__new__( cls )
+		instance.__init__( *args, **kwargs )
+
+		setUpMethods    = []
+		tearDownMethods = []
+
+		for _cls in reversed( cls.__mro__ ):
+			setUp    = getattr( _cls, 'setUp', None )
+			tearDown = getattr( _cls, 'tearDown', None )
+
+			if setUp:
+				if not len( setUpMethods ) or setUp != setUpMethods[-1]:
+					setUpMethods.append( setUp )
+
+			if tearDown:
+				if not len( tearDownMethods ) or tearDown != tearDownMethods[0]:
+					tearDownMethods.insert( 0, tearDown )
+
+		def chain( methods ):
+			def fun( self ):
+				for method in methods:
+					method( self )
+			return fun
+
+		instance.setUp    = new.instancemethod( chain( setUpMethods ), instance, cls )
+		instance.tearDown = new.instancemethod( chain( tearDownMethods ), instance, cls )
+
+		return instance 
+
 class TestSession( TestCase, ClientSessionHandler ):
-	def __init__( self, **kwargs ):
-		super( TestSession, self ).__init__( **kwargs )
+	__metaclass__ = TestSessionMetaClass
+
+	def __init__( self, *args, **kwargs ):
+		super( TestSession, self ).__init__( *args, **kwargs )
 
 		self.bundle		= []
 		self.count 		= 0
 		self.protocol	= PacketFactory()["TP03"]
 		self.scenarioList = []
 
+		self.reason		= None
 		self.request	= None
 		self.response	= None
 		self.expected	= None
@@ -143,17 +179,21 @@ class TestSession( TestCase, ClientSessionHandler ):
 		self.__finished = False
 	
 	def setUp( self ):
-		debug( "Setting up %s test...", self.__class__.__name__ )
+		info( "Setting up %s test...", self.__class__.__name__ )
 
+		reactor.__init__()
 		ThousandParsecClientFactory().makeTestSession( self )
 	
 	def tearDown( self ):
-		debug( "Tearing down %s test...", self.__class__.__name__ )
+		info( "Tearing down %s test...", self.__class__.__name__ )
 
-		self.transport.loseConnection()
+	def runTest( self ):
+		info( "Starting %s test...", self.__class__.__name__ )
+		reactor.run()
+		info( "Finished %s test...", self.__class__.__name__ )
 
-	def run( self ):
-		debug( "Starting %s test...", self.__class__.__name__ )
+		if self.reason:
+			self.fail( self.reason )
 	
 	@logctx
 	def sessionStarted( self, transport ):
@@ -235,19 +275,11 @@ class TestSession( TestCase, ClientSessionHandler ):
 		if not self.__finished:
 			self.__finished = True
 
-			super( TestSession, self ).failed( reason )
+			self.transport.loseConnection()
 
-	def succeeded( self ):
-		if not self.__finished:
-			self.__finished = True
+			self.reason = reason
 
-			super( TestSession, self ).succeeded()
-	
-	def report( self ):
-		if self.status:
-			TestCase.report( self )
-		else:
-			TestCase.report( self, 'prologue' )
+			error( self.reason )
 
 			if self.request:
 				error( "Failing request %s:", self.request.type )
@@ -266,11 +298,19 @@ class TestSession( TestCase, ClientSessionHandler ):
 			if self.expected:
 				error( "Expected:\n %s", self.expected )
 
-			TestCase.report( self, 'epilogue' )
+			reactor.callLater( 0, lambda: reactor.stop() )
+
+	def succeeded( self ):
+		if not self.__finished:
+			self.__finished = True
+
+			self.transport.loseConnection()
+
+			reactor.callLater( 0, lambda: reactor.stop() )
 
 class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
-	def __init__( self, **kwargs ):
-		super( ConnectedTestSession, self ).__init__( **kwargs )
+	def __init__( self, *args, **kwargs ):
+		super( ConnectedTestSession, self ).__init__( *args, **kwargs )
 
 		self.scenarioList.append( self.__connect() )
 
@@ -280,8 +320,8 @@ class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
 		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
 
 class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
-	def __init__( self, **kwargs ):
-		super( AuthorizedTestSession, self ).__init__( **kwargs )
+	def __init__( self, *args, **kwargs ):
+		super( AuthorizedTestSession, self ).__init__( *args, **kwargs )
 
 		self.scenarioList.append( self.__login() )
 	

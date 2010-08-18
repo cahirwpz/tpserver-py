@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 
-from twisted.internet import reactor
-
-from configuration import ComponentConfiguration, StringOption
-
 from tp.server.gamemanager import GameManager
 from tp.server.model import Model
-from tp.server.logger import Formatter
 
 from test import TestLoader
 
@@ -43,33 +38,4 @@ class MainTestSuite( TestLoader ):
 
 		Model.add( player1, player2 )
 
-class TestRunner( object ):
-	def __init__( self ):
-		self.suite = MainTestSuite()
-		self.suite.result.addCallbacks( self.__succeeded, self.__failed )
-	
-	def __succeeded( self, test ):
-		reactor.stop()
-	
-	def __failed( self, failure ):
-		reactor.stop()
-
-	def start( self ):
-		reactor.callLater( 0, lambda: self.suite.start( self.test_path ) )
-
-	def configure( self, configuration ):
-		tests = configuration.tests
-	
-		if tests == 'list':
-			raise SystemExit( Formatter.colorizeMessage( '\n'.join( self.suite.getListing() ) ) )
-		else:
-			self.test_path = tests
-	
-	def logPrefix( self ):
-		return self.__class__.__name__
-
-class TestRunnerConfiguration( ComponentConfiguration ):
-	tests = StringOption( short='t', default='*',
-						  help='Specifies which tests will be run. TEST-PATH is a test path using glob (see unix manual pages) pattern. If you provide \'list\' path then all available tests will be displayed and the application will finish.', arg_name='TEST-PATH' )
-
-__all__ = [ 'TestRunner', 'TestRunnerConfiguration' ]
+__all__ = [ 'MainTestSuite' ]

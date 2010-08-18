@@ -64,7 +64,7 @@ class GetItemWithID( AuthorizedTestSession ):
 
 			assert packet.type == 'Fail' and packet.code == code, msg
 		else:
-			self.assertEqual( packet, self.item )
+			self.mustBeEqual( packet, self.item )
 
 class GetItemsWithID( AuthorizedTestSession ):
 	@property
@@ -94,7 +94,7 @@ class GetItemsWithID( AuthorizedTestSession ):
 
 		for p, b in zip( packets[1:], self.items ):
 			if not self.getFail( b ):
-				self.assertEqual( p, b )
+				self.mustBeEqual( p, b )
 
 class GetWithIDMixin( object ):
 	def convert_modtime( self, packet, obj ):
@@ -103,7 +103,7 @@ class GetWithIDMixin( object ):
 
 		return pval, oval
 
-	def assertEqual( self, packet, obj ):
+	def mustBeEqual( self, packet, obj ):
 		attrs = self.__attrs__ + list( self.__attrmap__ ) + self.__attrfun__
 
 		for attr in attrs:
