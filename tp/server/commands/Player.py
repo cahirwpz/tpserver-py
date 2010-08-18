@@ -46,14 +46,14 @@ class Login( RequestHandler ):
 		try:
 			username, game_name = request.username.split('@', 1)
 		except ValueError, ex:
-			warning( "Player name %s malformed!" % request.username )
+			warning( "Player name %s malformed!", request.username )
 
 			return Fail( request._sequence, "UnavailablePermanently", "Usernames should be of the form <username>@<game>!" )
 
 		try:
 			game = GameManager()[ game_name ]
 		except KeyError, ex:
-			warning( "Game %s not found!" % game_name )
+			warning( "Game %s not found!", game_name )
 
 			return Fail( request._sequence, "UnavailablePermanently",  "The game you specified is not valid!" )
 

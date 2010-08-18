@@ -2,6 +2,7 @@
 
 import re, csv, datetime
 from collections import Mapping
+from logging import debug
 
 from DatabaseManager import DatabaseManager, make_mapping
 
@@ -188,10 +189,10 @@ class ModelObject( object ):
 					object.__setattr__( self, key, value )
 					continue
 
-			print self.__class__.__name__
-			print "  dictionary:", dir(self)
+			debug( self.__class__.__name__ )
+			debug( "  dictionary: %s", dir(self) )
 			if hasattr( self, '__parameters' ):
-				print "  parameters:", self.__parameters__
+				debug( "  parameters: %s", self.__parameters__ )
 
 			raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
 	
@@ -203,7 +204,7 @@ class ModelObject( object ):
 				attrs += list( self._sa_instance_state.manager.local_attrs )
 
 			if key not in attrs:
-				print( "%s has no %s attribute" % ( self.__class__.__name__, key ) )
+				debug( "%s has no %s attribute" , self.__class__.__name__, key )
 
 		object.__setattr__( self, key, value )
 

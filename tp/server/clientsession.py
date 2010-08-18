@@ -20,7 +20,7 @@ class CommandDispatcher( Mapping ):
 		self.__commands = {}
 
 		for name, cls in inspect.getmembers( tp.server.commands, lambda o: inspect.isclass(o) ):
-			debug( "Loaded %s command handler." % cls.__name__ )
+			debug( "Loaded %s command handler.", cls.__name__ )
 
 			self.__commands[ name ] = cls
 		
@@ -73,7 +73,7 @@ class ClientSessionHandler( object ):
 
 	@logctx
 	def packetReceived( self, packet ):
-		debug( "Going to deal with %s packet." % packet.__class__.__name__ )
+		debug( "Going to deal with %s packet.", packet.__class__.__name__ )
 
 		if not self.__packets:
 			self.__packets = PacketFactory()[ packet._version ]
@@ -88,11 +88,11 @@ class ClientSessionHandler( object ):
 			try:
 				handler = CommandDispatcher()[ packet.__class__.__name__ ]( self.__packets, self.__context )
 			except KeyError:
-				error( "No handler for %s command!" % packet._name )
+				error( "No handler for %s command!", packet._name )
 
 				response = Fail( packet._sequence, "UnavailablePermanently", "Command '%s' not supported!" % packet._name )
 			else:
-				debug( "Calling %s handler method." % handler.__class__.__name__ )
+				debug( "Calling %s handler method.", handler.__class__.__name__ )
 
 				try:
 					response = handler( packet )

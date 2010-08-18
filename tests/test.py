@@ -143,9 +143,9 @@ class TestCase( object ):
 		if not self.status:
 			if part in [ 'prologue', 'all' ]:
 				error( "----=[ ERROR REPORT START ]=-----" )
-				error( "Test name:\n %s" % self.__class__.__name__ )
-				error( "Description:\n %s" % self.__doc__.strip() )
-				error( "Reason:\n %s" % self.reason )
+				error( "Test name:\n %s", self.__class__.__name__ )
+				error( "Description:\n %s", self.__doc__.strip() )
+				error( "Reason:\n %s", self.reason )
 
 			if part in [ 'epilogue', 'all' ]:
 				if self.failure:
@@ -179,15 +179,15 @@ class TestSuite( Mapping, TestCase ):
 			self.addTest( *tests )
 	
 	def setUp( self ):
-		debug( "Setting up %s test suite..." % self.__class__.__name__ )
+		debug( "Setting up %s test suite...", self.__class__.__name__ )
 	
 	def tearDown( self ):
-		debug( "Tearing down %s test suite..." % self.__class__.__name__ )
+		debug( "Tearing down %s test suite...", self.__class__.__name__ )
 
 	def addTest( self, *args ):
 		for cls in args:
 			if cls in self.__tests:
-				debug( 'Test of type %s already registered!' % cls.__name__ )
+				debug( 'Test of type %s already registered!', cls.__name__ )
 			else:
 				self.__tests.append( cls )
 				self.__names[ cls.__name__ ] = cls
@@ -247,9 +247,9 @@ class TestSuite( Mapping, TestCase ):
 	@logctx
 	def __succeeded( self, test ):
 		if isinstance( test, TestSuite ):
-			info( "Test suite %s succeeded!" % test.logPrefix() )
+			info( "Test suite %s succeeded!", test.logPrefix() )
 		else:
-			info( "Test %s succeeded!" % test.__class__.__name__ )
+			info( "Test %s succeeded!", test.__class__.__name__ )
 
 		self.run()
 
@@ -258,9 +258,9 @@ class TestSuite( Mapping, TestCase ):
 		test = failure.value
 
 		if isinstance( test, TestSuite ):
-			error( "Test suite %s failed!" % test.logPrefix() )
+			error( "Test suite %s failed!", test.logPrefix() )
 		else:
-			error( "Test %s failed!" % test.__class__.__name__ )
+			error( "Test %s failed!", test.__class__.__name__ )
 
 		self.__failedTest.append( test )
 		self.run()
@@ -278,7 +278,7 @@ class TestSuite( Mapping, TestCase ):
 		if not self.status:
 			if self.failure:
 				error( "----=[ ERROR REPORT START ]=-----" )
-				error( "Reason:\n %s" % self.reason )
+				error( "Reason:\n %s", self.reason )
 				error( "Traceback:" )
 				exception( "" )
 				error( "-----=[ ERROR REPORT END ]=------" )

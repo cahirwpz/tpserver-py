@@ -31,15 +31,15 @@ class BaseBattleAction( TestCase ):
 		while red.alive() and blue.alive():
 			round += 1
 
-			debug( "Round %d" % round )
+			debug( "Round %d", round )
 
 			red_hand = red.shake()
 
-			debug( "* Red Fleet, %s" % red_hand )
+			debug( "* Red Fleet, %s", red_hand )
 
 			blue_hand = blue.shake()
 
-			debug( "* Blue Fleet, %s" % blue_hand )
+			debug( "* Blue Fleet, %s", blue_hand )
 
 			if red_hand == blue_hand:
 				debug( "* Draw" )
@@ -47,26 +47,26 @@ class BaseBattleAction( TestCase ):
 				red_dmg = blue.draw_damage()
 
 				if red_dmg:
-					debug( "Blue Fleet does %d damage to Red Fleet" % red_dmg )
+					debug( "Blue Fleet does %d damage to Red Fleet", red_dmg )
 					hits = red.hit(red_dmg)
 					self.display_hits(hits)
 
 				if blue_dmg:
-					debug( "Red Fleet does %d damage to Blue Fleet" % blue_dmg )
+					debug( "Red Fleet does %d damage to Blue Fleet", blue_dmg )
 					hits = blue.hit(blue_dmg)
 					self.display_hits(hits)
 
 				continue
 
 			if (red_hand, blue_hand) in (("Rock", "Scissors"), ("Scissors", "Paper"), ("Paper", "Rock")):
-				debug( "* %s beats %s" % (red_hand, blue_hand) )
-				debug( "Red Fleet does %d damage to Blue Fleet" % red.win_damage() )
+				debug( "* %s beats %s", red_hand, blue_hand )
+				debug( "Red Fleet does %d damage to Blue Fleet", red.win_damage() )
 
 				hits = blue.hit(red.win_damage())
 				self.display_hits(hits)
 			else:
-				debug( "* %s beats %s" % (blue_hand, red_hand) )
-				debug( "Blue Fleet does %d damage to Red Fleet" % blue.win_damage() )
+				debug( "* %s beats %s", blue_hand, red_hand )
+				debug( "Blue Fleet does %d damage to Red Fleet", blue.win_damage() )
 
 				hits = red.hit(blue.win_damage())
 				self.display_hits(hits)

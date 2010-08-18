@@ -37,11 +37,11 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 
 	@logctx
 	def clientConnectionFailed(self, connector, reason):
-		debug( "Connection failed: %s" % reason.getErrorMessage() )
+		debug( "Connection failed: %s", reason.getErrorMessage() )
 
 	@logctx
 	def clientConnectionLost(self, connector, reason):
-		debug( "Connection lost: %s" % reason.getErrorMessage() )
+		debug( "Connection lost: %s", reason.getErrorMessage() )
 
 	def configure( self, configuration ):
 		self.__tcp_port_num	= configuration.tcp_port
@@ -58,7 +58,7 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 		try:
 			port = reactor.listenTCP( self.__tcp_port_num, self )
 		except error.CannotListenError, ex:
-			error( "Cannot open listening port on %d: %s." % (ex.port, ex.socketError[1]) )
+			error( "Cannot open listening port on %d: %s.", ex.port, ex.socketError[1]) 
 		else:
 			self.listeners['tcp'] = port
 
@@ -66,7 +66,7 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 			try:
 				port = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
 			except error.CannotListenError, ex:
-				error( "Cannot open listening port on %d: %s." % (ex.port, ex.socketError[1]) )
+				error( "Cannot open listening port on %d: %s.", ex.port, ex.socketError[1]) 
 			else:
 				self.listeners['tls'] = port
 

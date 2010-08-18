@@ -83,7 +83,7 @@ class ActionProcessor( object ):
 			
 			name = str(action.__name__)
 			if "orders" in name:
-				debug("%s - Starting with" % name, args)
+				debug("%s - Starting with %s", name, args)
 			
 				if d.has_key(name):
 					for order in d[name]:
@@ -91,14 +91,14 @@ class ActionProcessor( object ):
 				else:
 					debug( "No orders of that type avaliable.." )
 
-				debug("%s - Finished" % name)
+				debug("%s - Finished", name)
 		
 			elif "actions" in name:
-				debug("%s - Starting with" % name, args)
+				debug("%s - Starting with %s", name, args)
 			
 				__import__(name, globals(), locals(), ["do"]).do(Object(0), *args)
 
-				debug("%s - Finished" % name)
+				debug("%s - Finished", name)
 		
 		# Reparent the universe
 

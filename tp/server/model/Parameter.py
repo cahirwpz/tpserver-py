@@ -33,10 +33,10 @@ class ParameterDesc( object ):
 		parameter = self.__check( obj )
 
 		if hasattr( self.type, '__maps_to__' ):
-			# print "getting value of %s.%s" % ( self.name, self.type.__maps_to__ )
+			# debug( "getting value of %s.%s", self.name, self.type.__maps_to__ )
 			return getattr( parameter.parameter, self.type.__maps_to__ )
 		else:
-			# print "getting value of %s" % self.name
+			# debug( "getting value of %s", self.name )
 			return parameter.parameter
 
 	def __set__( self, obj, value ):
@@ -44,10 +44,10 @@ class ParameterDesc( object ):
 			parameter = self.__check( obj )
 
 			if hasattr( self.type, '__maps_to__' ):
-				# print "setting %s.%s to %s" % ( self.name, self.type.__maps_to__, value )
+				# debug( "setting %s.%s to %s", self.name, self.type.__maps_to__, value )
 				setattr( parameter.parameter, self.type.__maps_to__, value )
 			else:
-				# print "setting %s to %s" % ( self.name, value )
+				# debug( "setting %s to %s", self.name, value )
 				parameter.parameter = value
 	
 	def __str__( self ):

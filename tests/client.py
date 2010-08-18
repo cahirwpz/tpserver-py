@@ -51,11 +51,11 @@ class ThousandParsecClientFactory( ClientFactory, object ):
 
 	@logctx
 	def clientConnectionFailed( self, connector, reason ):
-		debug( "Connection failed: %s" % reason.getErrorMessage() )
+		debug( "Connection failed: %s", reason.getErrorMessage() )
 
 	@logctx
 	def clientConnectionLost( self, connector, reason ):
-		debug( "Connection lost: %s" % reason.getErrorMessage() )
+		debug( "Connection lost: %s", reason.getErrorMessage() )
 
 	def configure( self, configuration ):
 		self.__hostname = configuration.hostname

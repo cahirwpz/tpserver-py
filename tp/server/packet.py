@@ -62,7 +62,7 @@ class PacketFactory( Mapping ):
 
 			self.__protocol[ version ] = protocol
 
-			debug("Loaded definition for Thousand Parsec Protocol version %s." % protocol.version )
+			debug("Loaded definition for Thousand Parsec Protocol version %s.", protocol.version )
 
 	def __getitem__( self, version ):
 		if version == 'default':
@@ -81,7 +81,7 @@ class PacketFactory( Mapping ):
 			packet = self.__protocol[ version ][ command ]()
 			packet.unpack( binary )
 		except AttributeError, ex:
-			debug(ex)
+			debug( str(ex) )
 			packet = None
 
 		return packet
