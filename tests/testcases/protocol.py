@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import TestSession, Expect
 
 class SameSequenceInHeader( TestSession ):
@@ -18,8 +17,4 @@ class SameSequenceInHeader( TestSession ):
 		else:
 			self.status = True
 
-class ProtocolTestSuite( TestSuite ):
-	__name__  = 'Protocol'
-	__tests__ = [ SameSequenceInHeader ]
-
-__tests__ = [ ProtocolTestSuite ]
+__all__ = [ 'SameSequenceInHeader' ]

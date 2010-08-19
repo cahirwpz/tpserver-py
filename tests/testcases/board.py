@@ -211,3 +211,18 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession, BoardTestEnvMixin ):
 
 		assert p1.id == ids[0] and p2.id == ids[1], \
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
+
+__all__ = [	'GetCurrentBoard', 
+			'GetExistingBoard', 
+			'GetNonExistentBoard', 
+			'GetPublicBoard', 
+			'GetPrivateBoard', 
+			'GetOtherPlayerPrivateBoard', 
+			'GetMultipleBoards', 
+			'GetMultipleBoardsWithOneFail', 
+			'GetNumberOfBoards', 
+			'GetAllAvailableBoards', 
+			'GetBoardIDsOneByOne', 
+			'GetBoardWhenNotLogged', 
+			'GetBoardIDsWhenNotLogged', 
+			'AllFetchedBoardsAreAccessible' ]

@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import AuthorizedTestSession, ExpectFail
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
 from testenv import GameTestEnvMixin
@@ -128,11 +127,11 @@ class GetObjectsByPosWhenNotLogged( WhenNotLogged ):
 	def makeRequest( self, GetObjectsByPos ):
 		return GetObjectsByPos( self.seq, ( 0, 0, 0 ), 1000 )
 
-class ObjectTestSuite( TestSuite ):
-	__name__  = 'Objects'
-	__tests__ = [ GetObjectsByIDWhenNotLogged, GetObjectIDsWhenNotLogged,
-			GetObjectIDsByContainerWhenNotLogged,
-			GetObjectIDsByPosWhenNotLogged, GetObjectsByPosWhenNotLogged,
-			GetEmptyObjectList, GetAllObjects, GetObjectIDs ]
-
-__tests__ = [ ObjectTestSuite ]
+__all__ = [	'GetEmptyObjectList', 
+			'GetAllObjects', 
+			'GetObjectIDs', 
+			'GetObjectsByIDWhenNotLogged', 
+			'GetObjectIDsWhenNotLogged', 
+			'GetObjectIDsByContainerWhenNotLogged', 
+			'GetObjectIDsByPosWhenNotLogged', 
+			'GetObjectsByPosWhenNotLogged' ]

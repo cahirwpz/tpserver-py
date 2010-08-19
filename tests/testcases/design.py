@@ -1,4 +1,3 @@
-from test import TestSuite
 from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
 		WhenNotLogged, GetWithIDMixin, GetItemWithID, GetItemIDs,
 		GetItemsWithID )
@@ -265,31 +264,12 @@ class RemoveDesignWhenNotLogged( GetIDSequenceWhenNotLogged ):
 
 	__request__ = 'RemoveDesign'
 
-class AddDesignTestSuite( TestSuite ):
-	__name__  = 'AddDesign'
-	__tests__ = [ AddDesignWhenNotLogged ]
-
-class GetDesignTestSuite( TestSuite ):
-	__name__  = 'GetDesign'
-	__tests__ = [ GetDesignWhenNotLogged, GetExistingDesign,
-			GetNonExistentDesign, GetMultipleDesigns ]
-
-class GetDesignIDsTestSuite( TestSuite ):
-	__name__  = 'GetDesignIDs'
-	__tests__ = [ GetDesignIDsWhenNotLogged, GetAllDesignIDs ]
-
-class RemoveDesignTestSuite( TestSuite ):
-	__name__  = 'RemoveDesign'
-	__tests__ = [ RemoveDesignWhenNotLogged ]
-
-class ModifyDesignTestSuite( TestSuite ):
-	__name__  = 'ModifyDesign'
-	__tests__ = [ ModifyDesignWhenNotLogged ]
-
-class DesignTestSuite( TestSuite ):
-	__name__  = 'Designs'
-	__tests__ = [ AddDesignTestSuite, GetDesignTestSuite,
-			GetDesignIDsTestSuite, RemoveDesignTestSuite,
-			ModifyDesignTestSuite ]
-
-__tests__ = [ DesignTestSuite ]
+__all__ = [	'GetDesignWhenNotLogged', 
+			'GetExistingDesign', 
+			'GetNonExistentDesign', 
+			'GetMultipleDesigns', 
+			'GetDesignIDsWhenNotLogged', 
+			'GetAllDesignIDs', 
+			'AddDesignWhenNotLogged', 
+			'ModifyDesignWhenNotLogged', 
+			'RemoveDesignWhenNotLogged' ]

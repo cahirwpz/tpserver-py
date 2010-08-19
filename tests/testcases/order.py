@@ -1,4 +1,3 @@
-from test import TestSuite
 from templates import GetWithIDSlotWhenNotLogged, GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
 from testenv import GameTestEnvMixin
 
@@ -51,11 +50,9 @@ class RemoveOrderWhenNotLogged( GetIDSequenceWhenNotLogged ):
 
 	__request__ = 'RemoveOrder'
 
-class OrdersTestSuite( TestSuite ):
-	""" Performs all tests related to GetOrder and GetOrderIDs requests. """
-	__name__  = 'Orders'
-	__tests__ = [ GetOrderWhenNotLogged, GetOrderDescWhenNotLogged,
-			GetOrderDescIDsWhenNotLogged, OrderInsertWhenNotLogged,
-			OrderProbeWhenNotLogged, RemoveOrderWhenNotLogged ]
-
-__tests__ = [ OrdersTestSuite ]
+__all__ = [ 'GetOrderWhenNotLogged', 
+			'GetOrderDescWhenNotLogged', 
+			'GetOrderDescIDsWhenNotLogged', 
+			'OrderInsertWhenNotLogged', 
+			'OrderProbeWhenNotLogged', 
+			'RemoveOrderWhenNotLogged' ]

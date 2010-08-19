@@ -305,3 +305,22 @@ class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin,
 
 		if Category.ById( self.cat.id ):
 			Model.remove( self.cat )
+
+__all__ = [	'GetExistingCategory', 
+			'GetNonExistentCategory', 
+			'GetPublicCategory', 
+			'GetPrivateCategory', 
+			'GetOtherPlayerPrivateCategory', 
+			'GetMultipleCategories', 
+			'GetAllCategoryIDs', 
+			'GetCategoryWhenNotLogged', 
+			'GetCategoryIDsWhenNotLogged', 
+			'AddCategoryWhenNotLogged', 
+			'AddNewCategory', 
+			'AddCategoryButSameExists', 
+			'AddCategoryWithSameNameAsPrivate', 
+			'AddCategoryWithSameNameAsPublic', 
+			'RemoveCategoryWhenNotLogged', 
+			'RemovePublicCategory', 
+			'RemovePrivateCategory', 
+			'RemoveOtherPlayerPrivateCategory' ]

@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
 from testenv import GameTestEnvMixin
@@ -149,11 +148,11 @@ class PostMessageWhenNotLogged( WhenNotLogged ):
 	def makeRequest( self, PostMessage ):
 		return PostMessage( self.seq, 1, 1, [], "Subject", "Body", 0, [] )
 
-class MessageTestSuite( TestSuite ):
-	__name__  = 'Messages'
-	__tests__ = [ GetMessageWhenNotLogged, PostMessageWhenNotLogged,
-			RemoveMessageWhenNotLogged, GetExistingMessage,
-			GetNonExistentMessage1, GetNonExistentMessage2,
-			GetMultipleMessages, PostMessage ]
-
-__tests__ = [ MessageTestSuite ]
+__all__ = [	'GetExistingMessage', 
+			'GetNonExistentMessage1', 
+			'GetNonExistentMessage2', 
+			'GetMultipleMessages', 
+			'PostMessage', 
+			'GetMessageWhenNotLogged', 
+			'RemoveMessageWhenNotLogged', 
+			'PostMessageWhenNotLogged' ]

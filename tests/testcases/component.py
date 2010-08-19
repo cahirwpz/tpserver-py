@@ -153,3 +153,10 @@ class GetAllComponentIDs( GetItemIDs, ComponentTestEnvMixin ):
 	@property
 	def items( self ):
 		return self.components
+
+__all__ = [	'GetComponentWhenNotLogged', 
+			'GetExistingComponent', 
+			'GetNonExistentComponent', 
+			'GetAllComponents', 
+			'GetComponentIDsWhenNotLogged', 
+			'GetAllComponentIDs' ]

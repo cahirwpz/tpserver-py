@@ -1,4 +1,3 @@
-from test import TestSuite
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
 from testenv import GameTestEnvMixin
 
@@ -89,9 +88,7 @@ class GetAllResourceIDs( GetItemIDs, ResourceTestEnvMixin ):
 	def items( self ):
 		return self.resources
 
-class ResourcesTestSuite( TestSuite ):
-	""" Performs all tests related to GetResource and GetResourceIDs requests. """
-	__name__  = 'Resources'
-	__tests__ = [ GetResourceWhenNotLogged, GetAllResources, GetResourceIDsWhenNotLogged, GetAllResourceIDs ]
-
-__tests__ = [ ResourcesTestSuite ]
+__all__ = [	'GetResourceWhenNotLogged', 
+			'GetAllResources', 
+			'GetResourceIDsWhenNotLogged', 
+			'GetAllResourceIDs' ]

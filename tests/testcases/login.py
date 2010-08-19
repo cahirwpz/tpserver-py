@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import ConnectedTestSession, Expect
 from testenv import GameTestEnvMixin
 
@@ -14,8 +13,4 @@ class KnownUserAuthorized( ConnectedTestSession, GameTestEnvMixin ):
 
 		yield Login( self.seq, "%s@%s" % ( self.login, self.game.name ), self.password ), Expect( 'Okay' )
 
-class LoginTestSuite( TestSuite ):
-	__name__  = 'Login'
-	__tests__ = [ KnownUserAuthorized ]
-
-__tests__ = [ LoginTestSuite ]
+__all__ = [	'KnownUserAuthorized' ]

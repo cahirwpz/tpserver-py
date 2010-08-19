@@ -7,3 +7,5 @@ class PingRequest( ConnectedTestSession ):
 		Ping = self.protocol.use( 'Ping' )
 
 		yield Ping( self.seq ), Expect( 'Okay' )
+
+__all__ = [ 'PingRequest' ]

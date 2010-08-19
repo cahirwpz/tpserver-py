@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged
 from testenv import GameTestEnvMixin
@@ -63,8 +62,8 @@ class GetPlayerWhenNotLogged( GetWithIDWhenNotLogged ):
 
 	__request__ = 'GetPlayer'
 
-class PlayerTestSuite( TestSuite ):
-	__name__  = 'Players'
-	__tests__ = [ GetPlayerWhenNotLogged, GetCurrentPlayer, GetExistingPlayer, GetNonExistentPlayer, GetMultiplePlayers ]
-
-__tests__ = [ PlayerTestSuite ]
+__all__ = [	'GetCurrentPlayer', 
+			'GetExistingPlayer', 
+			'GetNonExistentPlayer', 
+			'GetMultiplePlayers', 
+			'GetPlayerWhenNotLogged' ]

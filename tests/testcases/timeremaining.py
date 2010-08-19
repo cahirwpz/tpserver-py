@@ -1,4 +1,3 @@
-from test import TestSuite
 from common import AuthorizedTestSession, Expect
 from templates import WhenNotLogged
 from testenv import GameTestEnvMixin
@@ -19,8 +18,5 @@ class GetTimeRemainingWhenNotLogged( WhenNotLogged ):
 	def makeRequest( self, GetTimeRemaining ):
 		return GetTimeRemaining( self.seq )
 
-class TimeRemainingTestSuite( TestSuite ):
-	__name__  = 'TimeRemaining'
-	__tests__ = [ GetTimeRemainingWhenNotLogged, GetTimeRemainingRequest ]
-
-__tests__ = [ TimeRemainingTestSuite ]
+__all__ = [	'GetTimeRemainingRequest', 
+			'GetTimeRemainingWhenNotLogged' ]

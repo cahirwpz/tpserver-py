@@ -1,4 +1,3 @@
-from test import TestSuite
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
 from testenv import GameTestEnvMixin
 
@@ -136,9 +135,7 @@ class GetAllPropertyIDs( GetItemIDs, PropertyTestEnvMixin ):
 	def items( self ):
 		return self.properties
 
-class PropertiesTestSuite( TestSuite ):
-	""" Performs all tests related to GetProperty and GetPropertyIDs requests. """
-	__name__  = 'Properties'
-	__tests__ = [ GetPropertyWhenNotLogged, GetAllProperties, GetPropertyIDsWhenNotLogged, GetAllPropertyIDs ]
-
-__tests__ = [ PropertiesTestSuite ]
+__all__ = [	'GetPropertyWhenNotLogged', 
+			'GetAllProperties', 
+			'GetPropertyIDsWhenNotLogged', 
+			'GetAllPropertyIDs' ]

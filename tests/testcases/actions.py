@@ -80,3 +80,5 @@ class BaseBattleAction( TestCase ):
 			debug( "Red Ran Away" )
 		elif blue.running:
 			debug( "Blue Ran Away" )
+
+__all__ = [ 'BaseBattleAction' ]
