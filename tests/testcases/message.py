@@ -1,5 +1,5 @@
-from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
+from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf
+from templates import AuthorizedTestSession, WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model

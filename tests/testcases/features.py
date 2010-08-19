@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect
+from common import Expect
+from templates import ConnectedTestSession
 
 class GetFeaturesRequest( ConnectedTestSession ):
 	""" Does server respond to GetFeatures request properly? """

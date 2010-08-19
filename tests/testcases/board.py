@@ -1,5 +1,7 @@
-from common import AuthorizedTestSession, Expect, ExpectSequence, TestSessionUtils
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID, GetWithIDMixin
+from common import Expect, ExpectSequence
+from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
+		GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID,
+		GetWithIDMixin )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -133,7 +135,7 @@ class GetNumberOfBoards( AuthorizedTestSession, BoardTestEnvMixin ):
 		assert len( idseq.modtimes ) == 0, \
 				"Expected to get no Boards"
 
-class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils, BoardTestEnvMixin ):
+class GetAllAvailableBoards( AuthorizedTestSession, BoardTestEnvMixin ):
 	""" Does server return the IDs of Boards that are accessible by the player? """
 
 	def __iter__( self ):

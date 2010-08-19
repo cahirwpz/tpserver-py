@@ -1,5 +1,5 @@
-from common import AuthorizedTestSession, Expect
-from templates import WhenNotLogged
+from common import Expect
+from templates import AuthorizedTestSession, WhenNotLogged
 from testenv import GameTestEnvMixin
 
 class GetTimeRemainingRequest( AuthorizedTestSession, GameTestEnvMixin ):

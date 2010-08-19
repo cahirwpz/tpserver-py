@@ -1,5 +1,7 @@
-from common import AuthorizedTestSession, ExpectFail
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
+from common import ExpectFail
+from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
+		GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemsWithID,
+		GetWithIDMixin, GetItemIDs )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model, Vector3D

@@ -1,7 +1,7 @@
-from common import AuthorizedTestSession, Expect, ExpectFail, ExpectOneOf
-from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
-		WhenNotLogged, GetItemWithID, GetWithIDMixin, GetItemsWithID,
-		GetItemIDs )
+from common import Expect, ExpectFail, ExpectOneOf
+from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
+		GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemWithID,
+		GetWithIDMixin, GetItemsWithID, GetItemIDs )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model

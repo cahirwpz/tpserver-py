@@ -1,6 +1,46 @@
 import time
 
-from common import AuthorizedTestSession, ConnectedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf, TestSessionUtils
+from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf, TestSession
+
+class IncrementingSequenceMixin( object ):
+	@property
+	def seq( self ):
+		try:
+			self.__seq += 1
+		except AttributeError:
+			self.__seq = 1
+		
+		return self.__seq
+
+class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
+	def __init__( self, *args, **kwargs ):
+		super( ConnectedTestSession, self ).__init__( *args, **kwargs )
+
+		self.scenarioList.append( self.__connect() )
+
+	def __connect( self ):
+		Connect = self.protocol.use( 'Connect' )
+
+		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
+
+class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
+	def __init__( self, *args, **kwargs ):
+		super( AuthorizedTestSession, self ).__init__( *args, **kwargs )
+
+		self.scenarioList.append( self.__login() )
+
+	def datetimeToInt( self, t ):
+		return long( time.mktime( time.strptime( t.ctime() ) ) )
+	
+	@property
+	def player( self ):
+		return self.players[0]
+
+	def __login( self ):
+		Connect, Login = self.protocol.use( 'Connect', 'Login' )
+
+		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
+		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
 
 class GetWithIDWhenNotLogged( ConnectedTestSession ):
 	__request__ = None
@@ -98,10 +138,7 @@ class GetItemsWithID( AuthorizedTestSession ):
 
 class GetWithIDMixin( object ):
 	def convert_modtime( self, packet, obj ):
-		pval = packet.modtime
-		oval = long( time.mktime( time.strptime( obj.mtime.ctime() ) ) )
-
-		return pval, oval
+		return packet.modtime, self.datetimeToInt( obj.mtime )
 
 	def mustBeEqual( self, packet, obj ):
 		attrs = self.__attrs__ + list( self.__attrmap__ ) + self.__attrfun__
@@ -118,7 +155,7 @@ class GetWithIDMixin( object ):
 			assert pval == oval, \
 					"Server responded with different %s(%d).%s (%s) than expected (%s)!" % ( self.__response__, packet.id, attr, pval, oval )
 
-class GetItemIDs( AuthorizedTestSession, TestSessionUtils ):
+class GetItemIDs( AuthorizedTestSession ):
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
@@ -139,6 +176,7 @@ class GetItemIDs( AuthorizedTestSession, TestSessionUtils ):
 			assert item.modtime == self.datetimeToInt( obj.mtime ), \
 					"Expected modtime (%s) and %s.mtime (%s) to be equal." % ( item.modtime, obj.__origname__, self.datetimeToInt( obj.mtime ) )
 
-__all__ = [ 'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
+__all__ = [ 'ConnectedTestSession', 'AuthorizedTestSession',
+			'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
 			'GetWithIDSlotWhenNotLogged', 'WhenNotLogged', 'GetItemWithID'
 			'GetItemsWithID', 'GetWithIDMixin', 'GetItemIDs' ]

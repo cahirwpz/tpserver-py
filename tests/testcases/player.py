@@ -1,5 +1,5 @@
-from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import GetWithIDWhenNotLogged
+from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf
+from templates import AuthorizedTestSession, GetWithIDWhenNotLogged
 from testenv import GameTestEnvMixin
 
 class GetCurrentPlayer( AuthorizedTestSession, GameTestEnvMixin ):

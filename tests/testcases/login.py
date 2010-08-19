@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect
+from common import Expect
+from templates import ConnectedTestSession
 from testenv import GameTestEnvMixin
 
 class KnownUserAuthorized( ConnectedTestSession, GameTestEnvMixin ):

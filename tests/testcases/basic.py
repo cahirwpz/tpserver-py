@@ -1,4 +1,5 @@
-from common import ConnectedTestSession, Expect
+from common import Expect
+from templates import ConnectedTestSession
 
 class PingRequest( ConnectedTestSession ):
 	""" Check if a server answers Ping packet properly. """

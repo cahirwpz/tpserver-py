@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import time, new, unittest
+import new, unittest
 
 from logging import debug, info, warning, error, exception
 
@@ -12,10 +12,6 @@ from twisted.internet import reactor
 from tp.server.logger import logctx
 from tp.server.packet import PacketFactory, PacketFormatter
 
-class TestCase( unittest.TestCase ):
-	def logPrefix( self ):
-		return self.__class__.__name__
-
 def ichain( *args ):
 	for a in args:
 		try:
@@ -24,16 +20,6 @@ def ichain( *args ):
 				r = yield a.send(r)
 		except StopIteration:
 			pass
-
-class IncrementingSequenceMixin( object ):
-	@property
-	def seq( self ):
-		try:
-			self.__seq += 1
-		except AttributeError:
-			self.__seq = 1
-		
-		return self.__seq
 
 class Expect( object ):
 	def __init__( self, packet ):
@@ -128,9 +114,9 @@ class ExpectOneOf( Expect ):
 	def __str__( self ):
 		return ", ".join( str( choice ) for choice in self.__choices )
 
-class TestSessionUtils( object ):
-	def datetimeToInt( self, t ):
-		return long( time.mktime( time.strptime( t.ctime() ) ) )
+class TestCase( unittest.TestCase ):
+	def logPrefix( self ):
+		return self.__class__.__name__
 
 class TestSessionMetaClass( type ):
 	def __call__( cls, *args, **kwargs ):
@@ -311,34 +297,5 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 			reactor.callLater( 0, lambda: reactor.stop() )
 
-class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
-	def __init__( self, *args, **kwargs ):
-		super( ConnectedTestSession, self ).__init__( *args, **kwargs )
-
-		self.scenarioList.append( self.__connect() )
-
-	def __connect( self ):
-		Connect = self.protocol.use( 'Connect' )
-
-		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-
-class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
-	def __init__( self, *args, **kwargs ):
-		super( AuthorizedTestSession, self ).__init__( *args, **kwargs )
-
-		self.scenarioList.append( self.__login() )
-	
-	@property
-	def player( self ):
-		return self.players[0]
-
-	def __login( self ):
-		Connect, Login = self.protocol.use( 'Connect', 'Login' )
-
-		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
-
-__all__ = [ 'IncrementingSequenceMixin', 'Expect', 'ExpectFail',
-			'ExpectSequence', 'ExpectOneOf', 'TestSession',
-			'ConnectedTestSession', 'AuthorizedTestSession', 'TestSessionUtils'
-			'TestCase' ]
+__all__ = [ 'Expect', 'ExpectFail', 'ExpectSequence', 'ExpectOneOf',
+			'TestCase', 'TestSession' ]
