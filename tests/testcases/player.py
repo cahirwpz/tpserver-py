@@ -1,13 +1,14 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import GetWithIDWhenNotLogged
+from testenv import GameTestEnvMixin
 
-class GetCurrentPlayer( AuthorizedTestSession ):
+class GetCurrentPlayer( AuthorizedTestSession, GameTestEnvMixin ):
 	""" Does server respond with current player information? """
 
 	@property
 	def player( self ):
-		return self.ctx['players'][1]
+		return self.players[1]
 
 	def __iter__( self ):
 		GetPlayer = self.protocol.use( 'GetPlayer' )
@@ -17,11 +18,11 @@ class GetCurrentPlayer( AuthorizedTestSession ):
 		assert packet.id == self.player.id, \
 			"Server responded with different PlayerId than requested!"
 
-class GetExistingPlayer( AuthorizedTestSession ):
+class GetExistingPlayer( AuthorizedTestSession, GameTestEnvMixin ):
 	""" Does server respond properly if asked about existing player? """
 
 	def __iter__( self ):
-		player = self.ctx['players'][1]
+		player = self.players[1]
 
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 
@@ -30,11 +31,11 @@ class GetExistingPlayer( AuthorizedTestSession ):
 		assert packet.id == player.id, \
 			"Server responded with different PlayerId than requested!"
 
-class GetNonExistentPlayer( AuthorizedTestSession ):
+class GetNonExistentPlayer( AuthorizedTestSession, GameTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent player? """
 
 	def __iter__( self ):
-		player = self.ctx['players'][1]
+		player = self.players[1]
 
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 
@@ -43,12 +44,12 @@ class GetNonExistentPlayer( AuthorizedTestSession ):
 		assert packet.type != 'Player', \
 			"Server does return information for non-existent PlayerId = %s!" % ( player.id + 666 )
 
-class GetMultiplePlayers( AuthorizedTestSession ):
+class GetMultiplePlayers( AuthorizedTestSession, GameTestEnvMixin ):
 	""" Does server return sequence of Player packets if asked about two players? """
 
 	def __iter__( self ):
-		player1 = self.ctx['players'][1]
-		player2 = self.ctx['players'][0]
+		player1 = self.players[1]
+		player2 = self.players[0]
 
 		GetPlayer = self.protocol.use( 'GetPlayer' )
 

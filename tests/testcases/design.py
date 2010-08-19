@@ -3,131 +3,12 @@ from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
 		WhenNotLogged, GetWithIDMixin, GetItemWithID, GetItemIDs,
 		GetItemsWithID )
 
+from testenv import GameTestEnvMixin
+
 from tp.server.model import Model
 
-class GetDesignMixin( GetWithIDMixin ):
-	__request__  = 'GetDesign'
-	__response__ = 'Design'
-
-	__attrs__   = [ 'id', 'name', 'description' ]
-	__attrmap__ = dict( feedback = "comment" )
-	__attrfun__ = [ 'modtime', 'owner', 'categories', 'components', 'properties' ]
-
-	def convert_owner( self, packet, obj ):
-		pval = packet.owner if packet.owner != -1 else None
-		oval = obj.owner_id
-
-		return pval, oval
-
-	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
-
-	def convert_properties( self, packet, obj ):
-		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
-				sorted( (prop.property_id, prop.value) for prop in obj.properties )
-
-	def convert_components( self, packet, obj ):
-		return sorted( (comp[0], comp[1]) for comp in packet.components ), \
-				sorted( (comp.component_id, comp.amount) for comp in obj.components )
-
-class GetDesignWhenNotLogged( GetWithIDWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetDesign request? """
-
-	__request__ = 'GetDesign'
-
-class GetExistingDesign( GetItemWithID, GetDesignMixin ):
-	""" Does server respond properly if asked about existing board? """
-	
-	@property
-	def item( self ):
-		return self.ctx['designs'][1]
-
-class GetNonExistentDesign( GetItemWithID, GetDesignMixin ):
-	""" Does server fail to respond if asked about nonexistent design? """
-
-	__fail__ = 'NoSuchThing'
-
-	@property
-	def item( self ):
-		return self.ctx['designs'][0]
-	
-	def getId( self, item ):
-		return self.item.id + 666
-
-class GetMultipleDesigns( GetItemsWithID, GetDesignMixin ):
-	""" Does server return the IDs of all available Designs? """
-
-	@property
-	def items( self ):
-		return self.ctx['designs']
-
-class GetDesignIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetDesignIds request? """
-
-	__request__ = 'GetDesignIDs'
-
-class GetAllDesignIDs( GetItemIDs ):
-	""" Does server return the IDs of all available Designs? """
-
-	__request__  = 'GetDesignIDs'
-	__response__ = 'DesignIDs'
-	__object__   = 'Design'
-
-	@property
-	def items( self ):
-		return self.ctx['designs']
-
-class AddDesignWhenNotLogged( WhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got AddDesign request? """
-
-	__request__ = 'AddDesign'
-
-	def makeRequest( self, AddDesign ):
-		return AddDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
-
-class ModifyDesignWhenNotLogged( WhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got ModifyDesign request? """
-
-	__request__ = 'ModifyDesign'
-
-	def makeRequest( self, ModifyDesign ):
-		return ModifyDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
-
-class RemoveDesignWhenNotLogged( GetIDSequenceWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got RemoveDesign request? """
-
-	__request__ = 'RemoveDesign'
-
-class AddDesignTestSuite( TestSuite ):
-	__name__  = 'AddDesign'
-	__tests__ = [ AddDesignWhenNotLogged ]
-
-class GetDesignTestSuite( TestSuite ):
-	__name__  = 'GetDesign'
-	__tests__ = [ GetDesignWhenNotLogged, GetExistingDesign,
-			GetNonExistentDesign, GetMultipleDesigns ]
-
-class GetDesignIDsTestSuite( TestSuite ):
-	__name__  = 'GetDesignIDs'
-	__tests__ = [ GetDesignIDsWhenNotLogged, GetAllDesignIDs ]
-
-class RemoveDesignTestSuite( TestSuite ):
-	__name__  = 'RemoveDesign'
-	__tests__ = [ RemoveDesignWhenNotLogged ]
-
-class ModifyDesignTestSuite( TestSuite ):
-	__name__  = 'ModifyDesign'
-	__tests__ = [ ModifyDesignWhenNotLogged ]
-
-class DesignTestSuite( TestSuite ):
-	__name__  = 'Designs'
-	__tests__ = [ AddDesignTestSuite, GetDesignTestSuite,
-			GetDesignIDsTestSuite, RemoveDesignTestSuite,
-			ModifyDesignTestSuite ]
-
+class DesignTestEnvMixin( GameTestEnvMixin ):
 	def setUp( self ):
-		game = self.ctx['game']
-
 		Component, ComponentProperty = self.model.use( 'Component', 'ComponentProperty' )
 		Design, DesignComponent, DesignProperty = self.model.use( 'Design', 'DesignComponent', 'DesignProperty' )
 		Category, Property = self.model.use( 'Category', 'Property' )
@@ -144,7 +25,7 @@ class DesignTestSuite( TestSuite ):
 				name = "Combat",
 				description = "Things which deal with combat between ships." )
 
-		self.ctx['categories'] = [ misc, ship, combat ]
+		self.categories = [ misc, ship, combat ]
 
 		experience = Property(
 			categories   = [ misc ],
@@ -202,7 +83,7 @@ class DesignTestSuite( TestSuite ):
 			description  = "Can the ship colonise planets?",
 			calculate    = """(lambda (design) ("Yes"))""" )
 
-		self.ctx['properties'] = [ experience, age, speed, hp, backup_damage, primary_damage, escape, colonise ]
+		self.properties = [ experience, age, speed, hp, backup_damage, primary_damage, escape, colonise ]
 
 		missile = Component(
 			name        = "Missile",
@@ -240,7 +121,7 @@ class DesignTestSuite( TestSuite ):
 			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1000000)""" ) ])
 
-		self.ctx['components'] = [ missile, laser, armor_plate, colonisation_pod, escape_thrusters, primary_engine ]
+		self.components = [ missile, laser, armor_plate, colonisation_pod, escape_thrusters, primary_engine ]
 
 		scout = Design(
 			name        = "Scout",
@@ -281,13 +162,134 @@ class DesignTestSuite( TestSuite ):
 				DesignComponent( component = missile, amount = 3 ),
 				DesignComponent( component = laser, amount = 4 ) ])
 
-		self.ctx['designs'] = [ scout, frigate, battleship ]
+		self.designs = [ scout, frigate, battleship ]
 
-		Model.add( self.ctx['categories'], self.ctx['properties'],
-				self.ctx['components'], self.ctx['designs'] )
+		Model.add( self.categories, self.properties,
+				self.components, self.designs )
 	
 	def tearDown( self ):
-		Model.remove( self.ctx['designs'], self.ctx['components'],
-				self.ctx['properties'], self.ctx['categories'] )
+		Model.remove( self.designs, self.components,
+				self.properties, self.categories )
+
+
+class GetDesignMixin( GetWithIDMixin ):
+	__request__  = 'GetDesign'
+	__response__ = 'Design'
+
+	__attrs__   = [ 'id', 'name', 'description' ]
+	__attrmap__ = dict( feedback = "comment" )
+	__attrfun__ = [ 'modtime', 'owner', 'categories', 'components', 'properties' ]
+
+	def convert_owner( self, packet, obj ):
+		pval = packet.owner if packet.owner != -1 else None
+		oval = obj.owner_id
+
+		return pval, oval
+
+	def convert_categories( self, packet, obj ):
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
+
+	def convert_properties( self, packet, obj ):
+		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
+				sorted( (prop.property_id, prop.value) for prop in obj.properties )
+
+	def convert_components( self, packet, obj ):
+		return sorted( (comp[0], comp[1]) for comp in packet.components ), \
+				sorted( (comp.component_id, comp.amount) for comp in obj.components )
+
+class GetDesignWhenNotLogged( GetWithIDWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetDesign request? """
+
+	__request__ = 'GetDesign'
+
+class GetExistingDesign( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
+	""" Does server respond properly if asked about existing board? """
+	
+	@property
+	def item( self ):
+		return self.designs[1]
+
+class GetNonExistentDesign( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
+	""" Does server fail to respond if asked about nonexistent design? """
+
+	__fail__ = 'NoSuchThing'
+
+	@property
+	def item( self ):
+		return self.designs[0]
+	
+	def getId( self, item ):
+		return self.item.id + 666
+
+class GetMultipleDesigns( GetItemsWithID, GetDesignMixin, DesignTestEnvMixin ):
+	""" Does server return the IDs of all available Designs? """
+
+	@property
+	def items( self ):
+		return self.designs
+
+class GetDesignIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetDesignIds request? """
+
+	__request__ = 'GetDesignIDs'
+
+class GetAllDesignIDs( GetItemIDs, DesignTestEnvMixin ):
+	""" Does server return the IDs of all available Designs? """
+
+	__request__  = 'GetDesignIDs'
+	__response__ = 'DesignIDs'
+	__object__   = 'Design'
+
+	@property
+	def items( self ):
+		return self.designs
+
+class AddDesignWhenNotLogged( WhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got AddDesign request? """
+
+	__request__ = 'AddDesign'
+
+	def makeRequest( self, AddDesign ):
+		return AddDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
+
+class ModifyDesignWhenNotLogged( WhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got ModifyDesign request? """
+
+	__request__ = 'ModifyDesign'
+
+	def makeRequest( self, ModifyDesign ):
+		return ModifyDesign( self.seq, 0, 0, [], "Design", "Design used for testing purposes", 0, 0, [], "foobar", [] )
+
+class RemoveDesignWhenNotLogged( GetIDSequenceWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got RemoveDesign request? """
+
+	__request__ = 'RemoveDesign'
+
+class AddDesignTestSuite( TestSuite ):
+	__name__  = 'AddDesign'
+	__tests__ = [ AddDesignWhenNotLogged ]
+
+class GetDesignTestSuite( TestSuite ):
+	__name__  = 'GetDesign'
+	__tests__ = [ GetDesignWhenNotLogged, GetExistingDesign,
+			GetNonExistentDesign, GetMultipleDesigns ]
+
+class GetDesignIDsTestSuite( TestSuite ):
+	__name__  = 'GetDesignIDs'
+	__tests__ = [ GetDesignIDsWhenNotLogged, GetAllDesignIDs ]
+
+class RemoveDesignTestSuite( TestSuite ):
+	__name__  = 'RemoveDesign'
+	__tests__ = [ RemoveDesignWhenNotLogged ]
+
+class ModifyDesignTestSuite( TestSuite ):
+	__name__  = 'ModifyDesign'
+	__tests__ = [ ModifyDesignWhenNotLogged ]
+
+class DesignTestSuite( TestSuite ):
+	__name__  = 'Designs'
+	__tests__ = [ AddDesignTestSuite, GetDesignTestSuite,
+			GetDesignIDsTestSuite, RemoveDesignTestSuite,
+			ModifyDesignTestSuite ]
 
 __tests__ = [ DesignTestSuite ]

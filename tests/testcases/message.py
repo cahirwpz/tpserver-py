@@ -1,8 +1,43 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectFail, ExpectSequence, ExpectOneOf
 from templates import WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
+from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
+
+class MessageTestEnvMixin( GameTestEnvMixin ):
+	def setUp( self ):
+		Board, Message = self.model.use( 'Board', 'Message' )
+
+		board = Board(
+			owner		= self.players[0],
+			name        = "First message board for %s" % self.players[0].username,
+			description = "Board for testing purposes." )
+
+		board.messages.append(
+			Message(
+				subject = "First",
+				body	= "Test message generated in first turn",
+				turn    = 1 ))
+
+		board.messages.append(
+			Message(
+				subject = "Second",
+				body	= "Test message generated in second turn",
+				turn    = 2 ))
+
+		board.messages.append(
+			Message(
+				subject = "Third",
+				body	= "Test message generated in third turn",
+				turn    = 3 ))
+
+		self.board = board
+
+		Model.add( board )
+	
+	def tearDown( self ):
+		Model.remove( self.board )
 
 class GetMessageMixin( GetWithIDMixin ):
 	__request__  = 'GetMessage'
@@ -12,11 +47,11 @@ class GetMessageMixin( GetWithIDMixin ):
 	__attrmap__ = {}
 	__attrfun__ = [ 'modtime' ]
 
-class GetExistingMessage( AuthorizedTestSession ):
+class GetExistingMessage( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server respond properly if asked about existing message? """
 
 	def __iter__( self ):
-		board   = self.ctx['board']
+		board   = self.board
 		message = board.messages[2]
 
 		GetMessage = self.protocol.use( 'GetMessage' )
@@ -29,11 +64,11 @@ class GetExistingMessage( AuthorizedTestSession ):
 		assert packet.slot == message.id, \
 				"Server responded with different SlotId than requested!"
 
-class GetNonExistentMessage1( AuthorizedTestSession ):
+class GetNonExistentMessage1( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server fail to respond if asked about non-existent message (wrong MessageId)? """
 
 	def __iter__( self ):
-		board   = self.ctx['board']
+		board   = self.board
 		message = board.messages[2]
 
 		GetMessage = self.protocol.use( 'GetMessage' )
@@ -43,11 +78,11 @@ class GetNonExistentMessage1( AuthorizedTestSession ):
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent BoardId = %d!" % ( board.id + 666 )
 
-class GetNonExistentMessage2( AuthorizedTestSession ):
+class GetNonExistentMessage2( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server fail to respond if asked about non-existent message (wrong SlotId)? """
 
 	def __iter__( self ):
-		board   = self.ctx['board']
+		board   = self.board
 		message = board.messages[2]
 
 		GetMessage = self.protocol.use( 'GetMessage' )
@@ -57,11 +92,11 @@ class GetNonExistentMessage2( AuthorizedTestSession ):
 		assert packet.type != 'Message', \
 			"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 )
 
-class GetMultipleMessages( AuthorizedTestSession ):
+class GetMultipleMessages( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server return sequence of Message packets if asked about two messages? """
 
 	def __iter__( self ):
-		board   = self.ctx['board']
+		board   = self.board
 		message1 = board.messages[0]
 		message3 = board.messages[2]
 
@@ -75,7 +110,7 @@ class GetMultipleMessages( AuthorizedTestSession ):
 		assert p1.slot == message3.id and p2.slot == message1.id, \
 			"Server returned different MessageSlots (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, message3.id, message1.id)
 
-class PostMessage( AuthorizedTestSession ):
+class PostMessage( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Tries to send message to default board. """
 
 	def setUp( self ):
@@ -120,40 +155,5 @@ class MessageTestSuite( TestSuite ):
 			RemoveMessageWhenNotLogged, GetExistingMessage,
 			GetNonExistentMessage1, GetNonExistentMessage2,
 			GetMultipleMessages, PostMessage ]
-
-	def setUp( self ):
-		game = self.ctx['game']
-
-		Board, Message = self.model.use( 'Board', 'Message' )
-
-		board = Board(
-			owner		= self.ctx['players'][0],
-			name        = "First message board for %s" % self.ctx['players'][0].username,
-			description = "Board for testing purposes." )
-
-		board.messages.append(
-			Message(
-				subject = "First",
-				body	= "Test message generated in first turn",
-				turn    = 1 ))
-
-		board.messages.append(
-			Message(
-				subject = "Second",
-				body	= "Test message generated in second turn",
-				turn    = 2 ))
-
-		board.messages.append(
-			Message(
-				subject = "Third",
-				body	= "Test message generated in third turn",
-				turn    = 3 ))
-
-		self.ctx['board'] = board
-
-		Model.add( board )
-	
-	def tearDown( self ):
-		Model.remove( self.ctx['board'] )
 
 __tests__ = [ MessageTestSuite ]

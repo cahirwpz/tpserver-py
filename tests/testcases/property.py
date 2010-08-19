@@ -1,60 +1,11 @@
 from test import TestSuite
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
+from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
 
-class GetPropertyMixin( GetWithIDMixin ):
-	__request__  = 'GetProperty'
-	__response__ = 'Property'
-
-	__attrs__ = [ 'id', 'name', 'description' ]
-
-	__attrmap__ = dict(
-			displayname = "display_name",
-			calculatefunc =	"calculate",
-			requirementfunc = "requirements" )
-
-	__attrfun__ = [ 'modtime', 'categories' ]
-
-	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
-
-class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetProperty request? """
-
-	__request__ = 'GetProperty'
-
-class GetAllProperties( GetItemsWithID, GetPropertyMixin ):
-	""" Does server return sequence of Property packets if asked about all properties? """
-
-	@property
-	def items( self ):
-		return reversed( self.ctx['properties'] )
-
-class GetPropertyIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetPropertyIDs request? """
-
-	__request__ = 'GetPropertyIDs'
-
-class GetAllPropertyIDs( GetItemIDs ):
-	""" Does server return the IDs of all available Properties? """
-
-	__request__  = 'GetPropertyIDs'
-	__response__ = 'PropertyIDs'
-	__object__   = 'Property'
-
-	@property
-	def items( self ):
-		return self.ctx['properties']
-
-class PropertiesTestSuite( TestSuite ):
-	""" Performs all tests related to GetProperty and GetPropertyIDs requests. """
-	__name__  = 'Properties'
-	__tests__ = [ GetPropertyWhenNotLogged, GetAllProperties, GetPropertyIDsWhenNotLogged, GetAllPropertyIDs ]
-
+class PropertyTestEnvMixin( GameTestEnvMixin ):
 	def setUp( self ):
-		game = self.ctx['game']
-
 		Property, Category = self.model.use( 'Property', 'Category' )
 
 		misc = Category(
@@ -133,12 +84,61 @@ class PropertiesTestSuite( TestSuite ):
 			description  = "Can the ship colonise planets?",
 			calculate    = "" )
 
-		self.ctx['categories'] = [ misc, production, combat, designs ]
-		self.ctx['properties'] = [ speed, cost, hp, backup_damage, primary_damage, escape, colonise ]
+		self.categories = [ misc, production, combat, designs ]
+		self.properties = [ speed, cost, hp, backup_damage, primary_damage, escape, colonise ]
 
-		Model.add( self.ctx['categories'], self.ctx['properties'] )
+		Model.add( self.categories, self.properties )
 	
 	def tearDown( self ):
-		Model.remove( self.ctx['properties'], self.ctx['categories'] )
+		Model.remove( self.properties, self.categories )
+
+class GetPropertyMixin( GetWithIDMixin ):
+	__request__  = 'GetProperty'
+	__response__ = 'Property'
+
+	__attrs__ = [ 'id', 'name', 'description' ]
+
+	__attrmap__ = dict(
+			displayname = "display_name",
+			calculatefunc =	"calculate",
+			requirementfunc = "requirements" )
+
+	__attrfun__ = [ 'modtime', 'categories' ]
+
+	def convert_categories( self, packet, obj ):
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
+
+class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetProperty request? """
+
+	__request__ = 'GetProperty'
+
+class GetAllProperties( GetItemsWithID, GetPropertyMixin, PropertyTestEnvMixin ):
+	""" Does server return sequence of Property packets if asked about all properties? """
+
+	@property
+	def items( self ):
+		return reversed( self.properties )
+
+class GetPropertyIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetPropertyIDs request? """
+
+	__request__ = 'GetPropertyIDs'
+
+class GetAllPropertyIDs( GetItemIDs, PropertyTestEnvMixin ):
+	""" Does server return the IDs of all available Properties? """
+
+	__request__  = 'GetPropertyIDs'
+	__response__ = 'PropertyIDs'
+	__object__   = 'Property'
+
+	@property
+	def items( self ):
+		return self.properties
+
+class PropertiesTestSuite( TestSuite ):
+	""" Performs all tests related to GetProperty and GetPropertyIDs requests. """
+	__name__  = 'Properties'
+	__tests__ = [ GetPropertyWhenNotLogged, GetAllProperties, GetPropertyIDsWhenNotLogged, GetAllPropertyIDs ]
 
 __tests__ = [ PropertiesTestSuite ]

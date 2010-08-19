@@ -1,8 +1,39 @@
-from test import TestSuite
 from common import AuthorizedTestSession, Expect, ExpectSequence, TestSessionUtils
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID, GetWithIDMixin
+from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
+
+class BoardTestEnvMixin( GameTestEnvMixin ):
+	def setUp( self ):
+		Board = self.model.use( 'Board' )
+
+		board1 = Board(
+			owner       = self.players[0],
+			name        = "First message board for %s" % self.players[0].username,
+			description = "Board for testing purposes." )
+
+		board2 = Board(
+			owner       = self.players[0],
+			name        = "Second message board for %s" % self.players[0].username,
+			description = "Board for testing purposes." )
+
+		board3 = Board(
+			owner       = self.players[1],
+			name        = "Message board for %s" % self.players[1].username,
+			description = "Board for testing purposes." )
+
+		board4 = Board(
+			owner		= None,
+			name		= "Public message board.",
+			description = "Board for testing purposes." )
+
+		self.boards = [ board1, board2, board3, board4 ]
+
+		Model.add( self.boards )
+
+	def tearDown( self ):
+		Model.remove( self.boards )
 
 class GetBoardsMixin( GetWithIDMixin ):
 	__request__  = 'GetBoards'
@@ -15,81 +46,81 @@ class GetBoardsMixin( GetWithIDMixin ):
 	def convert_messages( self, packet, obj ):
 		return packet.messages, len( obj.messages )
 
-class GetCurrentBoard( GetItemWithID, GetBoardsMixin ):
+class GetCurrentBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server respond with current board information? """
 
 	@property
 	def player( self ):
-		return self.ctx['players'][1]
+		return self.players[1]
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][2]
+		return self.boards[2]
 
 	def getId( self, item ):
 		return 0
 
-class GetExistingBoard( GetItemWithID, GetBoardsMixin ):
+class GetExistingBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server respond properly if asked about existing board? """
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][1]
+		return self.boards[1]
 
-class GetNonExistentBoard( GetItemWithID, GetBoardsMixin ):
+class GetNonExistentBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent board? """
 
 	__fail__ = 'NoSuchThing'
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][0]
+		return self.boards[0]
 	
 	def getId( self, item ):
 		return self.item.id + 666
 
-class GetPublicBoard( GetItemWithID, GetBoardsMixin ):
+class GetPublicBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server allow to fetch public Board? """
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][3]
+		return self.boards[3]
 
-class GetPrivateBoard( GetItemWithID, GetBoardsMixin ):
+class GetPrivateBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server allow to fetch private Board owned by the player? """
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][0]
+		return self.boards[0]
 
-class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin ):
+class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server disallow to fetch private Board of another player? """
 
 	__fail__ = 'PermissionDenied'
 
 	@property
 	def item( self ):
-		return self.ctx['boards'][2]
+		return self.boards[2]
 
-class GetMultipleBoards( GetItemsWithID, GetBoardsMixin ):
+class GetMultipleBoards( GetItemsWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
 	def items( self ):
-		return [ self.ctx['boards'][1], self.ctx['boards'][0] ]
+		return [ self.boards[1], self.boards[0] ]
 
-class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin ):
+class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
 	def items( self ):
-		return [ self.ctx['boards'][1], self.ctx['boards'][2], self.ctx['boards'][0] ]
+		return [ self.boards[1], self.boards[2], self.boards[0] ]
 
 	def getFail( self, item ):
 		if item.owner not in [ None, self.player ]:
 			return 'PermissionDenied'
 
-class GetNumberOfBoards( AuthorizedTestSession ):
+class GetNumberOfBoards( AuthorizedTestSession, BoardTestEnvMixin ):
 	""" Does server return the number of accessible Board IDs? """
 
 	def __iter__( self ):
@@ -102,7 +133,7 @@ class GetNumberOfBoards( AuthorizedTestSession ):
 		assert len( idseq.modtimes ) == 0, \
 				"Expected to get no Boards"
 
-class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):
+class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils, BoardTestEnvMixin ):
 	""" Does server return the IDs of Boards that are accessible by the player? """
 
 	def __iter__( self ):
@@ -115,13 +146,13 @@ class GetAllAvailableBoards( AuthorizedTestSession, TestSessionUtils ):
 
 		cmpId = lambda a, b: cmp( a.id, b.id )
 
-		boards = sorted( [self.ctx['boards'][0], self.ctx['boards'][1], self.ctx['boards'][3]], cmpId )
+		boards = sorted( [self.boards[0], self.boards[1], self.boards[3]], cmpId )
 
 		for item, board in zip( sorted( idseq.modtimes, cmpId ), boards ):
 			assert item.id == board.id, "Expected id (%s) and Board.id (%s) to be equal" % ( item.id )
 			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
 
-class GetBoardIDsOneByOne( AuthorizedTestSession ):
+class GetBoardIDsOneByOne( AuthorizedTestSession, BoardTestEnvMixin ):
 	""" Does server support IDSequence.key field properly? """
 
 	def __iter__( self ):
@@ -154,12 +185,12 @@ class GetBoardIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 
 	__request__ = 'GetBoardIDs'
 
-class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):
+class AllFetchedBoardsAreAccessible( AuthorizedTestSession, BoardTestEnvMixin ):
 	""" Check if all fetched BoardIDs represent Boards that are accessible by the player. """
 
 	@property
 	def player( self ):
-		return self.ctx['players'][1]
+		return self.players[1]
 
 	def __iter__( self ):
 		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
@@ -180,54 +211,3 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession ):
 
 		assert p1.id == ids[0] and p2.id == ids[1], \
 				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
-
-class GetBoardsTestSuite( TestSuite ):
-	__name__  = 'GetBoards'
-	__tests__ = [ GetBoardWhenNotLogged, GetCurrentBoard, GetExistingBoard,
-			GetNonExistentBoard, GetPublicBoard, GetPrivateBoard,
-			GetOtherPlayerPrivateBoard, GetMultipleBoards,
-			GetMultipleBoardsWithOneFail ]
-
-class GetBoardIDsTestSuite( TestSuite ):
-	__name__  = 'GetBoardIDs'
-	__tests__ = [ GetBoardIDsWhenNotLogged, GetNumberOfBoards,
-			AllFetchedBoardsAreAccessible, GetAllAvailableBoards, GetBoardIDsOneByOne ]
-
-class BoardTestSuite( TestSuite ):
-	""" Performs all tests related to GetBoards and GetBoardIDs requests. """
-	__name__  = 'Boards'
-	__tests__ = [ GetBoardsTestSuite, GetBoardIDsTestSuite ]
-
-	def setUp( self ):
-		game = self.ctx['game']
-
-		Board = self.model.use( 'Board' )
-
-		board1 = Board(
-			owner       = self.ctx['players'][0],
-			name        = "First message board for %s" % self.ctx['players'][0].username,
-			description = "Board for testing purposes." )
-
-		board2 = Board(
-			owner       = self.ctx['players'][0],
-			name        = "Second message board for %s" % self.ctx['players'][0].username,
-			description = "Board for testing purposes." )
-
-		board3 = Board(
-			owner       = self.ctx['players'][1],
-			name        = "Message board for %s" % self.ctx['players'][1].username,
-			description = "Board for testing purposes." )
-
-		board4 = Board(
-			owner		= None,
-			name		= "Public message board.",
-			description = "Board for testing purposes." )
-
-		self.ctx['boards'] = [ board1, board2, board3, board4 ]
-
-		Model.add( self.ctx['boards'] )
-	
-	def tearDown( self ):
-		Model.remove( self.ctx['boards'] )
-
-__tests__ = [ BoardTestSuite ]

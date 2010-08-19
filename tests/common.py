@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
-import time, new
+import time, new, unittest
 
 from logging import debug, info, warning, error, exception
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
-from test import TestCase
 
 from twisted.internet import reactor
 
 from tp.server.logger import logctx
 from tp.server.packet import PacketFactory, PacketFormatter
+
+class TestCase( unittest.TestCase ):
+	def logPrefix( self ):
+		return self.__class__.__name__
 
 def ichain( *args ):
 	for a in args:
@@ -326,12 +329,8 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
 		self.scenarioList.append( self.__login() )
 	
 	@property
-	def game( self ):
-		return self.ctx['game']
-
-	@property
 	def player( self ):
-		return self.ctx['players'][0]
+		return self.players[0]
 
 	def __login( self ):
 		Connect, Login = self.protocol.use( 'Connect', 'Login' )
@@ -342,4 +341,4 @@ class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
 __all__ = [ 'IncrementingSequenceMixin', 'Expect', 'ExpectFail',
 			'ExpectSequence', 'ExpectOneOf', 'TestSession',
 			'ConnectedTestSession', 'AuthorizedTestSession', 'TestSessionUtils'
-			]
+			'TestCase' ]

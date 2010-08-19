@@ -1,8 +1,9 @@
 from test import TestSuite
 from common import AuthorizedTestSession, Expect
 from templates import WhenNotLogged
+from testenv import GameTestEnvMixin
 
-class GetTimeRemainingRequest( AuthorizedTestSession ):
+class GetTimeRemainingRequest( AuthorizedTestSession, GameTestEnvMixin ):
 	""" Checks if server responds to GetTimeRemaining request properly. """
 
 	def __iter__( self ):

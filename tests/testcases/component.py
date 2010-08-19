@@ -1,87 +1,10 @@
-from test import TestSuite
 from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetWithIDMixin, GetItemIDs, GetItemsWithID
+from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
 
-class GetComponentMixin( GetWithIDMixin ):
-	__request__  = 'GetComponent'
-	__response__ = 'Component'
-
-	__attrs__   = [ 'id', 'name', 'description' ]
-	__attrmap__ = {}
-	__attrfun__ = [ 'modtime', 'categories', 'properties' ]
-
-	def convert_categories( self, packet, obj ):
-		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
-
-	def convert_properties( self, packet, obj ):
-		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
-				sorted( (prop.property_id, prop.value) for prop in obj.properties )
-
-class GetComponentWhenNotLogged( GetWithIDWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetComponent request? """
-
-	__request__ = 'GetComponent'
-
-class GetExistingComponent( GetItemWithID, GetComponentMixin ):
-	""" Does server respond properly if asked about existing category? """
-
-	@property
-	def item( self ):
-		return self.ctx['components'][0]
-
-class GetNonExistentComponent( GetItemWithID, GetComponentMixin ):
-	""" Does server fail to respond if asked about nonexistent category? """
-
-	__fail__ = 'NoSuchThing'
-
-	@property
-	def item( self ):
-		return self.ctx['components'][0]
-	
-	def getId( self, item ):
-		return self.item.id + 666
-
-class GetAllComponents( GetItemsWithID, GetComponentMixin ):
-	""" Does server return sequence of Component packets if asked about all components? """
-
-	@property
-	def items( self ):
-		return self.ctx['components']
-
-class GetComponentIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
-	""" Does a server respond properly when player is not logged but got GetComponentIDs request? """
-
-	__request__ = 'GetComponentIDs'
-
-class GetAllComponentIDs( GetItemIDs ):
-	""" Does server return the IDs of all available Components? """
-
-	__request__  = 'GetComponentIDs'
-	__response__ = 'ComponentIDs'
-	__object__   = 'Component'
-
-	@property
-	def items( self ):
-		return self.ctx['components']
-
-class GetComponentTestSuite( TestSuite ):
-	__name__  = 'GetComponent'
-	__tests__ = [ GetComponentWhenNotLogged, GetExistingComponent,
-			GetNonExistentComponent, GetAllComponents ]
-
-class GetComponentIDsTestSuite( TestSuite ):
-	__name__  = 'GetComponentIDs'
-	__tests__ = [ GetComponentIDsWhenNotLogged, GetAllComponentIDs ]
-
-class ComponentsTestSuite( TestSuite ):
-	""" Performs all tests related to GetComponent and GetComponentIDs requests. """
-	__name__  = 'Components'
-	__tests__ = [ GetComponentTestSuite, GetComponentIDsTestSuite ]
-
+class ComponentTestEnvMixin( GameTestEnvMixin ):
 	def setUp( self ):
-		game = self.ctx['game']
-
 		Component, ComponentProperty = self.model.use( 'Component', 'ComponentProperty' )
 		Category, Property = self.model.use( 'Category', 'Property' )
 
@@ -101,7 +24,7 @@ class ComponentsTestSuite( TestSuite ):
 				name = "Protection",
 				description = "Things which deal with ship's protection." )
 
-		self.ctx['categories'] = [ misc, ship, combat, protection ]
+		self.categories = [ misc, ship, combat, protection ]
 
 		speed = Property(
 			categories   = [ ship ],
@@ -131,7 +54,7 @@ class ComponentsTestSuite( TestSuite ):
 			description  = "The chance the ship has of escaping from battle.",
 			calculate    = """(lambda (design) 1.0)""" )
 
-		self.ctx['properties'] = [ speed, hp, damage, escape ]
+		self.properties = [ speed, hp, damage, escape ]
 
 		missile = Component(
 			id          = 9,
@@ -162,11 +85,71 @@ class ComponentsTestSuite( TestSuite ):
 			categories  = [ ship ],
 			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1.0)""" ) ])
 
-		self.ctx['components'] = [ missile, laser, armor_plate, primary_engine ]
+		self.components = [ missile, laser, armor_plate, primary_engine ]
 
-		Model.add( self.ctx['categories'], self.ctx['properties'], self.ctx['components'] )
+		Model.add( self.categories, self.properties, self.components )
 	
 	def tearDown( self ):
-		Model.remove( self.ctx['components'], self.ctx['properties'], self.ctx['categories'] )
+		Model.remove( self.components, self.properties, self.categories )
 
-__tests__ = [ ComponentsTestSuite ]
+class GetComponentMixin( GetWithIDMixin ):
+	__request__  = 'GetComponent'
+	__response__ = 'Component'
+
+	__attrs__   = [ 'id', 'name', 'description' ]
+	__attrmap__ = {}
+	__attrfun__ = [ 'modtime', 'categories', 'properties' ]
+
+	def convert_categories( self, packet, obj ):
+		return sorted( packet.categories ), sorted( cat.id for cat in obj.categories )
+
+	def convert_properties( self, packet, obj ):
+		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
+				sorted( (prop.property_id, prop.value) for prop in obj.properties )
+
+class GetComponentWhenNotLogged( GetWithIDWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetComponent request? """
+
+	__request__ = 'GetComponent'
+
+class GetExistingComponent( GetItemWithID, GetComponentMixin, ComponentTestEnvMixin ):
+	""" Does server respond properly if asked about existing category? """
+
+	@property
+	def item( self ):
+		return self.components[0]
+
+class GetNonExistentComponent( GetItemWithID, GetComponentMixin, ComponentTestEnvMixin ):
+	""" Does server fail to respond if asked about nonexistent category? """
+
+	__fail__ = 'NoSuchThing'
+
+	@property
+	def item( self ):
+		return self.components[0]
+	
+	def getId( self, item ):
+		return self.item.id + 666
+
+class GetAllComponents( GetItemsWithID, GetComponentMixin, ComponentTestEnvMixin ):
+	""" Does server return sequence of Component packets if asked about all components? """
+
+	@property
+	def items( self ):
+		return self.components
+
+class GetComponentIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
+	""" Does a server respond properly when player is not logged but got GetComponentIDs request? """
+
+	__request__ = 'GetComponentIDs'
+
+class GetAllComponentIDs( GetItemIDs, ComponentTestEnvMixin ):
+	""" Does server return the IDs of all available Components? """
+
+	__request__  = 'GetComponentIDs'
+	__response__ = 'ComponentIDs'
+	__object__   = 'Component'
+
+	@property
+	def items( self ):
+		return self.components

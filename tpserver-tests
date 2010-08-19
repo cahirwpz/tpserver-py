@@ -13,7 +13,6 @@ from tp.server.model import DatabaseManager
 from configuration import CLIConfigurator, ConfigurationError
 from configuration import DatabaseConfiguration
 
-from testrunner import MainTestSuite
 from client import ThousandParsecClientFactory, ThousandParsecClientFactoryConfiguration
 
 def main():
@@ -41,7 +40,10 @@ def main():
 
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-	unittest.TextTestRunner( verbosity = 2 ).run( MainTestSuite() )
+	import testcases
+
+	suite = unittest.TestLoader().loadTestsFromModule( testcases )
+	unittest.TextTestRunner( verbosity = 2 ).run( suite )
 
 if __name__ == '__main__':
 	main()

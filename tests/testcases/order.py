@@ -1,7 +1,19 @@
 from test import TestSuite
 from templates import GetWithIDSlotWhenNotLogged, GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, WhenNotLogged
+from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
+
+class OrderTestEnvMixin( GameTestEnvMixin ):
+	def setUp( self ):
+		Order = self.model.use( 'Order' )
+
+		self.orders = []
+
+		Model.add( self.orders )
+	
+	def tearDown( self ):
+		Model.remove( self.orders )
 
 class GetOrderWhenNotLogged( GetWithIDSlotWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetOrder request? """
@@ -45,17 +57,5 @@ class OrdersTestSuite( TestSuite ):
 	__tests__ = [ GetOrderWhenNotLogged, GetOrderDescWhenNotLogged,
 			GetOrderDescIDsWhenNotLogged, OrderInsertWhenNotLogged,
 			OrderProbeWhenNotLogged, RemoveOrderWhenNotLogged ]
-
-	def setUp( self ):
-		game = self.ctx['game']
-
-		Order = self.model.use( 'Order' )
-
-		self.ctx['orders'] = []
-
-		Model.add( self.ctx['orders'] )
-	
-	def tearDown( self ):
-		Model.remove( self.ctx['orders'] )
 
 __tests__ = [ OrdersTestSuite ]

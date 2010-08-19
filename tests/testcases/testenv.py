@@ -3,22 +3,17 @@
 from tp.server.gamemanager import GameManager
 from tp.server.model import Model
 
-from test import TestLoader
-
-class MainTestSuite( TestLoader ):
-	__testpath__ = [ 'Tests' ]
-	__name__ = 'Tests'
-	__path__ = 'testcases'
+class GameTestEnvMixin( object ):
+	@property
+	def model( self ):
+		return self.game.model
 
 	def setUp( self ):
 		if 'test_minisecplus' not in GameManager():
 			GameManager().addGame( 'test_minisecplus', 'Test Game (minisecplus)',
 				'minisecplus', 'admin@localhost', 'Test game used for testing purposes')
 
-		game = GameManager()[ 'test_minisecplus' ]
-		game.reset()
-
-		self.ctx['game'] = game
+		self.game = GameManager()[ 'test_minisecplus' ]
 
 		Player = self.model.use( 'Player' )
 
@@ -34,8 +29,11 @@ class MainTestSuite( TestLoader ):
 			email		= 'player2@localhost',
 			comment		= 'Player used for testing purposes.' )
 
-		self.ctx['players']	= [ player1, player2 ]
+		self.players = [ player1, player2 ]
 
-		Model.add( player1, player2 )
+		Model.add( self.players )
 
-__all__ = [ 'MainTestSuite' ]
+	def tearDown( self ):
+		Model.remove( self.players )
+
+__all__ = [ 'GameTestEnvMixin' ]

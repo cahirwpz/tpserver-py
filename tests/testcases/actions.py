@@ -1,6 +1,6 @@
-from test import TestCase, TestSuite
+from common import TestCase
 
-from logging import *
+from logging import debug
 from tp.server.rules.base.actions.Combat import Fleet, Frigate, Battleship, Scout, Planet
 
 class BaseBattleAction( TestCase ):
@@ -80,10 +80,3 @@ class BaseBattleAction( TestCase ):
 			debug( "Red Ran Away" )
 		elif blue.running:
 			debug( "Blue Ran Away" )
-
-class RulesetActionTestSuite( TestSuite ):
-	__name__  = 'RulesetActions'
-	__tests__ = [ BaseBattleAction ]
-
-__tests__ = [ RulesetActionTestSuite ]
-
