@@ -34,6 +34,6 @@ class GameTestEnvMixin( object ):
 		Model.add( self.players )
 
 	def tearDown( self ):
-		Model.remove( self.players )
+		self.game.reset()
 
 __all__ = [ 'GameTestEnvMixin' ]
