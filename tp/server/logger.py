@@ -1,20 +1,6 @@
 #!/usr/bin/env python
 
-import logging, string, linecache, sys
-
-def logctx( fun ):
-	def wrapper( self, *args, **kwargs ):
-		old_name = logging.root.name
-		
-		logging.root.name = self.logPrefix()
-
-		value = fun( self, *args, **kwargs )
-
-		logging.root.name = old_name
-	
-		return value
-
-	return wrapper 
+import logging, string, linecache, sys, inspect
 
 class Formatter( logging.Formatter ):
 	colors = {
@@ -94,11 +80,29 @@ class Formatter( logging.Formatter ):
 		return s
 
 	def format( self, record ):
-		if record.name.startswith('sqlalchemy'):
-			record.name = 'SQLAlchemy'
-
 		if string.find(self._fmt,'%(asctime)') >= 0:
 			record.asctime = self.formatTime( record, self.datefmt )
+
+		caller = logging.root.findCaller()
+
+		for frame, filename, lineno, function, code_context, index in inspect.getouterframes( inspect.currentframe() ):
+			if (filename, lineno, function) == caller:
+				try:
+					name = frame.f_locals['self'].__class__.__name__
+				except (KeyError, AttributeError):
+					name = ""
+
+		if record.name != logging.root.name:
+			if record.name.startswith('sqlalchemy'):
+				logger_name = 'SQLAlchemy'
+			elif record.name.startswith('twisted'):
+				logger_name = 'Twisted'
+			else:
+				logger_name = record.name
+
+			record.name = '.'.join([logger_name, name])
+		else:
+			record.name = name
 
 		s = []
 

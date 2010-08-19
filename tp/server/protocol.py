@@ -1,16 +1,14 @@
 import struct
 
-from logging import *
+from logging import debug, exception
 
 from twisted.internet.protocol import Protocol
 
-from tp.server.logger import logctx
 from tp.server.packet import PacketFactory, PacketFormatter
 
 class ThousandParsecProtocol( Protocol, object ):
 	SessionHandlerType = None
 
-	@logctx
 	def connectionMade( self ):
 		debug( "Connection established with %s:%d", self.transport.getPeer().host, self.transport.getPeer().port) 
 
@@ -30,7 +28,6 @@ class ThousandParsecProtocol( Protocol, object ):
 		self.__header = None
 		self.__buffer = ""
 
-	@logctx
 	def dataReceived( self, data ):
 		self.__buffer += data
 
@@ -71,14 +68,12 @@ class ThousandParsecProtocol( Protocol, object ):
 					self.__header = None
 					self.__buffer = self.__buffer[packetSize:]
 
-	@logctx
 	def connectionLost( self, reason ):
 		debug( "Connection was lost: %s", reason.value )
 
 		if self.handler is not None:
 			self.handler.connectionLost( reason )
 
-	@logctx
 	def sendPacket( self, packet ):
 		binary = packet.pack()
 
@@ -86,8 +81,5 @@ class ThousandParsecProtocol( Protocol, object ):
 		debug( "Sending binary: %s", binary.encode("hex") )
 
 		self.transport.write( binary )
-
-	def logPrefix( self ):
-		return self.__class__.__name__
 
 __all__ = [ 'ThousandParsecProtocol' ]

@@ -124,6 +124,9 @@ class Model( Mapping ):
 		with DatabaseManager().session() as session:
 			for obj in objs:
 				session.add( obj )
+
+		for obj in objs:
+			debug( "Added %s to the Model", obj )
 	
 	update = add
 
@@ -136,6 +139,7 @@ class Model( Mapping ):
 		with DatabaseManager().session() as session:
 			for obj in objs:
 				obj.remove( session )
+				debug( "Removed %s from the Model", obj )
 
 	@staticmethod
 	def refresh( *objs ):

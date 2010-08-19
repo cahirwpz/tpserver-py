@@ -1,6 +1,7 @@
 #!/usr/bin/env
 
 from collections import Mapping
+from logging import info 
 
 from tp.server.model import Model, Game as GameDesc
 from tp.server.singleton import SingletonContainerClass
@@ -36,9 +37,13 @@ class Game( object ):
 		self.ruleset.loadModel()
 		self.ruleset.initModel()
 
+		info( "Game '%s' initialised successfully.", self.name )
+
 	def load( self ):
 		self.ruleset.loadModelConstants()
 		self.ruleset.loadModel()
+
+		info( "Game '%s' loaded successfully.", self.name )
 	
 	def remove( self ):
 		Model.drop( self.__game.model )
@@ -96,6 +101,8 @@ class GameManager( Mapping ):
 			game.initialise()
 
 			self.__game[ name ] = game
+
+			info( "Game '%s' added successfully.", name )
 		else:
 			raise KeyError( "Game '%s' already exists!" % name )
 	
@@ -106,10 +113,9 @@ class GameManager( Mapping ):
 			game.remove()
 
 			del self.__game[ name ]
+
+			info( "Game '%s' removed successfully.", name )
 		else:
 			raise KeyError( "Game '%s' does not exists!" % name )
 		
-	def logPrefix( self ):
-		return self.__class__.__name__
-
 __all__ = [ 'GameManager', 'Game' ]

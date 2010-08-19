@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 
-from logging import *
+from logging import debug
 from OpenSSL import SSL
 
 from configuration import ComponentConfiguration, StringOption, IntegerOption, BooleanOption
 
-from tp.server.logger import logctx
 from tp.server.protocol import ThousandParsecProtocol
 from tp.server.singleton import SingletonClass
 
@@ -32,28 +31,23 @@ class ThousandParsecClientFactory( ClientFactory, object ):
 		else:
 			reactor.connectTCP( self.__hostname, self.__tcp_port_num, self )
 
-	@logctx
 	def buildProtocol( self, addr ):
 		protocol = ClientFactory.buildProtocol( self, addr )
 		protocol.handler = self.__tests.pop(0)
 
 		return protocol
 
-	@logctx
 	def doStart(self):
 		debug( "Starting factory." )
 		ClientFactory.doStart(self)
 
-	@logctx
 	def doStop(self):
 		debug( "Stopping factory." )
 		ClientFactory.doStop(self)
 
-	@logctx
 	def clientConnectionFailed( self, connector, reason ):
 		debug( "Connection failed: %s", reason.getErrorMessage() )
 
-	@logctx
 	def clientConnectionLost( self, connector, reason ):
 		debug( "Connection lost: %s", reason.getErrorMessage() )
 
@@ -62,9 +56,6 @@ class ThousandParsecClientFactory( ClientFactory, object ):
 		self.__tcp_port_num = configuration.tcp_port
 		self.__tls_port_num = configuration.tls_port
 		self.__use_tls = configuration.use_tls
-
-	def logPrefix( self ):
-		return self.__class__.__name__
 
 class ThousandParsecClientFactoryConfiguration( ComponentConfiguration ):
 	component = ThousandParsecClientFactory

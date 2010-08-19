@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 
-import new, unittest
-
+import new
+from unittest import TestCase
 from logging import debug, info, warning, error, exception
+from twisted.internet import reactor
+
+from tp.server.packet import PacketFactory, PacketFormatter
 
 from clientsession import ClientSessionHandler
 from client import ThousandParsecClientFactory
-
-from twisted.internet import reactor
-
-from tp.server.logger import logctx
-from tp.server.packet import PacketFactory, PacketFormatter
 
 def ichain( *args ):
 	for a in args:
@@ -114,10 +112,6 @@ class ExpectOneOf( Expect ):
 	def __str__( self ):
 		return ", ".join( str( choice ) for choice in self.__choices )
 
-class TestCase( unittest.TestCase ):
-	def logPrefix( self ):
-		return self.__class__.__name__
-
 class TestSessionMetaClass( type ):
 	def __call__( cls, *args, **kwargs ):
 		instance = cls.__new__( cls )
@@ -184,7 +178,6 @@ class TestSession( TestCase, ClientSessionHandler ):
 		if self.reason:
 			self.fail( self.reason )
 	
-	@logctx
 	def sessionStarted( self, transport ):
 		super( TestSession, self ).sessionStarted( transport )
 
@@ -197,7 +190,6 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 		self.step()
 
-	@logctx
 	def packetReceived( self, packet ):
 		packet.type = packet.__class__.__name__
 
@@ -297,5 +289,4 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 			reactor.callLater( 0, lambda: reactor.stop() )
 
-__all__ = [ 'Expect', 'ExpectFail', 'ExpectSequence', 'ExpectOneOf',
-			'TestCase', 'TestSession' ]
+__all__ = [ 'Expect', 'ExpectFail', 'ExpectSequence', 'ExpectOneOf', 'TestSession' ]

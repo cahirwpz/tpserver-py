@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-from logging import *
+from logging import debug, error
 
-from tp.server.logger import logctx
 from tp.server.protocol import ThousandParsecProtocol
 from tp.server.clientsession import ClientSessionHandler
 
-from twisted.internet import reactor, ssl, error
+from twisted.internet import reactor, ssl
+from twisted.internet.error import CannotListenError
 from twisted.internet.protocol import ServerFactory
 
 from OpenSSL import SSL
@@ -18,28 +18,23 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 	protocol = ThousandParsecProtocol
 	noisy = False
 
-	@logctx
 	def buildProtocol( self, addr ):
 		protocol = ServerFactory.buildProtocol( self, addr )
 		protocol.SessionHandlerType = ClientSessionHandler
 
 		return protocol
 
-	@logctx
 	def doStart(self):
 		debug( "Starting factory." )
 		ServerFactory.doStart(self)
 
-	@logctx
 	def doStop(self):
 		debug( "Stopping factory." )
 		ServerFactory.doStop(self)
 
-	@logctx
 	def clientConnectionFailed(self, connector, reason):
 		debug( "Connection failed: %s", reason.getErrorMessage() )
 
-	@logctx
 	def clientConnectionLost(self, connector, reason):
 		debug( "Connection lost: %s", reason.getErrorMessage() )
 
@@ -53,11 +48,10 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 	def start( self ):
 		reactor.callLater( 0, self.__startListening )
 	
-	@logctx
 	def __startListening( self ):
 		try:
 			port = reactor.listenTCP( self.__tcp_port_num, self )
-		except error.CannotListenError, ex:
+		except CannotListenError, ex:
 			error( "Cannot open listening port on %d: %s.", ex.port, ex.socketError[1]) 
 		else:
 			self.listeners['tcp'] = port
@@ -65,7 +59,7 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 		if self.__listen_tls:
 			try:
 				port = reactor.listenSSL( self.__tls_port_num, self, ssl.ClientContextFactory() )
-			except error.CannotListenError, ex:
+			except CannotListenError, ex:
 				error( "Cannot open listening port on %d: %s.", ex.port, ex.socketError[1]) 
 			else:
 				self.listeners['tls'] = port
@@ -73,8 +67,5 @@ class ThousandParsecServerFactory( ServerFactory, object ):
 		if all( port == None for proto, port in self.listeners.items() ):
 			error( "No listening ports. Quitting..." )
 			reactor.stop()
-
-	def logPrefix( self ):
-		return self.__class__.__name__
 
 __all__ = [ 'ThousandParsecServerFactory' ]

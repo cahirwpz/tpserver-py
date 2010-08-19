@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 import inspect
-from logging import *
+from logging import debug, error, exception
 
 from collections import Mapping
 
 from tp.server.model import Player
-from tp.server.logger import logctx
 from tp.server.gamemanager import Game
 from tp.server.singleton import SingletonContainerClass
 from tp.server.packet import PacketFactory
@@ -67,11 +66,9 @@ class ClientSessionHandler( object ):
 		
 		self.lastSeq = None
 
-	@logctx
 	def sessionStarted( self, protocol ):
 		self.protocol = protocol
 
-	@logctx
 	def packetReceived( self, packet ):
 		debug( "Going to deal with %s packet.", packet.__class__.__name__ )
 
@@ -112,11 +109,7 @@ class ClientSessionHandler( object ):
 		else:
 			self.protocol.sendPacket( response )
 
-	@logctx
 	def connectionLost( self, reason ):
 		pass
-
-	def logPrefix( self ):
-		return self.__class__.__name__
 
 __all__ = [ 'ClientSessionContext', 'ClientSessionHandler' ]

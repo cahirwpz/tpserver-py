@@ -1,6 +1,6 @@
-from common import TestCase
-
+from unittest import TestCase
 from logging import debug
+
 from tp.server.rules.base.actions.Combat import Fleet, Frigate, Battleship, Scout, Planet
 
 class BaseBattleAction( TestCase ):
