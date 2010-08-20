@@ -39,7 +39,7 @@ class GetNonExistentPlayer( GetItemWithID, GetPlayerMixin, GameTestEnvMixin ):
 		return self.players[0]
 	
 	def getId( self, item ):
-		return self.item.id + 666
+		return item.id + 666
 
 	def getFail( self, item ):
 		return 'NoSuchThing'

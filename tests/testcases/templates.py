@@ -141,6 +141,55 @@ class GetItemWithID( AuthorizedTestSession ):
 				self.assertPacket( packet, self.__response__ )
 				self.assertPacketEqual( packet, item )
 
+class GetItemWithIDSlot( AuthorizedTestSession ):
+	"""
+	Must provide two class attributes:
+	__request__  name of a request
+	__response__ name of a expected response
+	"""
+
+	@property
+	def item( self ):
+		raise NotImplementedError
+
+	@property
+	def items( self ):
+		return [ self.item ]
+
+	def getId( self ):
+		raise NotImplementedError
+
+	def getSlot( self, item ):
+		return item.id
+
+	def __iter__( self ):
+		Request = self.protocol.use( self.__request__ )
+
+		items = list( self.items )
+
+		response = yield Request( self.seq, self.getId(), [ self.getSlot( item ) for item in items ] )
+
+		if isinstance( response, list ):
+			packets = response[1:]
+		else:
+			packets = [ response ]
+
+		for item, packet in zip( items, packets ):
+			fail = self.getFail( item )
+
+			if fail:
+				if fail == 'NoSuchThing':
+					msg  = "Server does return information for non-existent %s (id = %s, slot = %s)!" % ( self.__response__, self.getId(), self.getSlot( item ) )
+				elif fail == 'PermissionDenied':
+					msg  = "Server does allow to access a %s (id = %s, slot = %s) while it should be disallowed!" % ( self.__response__, self.getId(), self.getSlot( item ) )
+				else:
+					raise NotImplementedError
+
+				self.assertPacketFail( packet, fail, msg )
+			else:
+				self.assertPacket( packet, self.__response__ )
+				self.assertPacketEqual( packet, item )
+
 class IDSequenceTestMixin( object ):
 	@staticmethod
 	def compareId( a, b ):
@@ -179,4 +228,5 @@ class GetItemIDs( AuthorizedTestSession, IDSequenceTestMixin ):
 __all__ = [ 'ConnectedTestSession', 'AuthorizedTestSession',
 			'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
 			'GetWithIDSlotWhenNotLogged', 'WhenNotLogged', 'GetItemWithID'
-			'WithIDTestMixin', 'IDSequenceTestMixin', 'GetItemIDs' ]
+			'WithIDTestMixin', 'IDSequenceTestMixin', 'GetItemIDs',
+			'GetItemWithIDSlot' ]

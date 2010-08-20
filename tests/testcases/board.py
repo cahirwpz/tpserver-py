@@ -77,7 +77,7 @@ class GetNonExistentBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 		return self.boards[0]
 	
 	def getId( self, item ):
-		return self.item.id + 666
+		return item.id + 666
 
 	def getFail( self, item ):
 		return 'NoSuchThing'
@@ -204,9 +204,7 @@ class AllFetchedBoardsAreAccessible( AuthorizedTestSession, IDSequenceTestMixin,
 
 		GetBoards = self.protocol.use( 'GetBoards' )
 
-		ids = [ id for id, modtime in idseq.modtimes ]
-
-		response = yield GetBoards( self.seq, ids )
+		response = yield GetBoards( self.seq, [ id for id, modtime in idseq.modtimes ] )
 
 		self.assertPacketType( response, ExpectSequence( 2, 'Board' ) )
 		self.assertPacketSeqEqual( response, self.items )

@@ -220,11 +220,10 @@ class TestSession( TestCase, ClientSessionHandler ):
 				request = self.scenario.send( response )
 			except StopIteration, ex:
 				self.succeeded()
-			except AssertionError, ex:
-				self.failed( str(ex) )
 			except Exception, ex:
 				exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
-				self.failed( "Scenario failed with unexpected error: %s: %s" % (ex.__class__.__name__, str(ex)) )
+				self.failureException = ex.__class__
+				self.failed( str(ex) )
 			else:
 				self.transport.sendPacket( request )
 
