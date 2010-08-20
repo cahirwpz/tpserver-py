@@ -1,4 +1,5 @@
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
+from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
+		WithIDTestMixin, GetItemIDs, GetItemWithID )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -46,7 +47,7 @@ class ResourceTestEnvMixin( GameTestEnvMixin ):
 		Model.remove( self.resources )
 
 
-class GetResourceMixin( GetWithIDMixin ):
+class GetResourceMixin( WithIDTestMixin ):
 	__request__  = 'GetResource'
 	__response__ = 'Resource'
 
@@ -65,7 +66,7 @@ class GetResourceWhenNotLogged( GetWithIDWhenNotLogged ):
 
 	__request__ = 'GetResource'
 
-class GetAllResources( GetItemsWithID, GetResourceMixin, ResourceTestEnvMixin ):
+class GetAllResources( GetItemWithID, GetResourceMixin, ResourceTestEnvMixin ):
 	""" Does server return sequence of Resource packets if asked about all resources? """
 
 	@property
@@ -82,7 +83,6 @@ class GetAllResourceIDs( GetItemIDs, ResourceTestEnvMixin ):
 
 	__request__  = 'GetResourceIDs'
 	__response__ = 'ResourceIDs'
-	__object__   = 'Resource'
 
 	@property
 	def items( self ):

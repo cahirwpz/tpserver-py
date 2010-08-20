@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-import new
+import new, time
 from unittest import TestCase
-from logging import debug, info, warning, error, exception
+from logging import debug, info, error, exception
 from twisted.internet import reactor
 
 from tp.server.packet import PacketFactory, PacketFormatter
@@ -160,6 +160,10 @@ class TestSession( TestCase, ClientSessionHandler ):
 		self.expected	= None
 
 		self.__finished = False
+
+	@staticmethod
+	def datetimeToInt( t ):
+		return long( time.mktime( time.strptime( t.ctime() ) ) )
 	
 	def setUp( self ):
 		info( "Setting up %s test...", self.__class__.__name__ )
@@ -195,10 +199,7 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 		debug( "Received %s packet.", packet.type )
 
-		if self.expected is None and packet.type == "Fail":
-			self.response = packet
-			self.failed( "Fail packet received!" )
-		elif packet.type == "Sequence":
+		if packet.type == "Sequence":
 			self.count = packet.number
 			self.bundle.append( packet )
 		elif self.count > 0:
@@ -206,26 +207,17 @@ class TestSession( TestCase, ClientSessionHandler ):
 			self.count -= 1
 
 			if self.count == 0:
-				bundle = self.bundle
-				self.bundle = []
+				self.step( self.bundle )
 
-				if self.expected and self.expected != bundle:
-					self.response = bundle
-					self.failed( "Received unexpected packets %s!" % ", ".join( p.type for p in bundle ) )
-				else:
-					self.step( bundle )
-		elif self.expected and self.expected != packet:
-			self.response = packet
-			self.failed( "Received unexpected packet %s!" % packet.type )
+				self.bundle = []
 		else:
-			self.expected = None
 			self.response = packet
 			self.step( packet )
 
 	def step( self, response = None ):
 		if not self.__finished:
 			try:
-				instruction = self.scenario.send( response )
+				request = self.scenario.send( response )
 			except StopIteration, ex:
 				self.succeeded()
 			except AssertionError, ex:
@@ -234,13 +226,6 @@ class TestSession( TestCase, ClientSessionHandler ):
 				exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
 				self.failed( "Scenario failed with unexpected error: %s: %s" % (ex.__class__.__name__, str(ex)) )
 			else:
-				if isinstance( instruction, tuple ):
-					request, self.expected = instruction
-					assert isinstance( self.expected, Expect ), "Second value given to yield must be Expect class instance!"
-				else:
-					request, self.expected = instruction, None
-					warning( "Yielding a single value (without Expect instance) within a scenario is discouraged!" )
-
 				self.transport.sendPacket( request )
 
 				self.request = request
@@ -249,9 +234,6 @@ class TestSession( TestCase, ClientSessionHandler ):
 				if request is not None:
 					debug( "Sending %s packet.", request._name )
 				
-				if isinstance( self.expected, Expect ):
-					debug( "Expecting response of type %s.", self.expected )
-
 	def failed( self, reason ):
 		if not self.__finished:
 			self.__finished = True
@@ -289,4 +271,19 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 			reactor.callLater( 0, lambda: reactor.stop() )
 
+	def assertPacketType( self, packet, expected, reason = None ):
+		if packet != expected:
+			self.expected = expected
+			self.failed( reason )
+
+	def assertPacket( self, packet, expected, reason = None ):
+		if packet != Expect( expected ):
+			self.expected = expected
+			self.failed( reason )
+
+	def assertPacketFail( self, packet, expected, reason = None ):
+		if packet != ExpectFail( expected ):
+			self.expected = expected
+			self.failed( reason )
+	
 __all__ = [ 'Expect', 'ExpectFail', 'ExpectSequence', 'ExpectOneOf', 'TestSession' ]

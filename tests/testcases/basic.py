@@ -1,4 +1,3 @@
-from common import Expect
 from templates import ConnectedTestSession
 
 class PingRequest( ConnectedTestSession ):
@@ -7,6 +6,8 @@ class PingRequest( ConnectedTestSession ):
 	def __iter__( self ):
 		Ping = self.protocol.use( 'Ping' )
 
-		yield Ping( self.seq ), Expect( 'Okay' )
+		response = yield Ping( self.seq )
+
+		self.assertPacket( response, 'Okay' ) 
 
 __all__ = [ 'PingRequest' ]

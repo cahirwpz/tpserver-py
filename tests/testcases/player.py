@@ -1,61 +1,55 @@
-from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import AuthorizedTestSession, GetWithIDWhenNotLogged
+from templates import GetWithIDWhenNotLogged, WithIDTestMixin, GetItemWithID
 from testenv import GameTestEnvMixin
 
-class GetCurrentPlayer( AuthorizedTestSession, GameTestEnvMixin ):
+class GetPlayerMixin( WithIDTestMixin ):
+	__request__  = 'GetPlayer'
+	__response__ = 'Player'
+
+	__attrs__   = [ 'id' ]
+	__attrmap__ = dict( name = 'username' )
+	__attrfun__ = [] 
+
+
+class GetCurrentPlayer( GetItemWithID, GetPlayerMixin, GameTestEnvMixin ):
 	""" Does server respond with current player information? """
 
 	@property
-	def player( self ):
+	def sign_in_as( self ):
 		return self.players[1]
 
-	def __iter__( self ):
-		GetPlayer = self.protocol.use( 'GetPlayer' )
+	@property
+	def item( self ):
+		return self.players[1]
 
-		packet = yield GetPlayer( self.seq, [0] ), Expect( 'Player' )
+	def getId( self, item ):
+		return 0
 
-		assert packet.id == self.player.id, \
-			"Server responded with different PlayerId than requested!"
-
-class GetExistingPlayer( AuthorizedTestSession, GameTestEnvMixin ):
+class GetExistingPlayer( GetItemWithID, GetPlayerMixin, GameTestEnvMixin ):
 	""" Does server respond properly if asked about existing player? """
 
-	def __iter__( self ):
-		player = self.players[1]
+	@property
+	def item( self ):
+		return self.players[1]
 
-		GetPlayer = self.protocol.use( 'GetPlayer' )
-
-		packet = yield GetPlayer( self.seq, [ player.id ] ), Expect( 'Player' )
-
-		assert packet.id == player.id, \
-			"Server responded with different PlayerId than requested!"
-
-class GetNonExistentPlayer( AuthorizedTestSession, GameTestEnvMixin ):
+class GetNonExistentPlayer( GetItemWithID, GetPlayerMixin, GameTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent player? """
 
-	def __iter__( self ):
-		player = self.players[1]
+	@property
+	def item( self ):
+		return self.players[0]
+	
+	def getId( self, item ):
+		return self.item.id + 666
 
-		GetPlayer = self.protocol.use( 'GetPlayer' )
+	def getFail( self, item ):
+		return 'NoSuchThing'
 
-		packet = yield GetPlayer( self.seq, [ player.id + 666] ), ExpectOneOf( 'Player', ExpectFail('NoSuchThing') )
-
-		assert packet.type != 'Player', \
-			"Server does return information for non-existent PlayerId = %s!" % ( player.id + 666 )
-
-class GetMultiplePlayers( AuthorizedTestSession, GameTestEnvMixin ):
+class GetAllAvailablePlayers( GetItemWithID, GetPlayerMixin, GameTestEnvMixin ):
 	""" Does server return sequence of Player packets if asked about two players? """
 
-	def __iter__( self ):
-		player1 = self.players[1]
-		player2 = self.players[0]
-
-		GetPlayer = self.protocol.use( 'GetPlayer' )
-
-		s, p1, p2 = yield GetPlayer( self.seq, [ player1.id, player2.id ] ), ExpectSequence(2, 'Player')
-
-		assert p1.id == player1.id and p2.id == player2.id, \
-			"Server returned different PlayerIds (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, player1.id, player2.id)
+	@property
+	def items( self ):
+		return self.players
 
 class GetPlayerWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetPlayers request? """
@@ -65,5 +59,5 @@ class GetPlayerWhenNotLogged( GetWithIDWhenNotLogged ):
 __all__ = [	'GetCurrentPlayer', 
 			'GetExistingPlayer', 
 			'GetNonExistentPlayer', 
-			'GetMultiplePlayers', 
+			'GetAllAvailablePlayers', 
 			'GetPlayerWhenNotLogged' ]

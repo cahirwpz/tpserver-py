@@ -1,4 +1,3 @@
-from common import Expect
 from templates import ConnectedTestSession
 
 class GetFeaturesRequest( ConnectedTestSession ):
@@ -7,6 +6,8 @@ class GetFeaturesRequest( ConnectedTestSession ):
 	def __iter__( self ):
 		GetFeatures = self.protocol.use( 'GetFeatures' )
 
-		yield GetFeatures( self.seq ), Expect( 'Features' )
+		response = yield GetFeatures( self.seq )
+
+		self.assertPacket( response, 'Features' ) 
 
 __all__ = [ 'GetFeaturesRequest' ]

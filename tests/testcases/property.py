@@ -1,4 +1,5 @@
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemsWithID, GetWithIDMixin, GetItemIDs
+from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
+		WithIDTestMixin, GetItemIDs, GetItemWithID )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -91,7 +92,7 @@ class PropertyTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.properties, self.categories )
 
-class GetPropertyMixin( GetWithIDMixin ):
+class GetPropertyMixin( WithIDTestMixin ):
 	__request__  = 'GetProperty'
 	__response__ = 'Property'
 
@@ -112,7 +113,7 @@ class GetPropertyWhenNotLogged( GetWithIDWhenNotLogged ):
 
 	__request__ = 'GetProperty'
 
-class GetAllProperties( GetItemsWithID, GetPropertyMixin, PropertyTestEnvMixin ):
+class GetAllProperties( GetItemWithID, GetPropertyMixin, PropertyTestEnvMixin ):
 	""" Does server return sequence of Property packets if asked about all properties? """
 
 	@property
@@ -129,7 +130,6 @@ class GetAllPropertyIDs( GetItemIDs, PropertyTestEnvMixin ):
 
 	__request__  = 'GetPropertyIDs'
 	__response__ = 'PropertyIDs'
-	__object__   = 'Property'
 
 	@property
 	def items( self ):

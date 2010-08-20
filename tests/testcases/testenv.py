@@ -8,6 +8,10 @@ class GameTestEnvMixin( object ):
 	def model( self ):
 		return self.game.model
 
+	@property
+	def sign_in_as( self ):
+		return self.players[0]
+
 	def setUp( self ):
 		if 'test_minisecplus' not in GameManager():
 			GameManager().addGame( 'test_minisecplus', 'Test Game (minisecplus)',

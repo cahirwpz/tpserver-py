@@ -1,6 +1,4 @@
-import time
-
-from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf, TestSession
+from common import TestSession
 
 class IncrementingSequenceMixin( object ):
 	@property
@@ -21,26 +19,26 @@ class ConnectedTestSession( TestSession, IncrementingSequenceMixin ):
 	def __connect( self ):
 		Connect = self.protocol.use( 'Connect' )
 
-		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
+		response = yield Connect( self.seq, "tpserver-tests client" )
+
+		self.assertPacket( response, 'Okay' )
 
 class AuthorizedTestSession( TestSession, IncrementingSequenceMixin ):
 	def __init__( self, *args, **kwargs ):
 		super( AuthorizedTestSession, self ).__init__( *args, **kwargs )
 
 		self.scenarioList.append( self.__login() )
-
-	def datetimeToInt( self, t ):
-		return long( time.mktime( time.strptime( t.ctime() ) ) )
 	
-	@property
-	def player( self ):
-		return self.players[0]
-
 	def __login( self ):
 		Connect, Login = self.protocol.use( 'Connect', 'Login' )
 
-		yield Connect( self.seq, "tpserver-tests client" ), Expect( 'Okay' )
-		yield Login( self.seq, "%s@%s" % ( self.player.username, self.game.name ), self.player.password ), Expect( 'Okay' )
+		response = yield Connect( self.seq, "tpserver-tests client" )
+
+		self.assertPacket( response, 'Okay' )
+
+		response = yield Login( self.seq, "%s@%s" % ( self.sign_in_as.username, self.game.name ), self.sign_in_as.password )
+
+		self.assertPacket( response, 'Okay' )
 
 class GetWithIDWhenNotLogged( ConnectedTestSession ):
 	__request__ = None
@@ -48,7 +46,9 @@ class GetWithIDWhenNotLogged( ConnectedTestSession ):
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
-		yield Request( self.seq, [1] ), ExpectFail('UnavailableTemporarily')
+		response = yield Request( self.seq, [1] )
+
+		self.assertPacketFail( response, 'UnavailableTemporarily' )
 
 class WhenNotLogged( ConnectedTestSession ):
 	__request__ = None
@@ -56,15 +56,44 @@ class WhenNotLogged( ConnectedTestSession ):
 	def __iter__( self ):
 		RequestType = self.protocol.use( self.__request__ )
 
-		yield self.makeRequest( RequestType ), ExpectFail('UnavailableTemporarily')
+		response = yield self.makeRequest( RequestType )
+
+		self.assertPacketFail( response, 'UnavailableTemporarily' )
 
 class GetWithIDSlotWhenNotLogged( WhenNotLogged ):
 	def makeRequest( self, GetWithID ):
 		return GetWithID( self.seq, 1, [1] )
 
 class GetIDSequenceWhenNotLogged( ConnectedTestSession ):
-	def makeRequest( self, IDSequence):
+	def makeRequest( self, IDSequence ):
 		return IDSequence( self.seq, -1, 0, -1 )
+
+class WithIDTestMixin( object ):
+	def convert_modtime( self, packet, obj ):
+		return packet.modtime, self.datetimeToInt( obj.mtime )
+
+	def getFail( self, item ):
+		pass
+
+	def assertPacketEqual( self, packet, obj ):
+		attrs = self.__attrs__ + list( self.__attrmap__ ) + self.__attrfun__
+
+		for attr in attrs:
+			if attr in self.__attrfun__:
+				pval, oval = getattr( self, 'convert_%s' % attr )( packet, obj )
+			else:
+				objattr = self.__attrmap__.get( attr, attr )
+
+				pval = getattr( packet, attr )
+				oval = getattr( obj, objattr )
+
+			self.assertEqual( pval, oval,
+					"Server responded with different %s(%d).%s (%s) than expected (%s)!" % ( self.__response__, packet.id, attr, pval, oval ) )
+
+	def assertPacketSeqEqual( self, sequence, objs ):
+		for packet, obj in zip( sequence[1:], objs ):
+			if not self.getFail( obj ):
+				self.assertPacketEqual( packet, obj )
 
 class GetItemWithID( AuthorizedTestSession ):
 	"""
@@ -77,106 +106,77 @@ class GetItemWithID( AuthorizedTestSession ):
 	def item( self ):
 		raise NotImplementedError
 
-	def getId( self, item ):
-		return item.id
-
-	def __iter__( self ):
-		Request = self.protocol.use( self.__request__ )
-
-		if hasattr( self, '__fail__' ):
-			expect = ExpectOneOf( self.__response__, ExpectFail( self.__fail__ ) )
-		else:
-			expect = Expect( self.__response__ )
-
-		itemId = self.getId( self.item ) 
-
-		packet = yield Request( self.seq, [ itemId ] ), expect
-
-		if hasattr( self, '__fail__' ):
-			if self.__fail__ == 'NoSuchThing':
-				code = 4
-				msg  = "Server does return information for non-existent %s.Id (%s)!" % ( self.__response__, itemId )
-			elif self.__fail__ == 'PermissionDenied':
-				code = 5
-				msg  = "Server does allow to access a %s.Id (%s) while it should be disallowed!" % ( self.__response__, itemId )
-			else:
-				raise NotImplementedError
-
-			assert packet.type == 'Fail' and packet.code == code, msg
-		else:
-			self.mustBeEqual( packet, self.item )
-
-class GetItemsWithID( AuthorizedTestSession ):
 	@property
 	def items( self ):
-		raise NotImplementedError
+		return [ self.item ]
 
 	def getId( self, item ):
 		return item.id
 
-	def getFail( self, item ):
-		pass
-
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
-		sequence = []
+		items = list( self.items )
 
-		for item in self.items:
+		response = yield Request( self.seq, [ self.getId( item ) for item in items ] )
+
+		if isinstance( response, list ):
+			packets = response[1:]
+		else:
+			packets = [ response ]
+
+		for item, packet in zip( items, packets ):
 			fail = self.getFail( item )
 
 			if fail:
-				sequence.append( ExpectFail( fail ) )
+				if fail == 'NoSuchThing':
+					msg  = "Server does return information for non-existent %s.Id (%s)!" % ( self.__response__, self.getId( item ) )
+				elif fail == 'PermissionDenied':
+					msg  = "Server does allow to access a %s.Id (%s) while it should be disallowed!" % ( self.__response__, self.getId( item ))
+				else:
+					raise NotImplementedError
+
+				self.assertPacketFail( packet, fail, msg )
 			else:
-				sequence.append( Expect(self.__response__) )
+				self.assertPacket( packet, self.__response__ )
+				self.assertPacketEqual( packet, item )
 
-		packets = yield Request( self.seq, [ self.getId( item ) for item in self.items ] ), ExpectSequence( *sequence )
+class IDSequenceTestMixin( object ):
+	@staticmethod
+	def compareId( a, b ):
+		return cmp( a.id, b.id )
 
-		for p, b in zip( packets[1:], self.items ):
-			if not self.getFail( b ):
-				self.mustBeEqual( p, b )
+	def assertIDSequenceEqual( self, idseq, items, remaining ):
+		assert len( items ) > 0, "Sanity check for assertIDSequenceEqual failed!"
 
-class GetWithIDMixin( object ):
-	def convert_modtime( self, packet, obj ):
-		return packet.modtime, self.datetimeToInt( obj.mtime )
+		obj_name = items[0].__origname__
 
-	def mustBeEqual( self, packet, obj ):
-		attrs = self.__attrs__ + list( self.__attrmap__ ) + self.__attrfun__
+		self.assertEqual( len( idseq.modtimes ), len( items ),
+				"Expected to get %d %s objects, got %d instead." % ( len( items ), obj_name, len( idseq.modtimes ) ) )
+		self.assertEqual( idseq.remaining, remaining,
+				"Expected to be %d %s objects on the server, but %d left." % ( remaining, obj_name, idseq.remaining ) )
 
-		for attr in attrs:
-			if attr in self.__attrfun__:
-				pval, oval = getattr( self, 'convert_%s' % attr )( packet, obj )
-			else:
-				objattr = self.__attrmap__.get( attr, attr )
+		objs = sorted( items, self.compareId )
 
-				pval = getattr( packet, attr )
-				oval = getattr( obj, objattr )
+		for item, obj in zip( sorted( idseq.modtimes, self.compareId ), objs ):
+			obj_name  = obj.__origname__
+			obj_mtime = self.datetimeToInt( obj.mtime )
 
-			assert pval == oval, \
-					"Server responded with different %s(%d).%s (%s) than expected (%s)!" % ( self.__response__, packet.id, attr, pval, oval )
+			self.assertEqual( item.id, obj.id,
+					"Expected id (%s) and %s.id (%s) to be equal" % ( item.id, obj_name, obj.id ) )
+			self.assertEqual( item.modtime, obj_mtime, 
+					"Expected modtime (%s) and %s.mtime (%s) to be equal." % ( item.modtime, obj_name, obj_mtime ) )
 
-class GetItemIDs( AuthorizedTestSession ):
+class GetItemIDs( AuthorizedTestSession, IDSequenceTestMixin ):
 	def __iter__( self ):
 		Request = self.protocol.use( self.__request__ )
 
-		idseq = yield Request( self.seq, -1, 0, len( self.items ) ), Expect( self.__response__ )
+		idseq = yield Request( self.seq, -1, 0, len( self.items ) )
 
-		assert len( idseq.modtimes ) == len( self.items ), \
-				"Expected to get %d %s packets, got %d instead." % ( len( self.items ), self.__object__, len( idseq.modtimes ) )
-		assert idseq.remaining == 0, \
-				"Expected to get all %s objects, but %d left to be fetched." % ( self.__object__, idseq.remaining )
-
-		cmpId = lambda a, b: cmp( a.id, b.id )
-
-		objs = sorted( self.items, cmpId )
-
-		for item, obj in zip( sorted( idseq.modtimes, cmpId ), objs ):
-			assert item.id == obj.id, \
-					"Expected id (%s) and %s.id (%s) to be equal" % ( item.id, obj.__origname__, obj.id )
-			assert item.modtime == self.datetimeToInt( obj.mtime ), \
-					"Expected modtime (%s) and %s.mtime (%s) to be equal." % ( item.modtime, obj.__origname__, self.datetimeToInt( obj.mtime ) )
+		self.assertPacket( idseq, self.__response__ )
+		self.assertIDSequenceEqual( idseq, self.items, 0 )
 
 __all__ = [ 'ConnectedTestSession', 'AuthorizedTestSession',
 			'GetWithIDWhenNotLogged', 'GetIDSequenceWhenNotLogged',
 			'GetWithIDSlotWhenNotLogged', 'WhenNotLogged', 'GetItemWithID'
-			'GetItemsWithID', 'GetWithIDMixin', 'GetItemIDs' ]
+			'WithIDTestMixin', 'IDSequenceTestMixin', 'GetItemIDs' ]

@@ -1,7 +1,6 @@
-from common import ExpectFail
-from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
-		GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemsWithID,
-		GetWithIDMixin, GetItemIDs )
+from templates import ( AuthorizedTestSession, GetIDSequenceWhenNotLogged,
+		GetWithIDWhenNotLogged, WhenNotLogged, WithIDTestMixin, GetItemIDs,
+		GetItemWithID )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model, Vector3D
@@ -45,8 +44,7 @@ class ObjectTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.objects )
 
-
-class GetObjectMixin( GetWithIDMixin ):
+class GetObjectMixin( WithIDTestMixin ):
 	__request__  = 'GetObjectsByID'
 	__response__ = 'Object'
 
@@ -75,9 +73,11 @@ class GetEmptyObjectList( AuthorizedTestSession, ObjectTestEnvMixin ):
 	def __iter__( self ):
 		GetObjectsByID = self.protocol.use( 'GetObjectsByID' )
 
-		yield GetObjectsByID( self.seq, [] ), ExpectFail('Protocol')
+		response = yield GetObjectsByID( self.seq, [] )
 
-class GetAllObjects( GetItemsWithID, GetObjectMixin, ObjectTestEnvMixin ):
+		self.assertPacketFail( response, 'Protocol' )
+
+class GetAllObjects( GetItemWithID, GetObjectMixin, ObjectTestEnvMixin ):
 	""" Does server return sequence of Resource packets if asked about all objects? """
 
 	@property
@@ -89,7 +89,6 @@ class GetObjectIDs( GetItemIDs, ObjectTestEnvMixin ):
 
 	__request__  = 'GetObjectIDs'
 	__response__ = 'ObjectIDs'
-	__object__   = 'Object'
 
 	@property
 	def items( self ):

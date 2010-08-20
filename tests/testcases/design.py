@@ -1,6 +1,5 @@
 from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
-		WhenNotLogged, GetWithIDMixin, GetItemWithID, GetItemIDs,
-		GetItemsWithID )
+		WhenNotLogged, WithIDTestMixin, GetItemWithID, GetItemIDs )
 
 from testenv import GameTestEnvMixin
 
@@ -171,7 +170,7 @@ class DesignTestEnvMixin( GameTestEnvMixin ):
 				self.properties, self.categories )
 
 
-class GetDesignMixin( GetWithIDMixin ):
+class GetDesignMixin( WithIDTestMixin ):
 	__request__  = 'GetDesign'
 	__response__ = 'Design'
 
@@ -211,8 +210,6 @@ class GetExistingDesign( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
 class GetNonExistentDesign( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent design? """
 
-	__fail__ = 'NoSuchThing'
-
 	@property
 	def item( self ):
 		return self.designs[0]
@@ -220,7 +217,10 @@ class GetNonExistentDesign( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
 	def getId( self, item ):
 		return self.item.id + 666
 
-class GetMultipleDesigns( GetItemsWithID, GetDesignMixin, DesignTestEnvMixin ):
+	def getFail( self, item ):
+		return 'NoSuchThing'
+
+class GetMultipleDesigns( GetItemWithID, GetDesignMixin, DesignTestEnvMixin ):
 	""" Does server return the IDs of all available Designs? """
 
 	@property
@@ -237,7 +237,6 @@ class GetAllDesignIDs( GetItemIDs, DesignTestEnvMixin ):
 
 	__request__  = 'GetDesignIDs'
 	__response__ = 'DesignIDs'
-	__object__   = 'Design'
 
 	@property
 	def items( self ):

@@ -1,4 +1,3 @@
-from common import Expect
 from templates import AuthorizedTestSession, WhenNotLogged
 from testenv import GameTestEnvMixin
 
@@ -8,7 +7,9 @@ class GetTimeRemainingRequest( AuthorizedTestSession, GameTestEnvMixin ):
 	def __iter__( self ):
 		GetTimeRemaining = self.protocol.use( 'GetTimeRemaining' )
 
-		yield GetTimeRemaining( self.seq ), Expect( 'TimeRemaining' )
+		packet = yield GetTimeRemaining( self.seq )
+
+		self.assertPacket( packet, 'TimeRemaining' )
 
 class GetTimeRemainingWhenNotLogged( WhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetTimeRemaining request? """

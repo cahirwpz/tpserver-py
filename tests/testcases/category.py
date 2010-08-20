@@ -1,7 +1,6 @@
-from common import Expect, ExpectFail, ExpectOneOf
 from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
 		GetIDSequenceWhenNotLogged, WhenNotLogged, GetItemWithID,
-		GetWithIDMixin, GetItemsWithID, GetItemIDs )
+		WithIDTestMixin, GetItemIDs )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -35,7 +34,7 @@ class CategoryTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.categories )
 
-class GetCategoryMixin( GetWithIDMixin ):
+class GetCategoryMixin( WithIDTestMixin ):
 	__request__  = 'GetCategory'
 	__response__ = 'Category'
 
@@ -53,14 +52,15 @@ class GetExistingCategory( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin
 class GetNonExistentCategory( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent category? """
 
-	__fail__ = 'NoSuchThing'
-
 	@property
 	def item( self ):
 		return self.categories[0]
 	
 	def getId( self, item ):
 		return self.item.id + 666
+
+	def getFail( self, item ):
+		return 'NoSuchThing'
 
 class GetPublicCategory( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin ):
 	""" Does server allow to fetch public Category? """
@@ -79,13 +79,14 @@ class GetPrivateCategory( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin 
 class GetOtherPlayerPrivateCategory( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin ):
 	""" Does server disallow to fetch private Category of another player? """
 
-	__fail__ = 'PermissionDenied'
-
 	@property
 	def item( self ):
 		return self.categories[2]
 
-class GetMultipleCategories( GetItemsWithID, GetCategoryMixin, CategoryTestEnvMixin ):
+	def getFail( self, item ):
+		return 'PermissionDenied'
+
+class GetMultipleCategories( GetItemWithID, GetCategoryMixin, CategoryTestEnvMixin ):
 	""" Does server return sequence of Category packets if asked about two categories? """
 
 	@property
@@ -97,7 +98,6 @@ class GetAllCategoryIDs( GetItemIDs, CategoryTestEnvMixin ):
 
 	__request__  = 'GetCategoryIDs'
 	__response__ = 'CategoryIDs'
-	__object__   = 'Category'
 
 	@property
 	def items( self ):
@@ -128,11 +128,13 @@ class AddNewCategory( AuthorizedTestSession, GetCategoryMixin, CategoryTestEnvMi
 		AddCategory = self.protocol.use( 'AddCategory' )
 		Category = self.model.use( 'Category' )
 
-		packet = yield AddCategory( self.seq, -1, 0, "Test", "Category for testing purposes." ), Expect( 'Category' )
+		response = yield AddCategory( self.seq, -1, 0, "Test", "Category for testing purposes." )
 
-		self.cat = Category.ById( packet.id )
+		self.assertPacket( response, 'Category' )
 
-		self.mustBeEqual( packet, self.cat )
+		self.cat = Category.ById( response.id )
+
+		self.assertPacketEqual( response, self.cat )
 
 	def tearDown( self ):
 		if hasattr( self, 'cat' ):
@@ -151,20 +153,21 @@ class AddCategoryButSameExists( AuthorizedTestSession, GetCategoryMixin, Categor
 				owner = self.players[0],
 				description = "Private Category for testing purposes." )
 
+		self.wrong_cat = None
+
 		Model.add( self.cat )
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
 		Category = self.model.use( 'Category' )
 
-		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
-				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
+		response = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." )
 
-		if packet.type == 'Category':
-			self.wrong_cat = Category.ById( packet.id )
+		if response.type == 'Category':
+			self.wrong_cat = Category.ById( response.id )
 
-		assert packet.type == 'Fail', \
-				"%s must not be added if %s exists!" % ( self.wrong_cat, self.cat )
+		self.assertPacketFail( response, 'PermissionDenied',
+				"%s must not be added if %s exists!" % (self.wrong_cat, self.cat) )
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
@@ -188,12 +191,13 @@ class AddCategoryWithSameNameAsPrivate( AuthorizedTestSession, GetCategoryMixin,
 		AddCategory = self.protocol.use( 'AddCategory' )
 		Category = self.model.use( 'Category' )
 
-		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
-				Expect('Category')
+		response = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." )
 
-		self.cat = Category.ById( packet.id )
+		self.assertPacket( response, 'Category' )
 
-		self.mustBeEqual( packet, self.cat )
+		self.cat = Category.ById( response.id )
+
+		self.assertPacketEqual( response, self.cat )
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'other_cat', None ) )
@@ -210,20 +214,21 @@ class AddCategoryWithSameNameAsPublic( AuthorizedTestSession, GetCategoryMixin, 
 				name = self.cat_name,
 				description = "Public category for testing purposes." )
 
+		self.wrong_cat = None
+
 		Model.add( self.cat )
 
 	def __iter__( self ):
 		AddCategory = self.protocol.use( 'AddCategory' )
 		Category = self.model.use( 'Category' )
 
-		packet = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." ), \
-				ExpectOneOf( 'Category', ExpectFail('PermissionDenied') )
+		response = yield AddCategory( self.seq, -1, 0, self.cat_name, "Category for testing purposes." )
 
-		if packet.type == 'Category':
-			self.wrong_cat = Category.ById( packet.id )
+		if response.type == 'Category':
+			self.wrong_cat = Category.ById( response.id )
 
-		assert packet.type == 'Fail', \
-				"%s must not be added if %s exists!" % ( self.wrong_cat, self.cat )
+		self.assertPacketFail( response, 'PermissionDenied',
+				"%s must not be added if %s exists!" % (self.wrong_cat, self.cat) )
 
 	def tearDown( self ):
 		Model.remove( getattr( self, 'cat', None ), getattr( self, 'wrong_cat', None ) )
@@ -248,7 +253,9 @@ class RemovePublicCategory( AuthorizedTestSession, GetCategoryMixin, CategoryTes
 	def __iter__( self ):
 		RemoveCategory = self.protocol.use( 'RemoveCategory' )
 
-		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
+		response = yield RemoveCategory( self.seq, [ self.cat.id ] )
+
+		self.assertPacketFail( response, 'PermissionDenied' )
 
 	def tearDown( self ):
 		Category = self.model.use( 'Category' )
@@ -274,7 +281,9 @@ class RemovePrivateCategory( AuthorizedTestSession, GetCategoryMixin, CategoryTe
 	def __iter__( self ):
 		RemoveCategory = self.protocol.use( 'RemoveCategory' )
 
-		yield RemoveCategory( self.seq, [ self.cat.id ] ), Expect('Okay')
+		response = yield RemoveCategory( self.seq, [ self.cat.id ] )
+
+		self.assertPacket( response, 'Okay' )
 
 	def tearDown( self ):
 		Category = self.model.use( 'Category' )
@@ -298,7 +307,9 @@ class RemoveOtherPlayerPrivateCategory( AuthorizedTestSession, GetCategoryMixin,
 	def __iter__( self ):
 		RemoveCategory = self.protocol.use( 'RemoveCategory' )
 
-		yield RemoveCategory( self.seq, [ self.cat.id ] ), ExpectFail('PermissionDenied')
+		response = yield RemoveCategory( self.seq, [ self.cat.id ] )
+
+		self.assertPacketFail( response, 'PermissionDenied' )
 
 	def tearDown( self ):
 		Category = self.model.use( 'Category' )

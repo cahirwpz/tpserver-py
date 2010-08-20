@@ -1,7 +1,7 @@
-from common import Expect, ExpectSequence
-from templates import ( AuthorizedTestSession, GetWithIDWhenNotLogged,
-		GetIDSequenceWhenNotLogged, GetItemWithID, GetItemsWithID,
-		GetWithIDMixin )
+from common import ExpectSequence
+from templates import ( AuthorizedTestSession, GetIDSequenceWhenNotLogged,
+		GetWithIDWhenNotLogged, GetItemWithID, WithIDTestMixin, GetItemIDs,
+		IDSequenceTestMixin )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -37,7 +37,7 @@ class BoardTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.boards )
 
-class GetBoardsMixin( GetWithIDMixin ):
+class GetBoardsMixin( WithIDTestMixin ):
 	__request__  = 'GetBoards'
 	__response__ = 'Board'
 
@@ -52,7 +52,7 @@ class GetCurrentBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server respond with current board information? """
 
 	@property
-	def player( self ):
+	def sign_in_as( self ):
 		return self.players[1]
 
 	@property
@@ -72,14 +72,15 @@ class GetExistingBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 class GetNonExistentBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent board? """
 
-	__fail__ = 'NoSuchThing'
-
 	@property
 	def item( self ):
 		return self.boards[0]
 	
 	def getId( self, item ):
 		return self.item.id + 666
+
+	def getFail( self, item ):
+		return 'NoSuchThing'
 
 class GetPublicBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server allow to fetch public Board? """
@@ -98,20 +99,21 @@ class GetPrivateBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 class GetOtherPlayerPrivateBoard( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server disallow to fetch private Board of another player? """
 
-	__fail__ = 'PermissionDenied'
-
 	@property
 	def item( self ):
 		return self.boards[2]
 
-class GetMultipleBoards( GetItemsWithID, GetBoardsMixin, BoardTestEnvMixin ):
+	def getFail( self, item ):
+		return 'PermissionDenied'
+
+class GetMultipleBoards( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
 	def items( self ):
 		return [ self.boards[1], self.boards[0] ]
 
-class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin, BoardTestEnvMixin ):
+class GetMultipleBoardsWithOneFail( GetItemWithID, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Does server return sequence of Board packets if asked about two boards? """
 
 	@property
@@ -119,7 +121,7 @@ class GetMultipleBoardsWithOneFail( GetItemsWithID, GetBoardsMixin, BoardTestEnv
 		return [ self.boards[1], self.boards[2], self.boards[0] ]
 
 	def getFail( self, item ):
-		if item.owner not in [ None, self.player ]:
+		if item.owner not in [ None, self.sign_in_as ]:
 			return 'PermissionDenied'
 
 class GetNumberOfBoards( AuthorizedTestSession, BoardTestEnvMixin ):
@@ -128,54 +130,48 @@ class GetNumberOfBoards( AuthorizedTestSession, BoardTestEnvMixin ):
 	def __iter__( self ):
 		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
 
-		idseq = yield GetBoardIDs( self.seq, -1, 0, -1 ), Expect( 'BoardIDs' )
+		idseq = yield GetBoardIDs( self.seq, -1, 0, -1 )
 
-		assert idseq.remaining == 3, \
-				"If requested the number of available IDs, then value of IDSequence.remaining should be 3 instead of %d" % idseq.remaining
-		assert len( idseq.modtimes ) == 0, \
-				"Expected to get no Boards"
+		self.assertPacket( idseq, 'BoardIDs' ) 
 
-class GetAllAvailableBoards( AuthorizedTestSession, BoardTestEnvMixin ):
+		self.assertEqual( idseq.remaining, 3,
+				"If requested the number of available IDs, then value of IDSequence.remaining should be 3 instead of %d" % idseq.remaining )
+
+		self.assertEqual( len( idseq.modtimes ), 0,
+				"Expected to get no Boards" )
+
+class GetAllAvailableBoardIDs( GetItemIDs, BoardTestEnvMixin ):
 	""" Does server return the IDs of Boards that are accessible by the player? """
 
-	def __iter__( self ):
-		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
+	__request__  = 'GetBoardIDs'
+	__response__ = 'BoardIDs'
 
-		idseq = yield GetBoardIDs( self.seq, -1, 0, 3 ), Expect( 'BoardIDs' )
+	@property
+	def items( self ):
+		return [ self.boards[0], self.boards[1], self.boards[3] ]
 
-		assert len( idseq.modtimes ) == 3, \
-				"Expected to get three Boards, got %s instead." % len( idseq.modtimes )
-
-		cmpId = lambda a, b: cmp( a.id, b.id )
-
-		boards = sorted( [self.boards[0], self.boards[1], self.boards[3]], cmpId )
-
-		for item, board in zip( sorted( idseq.modtimes, cmpId ), boards ):
-			assert item.id == board.id, "Expected id (%s) and Board.id (%s) to be equal" % ( item.id )
-			assert item.modtime == self.datetimeToInt( board.mtime ), "Expected modtime (%s) and Board.mtime (%s) to be equal." % ( item.modtime, board.mtime )
-
-class GetBoardIDsOneByOne( AuthorizedTestSession, BoardTestEnvMixin ):
+class GetBoardIDsOneByOne( AuthorizedTestSession, IDSequenceTestMixin, BoardTestEnvMixin ):
 	""" Does server support IDSequence.key field properly? """
 
 	def __iter__( self ):
 		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
 
-		idseq = yield GetBoardIDs( self.seq, -1, 0, 1 ), Expect( 'BoardIDs' )
+		idseq = yield GetBoardIDs( self.seq, -1, 0, 1 )
+
+		self.assertPacket( idseq, 'BoardIDs' ) 
+		self.assertIDSequenceEqual( idseq, [ self.boards[0] ], 2 )
 
 		key = idseq.key
 
-		assert idseq.remaining == 2, \
-				"There should be two Boards left."
+		idseq = yield GetBoardIDs( self.seq, key, 1, 1 )
 
-		idseq = yield GetBoardIDs( self.seq, key, 1, 1 ), Expect( 'BoardIDs' )
+		self.assertPacket( idseq, 'BoardIDs' ) 
+		self.assertIDSequenceEqual( idseq, [ self.boards[1] ], 1 )
 
-		assert idseq.remaining == 1, \
-				"There should be one Board left."
+		idseq = yield GetBoardIDs( self.seq, key, 2, 1 )
 
-		idseq = yield GetBoardIDs( self.seq, key, 2, 1 ), Expect( 'BoardIDs' )
-
-		assert idseq.remaining == 0, \
-				"There should be no Board left."
+		self.assertPacket( idseq, 'BoardIDs' ) 
+		self.assertIDSequenceEqual( idseq, [ self.boards[3] ], 0 )
 
 class GetBoardWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetBoards request? """
@@ -187,32 +183,33 @@ class GetBoardIDsWhenNotLogged( GetIDSequenceWhenNotLogged ):
 
 	__request__ = 'GetBoardIDs'
 
-class AllFetchedBoardsAreAccessible( AuthorizedTestSession, BoardTestEnvMixin ):
+class AllFetchedBoardsAreAccessible( AuthorizedTestSession, IDSequenceTestMixin, GetBoardsMixin, BoardTestEnvMixin ):
 	""" Check if all fetched BoardIDs represent Boards that are accessible by the player. """
 
 	@property
-	def player( self ):
+	def sign_in_as( self ):
 		return self.players[1]
+
+	@property
+	def items( self ):
+		return [ self.boards[2], self.boards[3] ]
 
 	def __iter__( self ):
 		GetBoardIDs = self.protocol.use( 'GetBoardIDs' )
 
-		idseq = yield GetBoardIDs( self.seq, -1, 0, 2 ), Expect( 'BoardIDs' )
+		idseq = yield GetBoardIDs( self.seq, -1, 0, 2 )
 
-		assert len( idseq.modtimes ) == 2, \
-				"Expected to get two Boards, got %s instead." % len( idseq.modtimes )
-
-		assert idseq.remaining == 0, \
-				"Database should contain exactly two Boards for the player."
+		self.assertPacket( idseq, 'BoardIDs' ) 
+		self.assertIDSequenceEqual( idseq, self.items, 0 )
 
 		GetBoards = self.protocol.use( 'GetBoards' )
 
 		ids = [ id for id, modtime in idseq.modtimes ]
 
-		s, p1, p2 = yield GetBoards( self.seq, ids ), ExpectSequence(2, 'Board')
+		response = yield GetBoards( self.seq, ids )
 
-		assert p1.id == ids[0] and p2.id == ids[1], \
-				"Server returned different BoardIds (%d,%d) than expected (%d,%d)." % ( p1.id, p2.id, ids[0], ids[1] )
+		self.assertPacketType( response, ExpectSequence( 2, 'Board' ) )
+		self.assertPacketSeqEqual( response, self.items )
 
 __all__ = [	'GetCurrentBoard', 
 			'GetExistingBoard', 
@@ -223,7 +220,7 @@ __all__ = [	'GetCurrentBoard',
 			'GetMultipleBoards', 
 			'GetMultipleBoardsWithOneFail', 
 			'GetNumberOfBoards', 
-			'GetAllAvailableBoards', 
+			'GetAllAvailableBoardIDs', 
 			'GetBoardIDsOneByOne', 
 			'GetBoardWhenNotLogged', 
 			'GetBoardIDsWhenNotLogged', 

@@ -1,4 +1,5 @@
-from templates import GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged, GetItemWithID, GetWithIDMixin, GetItemIDs, GetItemsWithID
+from templates import ( GetWithIDWhenNotLogged, GetIDSequenceWhenNotLogged,
+		GetItemWithID, WithIDTestMixin, GetItemIDs )
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -92,7 +93,7 @@ class ComponentTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.components, self.properties, self.categories )
 
-class GetComponentMixin( GetWithIDMixin ):
+class GetComponentMixin( WithIDTestMixin ):
 	__request__  = 'GetComponent'
 	__response__ = 'Component'
 
@@ -122,8 +123,6 @@ class GetExistingComponent( GetItemWithID, GetComponentMixin, ComponentTestEnvMi
 class GetNonExistentComponent( GetItemWithID, GetComponentMixin, ComponentTestEnvMixin ):
 	""" Does server fail to respond if asked about nonexistent category? """
 
-	__fail__ = 'NoSuchThing'
-
 	@property
 	def item( self ):
 		return self.components[0]
@@ -131,7 +130,10 @@ class GetNonExistentComponent( GetItemWithID, GetComponentMixin, ComponentTestEn
 	def getId( self, item ):
 		return self.item.id + 666
 
-class GetAllComponents( GetItemsWithID, GetComponentMixin, ComponentTestEnvMixin ):
+	def getFail( self, item ):
+		return 'NoSuchThing'
+
+class GetAllComponents( GetItemWithID, GetComponentMixin, ComponentTestEnvMixin ):
 	""" Does server return sequence of Component packets if asked about all components? """
 
 	@property
@@ -148,7 +150,6 @@ class GetAllComponentIDs( GetItemIDs, ComponentTestEnvMixin ):
 
 	__request__  = 'GetComponentIDs'
 	__response__ = 'ComponentIDs'
-	__object__   = 'Component'
 
 	@property
 	def items( self ):

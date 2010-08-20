@@ -1,4 +1,3 @@
-from common import Expect
 from templates import ConnectedTestSession
 from testenv import GameTestEnvMixin
 
@@ -12,6 +11,8 @@ class KnownUserAuthorized( ConnectedTestSession, GameTestEnvMixin ):
 	def __iter__( self ):
 		Login = self.protocol.use( 'Login' )
 
-		yield Login( self.seq, "%s@%s" % ( self.login, self.game.name ), self.password ), Expect( 'Okay' )
+		response = yield Login( self.seq, "%s@%s" % ( self.login, self.game.name ), self.password )
+
+		self.assertPacket( response, 'Okay' ) 
 
 __all__ = [	'KnownUserAuthorized' ]

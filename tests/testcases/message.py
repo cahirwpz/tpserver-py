@@ -1,5 +1,5 @@
-from common import Expect, ExpectFail, ExpectSequence, ExpectOneOf
-from templates import AuthorizedTestSession, WhenNotLogged, GetWithIDSlotWhenNotLogged, GetWithIDMixin
+from common import ExpectSequence
+from templates import AuthorizedTestSession, WhenNotLogged, GetWithIDSlotWhenNotLogged, WithIDTestMixin
 from testenv import GameTestEnvMixin
 
 from tp.server.model import Model
@@ -38,76 +38,79 @@ class MessageTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.board )
 
-class GetMessageMixin( GetWithIDMixin ):
+class GetMessageMixin( WithIDTestMixin ):
 	__request__  = 'GetMessage'
 	__response__ = 'Message'
 
-	__attrs__   = [ 'id', 'slot', 'subject' ]
+	__attrs__   = [ 'subject' ]
 	__attrmap__ = {}
-	__attrfun__ = [ 'modtime' ]
+	__attrfun__ = [ 'id', 'slot' ]
 
-class GetExistingMessage( AuthorizedTestSession, MessageTestEnvMixin ):
+	def convert_id( self, packet, obj ):
+		return packet.id, obj.board.id
+
+	def convert_slot( self, packet, obj ):
+		return packet.slot, obj.id
+
+class GetExistingMessage( AuthorizedTestSession, GetMessageMixin, MessageTestEnvMixin ):
 	""" Does server respond properly if asked about existing message? """
 
-	def __iter__( self ):
-		board   = self.board
-		message = board.messages[2]
+	@property
+	def item( self ):
+		return self.board.messages[2]
 
+	def __iter__( self ):
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id, [ message.id ] ), Expect( 'Message' )
+		packet = yield GetMessage( self.seq, self.item.board.id, [ self.item.id ] )
 
-		assert packet.id == board.id, \
-				"Server responded with different BoardId than requested!"
-
-		assert packet.slot == message.id, \
-				"Server responded with different SlotId than requested!"
+		self.assertPacket( packet, 'Message' )
+		self.assertPacketEqual( packet, self.item )
 
 class GetNonExistentMessage1( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server fail to respond if asked about non-existent message (wrong MessageId)? """
 
-	def __iter__( self ):
-		board   = self.board
-		message = board.messages[2]
+	@property
+	def item( self ):
+		return self.board.messages[2]
 
+	def __iter__( self ):
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id + 666, [ message.id ] ), ExpectOneOf( 'Message', ExpectFail('NoSuchThing') )
+		packet = yield GetMessage( self.seq, self.item.board.id + 666, [ self.item.id ] )
 
-		assert packet.type != 'Message', \
-			"Server does return information for non-existent BoardId = %d!" % ( board.id + 666 )
+		self.assertPacketFail( packet, 'NoSuchThing',
+				"Server does return information for non-existent BoardId = %d!" % ( self.item.board.id + 666 ) )
 
 class GetNonExistentMessage2( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Does server fail to respond if asked about non-existent message (wrong SlotId)? """
 
-	def __iter__( self ):
-		board   = self.board
-		message = board.messages[2]
+	@property
+	def item( self ):
+		return self.board.messages[2]
 
+	def __iter__( self ):
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		packet = yield GetMessage( self.seq, board.id, [ message.id + 666 ] ), ExpectOneOf( 'Message', ExpectFail('NoSuchThing') )
+		packet = yield GetMessage( self.seq, self.item.board.id, [ self.item.id + 666 ] )
 
-		assert packet.type != 'Message', \
-			"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( board.id, message.id + 666 )
+		self.assertPacketFail( packet, 'NoSuchThing',
+				"Server does return information for non-existent Message (BoardId = %d, SlotId = %d)!" % ( self.item.board.id, self.item.id + 666 ) )
 
-class GetMultipleMessages( AuthorizedTestSession, MessageTestEnvMixin ):
+class GetMultipleMessages( AuthorizedTestSession, GetMessageMixin, MessageTestEnvMixin ):
 	""" Does server return sequence of Message packets if asked about two messages? """
 
-	def __iter__( self ):
-		board   = self.board
-		message1 = board.messages[0]
-		message3 = board.messages[2]
+	@property
+	def items( self ):
+		return [ self.board.messages[0], self.board.messages[2] ]
 
+	def __iter__( self ):
 		GetMessage = self.protocol.use( 'GetMessage' )
 
-		s, p1, p2 = yield GetMessage( self.seq, board.id, [ message3.id, message1.id ] ), ExpectSequence(2, 'Message')
+		response = yield GetMessage( self.seq, self.board.id, [ item.id for item in self.items ] )
 
-		assert p1.id == board.id and p2.id == board.id, \
-			"Server responded with different BoardId than requested!"
-
-		assert p1.slot == message3.id and p2.slot == message1.id, \
-			"Server returned different MessageSlots (%d,%d) than requested (%d,%d)." % (p1.id, p2.id, message3.id, message1.id)
+		self.assertPacketType( response, ExpectSequence( 2, 'Message' ) )
+		self.assertPacketSeqEqual( response, self.items )
 
 class PostMessage( AuthorizedTestSession, MessageTestEnvMixin ):
 	""" Tries to send message to default board. """
@@ -119,7 +122,9 @@ class PostMessage( AuthorizedTestSession, MessageTestEnvMixin ):
 		PostMessage = self.protocol.use('PostMessage')
 		Message = self.model.use('Message')
 
-		yield PostMessage( self.seq, 1, -1, [], self.msg_subject, "Foobar", 0, [] ), Expect( 'Okay' )
+		response = yield PostMessage( self.seq, 1, -1, [], self.msg_subject, "Foobar", 0, [] )
+
+		self.assertPacket( response, 'Okay' )
 
 		messages = Message.query().filter_by( subject = self.msg_subject ).all()
 
