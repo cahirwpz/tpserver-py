@@ -2,6 +2,7 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
+from sqlalchemy.ext.orderinglist import ordering_list
 
 from Model import ModelObject
 
@@ -33,6 +34,7 @@ class Message( ModelObject ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 					Column('id',        Integer, index = True, primary_key = True ),
 					Column('board_id',  ForeignKey( Board.id ), index = True, nullable = False ),
+					Column('slot',      Integer, index = True, nullable = False ),
 					Column('subject',   String(255), nullable = False ),
 					Column('body',      Text, nullable = False ),
 					Column('turn',		Integer, nullable = False ),
@@ -46,13 +48,16 @@ class Message( ModelObject ):
 		mapper( cls, cls.__table__, properties = {
 			'board': relation( Board,
 				uselist = False,
-				backref = backref( 'messages' ))
+				backref = backref( 'messages',
+					collection_class = ordering_list('slot', count_from = 1),
+					order_by = [ cols.slot ] ))
 			})
 	
 	def remove( self, session ):
 		session.delete( self )
 
 	def __str__( self ):
-		return '<%s@%s id="%s" board="%s">' % ( self.__origname__, self.__game__.name, self.id, self.board.id )
+		return '<%s@%s id="%s" board="%s" slot="%s" subject="%s">' % \
+				( self.__origname__, self.__game__.name, self.id, self.board.id, self.slot, self.subject )
 
 __all__ = [ 'Message', 'MessageReference' ]

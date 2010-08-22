@@ -42,15 +42,12 @@ class GetMessageMixin( WithIDTestMixin ):
 	__request__  = 'GetMessage'
 	__response__ = 'Message'
 
-	__attrs__   = [ 'subject' ]
+	__attrs__   = [ 'subject', 'slot', 'body', 'turn' ]
 	__attrmap__ = {}
-	__attrfun__ = [ 'id', 'slot' ]
+	__attrfun__ = [ 'id' ]
 
 	def convert_id( self, packet, obj ):
 		return packet.id, obj.board.id
-
-	def convert_slot( self, packet, obj ):
-		return packet.slot, obj.id
 
 class GetExistingMessage( GetItemWithIDSlot, GetMessageMixin, MessageTestEnvMixin ):
 	""" Does server respond properly if asked about existing message? """

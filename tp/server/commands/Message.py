@@ -21,7 +21,7 @@ class MessageFactoryMixin( FactoryMixin ):
 
 		return Message( request._sequence,
 				obj.board_id,
-				obj.number,
+				obj.slot,
 				[],	# not used as of TP03
 				obj.subject,
 				str( obj.body ),
@@ -78,19 +78,9 @@ class GetMessage( GetWithIDSlotHandler, MessageFactoryMixin ):
 
 	def getItem( self, board, slot ):
 		try:
-			msg = None
-
-			for message in board.messages:
-				if message.id == slot:
-					msg = message
-
-			if not msg:
-				return None
+			return board.messages[ slot - 1 ]
 		except IndexError:
 			return None
-		else:
-			msg.number = slot
-			return msg
 
 class RemoveMessage( RemoveWithIDSlotHandler ):
 	"""
