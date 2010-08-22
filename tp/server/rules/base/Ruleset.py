@@ -132,6 +132,10 @@ class Ruleset( object ):
 		self.objects.loadModelConstants()
 		self.orders.loadModelConstants()
 
+		from tp.server.model import ReferenceType
+
+		self.model.add_class( ReferenceType )
+
 	def initModelConstants( self ):
 		"""
 		This method initialises all data which is considered to be constant for
@@ -141,6 +145,33 @@ class Ruleset( object ):
 
 		self.objects.initModelConstants()
 		self.orders.initModelConstants()
+
+		ReferenceTypeMap = {
+				-1000 : 'ServerAction',
+				   -5 : 'DesignAction',
+				   -4 : 'PlayerAction',
+				   -3 : 'MessageAction',
+				   -2 : 'OrderAction',
+				   -1 : 'ObjectAction',
+				    0 : 'Misc',
+				    1 : 'Object',
+				    2 : 'OrderType',
+				    3 : 'Order',
+				    4 : 'Board',
+				    5 : 'Message',
+				    6 : 'ResourceType',
+				    7 : 'Player',
+				    8 : 'Category',
+				    9 : 'Design',
+				   10 : 'Component',
+				   11 : 'Property',
+				   12 : 'ObjectType',
+				   13 : 'OrderQueue' }
+
+		ReferenceType = self.model.use( 'ReferenceType' )
+
+		Model.add( ReferenceType( id = _1, name = _2 )
+				for _1, _2 in ReferenceTypeMap.items() )
 
 	@abstractmethod
 	def loadModel( self ):
