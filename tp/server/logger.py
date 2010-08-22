@@ -90,7 +90,7 @@ class Formatter( logging.Formatter ):
 				try:
 					name = frame.f_locals['self'].__class__.__name__
 				except (KeyError, AttributeError):
-					name = ""
+					name = frame.f_globals['__name__'].split('.')[-1]
 
 		if record.name != logging.root.name:
 			if record.name.startswith('sqlalchemy'):
