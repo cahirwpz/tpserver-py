@@ -211,16 +211,18 @@ class TestSession( TestCase, ClientSessionHandler ):
 
 				self.bundle = []
 		else:
-			self.response = packet
 			self.step( packet )
 
 	def step( self, response = None ):
 		if not self.__finished:
 			try:
+				self.response = response
 				request = self.scenario.send( response )
-			except StopIteration, ex:
+			except StopIteration as ex:
 				self.succeeded()
-			except Exception, ex:
+			except AssertionError as ex:
+				self.failed( str(ex) )
+			except Exception as ex:
 				exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
 				self.failureException = ex.__class__
 				self.failed( str(ex) )
@@ -273,16 +275,12 @@ class TestSession( TestCase, ClientSessionHandler ):
 	def assertPacketType( self, packet, expected, reason = None ):
 		if packet != expected:
 			self.expected = expected
-			self.failed( reason )
+			raise AssertionError( reason )
 
 	def assertPacket( self, packet, expected, reason = None ):
-		if packet != Expect( expected ):
-			self.expected = expected
-			self.failed( reason )
+		self.assertPacketType( packet, Expect( expected ), reason )
 
 	def assertPacketFail( self, packet, expected, reason = None ):
-		if packet != ExpectFail( expected ):
-			self.expected = expected
-			self.failed( reason )
+		self.assertPacketType( packet, ExpectFail( expected ), reason )
 	
 __all__ = [ 'Expect', 'ExpectFail', 'ExpectSequence', 'ExpectOneOf', 'TestSession' ]
