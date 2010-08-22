@@ -3,6 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.ext.orderinglist import ordering_list
 
 from Model import ModelObject, ByNameMixin
 
@@ -11,12 +12,13 @@ class Order( ModelObject ):
 	How to tell objects what to do.
 	"""
 	@classmethod
-	def InitMapper( cls, metadata, OrderType, Object ):
+	def InitMapper( cls, metadata, OrderType, Object, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',        Integer,     index = True, primary_key = True),
 				Column('slot',      Integer,     nullable = False),
 				Column('type_id',   ForeignKey( OrderType.id ), nullable = False),
 				Column('object_id', ForeignKey( Object.id ), nullable = True),
+				Column('owner_id',  ForeignKey( Player.id ), index = True, nullable = True),
 				Column('eta',       Integer,     nullable = False, default = 0),
 				Column('mtime',     DateTime,    nullable = False,
 					onupdate = func.current_timestamp(), default = func.current_timestamp()))
@@ -28,7 +30,11 @@ class Order( ModelObject ):
 				uselist = False ),
 			'object': relation( Object,
 				uselist = False,
-				backref = backref( 'orders' ))
+				backref = backref( 'orders',
+					collection_class = ordering_list('slot', count_from = 1),
+					order_by = [ cols.slot ] )),
+			'owner': relation( Player,
+				uselist = False )
 			})
 
 	@classmethod

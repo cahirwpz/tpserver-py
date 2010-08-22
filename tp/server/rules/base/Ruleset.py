@@ -164,7 +164,7 @@ class Ruleset( object ):
 		self.model.add_class( Board, 'Player' )
 		self.model.add_class( Design, 'Player' )
 		self.model.add_class( Message, 'Board' )
-		self.model.add_class( Order, 'OrderType', 'Object' )
+		self.model.add_class( Order, 'OrderType', 'Object', 'Player' )
 		self.model.add_class( MessageReference, 'Message', 'Reference' )
 		self.model.add_class( ComponentCategory, 'Component', 'Category' )
 		self.model.add_class( ComponentProperty, 'Component', 'Property' )
