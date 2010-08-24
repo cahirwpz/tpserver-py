@@ -87,37 +87,37 @@ class DesignTestEnvMixin( GameTestEnvMixin ):
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = primary_damage ) ])
+			properties  = { primary_damage : None })
 
 		laser = Component(
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = backup_damage, value = """(lambda (design) 0.25)""" ) ])
+			properties  = { backup_damage : """(lambda (design) 0.25)""" })
 
 		armor_plate = Component(
 			name        = "Armor Plate",
 			description = "Armor Plate which absorbes 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = hp ) ])
+			properties  = { hp : None })
 
 		colonisation_pod = Component(
 			name        = "Colonisation Pod",
 			description = "A part which allows a ship to colonise a planet.",
 			categories  = [ ship ],
-			properties  = [ ComponentProperty( property = colonise ) ])
+			properties  = { colonise : None })
 
 		escape_thrusters = Component(
 			name        = "Escape Thrusters",
 			description = "A part which allows a ship to escape combat.",
 			categories  = [ ship ],
-			properties  = [ ComponentProperty( property = escape, value = """(lambda (design) 0.25)""" ) ])
+			properties  = { escape : """(lambda (design) 0.25)""" })
 
 		primary_engine = Component(
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
 			categories  = [ ship ],
-			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1000000)""" ) ])
+			properties  = { speed : """(lambda (design) 1000000)""" })
 
 		self.components = [ missile, laser, armor_plate, colonisation_pod, escape_thrusters, primary_engine ]
 
@@ -126,39 +126,39 @@ class DesignTestEnvMixin( GameTestEnvMixin ):
 			description = "A fast light ship with advanced sensors.",
 			comment     = "Send this ship to explore unknown solar systems.",
 			categories  = [ ship ],
-			properties  = [ DesignProperty( property = age, value = "(lambda (design) 0)" ) ],
-			components  = [
-				DesignComponent( component = escape_thrusters, amount = 4 ),
-				DesignComponent( component = armor_plate, amount = 2 ),
-				DesignComponent( component = primary_engine, amount = 5 ) ])
+			properties  = { age : "(lambda (design) 0)" },
+			components  = {
+				escape_thrusters : 4,
+				armor_plate      : 2,
+				primary_engine   : 5 })
 
 		frigate = Design(
 			name        = "Frigate",
 			description = "A general purpose ship with weapons and ability to colonise new planets.",
 			comment     = "Built it often and colonise every habitable planet you can!",
 			categories  = [ ship ],
-			properties  = [
-				DesignProperty( property = age, value = "(lambda (design) 0)" ),
-				DesignProperty( property = experience, value = "(lambda (design) 0)" ) ],
-			components  = [
-				DesignComponent( component = armor_plate, amount = 4 ),
-				DesignComponent( component = primary_engine, amount = 2 ),
-				DesignComponent( component = colonisation_pod, amount = 1 ),
-				DesignComponent( component = missile, amount = 2 ) ])
+			properties  = {
+				age        : "(lambda (design) 0)",
+				experience : "(lambda (design) 0)" },
+			components  = {
+				armor_plate      : 4,
+				primary_engine   : 2,
+				colonisation_pod : 1,
+				missile          : 2 })
 
 		battleship = Design(
 			name        = "Battleship",
 			description = "A heavy ship which main purpose is to crush the other ships.",
 			comment     = "This is really a powerful ship!",
 			categories  = [ ship ],
-			properties  = [
-				DesignProperty( property = age, value = "(lambda (design) 0)" ),
-				DesignProperty( property = experience, value = "(lambda (design) 0)" ) ],
-			components  = [
-				DesignComponent( component = armor_plate, amount = 6 ),
-				DesignComponent( component = primary_engine, amount = 3 ),
-				DesignComponent( component = missile, amount = 3 ),
-				DesignComponent( component = laser, amount = 4 ) ])
+			properties  = {
+				age        : "(lambda (design) 0)",
+				experience : "(lambda (design) 0)" },
+			components  = {
+				armor_plate    : 6,
+				primary_engine : 3,
+				missile        : 3,
+				laser          : 4 })
 
 		self.designs = [ scout, frigate, battleship ]
 
@@ -168,7 +168,6 @@ class DesignTestEnvMixin( GameTestEnvMixin ):
 	def tearDown( self ):
 		Model.remove( self.designs, self.components,
 				self.properties, self.categories )
-
 
 class GetDesignMixin( WithIDTestMixin ):
 	__request__  = 'GetDesign'
@@ -189,11 +188,11 @@ class GetDesignMixin( WithIDTestMixin ):
 
 	def convert_properties( self, packet, obj ):
 		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
-				sorted( (prop.property_id, prop.value) for prop in obj.properties )
+				sorted( (prop.id, value) for prop, value in obj.properties.items() )
 
 	def convert_components( self, packet, obj ):
 		return sorted( (comp[0], comp[1]) for comp in packet.components ), \
-				sorted( (comp.component_id, comp.amount) for comp in obj.components )
+				sorted( (comp.id, amount) for comp, amount in obj.components.items() )
 
 class GetDesignWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetDesign request? """

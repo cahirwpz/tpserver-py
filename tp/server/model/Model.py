@@ -7,6 +7,7 @@ from logging import debug
 from DatabaseManager import DatabaseManager, make_mapping
 
 from sqlalchemy.orm import mapper
+from sqlalchemy.ext.associationproxy import _AssociationCollection
 
 def untitle( s ):
 	return "_".join( map( str.lower, filter( len, re.split( r'([A-Z][^A-Z]*)', s) ) ) )
@@ -192,6 +193,10 @@ class ModelObject( object ):
 				if key in self.__parameters__:
 					object.__setattr__( self, key, value )
 					continue
+
+			if isinstance( getattr( self, key, None ), _AssociationCollection ):
+				object.__setattr__( self, key, value )
+				continue
 
 			debug( self.__class__.__name__ )
 			debug( "  dictionary: %s", dir(self) )

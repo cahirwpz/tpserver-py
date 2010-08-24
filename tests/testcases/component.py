@@ -62,16 +62,16 @@ class ComponentTestEnvMixin( GameTestEnvMixin ):
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ 
-					ComponentProperty( property = damage, value = """(lambda (design) 1.0)""" ),
-					ComponentProperty( property = speed, value = """(lambda (design) 1.0)""" ) ])
+			properties  = { 
+				damage : """(lambda (design) 1.0)""",
+				speed  : """(lambda (design) 1.0)""" })
 
 		laser = Component(
 			id          = 1,
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = damage, value = """(lambda (design) 1.0)""" ) ])
+			properties  = { damage : """(lambda (design) 1.0)""" })
 
 		armor_plate = Component(
 			id          = 4,
@@ -84,7 +84,7 @@ class ComponentTestEnvMixin( GameTestEnvMixin ):
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
 			categories  = [ ship ],
-			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1.0)""" ) ])
+			properties  = { speed : """(lambda (design) 1.0)""" })
 
 		self.components = [ missile, laser, armor_plate, primary_engine ]
 
@@ -106,7 +106,7 @@ class GetComponentMixin( WithIDTestMixin ):
 
 	def convert_properties( self, packet, obj ):
 		return sorted( (prop[0], prop[1]) for prop in packet.properties ), \
-				sorted( (prop.property_id, prop.value) for prop in obj.properties )
+				sorted( (prop.id, value) for prop, value in obj.properties.items() )
 
 class GetComponentWhenNotLogged( GetWithIDWhenNotLogged ):
 	""" Does a server respond properly when player is not logged but got GetComponent request? """

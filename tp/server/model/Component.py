@@ -2,6 +2,8 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, class_mapper
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from Model import ModelObject, ByNameMixin
 
@@ -24,7 +26,7 @@ class Component( ModelObject, ByNameMixin ):
 		mapper( cls, cls.__table__ )
 
 	def remove( self, session ):
-		for prop in self.properties:
+		for prop in self._properties.values():
 			prop.remove( session )
 
 		session.commit()
@@ -75,13 +77,16 @@ class ComponentProperty( ModelObject ):
 
 		mapper( cls, cls.__table__, properties = {
 			'component': relation( Component,
-				uselist = False,
-				backref = backref( 'properties' )),
+				uselist = False ),
 			'property': relation( Property,
-				uselist = False,
-				backref = backref( 'components' ))
+				uselist = False )
 			})
 
+		class_mapper( Component ).add_property( '_properties',
+			relation( cls, collection_class = attribute_mapped_collection('property') ))
+
+		Component.properties = association_proxy('_properties', 'value', creator = lambda k,v: cls( property = k, value = v ) )
+	
 	def __str__( self ):
 		return '<%s@%s id="%s" component="%s", property="%s">' % \
 				( self.__origname__, self.__game__.name, self.component.name, self.property.name )

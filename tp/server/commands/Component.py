@@ -14,7 +14,7 @@ class ComponentFactoryMixin( FactoryMixin ):
 				component.name,
 				component.description,
 				component.requirements,
-				[ [ prop.property_id, prop.value ] for prop in component.properties ] )
+				[ ( prop.id, value ) for prop, value in component.properties.items() ] )
 
 class GetComponent( GetWithIDHandler, ComponentFactoryMixin ):
 	"""

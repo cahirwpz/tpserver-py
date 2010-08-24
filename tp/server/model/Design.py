@@ -4,6 +4,8 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, class_mapper
+from sqlalchemy.ext.associationproxy import association_proxy
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from Model import ModelObject, ByNameMixin
 
@@ -31,16 +33,15 @@ class Design( ModelObject, ByNameMixin ):
 			})
 	
 	def remove( self, session ):
-		for component in self.components:
+		for component in self._components.values():
 			component.remove( session )
 
-		for prop in self.properties:
+		for prop in self._properties.values():
 			prop.remove( session )
 
 		session.commit()
 
 		session.delete( self )
-
 
 	# @property
 	# def used(self):
@@ -295,15 +296,18 @@ class DesignComponent( ModelObject ):
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
-				uselist = False,
-				backref = backref( 'components' )),
+				uselist = False ),
 			'component': relation( Component,
-				uselist = False,
-				backref = backref( 'designs' ))
+				uselist = False )
 			})
 
+		class_mapper( Design ).add_property( '_components',
+			relation( cls, collection_class = attribute_mapped_collection('component') ))
+
+		Design.components = association_proxy('_components', 'amount', creator = lambda k,v: cls( component = k, amount = v ) )
+
 	def __str__( self ):
-		return '<%s@%s id="%s" design="%s", component="%s">' % \
+		return '<%s@%s design="%s" component="%s">' % \
 				( self.__origname__, self.__game__.name, self.design.name, self.component.name )
 
 class DesignProperty( ModelObject ):
@@ -320,15 +324,18 @@ class DesignProperty( ModelObject ):
 
 		mapper( cls, cls.__table__, properties = {
 			'design': relation( Design,
-				uselist = False,
-				backref = backref( 'properties' )),
+				uselist = False ),
 			'property': relation( Property,
-				uselist = False,
-				backref = backref( 'designs' ))
+				uselist = False )
 			})
 
+		class_mapper( Design ).add_property( '_properties',
+			relation( cls, collection_class = attribute_mapped_collection('property') ))
+
+		Design.properties = association_proxy('_properties', 'value', creator = lambda k,v: cls( property = k, value = v ) )
+
 	def __str__( self ):
-		return '<%s@%s id="%s" design="%s", property="%s">' % \
+		return '<%s@%s design="%s" property="%s">' % \
 				( self.__origname__, self.__game__.name, self.design.name, self.property.name )
 
 __all__ = [ 'Design', 'DesignCategory', 'DesignComponent', 'DesignProperty' ]

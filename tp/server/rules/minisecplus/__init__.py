@@ -143,66 +143,66 @@ class MinisecPlusRuleset( MinisecRuleset ):
 			name        = "Missile",
 			description = "Missile which does 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = primary_damage ) ])
+			properties  = { primary_damage : None })
 
 		laser = Component(
 			name        = "Laser",
 			description = "Lasers which do 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = backup_damage, value = """(lambda (design) 0.25)""" ) ])
+			properties  = { backup_damage : """(lambda (design) 0.25)""" })
 
 		armor_plate = Component(
 			name        = "Armor Plate",
 			description = "Armor Plate which absorbes 1HP of damage.",
 			categories  = [ combat ],
-			properties  = [ ComponentProperty( property = hp ) ])
+			properties  = { hp : None })
 
 		colonisation_pod = Component(
 			name        = "Colonisation Pod",
 			description = "A part which allows a ship to colonise a planet.",
 			categories  = [ misc ],
-			properties  = [ ComponentProperty( property = colonise ) ])
+			properties  = { colonise : None })
 
 		escape_thrusters = Component(
 			name        = "Escape Thrusters",
 			description = "A part which allows a ship to escape combat.",
 			categories  = [ misc ],
-			properties  = [ ComponentProperty( property = escape, value = """(lambda (design) 0.25)""" ) ])
+			properties  = { escape : """(lambda (design) 0.25)""" })
 
 		primary_engine = Component(
 			name        = "Primary Engine",
 			description = "A part which allows a ship to move through space.",
 			categories  = [ misc ],
-			properties  = [ ComponentProperty( property = speed, value = """(lambda (design) 1000000)""" ) ])
+			properties  = { speed : """(lambda (design) 1000000)""" })
 
 		scout = Design(
 			name        = "Scout",
 			description = "A fast light ship with advanced sensors.",
 			categories  = [ misc ],
-			components  = [
-				DesignComponent( component = escape_thrusters, amount = 4 ),
-				DesignComponent( component = armor_plate, amount = 2 ),
-				DesignComponent( component = primary_engine, amount = 5 ) ])
+			components  = {
+				escape_thrusters : 4,
+				armor_plate      : 2,
+				primary_engine   : 5 })
 
 		frigate = Design(
 			name         = "Frigate",
 			description  = "A general purpose ship with weapons and ability to colonise new planets.",
 			categories   = [ misc ],
-			components   = [
-				DesignComponent( component = armor_plate, amount = 4 ),
-				DesignComponent( component = primary_engine, amount = 2 ),
-				DesignComponent( component = colonisation_pod, amount = 1 ),
-				DesignComponent( component = missile, amount = 2 ) ])
+			components   = {
+				armor_plate      : 4,
+				primary_engine   : 2,
+				colonisation_pod : 1,
+				missile          : 2 })
 
 		battleship = Design(
 			name        = "Battleship",
 			description = "A heavy ship who's main purpose is to blow up other ships.",
 			categories  = [ misc ],
-			components  = [
-				DesignComponent( component = armor_plate, amount = 6 ),
-				DesignComponent( component = primary_engine, amount = 3 ),
-				DesignComponent( component = missile, amount = 3 ),
-				DesignComponent( component = laser, amount = 4 ) ])
+			components  = {
+				armor_plate    : 6,
+				primary_engine : 3,
+				missile        : 3,
+				laser          : 4 })
 
 		# FIXME: Need to populate the database with the MiniSec design stuff,
 		#  - Firepower

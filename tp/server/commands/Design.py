@@ -15,9 +15,9 @@ class DesignFactoryMixin( FactoryMixin ):
 				obj.description,
 				0, # TODO: usage 
 				obj.owner if obj.owner else -1,
-				[ ( component.component_id, component.amount ) for component in obj.components ],
+				[ ( comp.id, amount ) for comp, amount in obj.components.items() ],
 				obj.comment,
-				[ [ prop.property_id, prop.value ] for prop in obj.properties ] )
+				[ ( prop.id, value ) for prop, value in obj.properties.items() ] )
 
 class AddDesign( RequestHandler ):
 	"""
