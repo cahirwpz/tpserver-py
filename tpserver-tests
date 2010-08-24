@@ -23,7 +23,10 @@ def main():
 
 	logging.root.name = 'tests'
 	logging.root.addHandler( handler )
-	logging.root.setLevel( logging.WARNING )
+	logging.root.setLevel( logging.INFO )
+
+	logger = logging.getLogger('sqlalchemy.engine')
+	logger.setLevel( logging.WARNING )
 
 	observer = PythonLoggingObserver()
 	observer.start()

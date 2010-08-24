@@ -166,18 +166,18 @@ class TestSession( TestCase, ClientSessionHandler ):
 		return long( time.mktime( time.strptime( t.ctime() ) ) )
 	
 	def setUp( self ):
-		info( "Setting up %s test...", self.__class__.__name__ )
+		debug( "Setting up %s test...", self.__class__.__name__ )
 
 		reactor.__init__()
 		ThousandParsecClientFactory().makeTestSession( self )
 	
 	def tearDown( self ):
-		info( "Tearing down %s test...", self.__class__.__name__ )
+		debug( "Tearing down %s test...", self.__class__.__name__ )
 
 	def runTest( self ):
-		info( "Starting %s test...", self.__class__.__name__ )
+		debug( "Starting %s test...", self.__class__.__name__ )
 		reactor.run()
-		info( "Finished %s test...", self.__class__.__name__ )
+		debug( "Finished %s test...", self.__class__.__name__ )
 
 		if self.reason:
 			self.fail( self.reason )

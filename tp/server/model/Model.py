@@ -2,7 +2,7 @@
 
 import re, csv, datetime
 from collections import Mapping
-from logging import debug
+from logging import debug, info
 
 from DatabaseManager import DatabaseManager, make_mapping
 
@@ -165,6 +165,7 @@ class Model( Mapping ):
 		for table in tables:
 			if table.startswith( "%s_" % model.game.name ):
 				metadata.tables[ table ].create( checkfirst = True )
+				info( "Created storage for %s.", table )
 	
 	@staticmethod
 	def drop( model ):
@@ -176,6 +177,7 @@ class Model( Mapping ):
 			if table.startswith( "%s_" % model.game.name ):
 				metadata.tables[ table ].drop()
 				del metadata.tables[ table ]
+				info( "Deleted storage for %s.", table )
 
 class ByNameMixin( object ):
 	@classmethod

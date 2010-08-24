@@ -3,6 +3,8 @@
 import requirements
 import traceback, logging
 
+from logging import info, error, exception
+
 from twisted.python.log import PythonLoggingObserver
 
 from cmd import Cmd as CommandLineInterface
@@ -220,15 +222,14 @@ class MainMenu( CommandLineInterface ):
 		try:
 			GameManager().addGame( name, longname, ruleset, admin, comment )
 
-			print "Game successfully created! You can use the '%s' name as game identifier." % name
-			print ""
-			print "You probably want to populate the universe now."
-		except KeyError, ex:
-			print ex
-			print "Please try again with a different name or remove that game first."
-		except Exception, ex:
-			traceback.print_exc()
-			print "Error:", ex
+			info( "Game successfully created! You can use the '%s' name as game identifier.", name )
+			info( "" )
+			info( "You probably want to populate the universe now." )
+		except KeyError as ex:
+			exception( "Error: %s", str(ex) )
+			error( "Please try again with a different name or remove that game first." )
+		except Exception as ex:
+			exception( "Error:%s", str(ex) )
 
 	@staticmethod
 	def game_remove( name ):
@@ -278,7 +279,7 @@ def main():
 	logging.root.setLevel( logging.DEBUG )
 
 	logger = logging.getLogger('sqlalchemy.engine')
-	logger.setLevel( logging.DEBUG )
+	logger.setLevel( logging.WARNING )
 
 	observer = PythonLoggingObserver()
 	observer.start()
