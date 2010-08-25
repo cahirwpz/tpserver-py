@@ -186,7 +186,7 @@ class Ruleset( object ):
 				OrderParameter, ResourceType )
 
 		self.model.add_class( Player )
-		self.model.add_class( Reference )
+		self.model.add_class( Reference, 'ReferenceType' )
 		self.model.add_class( Component )
 		self.model.add_class( Property )
 		self.model.add_class( ResourceType )
