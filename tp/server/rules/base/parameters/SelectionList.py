@@ -30,12 +30,12 @@ class SelectionList( ModelObject ):
 
 class SelectionListParam( object ):
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, SelectionList ):
+	def InitMapper( cls, metadata, Parameter, ParameterType, SelectionList ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id', ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('list_id',  ForeignKey( SelectionList.id ), nullable = False ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'SelectionList', properties = {
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
 			'selections' : relation( SelectionList,
 				collection_class = list )
 			})

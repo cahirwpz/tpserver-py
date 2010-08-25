@@ -58,7 +58,7 @@ class Model( Mapping ):
 
 	def add_parametrized_class( self, cls, BaseClassName, *args ):
 		basecls = getattr( self, BaseClassName )
-		typecls  = getattr( self, BaseClassName + "Type" )
+		typecls = getattr( self, BaseClassName + "Type" )
 
 		class newcls( cls, basecls ):
 			__origname__  = cls.__name__
@@ -75,7 +75,7 @@ class Model( Mapping ):
 		
 		self.__add_class( newcls.__origname__, newcls )
 
-	def add_parameter_class( self, cls, *args ):
+	def add_parameter_class( self, cls, type_id, *args ):
 		metadata = DatabaseManager().metadata
 		
 		name = "_".join( untitle( cls.__name__ ).split('_')[0:-1] )
@@ -89,7 +89,7 @@ class Model( Mapping ):
 
 		args = tuple( self.__objects[ name ] for name in args )
 
-		newcls.InitMapper( metadata, self.Parameter, *args )
+		newcls.InitMapper( metadata, self.Parameter, type_id, *args )
 		
 		self.__add_class( newcls.__origname__, newcls )
 
@@ -162,7 +162,7 @@ class Model( Mapping ):
 
 		tables = list( metadata.tables )
 
-		for table in tables:
+		for table in sorted( tables ):
 			if table.startswith( "%s_" % model.game.name ):
 				metadata.tables[ table ].create( checkfirst = True )
 				info( "Created storage for %s.", table )
@@ -173,7 +173,7 @@ class Model( Mapping ):
 
 		tables = list( metadata.tables )
 
-		for table in tables:
+		for table in sorted( tables ):
 			if table.startswith( "%s_" % model.game.name ):
 				metadata.tables[ table ].drop()
 				del metadata.tables[ table ]

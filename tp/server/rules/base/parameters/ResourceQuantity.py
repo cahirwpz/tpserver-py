@@ -28,8 +28,8 @@ class ResourceQuantityParam( object ):
 	__maps_to__ = 'list'
 
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, ResourceQuantity ):
-		mapper( cls, inherits = Parameter, polymorphic_identity = 'ResourceQuantityList', properties = {
+	def InitMapper( cls, metadata, Parameter, ParameterType, ResourceQuantity ):
+		mapper( cls, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
 			'list' : relation( ResourceQuantity )
 			})
 

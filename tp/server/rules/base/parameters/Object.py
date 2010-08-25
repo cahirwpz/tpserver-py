@@ -7,12 +7,12 @@ class ObjectParam( object ):
 	__maps_to__ = 'object'
 
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, Object ):
+	def InitMapper( cls, metadata, Parameter, ParameterType, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('object_id', ForeignKey( Object.id ), nullable = True ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Object', properties = {
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
 			'object': relation( Object,
 				uselist = False )
 			})

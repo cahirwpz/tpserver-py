@@ -26,8 +26,8 @@ class DesignQuantityParam( object ):
 	__maps_to__ = 'list'
 
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, DesignQuantity ):
-		mapper( cls, inherits = Parameter, polymorphic_identity = 'DesignQuantityList', properties = {
+	def InitMapper( cls, metadata, Parameter, ParameterType, DesignQuantity ):
+		mapper( cls, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
 			'list' : relation( DesignQuantity )
 			})
 	

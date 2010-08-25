@@ -34,8 +34,8 @@ class RulesetUniverseGenerator( object ):
 	def randint( self ):
 		return self.random.randint
 
-class RulesetObjects( object ):
-	ObjectTypes = []
+class RulesetModelLoader( object ):
+	__metaclass__ = ABCMeta
 
 	def __init__( self, ruleset ):
 		self.ruleset = ruleset
@@ -43,6 +43,108 @@ class RulesetObjects( object ):
 	@property
 	def model( self ):
 		return self.ruleset.model
+
+	@abstractmethod
+	def loadModelConstants( self ):
+		pass
+
+	@abstractmethod
+	def initModelConstants( self ):
+		pass
+
+	@abstractmethod
+	def loadModel( self ):
+		pass
+
+class RulesetParameters( RulesetModelLoader ):
+	from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
+			ObjectParam, PlayerParam, RelCoordParam, RangeParam,
+			StringParam, NumberParam, ResourceQuantityParam,
+			DesignQuantityParam )
+
+	ParameterTypeMap = {
+			  0 : [ AbsCoordParam ],
+			  1 : [ TimeParam ],
+			  2 : [ ObjectParam, 'Object' ],
+			  3 : [ PlayerParam, 'Player' ],
+			  4 : [ RelCoordParam, 'Object' ],
+			  5 : [ RangeParam ],
+			# 6 : [ ListParam ],
+			  7 : [ StringParam ],
+			# 8 : [ GenericReference ],
+			# 9 : [ GenericReferenceList ],
+			 -1 : [ NumberParam ],
+			 -2 : [ DesignQuantityParam, 'DesignQuantity' ],
+			 -3 : [ ResourceQuantityParam, 'ResourceQuantity' ] }
+
+	def loadModelConstants( self ):
+		from tp.server.model import ParameterType
+
+		self.model.add_class( ParameterType )
+
+	def initModelConstants( self ):
+		ParameterType = self.model.use( 'ParameterType' )
+
+		Model.add( ParameterType( id = _1, name = _2[0].__name__ )
+				for _1, _2 in self.ParameterTypeMap.items() )
+	
+	def loadModel( self ):
+		from tp.server.model import ( Parameter, OrderParameter, ObjectParameter )
+
+		self.model.add_class( Parameter, 'ParameterType' )
+		self.model.add_class( OrderParameter, 'Order', 'Parameter' )
+		self.model.add_class( ObjectParameter, 'Object', 'Parameter' )
+
+		from tp.server.rules.base.parameters import ( DesignQuantity,
+				ResourceQuantity )
+
+		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
+		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
+
+		for type_id, args in self.ParameterTypeMap.items():
+			self.model.add_parameter_class( args[0], type_id, *args[1:] )
+
+class RulesetReferences( RulesetModelLoader ):
+	ReferenceTypeMap = {
+			-1000 : 'ServerAction',
+			   -5 : 'DesignAction',
+			   -4 : 'PlayerAction',
+			   -3 : 'MessageAction',
+			   -2 : 'OrderAction',
+			   -1 : 'ObjectAction',
+				0 : 'Misc',
+				1 : 'Object',
+				2 : 'OrderType',
+				3 : 'Order',
+				4 : 'Board',
+				5 : 'Message',
+				6 : 'ResourceType',
+				7 : 'Player',
+				8 : 'Category',
+				9 : 'Design',
+			   10 : 'Component',
+			   11 : 'Property',
+			   12 : 'ObjectType',
+			   13 : 'OrderQueue' }
+
+	def loadModelConstants( self ):
+		from tp.server.model import ReferenceType
+
+		self.model.add_class( ReferenceType )
+
+	def initModelConstants( self ):
+		ReferenceType = self.model.use( 'ReferenceType' )
+
+		Model.add( ReferenceType( id = _1, name = _2 )
+				for _1, _2 in self.ReferenceTypeMap.items() )
+
+	def loadModel( self ):
+		from tp.server.model import Reference
+
+		self.model.add_class( Reference, 'ReferenceType' )
+
+class RulesetObjects( RulesetModelLoader ):
+	ObjectTypes = []
 
 	def loadModelConstants( self ):
 		from tp.server.model import ObjectType
@@ -56,19 +158,16 @@ class RulesetObjects( object ):
 				for _1, _2 in enumerate( self.ObjectTypes ))
 	
 	def loadModel( self ):
+		from tp.server.model import Object
+
+		self.model.add_class( Object, 'ObjectType' )
+
 		for ObjectType in self.ObjectTypes:
 			self.model.add_object_class( ObjectType )
 
-class RulesetOrders( object ):
+class RulesetOrders( RulesetModelLoader ):
 	OrderTypes   = []
 	ObjectOrders = {}
-
-	def __init__( self, ruleset ):
-		self.ruleset = ruleset
-
-	@property
-	def model( self ):
-		return self.ruleset.model
 
 	def loadModelConstants( self ):
 		from tp.server.model import ( OrderType, ObjectOrder )
@@ -92,6 +191,10 @@ class RulesetOrders( object ):
 				for _1, _2 in ObjectOrderList )
 
 	def loadModel( self ):
+		from tp.server.model import Order
+
+		self.model.add_class( Order, 'OrderType', 'Object', 'Player' )
+
 		for OrderType in self.OrderTypes:
 			self.model.add_order_class( OrderType )
 
@@ -116,9 +219,13 @@ class Ruleset( object ):
 		self.game = game
 
 		self.generator = self.RulesetUniverseGeneratorClass( self )
-		self.objects   = self.RulesetObjectsClass( self )
-		self.orders    = self.RulesetOrdersClass( self )
 		self.processor = self.RulesetActionProcessorClass( self )
+
+		self.modelLoaders = [
+				self.RulesetObjectsClass( self ),
+				self.RulesetOrdersClass( self ),
+				RulesetParameters( self ),
+				RulesetReferences( self ) ]
 
 	@property
 	def model( self ):
@@ -129,12 +236,8 @@ class Ruleset( object ):
 		Adds classes to the Model which represents immutable data for a
 		ruleset.
 		"""
-		self.objects.loadModelConstants()
-		self.orders.loadModelConstants()
-
-		from tp.server.model import ReferenceType
-
-		self.model.add_class( ReferenceType )
+		for loader in self.modelLoaders:
+			loader.loadModelConstants()
 
 	def initModelConstants( self ):
 		"""
@@ -143,60 +246,27 @@ class Ruleset( object ):
 		"""
 		Model.create( self.model )
 
-		self.objects.initModelConstants()
-		self.orders.initModelConstants()
-
-		ReferenceTypeMap = {
-				-1000 : 'ServerAction',
-				   -5 : 'DesignAction',
-				   -4 : 'PlayerAction',
-				   -3 : 'MessageAction',
-				   -2 : 'OrderAction',
-				   -1 : 'ObjectAction',
-				    0 : 'Misc',
-				    1 : 'Object',
-				    2 : 'OrderType',
-				    3 : 'Order',
-				    4 : 'Board',
-				    5 : 'Message',
-				    6 : 'ResourceType',
-				    7 : 'Player',
-				    8 : 'Category',
-				    9 : 'Design',
-				   10 : 'Component',
-				   11 : 'Property',
-				   12 : 'ObjectType',
-				   13 : 'OrderQueue' }
-
-		ReferenceType = self.model.use( 'ReferenceType' )
-
-		Model.add( ReferenceType( id = _1, name = _2 )
-				for _1, _2 in ReferenceTypeMap.items() )
+		for loader in self.modelLoaders:
+			loader.initModelConstants()
 
 	@abstractmethod
 	def loadModel( self ):
 		"""
 		Adds classes to the Model which represents mutable data for a ruleset.
 		"""
-		from tp.server.model import ( Parameter, Player, Object, Board,
-				Reference, Component, Property, Category,
-				Message, Order, Design, MessageReference, ComponentCategory,
+		from tp.server.model import ( Player, Board, Component, Property,
+				Category, Message, Design, ComponentCategory,
 				ComponentProperty, DesignCategory, DesignComponent,
-				DesignProperty, PropertyCategory, ObjectParameter,
-				OrderParameter, ResourceType )
+				DesignProperty, PropertyCategory, ResourceType )
 
 		self.model.add_class( Player )
-		self.model.add_class( Reference, 'ReferenceType' )
 		self.model.add_class( Component )
 		self.model.add_class( Property )
 		self.model.add_class( ResourceType )
-		self.model.add_class( Object, 'ObjectType' )
 		self.model.add_class( Category, 'Player' )
 		self.model.add_class( Board, 'Player' )
 		self.model.add_class( Design, 'Player' )
 		self.model.add_class( Message, 'Board' )
-		self.model.add_class( Order, 'OrderType', 'Object', 'Player' )
-		self.model.add_class( MessageReference, 'Message', 'Reference' )
 		self.model.add_class( ComponentCategory, 'Component', 'Category' )
 		self.model.add_class( ComponentProperty, 'Component', 'Property' )
 		self.model.add_class( DesignCategory, 'Design', 'Category' )
@@ -204,30 +274,8 @@ class Ruleset( object ):
 		self.model.add_class( DesignProperty, 'Design', 'Property' )
 		self.model.add_class( PropertyCategory, 'Property', 'Category' )
 
-		self.model.add_class( Parameter )
-		self.model.add_class( ObjectParameter, 'Object', 'Parameter' )
-		self.model.add_class( OrderParameter, 'Order', 'Parameter' )
-
-		from tp.server.rules.base.parameters import ( AbsCoordParam,
-				RelCoordParam, TimeParam, ObjectParam, PlayerParam,
-				NumberParam, StringParam, ResourceQuantity,
-				ResourceQuantityParam, DesignQuantity, DesignQuantityParam )
-
-		self.model.add_class( DesignQuantity, 'Parameter', 'Design' )
-		self.model.add_class( ResourceQuantity, 'Parameter', 'ResourceType' )
-
-		self.model.add_parameter_class( AbsCoordParam )
-		self.model.add_parameter_class( RelCoordParam, 'Object' )
-		self.model.add_parameter_class( TimeParam )
-		self.model.add_parameter_class( ObjectParam, 'Object' )
-		self.model.add_parameter_class( PlayerParam, 'Player' )
-		self.model.add_parameter_class( NumberParam )
-		self.model.add_parameter_class( StringParam )
-		self.model.add_parameter_class( DesignQuantityParam, 'DesignQuantity' )
-		self.model.add_parameter_class( ResourceQuantityParam, 'ResourceQuantity' )
-
-		self.objects.loadModel()
-		self.orders.loadModel()
+		for loader in self.modelLoaders:
+			loader.loadModel()
 
 	@abstractmethod
 	def initModel( self ):

@@ -9,7 +9,7 @@ class AbsCoordParam( object ):
 	__maps_to__ = 'position'
 
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
+	def InitMapper( cls, metadata, Parameter, ParameterType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('x',         Integer, nullable = False ),
@@ -18,7 +18,7 @@ class AbsCoordParam( object ):
 
 		cols = cls.__table__.c
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'AbsCoord',
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType,
 				exclude_properties = [ 'param_id', 'x', 'y', 'z' ],
 				properties = {
 						'position': composite( Vector3D, cols.x, cols.y, cols.z ),

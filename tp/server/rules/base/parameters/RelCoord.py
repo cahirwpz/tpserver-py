@@ -7,7 +7,7 @@ from tp.server.model import Vector3D
 
 class RelCoordParam( object ):
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, Object ):
+	def InitMapper( cls, metadata, Parameter, ParameterType, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('x',         Integer, nullable = False ),
@@ -17,7 +17,7 @@ class RelCoordParam( object ):
 
 		cols = cls.__table__.c
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'RelCoord', properties = {
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
 			'parent' : relation( Object,
 				uselist = False ),
 			# Object position in 3D space

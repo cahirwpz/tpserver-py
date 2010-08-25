@@ -5,7 +5,7 @@ from sqlalchemy.orm import mapper
 
 class RangeParam( object ):
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
+	def InitMapper( cls, metadata, Parameter, ParameterType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id', ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('value',    Integer, nullable = False ),
@@ -16,6 +16,6 @@ class RangeParam( object ):
 				CheckConstraint( 'value >= min and value <= max' ),
 				CheckConstraint( 'step < max - min' ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Range' )
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType )
 
 __all__ = [ 'RangeParam' ]

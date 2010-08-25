@@ -5,13 +5,13 @@ from sqlalchemy.orm import mapper
 
 class TimeParam( object ):
 	@classmethod
-	def InitMapper( cls, metadata, Parameter ):
+	def InitMapper( cls, metadata, Parameter, ParameterType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
 				Column('turns',     Integer, nullable = False ),
 				Column('max',       Integer, nullable = True ),
 				CheckConstraint( 'turns >= 0 and turns <= max', name = 'turns in [0, max]' ))
 
-		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = 'Time' )
+		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType )
 
 __all__ = [ 'TimeParam' ]

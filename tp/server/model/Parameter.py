@@ -3,9 +3,9 @@
 import inspect
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper
+from sqlalchemy.orm import mapper, relation
 
-from tp.server.model import ModelObject
+from tp.server.model import ModelObject, ByNameMixin
 
 class ParameterDesc( object ):
 	def __init__( self, type, level, default = None, description = None ):
@@ -71,13 +71,36 @@ class ParametrizedClass( type ):
 
 class Parameter( ModelObject ):
 	@classmethod
-	def InitMapper( cls, metadata ):
+	def InitMapper( cls, metadata, ParameterType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',    Integer, index = True, primary_key = True ),
-				Column('type',  String(31), nullable = False ))
+				Column('id',      Integer, index = True, primary_key = True ),
+				Column('type_id', ForeignKey( ParameterType.id ), nullable = False ))
 
 		cols = cls.__table__.c
 
-		mapper( cls, cls.__table__, polymorphic_on = cols.type, polymorphic_identity = 'None' )
+		mapper( cls, cls.__table__, polymorphic_on = cols.type_id, properties = {
+			'type': relation( ParameterType,
+				uselist = False )
+			})
 
-__all__ = [ 'ParametrizedClass', 'ParameterDesc', 'Parameter' ]
+	def __str__( self ):
+		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name )
+
+class ParameterType( ModelObject, ByNameMixin ):
+	"""
+	Object type description class.
+	"""
+
+	@classmethod
+	def InitMapper( cls, metadata ):
+		cls.__table__ = Table( cls.__tablename__, metadata,
+				Column('id',   Integer,     index = True, primary_key = True),
+				Column('name', String(255), index = True, nullable = False),
+				UniqueConstraint('name'))
+
+		mapper( cls, cls.__table__ )
+
+	def __str__( self ):
+		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+
+__all__ = [ 'ParametrizedClass', 'ParameterDesc', 'Parameter', 'ParameterType' ]
