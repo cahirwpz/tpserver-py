@@ -39,6 +39,9 @@ def main():
 	observer = PythonLoggingObserver()
 	observer.start()
 
+	logger = logging.getLogger('twisted')
+	logger.setLevel( logging.WARNING )
+
 	factory	= ThousandParsecServerFactory()
 
 	try:

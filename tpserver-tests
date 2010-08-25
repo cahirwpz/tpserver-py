@@ -31,6 +31,9 @@ def main():
 	observer = PythonLoggingObserver()
 	observer.start()
 
+	logger = logging.getLogger('twisted')
+	logger.setLevel( logging.WARNING )
+
 	configurator = CLIConfigurator( "Thousand Parsec Test Client" )
 	configurator.registerComponent( ThousandParsecClientFactory(), ThousandParsecClientFactoryConfiguration() )
 	configurator.registerComponent( DatabaseManager(), DatabaseConfiguration() )
