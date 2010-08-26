@@ -223,7 +223,6 @@ class MainMenu( CommandLineInterface ):
 			GameManager().addGame( name, longname, ruleset, admin, comment )
 
 			info( "Game successfully created! You can use the '%s' name as game identifier.", name )
-			info( "" )
 			info( "You probably want to populate the universe now." )
 		except KeyError as ex:
 			exception( "Error: %s", str(ex) )
@@ -292,15 +291,18 @@ def main():
 	except Exception, ex:
 		raise SystemExit( '\033[31;1mConfiguration error:\033[0m %s' % ex )
 
-	GameManager()
-	RulesetManager()
-
 	try:
-		menu = MainMenu()
-		menu.cmdloop()
-	except KeyboardInterrupt:
-		menu.onecmd("quit")
-		print "quit"
+		GameManager()
+		RulesetManager()
+
+		try:
+			menu = MainMenu()
+			menu.cmdloop()
+		except KeyboardInterrupt:
+			menu.onecmd("quit")
+			print "quit"
+	except Exception as ex:
+		exception( str(ex) )
 
 if __name__ == "__main__":
 	main()
