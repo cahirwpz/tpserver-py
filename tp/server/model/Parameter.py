@@ -45,21 +45,18 @@ class ParameterDesc( object ):
 			self.setter( obj, value )
 	
 	def __str__( self ):
-		if not self.__name__:
-			return "<%s object at 0x%x>" % ( self.__class__.__name__, id(self) )
-		else:
-			return "<%s \'%s\' object at 0x%x>" % ( self.__class__.__name__, self.__name__, id(self) )
+		try:
+			return "<%s \'%s\' object at 0x%x>" % ( self.__class__.__name__, self.name, id( self ) )
+		except AttributeError:
+			return "<%s object at 0x%x>" % ( self.__class__.__name__, id( self ) )
 
 class ParametrizedClass( type ):
 	def __init__( cls, *args, **kwargs ):
 		if not hasattr( cls, '__parameters__' ):
-			cls.__parameters__ = {}
+			cls.__parameters__ = dict( inspect.getmembers( cls, lambda obj: isinstance( obj, ParameterDesc ) ) )
 
-			for name, value in inspect.getmembers( cls ):
-				if isinstance( value, ParameterDesc ):
-					value.name = name
-
-					cls.__parameters__[ name ] = value
+			for name, value in cls.__parameters__.items():
+				value.name = name
 
 		return type.__init__( cls, *args, **kwargs )
 
