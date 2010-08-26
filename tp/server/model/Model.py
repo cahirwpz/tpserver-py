@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-import re, csv, datetime
+import re, csv, datetime, inspect
 from collections import Mapping
-from logging import debug, info
+from logging import debug, info, warning, error
 
 from DatabaseManager import DatabaseManager, make_mapping
 
@@ -59,6 +59,7 @@ class Model( Mapping ):
 	def add_parametrized_class( self, cls, BaseClassName, *args ):
 		basecls = getattr( self, BaseClassName )
 		typecls = getattr( self, BaseClassName + "Type" )
+		namecls = getattr( self, 'ParameterName' )
 
 		class newcls( cls, basecls ):
 			__origname__  = cls.__name__
@@ -66,6 +67,9 @@ class Model( Mapping ):
 			__game__      = self.game
 
 		newcls.__name__      = str( "%s_%s" % ( self.game.name, cls.__name__ ) )
+
+		Model.add( namecls( name = name )
+				for name in newcls.__parameters__.keys() if not namecls.ByName( name ) )
 
 		args = tuple( self.__objects[ name ] for name in args )
 
@@ -186,38 +190,19 @@ class ByNameMixin( object ):
 
 class ModelObject( object ):
 	def __init__( self, **kwargs ):
+		self._data_descriptors = dict( inspect.getmembers( self.__class__, inspect.isdatadescriptor ) )
+
 		for key, value in kwargs.items():
-			if key in self._sa_instance_state.manager.local_attrs:
-				object.__setattr__( self, key, value )
-				continue
-
-			if hasattr( self, '__parameters__' ):
-				if key in self.__parameters__:
-					object.__setattr__( self, key, value )
-					continue
-
-			if isinstance( getattr( self, key, None ), _AssociationCollection ):
-				object.__setattr__( self, key, value )
-				continue
-
-			debug( self.__class__.__name__ )
-			debug( "  dictionary: %s", dir(self) )
-			if hasattr( self, '__parameters' ):
-				debug( "  parameters: %s", self.__parameters__ )
-
-			raise AttributeError( "%s has no %s column / property" % ( self.__class__.__name__, key ) )
+			setattr( self, key, value )
 	
 	def __setattr__( self, key, value ):
-		if key is not '_sa_instance_state':
-			attrs = list( self.__dict__ )
-
-			if hasattr( self, '_sa_instance_state' ):
-				attrs += list( self._sa_instance_state.manager.local_attrs )
-
-			if key not in attrs:
-				debug( "%s has no %s attribute" , self.__class__.__name__, key )
-
-		object.__setattr__( self, key, value )
+		if key in [ '_sa_instance_state', '_data_descriptors' ] or \
+				key.startswith('_AssociationProxy') or \
+				key in self._data_descriptors:
+			object.__setattr__( self, key, value )
+		else:
+			raise AttributeError( "%s has no %s property (available properties: %s)" % \
+					( self.__class__.__name__, key, ', '.join(self._data_descriptors.keys()) ))
 
 	def remove( self, session ):
 		session.delete( self )

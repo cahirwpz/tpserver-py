@@ -4,6 +4,8 @@ DatabaseManager()
 
 from SQL import *
 from Model import *
+from Generic import *
+from Parameter import *
 from Reference import *
 from Category import *
 from Property import *
@@ -17,4 +19,3 @@ from Object import *
 from Order import *
 from ResourceType import *
 from Player import *
-from Parameter import *

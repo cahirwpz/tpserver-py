@@ -2,10 +2,10 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref
-from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.ext.orderinglist import ordering_list
 
 from Model import ModelObject, ByNameMixin
+from Parameter import AddedParameter
 
 class Order( ModelObject ):
 	"""
@@ -63,27 +63,8 @@ class OrderType( ModelObject, ByNameMixin ):
 	def __str__(self):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 
-class OrderParameter( ModelObject ):
-	@classmethod
-	def InitMapper( cls, metadata, Order, Parameter ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('order_id', ForeignKey( Order.id ), index = True, primary_key = True ),
-				Column('name',     String( 255 ), index = True, primary_key = True ),
-				Column('param_id', ForeignKey( Parameter.id ), nullable = True ))
-
-		mapper( cls, cls.__table__, properties = {
-			'order' : relation( Order,
-				uselist = False,
-				backref = backref( 'parameters',
-					collection_class = attribute_mapped_collection( 'name' ))
-				),
-			'parameter' : relation( Parameter,
-				uselist = False )
-			})
-	
-	def remove( self, session ):
-		self.parameter.remove( session )
-
-		session.delete( self )
+class OrderParameter( AddedParameter ):
+	def __str__( self ):
+		return '<%s@%s order="%s" name="%s" param="%s">' % ( self.__origname__, self.__game__.name, self.order_id, self.name, self.param_id )
 
 __all__ = [ 'Order', 'OrderType', 'OrderParameter' ]

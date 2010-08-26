@@ -3,9 +3,12 @@
 import inspect
 
 from sqlalchemy import *
-from sqlalchemy.orm import mapper, relation
+from sqlalchemy.orm import mapper, relation, class_mapper
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.ext.associationproxy import association_proxy
 
-from tp.server.model import ModelObject, ByNameMixin
+from Model import ModelObject
+from Generic import NameMap
 
 class ParameterDesc( object ):
 	def __init__( self, type, level, default = None, description = None ):
@@ -14,41 +17,32 @@ class ParameterDesc( object ):
 		self.default		= default
 		self.description	= description
 
+		if hasattr( self.type, '__maps_to__' ):
+			self.getter = lambda obj: getattr( obj.parameters[ self.name ], self.type.__maps_to__ )
+			self.setter = lambda obj, value: setattr( obj.parameters[ self.name ], self.type.__maps_to__, value )
+		else:
+			self.getter = lambda obj: obj.parameters.get( self.name )
+			self.setter = lambda obj, value: obj.parameters.set( self.name, value )
+
 	def __check( self, obj ):
 		try:
-			parameter = obj.parameters[ self.name ]
+			obj.parameters[ self.name ]
 		except KeyError:
-			ObjectParameter, Parameter = obj.__game__.model.use( 'ObjectParameter', self.type.__name__ )
-
-			obj.parameters[ self.name ] = ObjectParameter( name = self.name, parameter = Parameter() )
-
-			parameter = obj.parameters[ self.name ]
-
-		return parameter
+			obj.parameters[ self.name ] = obj.__game__.model.use( self.type.__name__ )()
 
 	def __get__( self, obj, objtype ):
 		if obj is None:
 			return self
 
-		parameter = self.__check( obj )
+		self.__check( obj )
 
-		if hasattr( self.type, '__maps_to__' ):
-			# debug( "getting value of %s.%s", self.name, self.type.__maps_to__ )
-			return getattr( parameter.parameter, self.type.__maps_to__ )
-		else:
-			# debug( "getting value of %s", self.name )
-			return parameter.parameter
+		return self.getter( obj )
 
 	def __set__( self, obj, value ):
 		if value is not None:
-			parameter = self.__check( obj )
+			self.__check( obj )
 
-			if hasattr( self.type, '__maps_to__' ):
-				# debug( "setting %s.%s to %s", self.name, self.type.__maps_to__, value )
-				setattr( parameter.parameter, self.type.__maps_to__, value )
-			else:
-				# debug( "setting %s to %s", self.name, value )
-				parameter.parameter = value
+			self.setter( obj, value )
 	
 	def __str__( self ):
 		if not self.__name__:
@@ -57,7 +51,7 @@ class ParameterDesc( object ):
 			return "<%s \'%s\' object at 0x%x>" % ( self.__class__.__name__, self.__name__, id(self) )
 
 class ParametrizedClass( type ):
-	def __call__( cls, *args, **kwargs ):
+	def __init__( cls, *args, **kwargs ):
 		if not hasattr( cls, '__parameters__' ):
 			cls.__parameters__ = {}
 
@@ -67,7 +61,7 @@ class ParametrizedClass( type ):
 
 					cls.__parameters__[ name ] = value
 
-		return type.__call__( cls, *args, **kwargs )
+		return type.__init__( cls, *args, **kwargs )
 
 class Parameter( ModelObject ):
 	@classmethod
@@ -86,21 +80,45 @@ class Parameter( ModelObject ):
 	def __str__( self ):
 		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name )
 
-class ParameterType( ModelObject, ByNameMixin ):
-	"""
-	Object type description class.
-	"""
-
+class AddedParameter( ModelObject ):
 	@classmethod
-	def InitMapper( cls, metadata ):
+	def InitMapper( cls, metadata, Subject, Parameter, ParameterName ):
+		subject = Subject.__origname__.lower()
+
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',   Integer,     index = True, primary_key = True),
-				Column('name', String(255), index = True, nullable = False),
-				UniqueConstraint('name'))
+				Column('%s_id' % subject, ForeignKey( Subject.id ), index = True, primary_key = True ),
+				Column('name_id',  ForeignKey( ParameterName.id ), index = True, primary_key = True ),
+				Column('param_id', ForeignKey( Parameter.id ), nullable = True ))
 
-		mapper( cls, cls.__table__ )
+		mapper( cls, cls.__table__, properties = {
+			'_name' : relation( ParameterName,
+				uselist = False ),
+			'parameter' : relation( Parameter,
+				uselist = False )
+			})
 
-	def __str__( self ):
-		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
+		cls.name = property( 
+			lambda self: getattr( self._name, 'name', None ),
+			lambda self, name: setattr( self, '_name', ParameterName.ByName(name) ) )
 
-__all__ = [ 'ParametrizedClass', 'ParameterDesc', 'Parameter', 'ParameterType' ]
+		class_mapper( Subject ).add_property( '_parameters',
+			relation( cls, collection_class = attribute_mapped_collection('name') ))
+
+		Subject.parameters = association_proxy('_parameters', 'parameter', creator = lambda k, v: cls( name = k, parameter = v ) )
+
+	def remove( self, session ):
+		self.parameter.remove( session )
+
+		session.delete( self )
+
+class ParameterType( NameMap ):
+	"""
+	Parameter type description class.
+	"""
+
+class ParameterName( NameMap ):
+	"""
+	Parameter name description class.
+	"""
+
+__all__ = [ 'ParametrizedClass', 'ParameterDesc', 'Parameter', 'ParameterType', 'ParameterName', 'AddedParameter' ]

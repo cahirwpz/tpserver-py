@@ -78,9 +78,10 @@ class RulesetParameters( RulesetModelLoader ):
 			 -3 : [ ResourceQuantityParam, 'ResourceQuantity' ] }
 
 	def loadModelConstants( self ):
-		from tp.server.model import ParameterType
+		from tp.server.model import ( ParameterType, ParameterName )
 
 		self.model.add_class( ParameterType )
+		self.model.add_class( ParameterName )
 
 	def initModelConstants( self ):
 		ParameterType = self.model.use( 'ParameterType' )
@@ -92,8 +93,8 @@ class RulesetParameters( RulesetModelLoader ):
 		from tp.server.model import ( Parameter, OrderParameter, ObjectParameter )
 
 		self.model.add_class( Parameter, 'ParameterType' )
-		self.model.add_class( OrderParameter, 'Order', 'Parameter' )
-		self.model.add_class( ObjectParameter, 'Object', 'Parameter' )
+		self.model.add_class( OrderParameter, 'Order', 'Parameter', 'ParameterName' )
+		self.model.add_class( ObjectParameter, 'Object', 'Parameter', 'ParameterName' )
 
 		from tp.server.rules.base.parameters import ( DesignQuantity,
 				ResourceQuantity )

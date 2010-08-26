@@ -3,7 +3,8 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-from Model import ModelObject, ByNameMixin
+from Model import ModelObject
+from Generic import NameMap
 
 class Reference( ModelObject ):
 	@classmethod
@@ -22,21 +23,9 @@ class Reference( ModelObject ):
 	def __str__( self ):
 		return '<%s@%s id="%s" type="%s">' % ( self.__origname__, self.__game__.name, self.id, self.type.name )
 
-class ReferenceType( ModelObject, ByNameMixin ):
+class ReferenceType( NameMap ):
 	"""
 	Reference type description class.
 	"""
-
-	@classmethod
-	def InitMapper( cls, metadata ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('id',   Integer,     index = True, primary_key = True),
-				Column('name', String(255), index = True, nullable = False),
-				UniqueConstraint('name'))
-
-		mapper( cls, cls.__table__ )
-
-	def __str__(self):
-		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
 
 __all__ = [ 'Reference', 'ReferenceType' ]

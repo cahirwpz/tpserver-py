@@ -2,9 +2,9 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
-from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from Model import ModelObject, ByNameMixin
+from Parameter import AddedParameter
 
 class Vector3D( object ):
 	def __init__( self, x = 0, y = 0, z = 0 ):
@@ -214,29 +214,7 @@ class ObjectOrder( ModelObject ):
 	def __str__( self ):
 		return '<%s@%s object="%s" order="%s">' % ( self.__origname__, self.__game__.name, self.object_type.name, self.order_type.name )
 
-class ObjectParameter( ModelObject ):
-	@classmethod
-	def InitMapper( cls, metadata, Object, Parameter ):
-		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('object_id', ForeignKey( Object.id ), index = True, primary_key = True ),
-				Column('name',      String( 255 ), index = True, primary_key = True ),
-				Column('param_id',  ForeignKey( Parameter.id ), nullable = True ))
-
-		mapper( cls, cls.__table__, properties = {
-			'object' : relation( Object,
-				uselist = False,
-				backref = backref( 'parameters',
-					collection_class = attribute_mapped_collection( 'name' ))
-				),
-			'parameter' : relation( Parameter,
-				uselist = False )
-			})
-	
-	def remove( self, session ):
-		self.parameter.remove( session )
-
-		session.delete( self )
-
+class ObjectParameter( AddedParameter ):
 	def __str__( self ):
 		return '<%s@%s object="%s" name="%s" param="%s">' % ( self.__origname__, self.__game__.name, self.object_id, self.name, self.param_id )
 
