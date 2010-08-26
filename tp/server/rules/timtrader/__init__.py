@@ -79,7 +79,7 @@ class TimTraderRuleset( Ruleset ):
 		"""
 		Ruleset.populate( self, seed, system_min, system_max, planet_min, planet_max )
 
-		Object, ResourceQuantity, ResourceType = self.game.objects.use( 'Object', 'ResourceQuantity', 'ResourceType' )
+		Object, ResourceType = self.game.objects.use( 'Object', 'ResourceType' )
 
 		ship_parts_factory = ResourceType.ByName('Ship Parts Factory')
 
@@ -95,30 +95,22 @@ class TimTraderRuleset( Ruleset ):
 				# Does this planet have this mineral
 				if self.random.random() * 100 > mineral.probability:
 					# Add a smattering of minerals 
-					planet.resources.append(
-							resource	= mineral,
-							extractable	= self.random( 0, mineral.density ) )
+					planet.resources[ mineral ] = { 'extractable' : self.random( 0, mineral.density ) }
 
 					mine = True
 
 			# Add a mine to each planet which has minerals
 			if mine:
-				planet.resources.append(
-						resource	= ResourceType.ByName('Mine'),
-						acessible	= 1 )
+				planet.resources[ ResourceType.ByName('Mine') ] = { 'accessible' : 1 }
 			
 			# FIXME: Add growing resources
 			for resource in Growing:
 				if self.random.random() * 100 > resource.probability:
 					# Add a smattering of breeding grounds
-					planet.resources.append(
-							resource	= ResourceType.ByName(''),
-							accessible	= 1 )
+					planet.resources[ ResourceType.ByName('') ] = { 'accessible' : 1 }
 					
 					# Add a smattering of the same stocks
-					planet.resources.append(
-							resource	= ResourceType.ByName(''),
-							extractable	= self.random.randint( 0, resource.density ))
+					planet.resources[ ResourceType.ByName('') ] = { 'extractable' : self.random.randint( 0, resource.density ) }
 
 					# Add 1 fishery/slaughter house to each location
 
@@ -134,12 +126,12 @@ class TimTraderRuleset( Ruleset ):
 		"""
 		user, system, planet, fleet = Ruleset.addPlayer( self, username, password, email, comment )
 
-		ResourceQuantity, ResourceType = self.game.objects.use( 'ResourceQuantity', 'ResourceType' )
+		ResourceType = self.game.objects.use( 'ResourceType' )
 
 		# Get the player's planet object and add the empire capital
-		planet.resources = [ 
-				ResourceQuantity( resource = ResourceType.ByName('Header Quarter'), accessible = 1 ),
-				ResourceQuantity( resource = ResourceType.ByName('Credit'), accessible = 10000 ) ]
+		planet.resources = {
+				ResourceType.ByName('Header Quarter') : { 'accessible' : 1 },
+				ResourceType.ByName('Credit')         : { 'accessible' : 10000 } }
 
 		Model.add( planet )
 

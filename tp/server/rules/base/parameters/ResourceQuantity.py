@@ -2,6 +2,8 @@
 
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
+from sqlalchemy.orm.collections import attribute_mapped_collection
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from tp.server.model import ModelObject
 
@@ -25,16 +27,19 @@ class ResourceQuantity( ModelObject ):
 			})
 
 class ResourceQuantityParam( object ):
-	__maps_to__ = 'list'
+	__maps_to__ = 'quantity'
 
 	@classmethod
 	def InitMapper( cls, metadata, Parameter, ParameterType, ResourceQuantity ):
 		mapper( cls, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
-			'list' : relation( ResourceQuantity )
+			'_quantity' : relation( ResourceQuantity,
+				collection_class = attribute_mapped_collection('resource'))
 			})
 
+		cls.quantity = association_proxy('_quantity', 'quantity', creator = lambda k, v: ResourceQuantity( resource = k, **v ) )
+
 	def remove( self, session ):
-		for item in self.list:
+		for item in self._quantity:
 			item.remove( session )
 
 		session.delete( self )

@@ -42,13 +42,13 @@ class MinisecUniverseGenerator( RulesetUniverseGenerator ):
 				owner		= owner)
 
 	def createFleet( self, parent, name, owner = None ):
-		Fleet, Design, DesignQuantity = self.model.use( 'Fleet', 'Design', 'DesignQuantity' )
+		Fleet, Design = self.model.use( 'Fleet', 'Design' )
 
 		return Fleet(
 				parent   = parent,
 				size     = 3,
 				name     = name,
-				ships    = [ DesignQuantity( design = Design.ByName('Frigate'), quantity = 3 ) ],
+				ships    = { Design.ByName('Frigate') : 3 },
 				damage   = 0,
 				position = parent.position,
 				owner    = owner)

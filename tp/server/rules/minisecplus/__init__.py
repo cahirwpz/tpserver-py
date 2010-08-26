@@ -8,29 +8,27 @@ from tp.server.rules.minisec import MinisecRuleset, MinisecUniverseGenerator
 
 class MinisecPlusUniverseGenerator( MinisecUniverseGenerator ):
 	def createFleet( self, parent, name, owner = None):
-		Fleet, DesignQuantity, Design = self.model.use( 'Fleet', 'DesignQuantity', 'Design' )
+		Fleet, Design = self.model.use( 'Fleet', 'Design' )
 
 		return Fleet(
 			parent   = parent,
 			size     = 3,
 			name     = name,
-			ships    = [ DesignQuantity( design = Design.ByName('Frigate'), quantity = 3 ) ],
+			ships    = { Design.ByName('Frigate') : 3 },
 			position = parent.position,
 			owner    = owner)
 	
 	def addResourcesToPlanet( self, planet ):
-		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
+		ResourceType = self.model.use( 'ResourceType' )
 
 		NaturalResourceTypes = [ ResourceType.ByName( name ) for name in [ 'Fruit Tree', 'Weird Artifact', 'Rock', 'Water' ] ]
 
 		# Add a random smattering of resources to planets...
 		for Type in self.random.sample( NaturalResourceTypes, self.randint(0, 4) ):
-			planet.resources.append(
-						ResourceQuantity(
-							resource     = Type,
-							accessible   = self.randint( 0, 10 ),
-							extractable  = self.randint( 0, 100 ),
-							inaccessible = self.randint( 0, 1000 )))
+			planet.resources[ Type ] = {
+					'accessible'   : self.randint( 0, 10 ),
+					'extractable'  : self.randint( 0, 100 ),
+					'inaccessible' : self.randint( 0, 1000 ) }
 
 		Model.update( planet )
 
@@ -232,12 +230,12 @@ class MinisecPlusRuleset( MinisecRuleset ):
 		"""
 		user, system, planet, fleet = MinisecRuleset.addPlayer( self, username, password, email, comment )
 
-		ResourceQuantity, ResourceType = self.model.use( 'ResourceQuantity', 'ResourceType' )
+		ResourceType = self.model.use( 'ResourceType' )
 
 		# Get the player's planet object and add the empire capital
-		planet.resources = [ 
-				ResourceQuantity( resource = ResourceType.ByName('House'), accessible = 1 ),
-				ResourceQuantity( resource = ResourceType.ByName('Empire Capital'), accessible = 1 ) ]
+		planet.resources = { 
+				ResourceType.ByName('House')          : { 'accessible' : 1 },
+				ResourceType.ByName('Empire Capital') : { 'accessible' : 1 } }
 
 		Model.update( planet )
 
