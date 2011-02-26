@@ -168,7 +168,12 @@ class Model( Mapping ):
 
 		for table in sorted( tables ):
 			if table.startswith( "%s_" % model.game.name ):
-				metadata.tables[ table ].create( checkfirst = True )
+				try:
+					metadata.tables[ table ].create( checkfirst = True )
+				except:
+					error( "Cannot create storage for %s.", table )
+					raise
+
 				info( "Created storage for %s.", table )
 	
 	@staticmethod
