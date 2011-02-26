@@ -33,6 +33,10 @@ from types import StringTypes
 import re
 
 def cmp(ver1, ver2):
+	"""
+	ver1 - required
+	ver2 - actual
+	"""
 	if type(ver2) in StringTypes:
 		ver2 = [int(re.sub('[^0-9].*','', x)) for x in ver2.split('.')]
 
@@ -46,9 +50,13 @@ def cmp(ver1, ver2):
 			ver2[i] = int(re.search('(\d+)', x).group())-1
 
 	for a, b in zip(ver1, ver2):
-		if a <= b:
+		if b > a:
+			return True
+		elif b == a:
 			continue
-		return False
+		else:
+			return False
+		
 	return True
 
 def tostr(ver1):
