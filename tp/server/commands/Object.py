@@ -10,6 +10,9 @@ class ObjectFactoryMixin( FactoryMixin ):
 		try:
 			velocity = obj.velocity.vector
 		except AttributeError:
+			velocity = None
+
+		if not velocity:
 			velocity = Vector3D(0,0,0)
 
 		return Object(
