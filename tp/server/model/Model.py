@@ -214,8 +214,8 @@ class ModelObject( object ):
 	def remove( self, session ):
 		try:
 			session.delete( self )
-		except Exception as ex:
-			error( "Failed to remove %s: %s", self, ex )
+		except Exception:
+			exception( "Failed to remove %s", self )
 		#else:
 		#	debug( "Removed %s" % self )
 

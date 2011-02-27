@@ -3,6 +3,8 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation, backref, composite
 
+from logging import debug
+
 from Model import ModelObject, ByNameMixin
 from Parameter import AddedParameter
 
@@ -64,8 +66,8 @@ class Object( ModelObject ):
 			})
 
 	def remove( self, session ):
-		for name, parameter in self.parameters.iteritems():
-			parameter.remove( session )
+		for name in self.parameters.iterkeys():
+			self._parameters[ name ].remove( session )
 
 		session.commit()
 		

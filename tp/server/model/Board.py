@@ -31,7 +31,7 @@ class Board( ModelObject ):
 		for message in self.messages:
 			message.remove( session )
 
-		super( Board, self ).remove( self )
+		super( Board, self ).remove( session )
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
