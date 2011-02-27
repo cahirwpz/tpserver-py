@@ -10,9 +10,9 @@ class RelCoordParam( object ):
 	def InitMapper( cls, metadata, Parameter, ParameterType, Object ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('param_id',  ForeignKey( Parameter.id ), index = True, primary_key = True ),
-				Column('x',         Integer, nullable = False ),
-				Column('y',         Integer, nullable = False ),
-				Column('z',         Integer, nullable = False ),
+				Column('x',         Integer, default = 0, nullable = False ),
+				Column('y',         Integer, default = 0, nullable = False ),
+				Column('z',         Integer, default = 0, nullable = False ),
 				Column('parent_id', ForeignKey( Object.id ), nullable = True ))
 
 		cols = cls.__table__.c
