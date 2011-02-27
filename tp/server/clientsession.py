@@ -93,8 +93,8 @@ class ClientSessionHandler( object ):
 
 				try:
 					response = handler( packet )
-				except Exception, ex:
-					exception( "Exception %s(%s) caught!" % (ex.__class__.__name__, str(ex)) )
+				except Exception as ex:
+					exception( "Handler for command %s failed:\n%s", packet.__class__.__name__, ex )
 					response = None
 				
 				if not response:

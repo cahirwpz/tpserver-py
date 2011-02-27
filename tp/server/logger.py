@@ -71,7 +71,12 @@ class Formatter( logging.Formatter ):
 			s.append('')
 
 			for name, val in localVars.iteritems():
-				s.append(' %s : %s' % (name, repr(val)))
+				try:
+					sval = repr(val)
+				except:
+					sval = '${red1}ERROR: repr(...) failed!${coff}'
+
+				s.append(' %s : %s' % (name, sval))
 
 			s.append('')
 
