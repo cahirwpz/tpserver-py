@@ -158,7 +158,7 @@ except Exception, e:
 
 print
 
-twisted_version = (10, 0, 0)
+twisted_version = (10, 1, 0)
 try:
 	print " * Looking for Twisted >= %s," % tostr(twisted_version)
 
@@ -178,7 +178,7 @@ except Exception, e:
 		notfound.append("twisted")
 
 print
-sqlalchemy_version = (0, 5, 8)
+sqlalchemy_version = (0, 6, 3)
 try:
 	print " * Looking for SQLAlchemy >= %s," % tostr(sqlalchemy_version)
 
@@ -196,7 +196,7 @@ except Exception, e:
 		notfound.append('SQLAlchemy')
 
 print
-sqlite_version = (3, 6, 19)
+sqlite_version = (3, 7, 2)
 try:
 	print " * Looking for SQLite >= %s," % tostr(sqlite_version)
 
