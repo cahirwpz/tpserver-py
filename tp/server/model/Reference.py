@@ -11,7 +11,7 @@ class Reference( ModelObject ):
 	def InitMapper( cls, metadata, ReferenceType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',      Integer, index = True, primary_key = True),
-				Column('type_id', ForeignKey( ReferenceType.id ), nullable = False))
+				Column('type_id', Integer, ForeignKey( ReferenceType.id ), nullable = False))
 
 		cols = cls.__table__.c
 

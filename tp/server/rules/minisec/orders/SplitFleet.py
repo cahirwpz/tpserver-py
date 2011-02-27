@@ -6,7 +6,7 @@ from sqlalchemy.orm import mapper
 import copy
 
 from tp.server.model import ParameterDesc, ParametrizedClass
-from tp.server.rules.base.parameters import ReferenceListParam, StringParam
+from tp.server.rules.base.parameters import GenericReferenceListParam, StringParam
 
 class SplitFleetOrder( object ):
 	"""
@@ -21,7 +21,7 @@ class SplitFleetOrder( object ):
 			description = "What to call the new fleet." )
 
 	ships = ParameterDesc(
-			type		= ReferenceListParam,
+			type		= GenericReferenceListParam,
 			default		= None,
 			level		= 'protected',
 			description	= "Ships to move into new fleet.")

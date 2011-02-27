@@ -27,7 +27,10 @@ class GetBoards( GetWithIDHandler, BoardFactoryMixin ):
 
 	def fetch( self, obj, id ):
 		if id == 0:
-			return self.player.boards[0]
+			try:
+				return self.player.boards[0]
+			except IndexError:
+				return None
 
 		return GetWithIDHandler.fetch( self, obj, id )
 

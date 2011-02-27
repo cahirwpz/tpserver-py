@@ -40,6 +40,6 @@ class DesignQuantityParam( object ):
 		for item in self._quantity:
 			item.remove( session )
 
-		session.delete( self )
+		super( DesignQuantityParm, self ).remove( session )
 
 __all__ = [ 'DesignQuantity', 'DesignQuantityParam' ]

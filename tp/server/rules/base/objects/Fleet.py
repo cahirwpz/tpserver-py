@@ -4,13 +4,13 @@ from types import TupleType, ListType
 
 from tp.server.model import ParameterDesc, ParametrizedClass
 
-from tp.server.rules.base.parameters import PlayerParam, DesignQuantityParam, NumberParam, RelCoordParam
+from tp.server.rules.base.parameters import PlayerRefParam, DesignQuantityParam, NumberParam, RelCoordParam
 
 class Fleet( object ):
 	__metaclass__ = ParametrizedClass
 
 	owner = ParameterDesc(
-			type        = PlayerParam,
+			type        = PlayerRefParam,
 			level       = 'public',
 			description = "Owner of the fleet." )
 

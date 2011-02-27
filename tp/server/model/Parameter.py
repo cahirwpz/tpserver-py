@@ -106,7 +106,7 @@ class AddedParameter( ModelObject ):
 	def remove( self, session ):
 		self.parameter.remove( session )
 
-		session.delete( self )
+		super( AddedParameter, self ).remove( session )
 
 class ParameterType( NameMap ):
 	"""

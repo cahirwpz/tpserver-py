@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
 from tp.server.model import ParameterDesc, ParametrizedClass
-from tp.server.rules.base.parameters import PlayerParam, ResourceQuantityParam
+from tp.server.rules.base.parameters import PlayerRefParam, ResourceQuantityParam
 
 class Planet( object ):
 	__metaclass__ = ParametrizedClass
 
 	owner = ParameterDesc(
-		type		= PlayerParam,
+		type		= PlayerRefParam,
 		level		= 'public',
 		description	= "Current owner of the planet.")
 

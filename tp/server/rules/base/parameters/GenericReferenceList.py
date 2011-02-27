@@ -3,7 +3,7 @@
 from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
-class ReferenceListParam( object ):
+class GenericReferenceListParam( object ):
 	# TODO: constraint checking!
 	#  - 'references' list items must be present in 'allowed' list
 	#  - 'allowed' list items must be unique
@@ -23,4 +23,4 @@ class ReferenceListParam( object ):
 				collection_class = set )
 			})
 
-__all__ = [ 'ReferenceListParam' ]
+__all__ = [ 'GenericReferenceListParam' ]

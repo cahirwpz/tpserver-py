@@ -15,7 +15,7 @@ class Board( ModelObject ):
 	def InitMapper( cls, metadata, Player ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',          Integer, index = True, primary_key = True ),
-				Column('owner_id',    ForeignKey( Player.id ), index = True, nullable = True ),
+				Column('owner_id',    Integer, ForeignKey( Player.id ), index = True, nullable = True ),
 				Column('name',        String(255), nullable = False ),
 				Column('description', Text, nullable = False ),
 				Column('mtime',	      DateTime, nullable = False,
@@ -31,7 +31,7 @@ class Board( ModelObject ):
 		for message in self.messages:
 			message.remove( session )
 
-		session.delete( self )
+		super( Board, self ).remove( self )
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )

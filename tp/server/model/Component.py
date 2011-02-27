@@ -31,7 +31,7 @@ class Component( ModelObject, ByNameMixin ):
 
 		session.commit()
 
-		session.delete( self )
+		super( Component, self ).remove( session )
 
 	def __str__( self ):
 		return '<%s@%s id="%s" name="%s">' % ( self.__origname__, self.__game__.name, self.id, self.name )
@@ -40,8 +40,8 @@ class ComponentCategory( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Component, Category ):
 		cls.__table__ = Table( cls.__tablename__, metadata, 
-				Column('component_id', ForeignKey( Component.id ), primary_key = True),
-				Column('category_id',  ForeignKey( Category.id ), primary_key = True))
+				Column('component_id', Integer, ForeignKey( Component.id ), primary_key = True),
+				Column('category_id',  Integer, ForeignKey( Category.id ), primary_key = True))
 
 		cols = cls.__table__.c
 
@@ -60,15 +60,15 @@ class ComponentCategory( ModelObject ):
 				backref = backref( 'components' )))
 
 	def __str__( self ):
-		return '<%s@%s id="%s" component="%s", category="%s">' % \
+		return '<%s@%s component="%s", category="%s">' % \
 				( self.__origname__, self.__game__.name, self.component.name, self.category.name )
 
 class ComponentProperty( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, Component, Property ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('component_id', ForeignKey( Component.id ), primary_key = True ),
-				Column('property_id',  ForeignKey( Property.id ), primary_key = True ),
+				Column('component_id', Integer, ForeignKey( Component.id ), primary_key = True ),
+				Column('property_id',  Integer, ForeignKey( Property.id ), primary_key = True ),
 				Column('value',        Text, nullable = False, default = """(lambda (design) 1)""" ))
 
 		cols = cls.__table__.c
@@ -88,7 +88,7 @@ class ComponentProperty( ModelObject ):
 		Component.properties = association_proxy('_properties', 'value', creator = lambda k,v: cls( property = k, value = v ) )
 	
 	def __str__( self ):
-		return '<%s@%s id="%s" component="%s", property="%s">' % \
+		return '<%s@%s component="%s", property="%s">' % \
 				( self.__origname__, self.__game__.name, self.component.name, self.property.name )
 
 __all__ = [ 'Component', 'ComponentCategory', 'ComponentProperty' ]

@@ -58,24 +58,35 @@ class RulesetModelLoader( object ):
 
 class RulesetParameters( RulesetModelLoader ):
 	from tp.server.rules.base.parameters import ( AbsCoordParam, TimeParam,
-			ObjectParam, PlayerParam, RelCoordParam, RangeParam,
+			ObjectRefParam, PlayerRefParam, RelCoordParam, RangeParam,
 			StringParam, NumberParam, ResourceQuantityParam,
-			DesignQuantityParam )
+			DesignQuantityParam, OrderTypeRefParam, OrderRefParam,
+			BoardRefParam, MessageRefParam, CategoryRefParam, DesignRefParam,
+			ComponentRefParam, PropertyRefParam, ObjectTypeRefParam )
 
 	ParameterTypeMap = {
 			  0 : [ AbsCoordParam ],
 			  1 : [ TimeParam ],
-			  2 : [ ObjectParam, 'Object' ],
-			  3 : [ PlayerParam, 'Player' ],
+			  2 : [ ObjectRefParam, 'Object' ],
+			  3 : [ PlayerRefParam, 'Player' ],
 			  4 : [ RelCoordParam, 'Object' ],
 			  5 : [ RangeParam ],
-			# 6 : [ ListParam ],
+			# 6 : [ SelectionListParam ],
 			  7 : [ StringParam ],
-			# 8 : [ GenericReference ],
-			# 9 : [ GenericReferenceList ],
+			# 8 : [ GenericReferenceParam ],
+			# 9 : [ GenericReferenceListParam ],
 			 -1 : [ NumberParam ],
 			 -2 : [ DesignQuantityParam, 'DesignQuantity' ],
-			 -3 : [ ResourceQuantityParam, 'ResourceQuantity' ] }
+			 -3 : [ ResourceQuantityParam, 'ResourceQuantity' ],
+			 -4 : [ OrderTypeRefParam, 'OrderType' ],
+			 -5 : [ OrderRefParam, 'Order' ],
+			 -6 : [ BoardRefParam, 'Board' ],
+			 -7 : [ MessageRefParam, 'Message' ],
+			 -8 : [ CategoryRefParam, 'Category' ],
+			 -9 : [ DesignRefParam, 'Design' ],
+			-10 : [ ComponentRefParam, 'Component' ],
+			-11 : [ PropertyRefParam, 'Property' ],
+			-12 : [ ObjectTypeRefParam, 'ObjectType' ] }
 
 	def loadModelConstants( self ):
 		from tp.server.model import ( ParameterType, ParameterName )

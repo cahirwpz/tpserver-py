@@ -38,8 +38,8 @@ class Object( ModelObject ):
 	def InitMapper( cls, metadata, ObjectType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
 				Column('id',	    Integer,     index = True, primary_key = True),
-				Column('type_id',	ForeignKey( ObjectType.id ), nullable = False),
-				Column('parent_id', ForeignKey( "%s.id" % cls.__tablename__ ), nullable = True),
+				Column('type_id',	Integer,     ForeignKey( ObjectType.id ), nullable = False),
+				Column('parent_id', Integer,     ForeignKey( "%s.id" % cls.__tablename__ ), nullable = True),
 				Column('name',      Text,        nullable = False),
 				Column('size',      Integer(64), nullable = False, default = 0),
 				Column('pos_x',     Integer(64), nullable = False, default = 0),
@@ -73,7 +73,7 @@ class Object( ModelObject ):
 			child.parent = None
 			session.add( child )
 		
-		session.delete( self )
+		super( Object, self ).remove( session )
 
 	@classmethod
 	def ByType( cls, type_name ):
@@ -195,8 +195,8 @@ class ObjectOrder( ModelObject ):
 	@classmethod
 	def InitMapper( cls, metadata, ObjectType, OrderType ):
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('object_type_id', ForeignKey( ObjectType.id ), primary_key = True ),
-				Column('order_type_id',  ForeignKey( OrderType.id ), primary_key = True ))
+				Column('object_type_id', Integer, ForeignKey( ObjectType.id ), primary_key = True ),
+				Column('order_type_id',  Integer, ForeignKey( OrderType.id ), primary_key = True ))
 
 		cols = cls.__table__.c
 

@@ -41,7 +41,7 @@ class Design( ModelObject, ByNameMixin ):
 
 		session.commit()
 
-		session.delete( self )
+		super( Design, self).remove( session )
 
 	# @property
 	# def used(self):

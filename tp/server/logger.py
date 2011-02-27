@@ -106,7 +106,12 @@ class Formatter( logging.Formatter ):
 
 		s = []
 
-		for line in record.getMessage().splitlines():
+		try:
+			message = record.getMessage()
+		except:
+			logging.exception( "Logging message malformed" )
+		
+		for line in message.splitlines():
 			record.message = ''.join( [ self.levelcolors[ record.levelname ], line, '${coff}' ] )
 			s.append( self._fmt % record.__dict__ )
 

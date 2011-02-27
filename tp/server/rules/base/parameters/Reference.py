@@ -4,20 +4,53 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper, relation
 
 class ReferenceParam( object ):
-	# TODO: constraint checking!
-	# - 'reference' must be present in 'allowed' list
-	# - 'allowed' list items must be unique
 	@classmethod
-	def InitMapper( cls, metadata, Parameter, ParameterType, NumberList ):
+	def InitMapper( cls, metadata, Parameter, ParameterType, Subject ):
+		name = Subject.__origname__.lower()
+
 		cls.__table__ = Table( cls.__tablename__, metadata,
-				Column('param_id',        ForeignKey( Parameter.id ), index = True, primary_key = True ),
-				Column('reference',       Integer, nullable = False ),
-				Column('allowed_list_id', ForeignKey( NumberList.id ), nullable = False ))
+				Column('param_id',     ForeignKey( Parameter.id ), index = True, primary_key = True ),
+				Column('%s_id' % name, ForeignKey( Subject.id ), nullable = True ))
 
 		mapper( cls, cls.__table__, inherits = Parameter, polymorphic_identity = ParameterType, properties = {
-			'allowed' : relation( NumberList,
-				primaryjoin = cls.__table__.c.allowed_list_id == NumberList.__table__.c.id,
-				collection_class = set )
+			name : relation( Subject,
+				uselist = False )
 			})
+	
+class ObjectRefParam( ReferenceParam ):
+	__maps_to__ = 'object'
 
-__all__ = [ 'ReferenceParam' ]
+class PlayerRefParam( ReferenceParam ):
+	__maps_to__ = 'player'
+
+class OrderTypeRefParam( ReferenceParam ):
+	__maps_to__ = 'ordertype'
+
+class OrderRefParam( ReferenceParam ):
+	__maps_to__ = 'order'
+
+class BoardRefParam( ReferenceParam ):
+	__maps_to__ = 'board'
+
+class MessageRefParam( ReferenceParam ):
+	__maps_to__ = 'message'
+
+class CategoryRefParam( ReferenceParam ):
+	__maps_to__ = 'category'
+
+class DesignRefParam( ReferenceParam ):
+	__maps_to__ = 'design'
+
+class ComponentRefParam( ReferenceParam ):
+	__maps_to__ = 'component'
+
+class PropertyRefParam( ReferenceParam ):
+	__maps_to__ = 'property'
+
+class ObjectTypeRefParam( ReferenceParam ):
+	__maps_to__ = 'objecttype'
+
+__all__ = [ 'ObjectRefParam', 'PlayerRefParam', 'OrderTypeRefParam',
+			'OrderRefParam', 'BoardRefParam', 'MessageRefParam',
+			'CategoryRefParam', 'DesignRefParam', 'ComponentRefParam',
+			'PropertyRefParam', 'ObjectTypeRefParam' ]

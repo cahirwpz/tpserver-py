@@ -42,6 +42,6 @@ class ResourceQuantityParam( object ):
 		for item in self._quantity:
 			item.remove( session )
 
-		session.delete( self )
+		super( ResourceQuantityParam, self ).remove( session )
 
 __all__ = [ 'ResourceQuantity', 'ResourceQuantityParam' ]

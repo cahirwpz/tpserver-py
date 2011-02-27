@@ -2,7 +2,7 @@
 
 import re, csv, datetime, inspect
 from collections import Mapping
-from logging import debug, info, warning, error
+from logging import debug, info, warning, error, exception
 
 from DatabaseManager import DatabaseManager, make_mapping
 
@@ -131,7 +131,7 @@ class Model( Mapping ):
 				session.add( obj )
 
 		for obj in objs:
-			debug( "Added %s to the Model", obj )
+			debug( "Added %s", obj )
 	
 	update = add
 
@@ -142,9 +142,11 @@ class Model( Mapping ):
 		assert all( isinstance( obj, ModelObject ) for obj in objs )
 
 		with DatabaseManager().session() as session:
-			for obj in objs:
-				obj.remove( session )
-				debug( "Removed %s from the Model", obj )
+			try:
+				for obj in objs:
+					obj.remove( session )
+			except Exception as ex:
+				exception( "Removing failed: %s", ex )
 
 	@staticmethod
 	def refresh( *objs ):
@@ -173,8 +175,8 @@ class Model( Mapping ):
 				except:
 					error( "Cannot create storage for %s.", table )
 					raise
-
-				info( "Created storage for %s.", table )
+				else:
+					info( "Created storage for %s.", table )
 	
 	@staticmethod
 	def drop( model ):
@@ -210,7 +212,12 @@ class ModelObject( object ):
 					( self.__class__.__name__, key, ', '.join(self._data_descriptors.keys()) ))
 
 	def remove( self, session ):
-		session.delete( self )
+		try:
+			session.delete( self )
+		except Exception as ex:
+			error( "Failed to remove %s: %s", self, ex )
+		#else:
+		#	debug( "Removed %s" % self )
 
 	@classmethod
 	def query( cls ):

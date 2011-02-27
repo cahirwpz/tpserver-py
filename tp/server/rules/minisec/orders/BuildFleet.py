@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.model import ParameterDesc, ParametrizedClass
-from tp.server.rules.base.parameters import ReferenceListParam, StringParam
+from tp.server.rules.base.parameters import GenericReferenceListParam, StringParam
 
 class BuildFleetOrder( object ):
 	"""
@@ -13,7 +13,7 @@ class BuildFleetOrder( object ):
 	__metaclass__ = ParametrizedClass
 
 	ships = ParameterDesc(
-		type		= ReferenceListParam,
+		type		= GenericReferenceListParam,
 		default		= None,
 		level		= 'protected', 
 		description	= "Ships to build and launch." )

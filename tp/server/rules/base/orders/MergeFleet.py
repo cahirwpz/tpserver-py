@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.model import ParameterDesc, ParametrizedClass
-from tp.server.rules.base.parameters import ObjectParam
+from tp.server.rules.base.parameters import ObjectRefParam
 
 class MergeFleetOrder( object ):
 	"""
@@ -13,7 +13,7 @@ class MergeFleetOrder( object ):
 	__metaclass__ = ParametrizedClass
 
 	fleet = ParameterDesc(
-			type		= ObjectParam,
+			type		= ObjectRefParam,
 			default		= None,
 			level		= 'protected',
 			description	= "Fleet to merge with.")

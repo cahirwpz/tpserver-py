@@ -4,7 +4,7 @@ from sqlalchemy import *
 from sqlalchemy.orm import mapper
 
 from tp.server.model import ParameterDesc, ParametrizedClass
-from tp.server.rules.base.parameters import ObjectParam
+from tp.server.rules.base.parameters import ObjectRefParam
 
 class ColoniseOrder( object ):
 	"""
@@ -13,7 +13,7 @@ class ColoniseOrder( object ):
 	__metaclass__ = ParametrizedClass
 
 	target	= ParameterDesc(
-			type		= ObjectParam,
+			type		= ObjectRefParam,
 			default		= None,
 			level		= 'public',
 			description	= "ID of object to colonise." )
